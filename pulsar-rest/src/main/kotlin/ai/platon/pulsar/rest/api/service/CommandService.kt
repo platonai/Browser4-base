@@ -220,30 +220,32 @@ class CommandService(
         
         if (serverSideEventHandlers != null) {
             // Collect server-side events and emit status updates when events occur
-            val eventJob = kotlinx.coroutines.launch {
-                serverSideEventHandlers.eventFlow.collect { event ->
-                    // Update status with event information
-                    status.refresh(event.eventType)
-                    status.event = event.eventType
+            coroutineScope {
+                val eventJob = launch {
+                    serverSideEventHandlers.eventFlow.collect { event ->
+                        // Update status with event information
+                        status.refresh(event.eventType)
+                        status.event = event.eventType
+                    }
                 }
-            }
-            
-            try {
-                do {
-                    delay(FLOW_POLLING_INTERVAL)
+                
+                try {
+                    do {
+                        delay(FLOW_POLLING_INTERVAL)
 
-                    if (status.refreshed(lastModifiedTime)) {
-                        emit(status)
-                        lastModifiedTime = status.lastModifiedTime ?: Instant.EPOCH
-                    }
+                        if (status.refreshed(lastModifiedTime)) {
+                            emit(status)
+                            lastModifiedTime = status.lastModifiedTime ?: Instant.EPOCH
+                        }
 
-                    if (status.isDone) {
-                        // emit a final event, it's OK to emit a duplicate event
-                        emit(status)
-                    }
-                } while (!status.isDone)
-            } finally {
-                eventJob.cancel()
+                        if (status.isDone) {
+                            // emit a final event, it's OK to emit a duplicate event
+                            emit(status)
+                        }
+                    } while (!status.isDone)
+                } finally {
+                    eventJob.cancel()
+                }
             }
         } else {
             // Fallback to original polling behavior
