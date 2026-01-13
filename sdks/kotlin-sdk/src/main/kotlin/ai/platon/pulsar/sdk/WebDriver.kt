@@ -712,15 +712,9 @@ class WebDriver(
      * @return Base64-encoded screenshot or null
      */
     fun captureScreenshot(selector: String? = null, fullPage: Boolean = false): String? {
-        return if (selector != null) {
-            screenshot(selector)
-        } else {
-            val payload = mutableMapOf<String, Any>("strategy" to "css")
-            if (fullPage) {
-                payload["fullPage"] = true
-            }
-            client.post("/session/{sessionId}/selectors/screenshot", payload) as? String
-        }
+        // Use "body" as default selector for full page screenshots
+        val effectiveSelector = selector ?: "body"
+        return screenshot(effectiveSelector)
     }
 
     /**
@@ -731,10 +725,11 @@ class WebDriver(
      * @return Base64-encoded screenshot or null
      */
     fun screenshot(selector: String? = null, strategy: String = "css"): String? {
-        val payload = mutableMapOf<String, Any>("strategy" to strategy)
-        if (selector != null) {
-            payload["selector"] = selector
-        }
+        val effectiveSelector = selector ?: "body"
+        val payload = mapOf(
+            "selector" to effectiveSelector,
+            "strategy" to strategy
+        )
         return client.post("/session/{sessionId}/selectors/screenshot", payload) as? String
     }
 

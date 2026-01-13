@@ -96,12 +96,9 @@ open class PulsarSession(
      */
     @Suppress("UNCHECKED_CAST")
     fun normalize(url: String, args: String? = null, toItemOption: Boolean = false): NormURL {
-        val payload = mutableMapOf<String, Any?>("url" to url)
+        val payload = mutableMapOf<String, Any?>("url" to url, "toItemOption" to toItemOption)
         if (args != null) {
             payload["args"] = args
-        }
-        if (toItemOption) {
-            payload["toItemOption"] = toItemOption
         }
         val value = client.post("/session/{sessionId}/normalize", payload)
         return if (value is Map<*, *>) {

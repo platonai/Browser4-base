@@ -81,7 +81,8 @@ class PulsarSessionController(
             contentType = page.contentType ?: "text/html",
             contentLength = page.contentLength.toInt(),
             protocolStatus = page.protocolStatus?.toString() ?: "200 OK",
-            isNil = page.isNil
+            isNil = page.isNil,
+            html = page.contentAsString
         )
 
         return ResponseEntity.ok(OpenResponse(value = result))
@@ -119,7 +120,8 @@ class PulsarSessionController(
             contentType = page.contentType ?: "text/html",
             contentLength = page.contentLength.toInt(),
             protocolStatus = page.protocolStatus?.toString() ?: "200 OK",
-            isNil = page.isNil
+            isNil = page.isNil,
+            html = page.contentAsString
         )
 
         return ResponseEntity.ok(LoadResponse(value = result))

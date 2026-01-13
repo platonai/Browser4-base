@@ -485,7 +485,8 @@ data class WebPageResult(
     @param:JsonProperty("contentType") val contentType: String? = null,
     @param:JsonProperty("contentLength") val contentLength: Int = 0,
     @param:JsonProperty("protocolStatus") val protocolStatus: String? = null,
-    @param:JsonProperty("isNil") val isNil: Boolean = false
+    @param:JsonProperty("isNil") val isNil: Boolean = false,
+    @param:JsonProperty("html") val html: String? = null
 )
 
 /**

@@ -41,9 +41,10 @@ class NavigationController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         try {
-            // Use real PulsarSession to load the page
+            // Get or create bound driver and navigate to URL
             runBlocking {
-                session.pulsarSession.load(request.url)
+                val driver = session.pulsarSession.getOrCreateBoundDriver()
+                driver.navigateTo(request.url)
             }
             sessionManager.setSessionUrl(sessionId, request.url)
         } catch (e: Exception) {
