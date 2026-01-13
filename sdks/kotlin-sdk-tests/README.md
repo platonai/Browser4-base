@@ -2,13 +2,15 @@
 
 Integration tests for the Kotlin SDK with real Browser4 REST server.
 
+**Status**: ✅ Implementation Complete (4 test classes, 55+ tests)
+
 ## Overview
 
-This module contains integration tests that:
+This module contains comprehensive integration tests that:
 - Start a real pulsar-rest server on a random port
 - Test the Kotlin SDK against the live server
 - Include a mock EC server for test pages
-- Cover all major SDK functionality
+- Cover all major SDK functionality (PulsarClient, WebDriver, PulsarSession, AgenticSession)
 
 ## Running Tests
 
@@ -38,6 +40,11 @@ mvn test -pl sdks/kotlin-sdk-tests -DrunIntegrationTests=true
 ```bash
 mvn test -Dtest=PulsarClientIntegrationTest -DrunIntegrationTests=true
 mvn test -Dtest=WebDriverIntegrationTest -DrunIntegrationTests=true
+mvn test -Dtest=PulsarSessionIntegrationTest -DrunIntegrationTests=true
+
+# AgenticSession tests are disabled by default (require AI/LLM config)
+# To enable them, remove @Disabled annotation and configure AI
+mvn test -Dtest=AgenticSessionIntegrationTest -DrunFullTests=true
 ```
 
 ### Run Tests with Specific Tags
@@ -91,20 +98,46 @@ Key settings:
 
 ## Test Coverage
 
-### PulsarClient Tests
+### PulsarClient Tests (6 tests)
 - Session creation and deletion
+- Session with capabilities
 - HTTP operations (GET, POST, DELETE)
 - Error handling
+- Session not found handling
 - Multiple session support
 
-### WebDriver Tests
-- Page navigation
-- Element selection and interaction
-- Content extraction
-- Scrolling operations
+### WebDriver Tests (15 tests)
+- Page navigation (to URL, back, forward, reload)
+- Element selection and existence checks
+- Content extraction (text, multiple fields)
+- Scrolling operations (to top, to bottom)
 - Screenshot capture
 - Script execution
 - Wait mechanisms
+- Page source retrieval
+
+### PulsarSession Tests (18 tests)
+- Session validation and activity checks
+- URL normalization with/without arguments
+- Page loading (load, open methods)
+- Document parsing
+- Field extraction with CSS selectors
+- Scraping with combined operations
+- Multiple page loading (loadAll)
+- Async URL submission (submit, submitAll)
+- Driver access through session
+- Nil page handling
+
+### AgenticSession Tests (16 tests, disabled by default)
+- Single and parameterized AI actions
+- Autonomous multi-step task execution
+- Page observation with AI
+- AI-powered data extraction
+- Page summarization (default and custom)
+- Complex multi-step workflows
+- Combined manual and AI operations
+- Error handling for AI operations
+- Session state management
 
 ## Performance Targets
 
