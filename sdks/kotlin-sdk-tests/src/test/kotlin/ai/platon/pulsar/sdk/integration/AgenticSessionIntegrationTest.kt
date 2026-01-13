@@ -66,7 +66,7 @@ class AgenticSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
         val result = session.run("visit ${TestUrls.PRODUCT_DETAIL} and summarize the product")
         
         assertNotNull(result, "Task result should not be null")
-        assertTrue(result.isNotBlank(), "Task result should not be blank")
+        assertTrue(result.message.isNotBlank(), "Task result message should not be blank")
     }
 
     @Test
