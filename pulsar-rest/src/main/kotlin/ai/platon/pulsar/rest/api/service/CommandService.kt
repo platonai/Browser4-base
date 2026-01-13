@@ -223,9 +223,11 @@ class CommandService(
             coroutineScope {
                 val eventJob = launch {
                     serverSideEventHandlers.eventFlow.collect { event ->
-                        // Update status with event information
-                        status.refresh(event.eventType)
-                        status.event = event.eventType
+                        // Update status with event information - synchronized access
+                        synchronized(status) {
+                            status.refresh(event.eventType)
+                            status.event = event.eventType
+                        }
                     }
                 }
                 
@@ -233,9 +235,14 @@ class CommandService(
                     do {
                         delay(FLOW_POLLING_INTERVAL)
 
-                        if (status.refreshed(lastModifiedTime)) {
+                        val shouldEmit = synchronized(status) {
+                            status.refreshed(lastModifiedTime).also {
+                                if (it) lastModifiedTime = status.lastModifiedTime ?: Instant.EPOCH
+                            }
+                        }
+
+                        if (shouldEmit) {
                             emit(status)
-                            lastModifiedTime = status.lastModifiedTime ?: Instant.EPOCH
                         }
 
                         if (status.isDone) {

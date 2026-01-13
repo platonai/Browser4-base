@@ -118,12 +118,8 @@ class PageParser(
             // The more specific handlers has the opportunity to override the result of more general handlers.
             page.loadEventHandlers?.onWillParse?.invoke(page)
             GlobalEventHandlers.pageEventHandlers?.loadEventHandlers?.onWillParse?.invoke(page)
-            // Forward to server-side event handlers
-            GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-                kotlinx.coroutines.runBlocking {
-                    handlers.onLoadEvent("onWillParse", page)
-                }
-            }
+            // Forward to server-side event handlers (non-blocking)
+            GlobalEventHandlers.emitLoadEvent("onWillParse", page)
         } catch (e: Throwable) {
             logger.warn("[onWillParse]", e)
         }
@@ -134,12 +130,8 @@ class PageParser(
             GlobalEventHandlers.pageEventHandlers?.loadEventHandlers?.onParsed?.invoke(page)
             // The more specific handlers has the opportunity to override the result of more general handlers.
             page.loadEventHandlers?.onParsed?.invoke(page)
-            // Forward to server-side event handlers
-            GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-                kotlinx.coroutines.runBlocking {
-                    handlers.onLoadEvent("onParsed", page)
-                }
-            }
+            // Forward to server-side event handlers (non-blocking)
+            GlobalEventHandlers.emitLoadEvent("onParsed", page)
         } catch (e: Throwable) {
             logger.warn("[onParsed]", e)
         }

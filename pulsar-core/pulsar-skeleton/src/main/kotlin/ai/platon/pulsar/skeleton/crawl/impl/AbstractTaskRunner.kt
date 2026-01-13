@@ -65,12 +65,8 @@ abstract class AbstractTaskRunner(
             GlobalEventHandlers.pageEventHandlers?.crawlEventHandlers?.onWillLoad?.invoke(url)
             // The more specific handlers has the opportunity to override the result of more general handlers.
             url.eventHandlers.crawlEventHandlers.onWillLoad(url)
-            // Forward to server-side event handlers
-            GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-                kotlinx.coroutines.runBlocking {
-                    handlers.onCrawlEvent("onWillLoad", url.url)
-                }
-            }
+            // Forward to server-side event handlers (non-blocking)
+            GlobalEventHandlers.emitCrawlEvent("onWillLoad", url.url)
         }
     }
 
@@ -93,15 +89,11 @@ abstract class AbstractTaskRunner(
             url.eventHandlers.crawlEventHandlers.onLoaded(url, page)
         }
         
-        // Forward to server-side event handlers
-        GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-            kotlinx.coroutines.runBlocking {
-                if (page != null) {
-                    handlers.onLoadEvent("onLoaded", page)
-                } else {
-                    handlers.onCrawlEvent("onLoaded", url.url)
-                }
-            }
+        // Forward to server-side event handlers (non-blocking)
+        if (page != null) {
+            GlobalEventHandlers.emitLoadEvent("onLoaded", page)
+        } else {
+            GlobalEventHandlers.emitCrawlEvent("onLoaded", url.url)
         }
     }
 

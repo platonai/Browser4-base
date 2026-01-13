@@ -131,12 +131,8 @@ open class FetchComponent(
             GlobalEventHandlers.pageEventHandlers?.loadEventHandlers?.onWillFetch?.invoke(page)
             // The more specific handlers has the opportunity to override the result of more general handlers.
             page.loadEventHandlers?.onWillFetch?.invoke(page)
-            // Forward to server-side event handlers
-            GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-                kotlinx.coroutines.runBlocking {
-                    handlers.onLoadEvent("onWillFetch", page)
-                }
-            }
+            // Forward to server-side event handlers (non-blocking)
+            GlobalEventHandlers.emitLoadEvent("onWillFetch", page)
         } catch (e: Throwable) {
             logger.warn("Failed to invoke onWillFetch | ${page.configuredUrl}", e)
         }
@@ -147,12 +143,8 @@ open class FetchComponent(
             GlobalEventHandlers.pageEventHandlers?.loadEventHandlers?.onFetched?.invoke(page)
             // The more specific handlers has the opportunity to override the result of more general handlers.
             page.loadEventHandlers?.onFetched?.invoke(page)
-            // Forward to server-side event handlers
-            GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-                kotlinx.coroutines.runBlocking {
-                    handlers.onLoadEvent("onFetched", page)
-                }
-            }
+            // Forward to server-side event handlers (non-blocking)
+            GlobalEventHandlers.emitLoadEvent("onFetched", page)
         } catch (e: Throwable) {
             logger.warn("Failed to invoke onFetched | ${page.configuredUrl}", e)
         }

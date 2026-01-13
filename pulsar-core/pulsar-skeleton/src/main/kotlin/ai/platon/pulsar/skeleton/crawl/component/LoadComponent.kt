@@ -532,12 +532,8 @@ class LoadComponent(
             GlobalEventHandlers.pageEventHandlers?.loadEventHandlers?.onWillLoad?.invoke(url)
             // The more specific handlers has the opportunity to override the result of more general handlers.
             getPageEventHandlersOrNull(normURL, page)?.loadEventHandlers?.onWillLoad?.invoke(url)
-            // Forward to server-side event handlers
-            GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-                kotlinx.coroutines.runBlocking {
-                    handlers.onCrawlEvent("onWillLoad", url)
-                }
-            }
+            // Forward to server-side event handlers (non-blocking)
+            GlobalEventHandlers.emitCrawlEvent("onWillLoad", url)
         } catch (e: Throwable) {
             val configuredUrl = page?.configuredUrl ?: normURL.configuredUrl
             logger.warn("Failed to invoke beforeLoad | $configuredUrl", e)
@@ -567,12 +563,8 @@ class LoadComponent(
             GlobalEventHandlers.pageEventHandlers?.loadEventHandlers?.onLoaded?.invoke(page0)
             // The more specific handlers has the opportunity to override the result of more general handlers.
             getPageEventHandlersOrNull(normURL, page)?.loadEventHandlers?.onLoaded?.invoke(page0)
-            // Forward to server-side event handlers
-            GlobalEventHandlers.serverSideEventHandlers?.let { handlers ->
-                kotlinx.coroutines.runBlocking {
-                    handlers.onLoadEvent("onLoaded", page0)
-                }
-            }
+            // Forward to server-side event handlers (non-blocking)
+            GlobalEventHandlers.emitLoadEvent("onLoaded", page0)
         } catch (e: Throwable) {
             val configuredUrl = page?.configuredUrl ?: normURL.configuredUrl
             logger.warn("Failed to invoke doHandleOnLoadedEvent | $configuredUrl", e)
