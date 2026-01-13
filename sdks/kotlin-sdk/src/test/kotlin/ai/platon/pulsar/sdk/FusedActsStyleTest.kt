@@ -151,7 +151,13 @@ class FusedActsStyleTest {
         val session = AgenticSession.getOrCreate()
         
         // From FusedActs: session.registerClosable(starter)
-        session.registerClosable(Object())
+        // Use a simple AutoCloseable implementation for testing
+        val testCloseable = object : AutoCloseable {
+            override fun close() {
+                // No-op for testing
+            }
+        }
+        session.registerClosable(testCloseable)
         
         // Should complete without exception
     }
