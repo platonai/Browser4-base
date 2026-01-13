@@ -6,6 +6,83 @@ This document describes the ServerSideEventHandlers mechanism for broadcasting p
 
 The ServerSideEventHandlers system provides a way to capture and stream events that occur during web page processing. Events are captured at various stages of the page lifecycle (crawl, load, browse phases) and can be streamed to clients through the REST API.
 
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Client (Browser/CLI)                            │
+│                                                                           │
+│  POST /api/commands  ────────────►  GET /api/commands/{id}/stream       │
+│       (async)                              │                             │
+│                                            │ SSE Stream                   │
+│                                            ▼                             │
+│                    ┌───────────────────────────────────┐                │
+│                    │   data: {"event":"onWillLoad"...} │                │
+│                    │   data: {"event":"onFetched"...}  │                │
+│                    │   data: {"event":"onParsed"...}   │                │
+│                    └───────────────────────────────────┘                │
+└─────────────────────────────────────────────────────────────────────────┘
+                                     ▲
+                                     │ SSE
+─────────────────────────────────────┼─────────────────────────────────────
+                                     │
+┌────────────────────────────────────┴─────────────────────────────────────┐
+│                         Server (pulsar-rest)                              │
+│                                                                           │
+│  CommandController  ──►  CommandService.executeCommand()                 │
+│                              │                                            │
+│                              ├─► Create DefaultServerSideEventHandlers   │
+│                              ├─► Set GlobalEventHandlers.serverSide...   │
+│                              ├─► executeCommandStepByStep()              │
+│                              │                                            │
+│                              └─► commandStatusFlow()                     │
+│                                    │                                      │
+│                                    ├─► Poll CommandStatus                │
+│                                    ├─► Collect ServerSideEventHandlers   │
+│                                    └─► Emit updated status via SSE       │
+└───────────────────────────────────────────────────────────────────────────┘
+                                     ▲
+                                     │ Events
+─────────────────────────────────────┼─────────────────────────────────────
+                                     │
+┌────────────────────────────────────┴─────────────────────────────────────┐
+│                    Core Processing (pulsar-skeleton)                      │
+│                                                                           │
+│  Page Lifecycle Events:                                                  │
+│                                                                           │
+│  AbstractTaskRunner                                                      │
+│    └─► onWillLoad(url) ──────┬──────┐                                   │
+│    └─► onLoaded(url, page) ──┤      │                                   │
+│                               │      │                                   │
+│  LoadComponent                │      │                                   │
+│    └─► onWillLoad(url) ───────┤      │                                   │
+│    └─► onLoaded(page) ────────┤      │                                   │
+│                               │      │                                   │
+│  FetchComponent               │      │                                   │
+│    └─► onWillFetch(page) ─────┤      │                                   │
+│    └─► onFetched(page) ───────┤      │                                   │
+│                               │      │                                   │
+│  PageParser                   │      │                                   │
+│    └─► onWillParse(page) ─────┤      │                                   │
+│    └─► onParsed(page) ────────┤      │                                   │
+│                               │      │                                   │
+│  PrimerHtmlParser             │      │                                   │
+│    └─► onWillParseHTML... ────┤      │                                   │
+│    └─► onHTMLDocumentParsed ──┤      │                                   │
+│                               │      │                                   │
+│                               ▼      ▼                                   │
+│             GlobalEventHandlers.serverSideEventHandlers                  │
+│                               │                                           │
+│                               ▼                                           │
+│                   DefaultServerSideEventHandlers                         │
+│                               │                                           │
+│                               └─► eventFlow (SharedFlow)                 │
+│                                      │                                    │
+│                                      └─► ServerSideEvent                 │
+│                                            (eventType, phase, url...)    │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
 ## Architecture
 
 ### Components
