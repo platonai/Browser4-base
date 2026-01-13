@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * Request to create a new WebDriver session.
  */
 data class NewSessionRequest(
-    val capabilities: Map<String, Any?>? = null
+    @param:JsonProperty("capabilities") val capabilities: Map<String, Any?>? = null
 )
 
 /**
@@ -16,11 +16,11 @@ data class NewSessionRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class NewSessionResponse(
-    val value: SessionValue
+    @param:JsonProperty("value") val value: SessionValue
 ) {
     data class SessionValue(
-        val sessionId: String,
-        val capabilities: Map<String, Any?>? = null
+        @param:JsonProperty("sessionId") val sessionId: String,
+        @param:JsonProperty("capabilities") val capabilities: Map<String, Any?>? = null
     )
 }
 
@@ -29,13 +29,13 @@ data class NewSessionResponse(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SessionDetails(
-    val value: SessionDetailsValue
+    @param:JsonProperty("value") val value: SessionDetailsValue
 ) {
     data class SessionDetailsValue(
-        val sessionId: String,
-        val url: String? = null,
-        val status: String = "active",
-        val capabilities: Map<String, Any?>? = null
+        @param:JsonProperty("sessionId") val sessionId: String,
+        @param:JsonProperty("url") val url: String? = null,
+        @param:JsonProperty("status") val status: String = "active",
+        @param:JsonProperty("capabilities") val capabilities: Map<String, Any?>? = null
     )
 }
 
@@ -44,60 +44,59 @@ data class SessionDetails(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class WebDriverResponse<T>(
-    val value: T? = null
+    @param:JsonProperty("value") val value: T? = null
 )
 
 /**
  * Error response following WebDriver spec.
  */
 data class ErrorResponse(
-    val value: ErrorValue
+    @param:JsonProperty("value") val value: ErrorValue
 ) {
     data class ErrorValue(
-        val error: String,
-        val message: String,
-        val stacktrace: String? = null
+        @param:JsonProperty("error") val error: String,
+        @param:JsonProperty("message") val message: String,
+        @param:JsonProperty("stacktrace") val stacktrace: String? = null
     )
 }
 
- /**
-  * Request to set/navigate to a URL.
-  */
- data class SetUrlRequest @JsonCreator constructor(
-     @param:JsonProperty("url")
-     val url: String
- )
+/**
+ * Request to set/navigate to a URL.
+ */
+data class SetUrlRequest(
+    @param:JsonProperty("url") val url: String
+)
 
 /**
  * Response containing a URL.
  */
 data class UrlResponse(
-    val value: String?
+    @param:JsonProperty("value") val value: String?
 )
 
 /**
  * Selector reference for selector-first operations.
  */
 data class SelectorRef(
-    val selector: String,
-    val strategy: String = "css"
+    @param:JsonProperty("selector") val selector: String,
+    @param:JsonProperty("strategy") val strategy: String = "css"
 )
 
 /**
  * Request to wait for a selector.
  */
 data class WaitForRequest(
-    val selector: String,
-    val strategy: String = "css",
-    val timeout: Int = 30000
+    @param:JsonProperty("selector") val selector: String,
+    @param:JsonProperty("strategy") val strategy: String = "css",
+    @param:JsonProperty("timeout") val timeout: Int = 30000
 )
 
 /**
  * Request to find element using WebDriver strategy.
  */
 data class FindElementRequest(
-    val using: String,
-    val value: String
+    @param:JsonProperty("using") val using: String,
+    @param:JsonProperty("value") val value: String
 )
 
 /**
@@ -113,24 +112,24 @@ data class ElementRef(
  * Response containing a single element.
  */
 data class ElementResponse(
-    val value: ElementRef
+    @param:JsonProperty("value") val value: ElementRef
 )
 
 /**
  * Response containing multiple elements.
  */
 data class ElementsResponse(
-    val value: List<ElementRef>
+    @param:JsonProperty("value") val value: List<ElementRef>
 )
 
 /**
  * Response for existence check.
  */
 data class ExistsResponse(
-    val value: ExistsValue
+    @param:JsonProperty("value") val value: ExistsValue
 ) {
     data class ExistsValue(
-        val exists: Boolean
+        @param:JsonProperty("exists") val exists: Boolean
     )
 }
 
@@ -138,61 +137,61 @@ data class ExistsResponse(
  * Request to fill an input element.
  */
 data class FillRequest(
-    val selector: String,
-    val strategy: String = "css",
-    val value: String
+    @param:JsonProperty("selector") val selector: String,
+    @param:JsonProperty("strategy") val strategy: String = "css",
+    @param:JsonProperty("value") val value: String
 )
 
 /**
  * Request to press a key on an element.
  */
 data class PressRequest(
-    val selector: String,
-    val strategy: String = "css",
-    val key: String
+    @param:JsonProperty("selector") val selector: String,
+    @param:JsonProperty("strategy") val strategy: String = "css",
+    @param:JsonProperty("key") val key: String
 )
 
 /**
  * Response containing HTML content.
  */
 data class HtmlResponse(
-    val value: String?
+    @param:JsonProperty("value") val value: String?
 )
 
 /**
  * Response containing a screenshot.
  */
 data class ScreenshotResponse(
-    val value: String?
+    @param:JsonProperty("value") val value: String?
 )
 
 /**
  * Request to send keys to an element.
  */
 data class SendKeysRequest(
-    val text: String
+    @param:JsonProperty("text") val text: String
 )
 
 /**
  * Response containing an attribute value.
  */
 data class AttributeResponse(
-    val value: String?
+    @param:JsonProperty("value") val value: String?
 )
 
 /**
  * Response containing text content.
  */
 data class TextResponse(
-    val value: String?
+    @param:JsonProperty("value") val value: String?
 )
 
 /**
  * Request to execute a script.
  */
 data class ScriptRequest(
-    val script: String,
-    val args: List<Any?>? = null
+    @param:JsonProperty("script") val script: String,
+    @param:JsonProperty("args") val args: List<Any?>? = null
 )
 
 /**
@@ -200,85 +199,85 @@ data class ScriptRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ScriptResponse(
-    val value: Any? = null
+    @param:JsonProperty("value") val value: Any? = null
 )
 
 /**
  * Request to delay execution.
  */
 data class DelayRequest(
-    val ms: Int
+    @param:JsonProperty("ms") val ms: Int
 )
 
 /**
  * Event configuration.
  */
 data class EventConfig(
-    val eventType: String,
-    val selector: String? = null,
-    val enabled: Boolean = true
+    @param:JsonProperty("eventType") val eventType: String,
+    @param:JsonProperty("selector") val selector: String? = null,
+    @param:JsonProperty("enabled") val enabled: Boolean = true
 )
 
 /**
  * Event configuration with ID.
  */
 data class EventConfigWithId(
-    val configId: String,
-    val eventType: String,
-    val enabled: Boolean = true
+    @param:JsonProperty("configId") val configId: String,
+    @param:JsonProperty("eventType") val eventType: String,
+    @param:JsonProperty("enabled") val enabled: Boolean = true
 )
 
 /**
  * Response for event config creation.
  */
 data class EventConfigResponse(
-    val value: EventConfigWithId
+    @param:JsonProperty("value") val value: EventConfigWithId
 )
 
 /**
  * Response for listing event configs.
  */
 data class EventConfigsResponse(
-    val value: List<EventConfigWithId>
+    @param:JsonProperty("value") val value: List<EventConfigWithId>
 )
 
 /**
  * Event data.
  */
 data class Event(
-    val eventId: String,
-    val eventType: String,
-    val timestamp: Long,
-    val data: Map<String, Any?>? = null
+    @param:JsonProperty("eventId") val eventId: String,
+    @param:JsonProperty("eventType") val eventType: String,
+    @param:JsonProperty("timestamp") val timestamp: Long,
+    @param:JsonProperty("data") val data: Map<String, Any?>? = null
 )
 
 /**
  * Response for listing events.
  */
 data class EventsResponse(
-    val value: List<Event>
+    @param:JsonProperty("value") val value: List<Event>
 )
 
 /**
  * Request to subscribe to events.
  */
 data class SubscribeRequest(
-    val eventTypes: List<String>
+    @param:JsonProperty("eventTypes") val eventTypes: List<String>
 )
 
 /**
  * Subscription data.
  */
 data class SubscriptionData(
-    val subscriptionId: String,
-    val eventTypes: List<String>
+    @param:JsonProperty("subscriptionId") val subscriptionId: String,
+    @param:JsonProperty("eventTypes") val eventTypes: List<String>
 )
 
 /**
  * Response for subscription.
  */
 data class SubscriptionResponse(
-    val value: SubscriptionData
+    @param:JsonProperty("value") val value: SubscriptionData
 )
 
 // ========== PerceptiveAgent DTOs ==========
@@ -287,12 +286,12 @@ data class SubscriptionResponse(
  * Request to run an agent task.
  */
 data class AgentRunRequest(
-    val task: String,
-    val multiAct: Boolean = false,
-    val modelName: String? = null,
-    val variables: Map<String, String>? = null,
-    val domSettleTimeoutMs: Long? = null,
-    val timeoutMs: Long? = null
+    @param:JsonProperty("task") val task: String,
+    @param:JsonProperty("multiAct") val multiAct: Boolean = false,
+    @param:JsonProperty("modelName") val modelName: String? = null,
+    @param:JsonProperty("variables") val variables: Map<String, String>? = null,
+    @param:JsonProperty("domSettleTimeoutMs") val domSettleTimeoutMs: Long? = null,
+    @param:JsonProperty("timeoutMs") val timeoutMs: Long? = null
 )
 
 /**
@@ -300,28 +299,28 @@ data class AgentRunRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class AgentRunResult(
-    val success: Boolean,
-    val message: String = "",
-    val historySize: Int = 0,
-    val processTraceSize: Int = 0
+    @param:JsonProperty("success") val success: Boolean,
+    @param:JsonProperty("message") val message: String = "",
+    @param:JsonProperty("historySize") val historySize: Int = 0,
+    @param:JsonProperty("processTraceSize") val processTraceSize: Int = 0
 )
 
 /**
  * Response for agent run.
  */
 data class AgentRunResponse(
-    val value: AgentRunResult
+    @param:JsonProperty("value") val value: AgentRunResult
 )
 
 /**
  * Request to observe page.
  */
 data class AgentObserveRequest(
-    val instruction: String? = null,
-    val modelName: String? = null,
-    val domSettleTimeoutMs: Long? = null,
-    val returnAction: Boolean? = null,
-    val drawOverlay: Boolean = true
+    @param:JsonProperty("instruction") val instruction: String? = null,
+    @param:JsonProperty("modelName") val modelName: String? = null,
+    @param:JsonProperty("domSettleTimeoutMs") val domSettleTimeoutMs: Long? = null,
+    @param:JsonProperty("returnAction") val returnAction: Boolean? = null,
+    @param:JsonProperty("drawOverlay") val drawOverlay: Boolean = true
 )
 
 /**
@@ -329,37 +328,37 @@ data class AgentObserveRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ObserveResultDto(
-    val locator: String? = null,
-    val domain: String? = null,
-    val method: String? = null,
-    val arguments: Map<String, Any?>? = null,
-    val description: String? = null,
-    val screenshotContentSummary: String? = null,
-    val currentPageContentSummary: String? = null,
-    val nextGoal: String? = null,
-    val thinking: String? = null,
-    val summary: String? = null,
-    val keyFindings: String? = null,
-    val nextSuggestions: List<String>? = null
+    @param:JsonProperty("locator") val locator: String? = null,
+    @param:JsonProperty("domain") val domain: String? = null,
+    @param:JsonProperty("method") val method: String? = null,
+    @param:JsonProperty("arguments") val arguments: Map<String, Any?>? = null,
+    @param:JsonProperty("description") val description: String? = null,
+    @param:JsonProperty("screenshotContentSummary") val screenshotContentSummary: String? = null,
+    @param:JsonProperty("currentPageContentSummary") val currentPageContentSummary: String? = null,
+    @param:JsonProperty("nextGoal") val nextGoal: String? = null,
+    @param:JsonProperty("thinking") val thinking: String? = null,
+    @param:JsonProperty("summary") val summary: String? = null,
+    @param:JsonProperty("keyFindings") val keyFindings: String? = null,
+    @param:JsonProperty("nextSuggestions") val nextSuggestions: List<String>? = null
 )
 
 /**
  * Response for agent observe.
  */
 data class AgentObserveResponse(
-    val value: List<ObserveResultDto>
+    @param:JsonProperty("value") val value: List<ObserveResultDto>
 )
 
 /**
  * Request to execute an action.
  */
 data class AgentActRequest(
-    val action: String,
-    val multiAct: Boolean = false,
-    val modelName: String? = null,
-    val variables: Map<String, String>? = null,
-    val domSettleTimeoutMs: Long? = null,
-    val timeoutMs: Long? = null
+    @param:JsonProperty("action") val action: String,
+    @param:JsonProperty("multiAct") val multiAct: Boolean = false,
+    @param:JsonProperty("modelName") val modelName: String? = null,
+    @param:JsonProperty("variables") val variables: Map<String, String>? = null,
+    @param:JsonProperty("domSettleTimeoutMs") val domSettleTimeoutMs: Long? = null,
+    @param:JsonProperty("timeoutMs") val timeoutMs: Long? = null
 )
 
 /**
@@ -367,38 +366,38 @@ data class AgentActRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ActResultDto(
-    val success: Boolean = false,
-    val message: String = "",
-    val action: String? = null,
-    val isComplete: Boolean = false,
-    val expression: String? = null
+    @param:JsonProperty("success") val success: Boolean = false,
+    @param:JsonProperty("message") val message: String = "",
+    @param:JsonProperty("action") val action: String? = null,
+    @param:JsonProperty("isComplete") val isComplete: Boolean = false,
+    @param:JsonProperty("expression") val expression: String? = null
 )
 
 /**
  * Response for agent act.
  */
 data class AgentActResponse(
-    val value: ActResultDto
+    @param:JsonProperty("value") val value: ActResultDto
 )
 
 /**
  * Schema definition for extraction.
  */
 data class ExtractionSchemaDto(
-    val type: String = "object",
-    val properties: Map<String, Any>? = null,
-    val required: List<String>? = null
+    @param:JsonProperty("type") val type: String = "object",
+    @param:JsonProperty("properties") val properties: Map<String, Any>? = null,
+    @param:JsonProperty("required") val required: List<String>? = null
 )
 
 /**
  * Request to extract data from page.
  */
 data class AgentExtractRequest(
-    val instruction: String,
-    val schema: ExtractionSchemaDto? = null,
-    val modelName: String? = null,
-    val domSettleTimeoutMs: Long? = null,
-    val selector: String? = null
+    @param:JsonProperty("instruction") val instruction: String,
+    @param:JsonProperty("schema") val schema: ExtractionSchemaDto? = null,
+    @param:JsonProperty("modelName") val modelName: String? = null,
+    @param:JsonProperty("domSettleTimeoutMs") val domSettleTimeoutMs: Long? = null,
+    @param:JsonProperty("selector") val selector: String? = null
 )
 
 /**
@@ -406,38 +405,38 @@ data class AgentExtractRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ExtractResultDto(
-    val success: Boolean,
-    val message: String = "",
-    val data: Any? = null
+    @param:JsonProperty("success") val success: Boolean,
+    @param:JsonProperty("message") val message: String = "",
+    @param:JsonProperty("data") val data: Any? = null
 )
 
 /**
  * Response for agent extract.
  */
 data class AgentExtractResponse(
-    val value: ExtractResultDto
+    @param:JsonProperty("value") val value: ExtractResultDto
 )
 
 /**
  * Request to summarize page content.
  */
 data class AgentSummarizeRequest(
-    val instruction: String? = null,
-    val selector: String? = null
+    @param:JsonProperty("instruction") val instruction: String? = null,
+    @param:JsonProperty("selector") val selector: String? = null
 )
 
 /**
  * Response for agent summarize.
  */
 data class AgentSummarizeResponse(
-    val value: String
+    @param:JsonProperty("value") val value: String
 )
 
 /**
  * Response for agent clear history.
  */
 data class AgentClearHistoryResponse(
-    val value: Boolean
+    @param:JsonProperty("value") val value: Boolean
 )
 
 // ========== PulsarSession DTOs ==========
@@ -446,9 +445,9 @@ data class AgentClearHistoryResponse(
  * Request to normalize a URL.
  */
 data class NormalizeRequest(
-    val url: String,
-    val args: String? = null,
-    val toItemOption: Boolean = false
+    @param:JsonProperty("url") val url: String,
+    @param:JsonProperty("args") val args: String? = null,
+    @param:JsonProperty("toItemOption") val toItemOption: Boolean = false
 )
 
 /**
@@ -456,24 +455,24 @@ data class NormalizeRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class NormUrlResult(
-    val spec: String,
-    val url: String,
-    val args: String? = null,
-    val isNil: Boolean = false
+    @param:JsonProperty("spec") val spec: String,
+    @param:JsonProperty("url") val url: String,
+    @param:JsonProperty("args") val args: String? = null,
+    @param:JsonProperty("isNil") val isNil: Boolean = false
 )
 
 /**
  * Response for URL normalization.
  */
 data class NormalizeResponse(
-    val value: NormUrlResult
+    @param:JsonProperty("value") val value: NormUrlResult
 )
 
 /**
  * Request to open a URL immediately.
  */
 data class OpenRequest(
-    val url: String
+    @param:JsonProperty("url") val url: String
 )
 
 /**
@@ -481,47 +480,47 @@ data class OpenRequest(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class WebPageResult(
-    val url: String,
-    val location: String? = null,
-    val contentType: String? = null,
-    val contentLength: Int = 0,
-    val protocolStatus: String? = null,
-    val isNil: Boolean = false
+    @param:JsonProperty("url") val url: String,
+    @param:JsonProperty("location") val location: String? = null,
+    @param:JsonProperty("contentType") val contentType: String? = null,
+    @param:JsonProperty("contentLength") val contentLength: Int = 0,
+    @param:JsonProperty("protocolStatus") val protocolStatus: String? = null,
+    @param:JsonProperty("isNil") val isNil: Boolean = false
 )
 
 /**
  * Response for opening a URL.
  */
 data class OpenResponse(
-    val value: WebPageResult
+    @param:JsonProperty("value") val value: WebPageResult
 )
 
 /**
  * Request to load a URL from storage or internet.
  */
 data class LoadRequest(
-    val url: String,
-    val args: String? = null
+    @param:JsonProperty("url") val url: String,
+    @param:JsonProperty("args") val args: String? = null
 )
 
 /**
  * Response for loading a URL.
  */
 data class LoadResponse(
-    val value: WebPageResult
+    @param:JsonProperty("value") val value: WebPageResult
 )
 
 /**
  * Request to submit a URL to the crawl pool.
  */
 data class SubmitRequest(
-    val url: String,
-    val args: String? = null
+    @param:JsonProperty("url") val url: String,
+    @param:JsonProperty("args") val args: String? = null
 )
 
 /**
  * Response for submitting a URL.
  */
 data class SubmitResponse(
-    val value: Boolean
+    @param:JsonProperty("value") val value: Boolean
 )
