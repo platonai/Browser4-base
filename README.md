@@ -11,7 +11,7 @@ English | [简体中文](README.zh.md) | [中国镜像](https://gitee.com/platon
 **Table of Contents**
 - [🤖 Browser4](#-browser4)
     - [🌟 Introduction](#-introduction)
-        - [�?Key Capabilities](#-key-capabilities)
+        - [�?Key Capabilities](#-key-capabilities)
     - [🎥 Demo Videos](#-demo-videos)
     - [🚀 Quick Start](#-quick-start)
     - [💡 Usage Examples](#-usage-examples)
@@ -23,7 +23,7 @@ English | [简体中文](README.zh.md) | [中国镜像](https://gitee.com/platon
     - [📦 Modules Overview](#-modules-overview)
     - [📜 Documentation](#-documentation)
     - [🔧 Proxies - Unblock Websites](#-proxies---unblock-websites)
-    - [�?Features](#-features)
+    - [�?Features](#-features)
     - [🤝 Support & Community](#-support--community)
 <!-- /TOC -->
 
@@ -31,15 +31,15 @@ English | [简体中文](README.zh.md) | [中国镜像](https://gitee.com/platon
 
 💖 **Browser4: a lightning-fast, coroutine-safe browser engine for your AI** 💖
 
-### �?Key Capabilities
+### �?Key Capabilities
 
-* 👽 **Browser Agents** �?Fully autonomous browser agents that reason, plan, and execute end-to-end tasks.
-* 🤖 **Browser Automation** �?High-performance automation for workflows, navigation, and data extraction.
+* 👽 **Browser Agents** �?Fully autonomous browser agents that reason, plan, and execute end-to-end tasks.
+* 🤖 **Browser Automation** �?High-performance automation for workflows, navigation, and data extraction.
 * ⚙️ **Machine Learning Agent** - Learns field structures across complex pages without consuming tokens.
-* �? **Extreme Performance** �?Fully coroutine-safe; supports 100k ~ 200k complex page visits per machine per day.
-* 🧬 **Data Extraction** �?Hybrid of LLM, ML, and selectors for clean data across chaotic pages.
+* �? **Extreme Performance** �?Fully coroutine-safe; supports 100k ~ 200k complex page visits per machine per day.
+* 🧬 **Data Extraction** �?Hybrid of LLM, ML, and selectors for clean data across chaotic pages.
 
-## �?Quick Example: Agentic Workflow
+## �?Quick Example: Agentic Workflow
 
 ```kotlin
 // Give your Agent a mission, not just a script.
@@ -97,6 +97,8 @@ val result = agent.run("""
    Explore and run examples in the `browser4-examples` module to see Browser4 in action.
 
 For Docker deployment, see our [Docker Hub repository](https://hub.docker.com/r/galaxyeye88/browser4).
+
+**Windows Users**: You can also build Browser4 as a standalone Windows installer. See the [Windows Installer Guide](browser4/browser4-agents/README.md) for details.
 
 ---
 
@@ -223,7 +225,7 @@ session.submitAll(links)
 
 ### Auto Extraction
 
-Automatic, large-scale, high-precision field discovery and extraction powered by self-/unsupervised machine learning �?no LLM API calls, no tokens, deterministic and fast.
+Automatic, large-scale, high-precision field discovery and extraction powered by self-/unsupervised machine learning �?no LLM API calls, no tokens, deterministic and fast.
 
 **What it does:**
 - Learns every extractable field on item/detail pages (often dozens to hundreds) with high precision.
@@ -247,7 +249,7 @@ curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/do
 **Key Advantages:**
 - High precision: >95% fields discovered; majority with >99% accuracy (indicative on tested domains).
 - Resilient to selector churn & HTML noise.
-- Zero external dependency (no API key) �?cost-efficient at scale.
+- Zero external dependency (no API key) �?cost-efficient at scale.
 - Explainable: generated selectors & SQL are transparent and auditable.
 
 👽 Extract data with machine learning agents:
@@ -278,7 +280,7 @@ Python/Node.js SDKs are on the way.
 
 ## 📜 Documentation
 
-* 🛠�?[Configuration Guide](docs/config.md)
+* 🛠�?[Configuration Guide](docs/config.md)
 * 📚 [Build from Source](docs/build.md)
 * 🧠 [Expert Guide](docs/advanced-guides.md)
 * 🤖 [AI Programming Products Guidance](docs/ai-products-guidance.md) - Support for Cursor, Windsurf, Cline, Aider, GitHub Copilot
@@ -302,7 +304,7 @@ Ask your proxy provider for such a URL.
 
 ---
 
-## �?Features
+## �?Features
 
 ### AI & Agents
 - Problem-solving autonomous browser agents
@@ -355,6 +357,6 @@ Ask your proxy provider for such a URL.
 
 ---
 
-> For Chinese documentation, refer to [简体中�?README](README.zh.md).
+> For Chinese documentation, refer to [简体中�?README](README.zh.md).
 
 
