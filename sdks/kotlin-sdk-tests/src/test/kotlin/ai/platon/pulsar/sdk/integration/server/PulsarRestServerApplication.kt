@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration
     basePackages = [
         "ai.platon.pulsar.boot.autoconfigure",
         "ai.platon.pulsar.rest.api",
+        "ai.platon.pulsar.rest.openapi",  // OpenAPI controllers including SessionController
         "ai.platon.pulsar.test.server"  // Mock site server
     ]
 )
