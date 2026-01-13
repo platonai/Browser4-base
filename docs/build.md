@@ -54,4 +54,4 @@ Output: `target/jpackage/dist/Browser4-4.4.0.exe`
 ./build-windows-installer.ps1 -Installer
 ```
 
-See [browser4-agents/README.md](../browser4/browser4-agents/README.md) for detailed documentation.
+See [Windows Installer Guide](windows-installer.md) and [browser4-agents/README.md](../browser4/browser4-agents/README.md) for detailed documentation.
