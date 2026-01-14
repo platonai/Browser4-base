@@ -17,6 +17,7 @@ import kotlinx.io.asSource
 import kotlinx.io.buffered
 import ai.platon.pulsar.common.getLogger
 import java.io.Closeable
+import java.util.concurrent.TimeUnit
 
 /**
  * Manages MCP client connections and lifecycle.
@@ -26,13 +27,15 @@ import java.io.Closeable
  *
  * @property config The configuration for the MCP server connection.
  * @property clientInfo Information about this MCP client.
+ * @property processTerminationTimeoutSeconds Timeout in seconds for graceful process termination.
  */
 class MCPClientManager(
     private val config: MCPConfig,
     private val clientInfo: Implementation = Implementation(
         name = "pulsar-agentic-mcp-client",
         version = "1.0.0"
-    )
+    ),
+    private val processTerminationTimeoutSeconds: Long = DEFAULT_PROCESS_TERMINATION_TIMEOUT_SECONDS
 ) : Closeable {
     
     private val logger = getLogger(this)
@@ -191,8 +194,8 @@ class MCPClientManager(
             try {
                 if (it.isAlive) {
                     it.destroy()
-                    // Wait a bit for graceful shutdown
-                    if (!it.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                    // Wait for graceful shutdown
+                    if (!it.waitFor(processTerminationTimeoutSeconds, TimeUnit.SECONDS)) {
                         it.destroyForcibly()
                     }
                 }
@@ -215,5 +218,12 @@ class MCPClientManager(
         
         client = null
         availableTools = emptyList()
+    }
+    
+    companion object {
+        /**
+         * Default timeout in seconds for graceful process termination.
+         */
+        const val DEFAULT_PROCESS_TERMINATION_TIMEOUT_SECONDS = 5L
     }
 }

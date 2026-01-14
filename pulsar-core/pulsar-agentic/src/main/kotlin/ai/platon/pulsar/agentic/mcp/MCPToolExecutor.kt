@@ -172,13 +172,19 @@ class MCPToolExecutor(
     private fun extractResultValue(result: Any?): String? {
         if (result == null) return null
         
-        // If the result is a CallToolResult, extract text content
-        if (result is io.modelcontextprotocol.kotlin.sdk.types.CallToolResult) {
-            return result.content
-                .filterIsInstance<TextContent>()
-                .joinToString("\n") { it.text }
+        // Try to extract text content if the result is a CallToolResult
+        return try {
+            if (result is io.modelcontextprotocol.kotlin.sdk.types.CallToolResult) {
+                result.content
+                    .filterIsInstance<TextContent>()
+                    .joinToString("\n") { it.text }
+                    .ifEmpty { result.toString() }
+            } else {
+                result.toString()
+            }
+        } catch (e: Exception) {
+            logger.warn("Error extracting result value: {}", e.message)
+            result.toString()
         }
-        
-        return result.toString()
     }
 }
