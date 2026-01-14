@@ -41,7 +41,14 @@ class Browser4Application {
             val urls = buildServerUrls()
             val help = buildHelpMessage(llmHelp, urls)
 
-            logger.info("Welcome to Browser4! \n{}", help)
+            val pid = try {
+                ProcessHandle.current().pid()
+            } catch (_: Throwable) {
+                -1L
+            }
+
+            logger.info("Welcome to Browser4! (pid={}) \n{}", pid, help)
+            logger.info("To stop Browser4: press Ctrl+C in the console, or send a SIGTERM/stop the process (pid={}).", pid)
         } catch (e: Exception) {
             logger.error("Failed to display help message", e)
         }
@@ -79,7 +86,7 @@ class Browser4Application {
         builder.appendLine("====================================================================================")
         builder.appendLine(llmHelp)
         builder.appendLine("------------------------------------------------------------------------------")
-        builder.appendLine("Example 1: Using the WebUI to run a command:")
+        builder.appendLine("Example 1: 使用 Web UI (Using the Web UI):")
         builder.appendLine(urls.frontend)
         builder.appendLine("------------------------------------------------------------------------------")
         builder.appendLine("Example 2: Open task - Ask Browser4 for Anything:")
