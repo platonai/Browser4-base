@@ -210,6 +210,14 @@
                                         <argument>--java-options</argument>
                                         <argument>-Dfile.encoding=UTF-8</argument>
 
+                                        <!-- Ensure Windows console uses UTF-8 to avoid mojibake -->
+                                        <argument>--java-options</argument>
+                                        <argument>-Dsun.stdout.encoding=UTF-8</argument>
+                                        <argument>--java-options</argument>
+                                        <argument>-Dsun.stderr.encoding=UTF-8</argument>
+                                        <argument>--java-options</argument>
+                                        <argument>-Dsun.jnu.encoding=UTF-8</argument>
+
                                         <!-- Icon is optional; add icon argument back once you have packaging/windows/Browser4.ico -->
                                     </arguments>
                                     <!-- Allow build without icon file (icon is optional) -->
@@ -253,6 +261,14 @@
 
                                         <argument>--java-options</argument>
                                         <argument>-Dfile.encoding=UTF-8</argument>
+
+                                        <!-- Ensure Windows console uses UTF-8 to avoid mojibake -->
+                                        <argument>--java-options</argument>
+                                        <argument>-Dsun.stdout.encoding=UTF-8</argument>
+                                        <argument>--java-options</argument>
+                                        <argument>-Dsun.stderr.encoding=UTF-8</argument>
+                                        <argument>--java-options</argument>
+                                        <argument>-Dsun.jnu.encoding=UTF-8</argument>
 
                                         <!-- Icon is optional; add icon argument back once you have packaging/windows/Browser4.ico -->
                                     </arguments>
