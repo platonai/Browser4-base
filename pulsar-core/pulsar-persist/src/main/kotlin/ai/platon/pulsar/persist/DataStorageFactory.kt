@@ -58,9 +58,13 @@ class DataStorageFactory(val conf: ImmutableConfig) {
     companion object {
         private val logger = LoggerFactory.getLogger(DataStorageFactory::class.java)
 
-//        fun detectDataStoreClassName(conf: ImmutableConfig): String {
-//            return detectDataStoreClassName(conf)
-//        }
+        fun checkIfMongoClientAvailable(conf: ImmutableConfig): Boolean {
+            val mongoServers = conf[PROP_MONGO_SERVERS]
+            if (mongoServers != null) {
+                return MongoDBUtils.isMongoReachable(mongoServers)
+            }
+            return ResourceLoader.exists("gora-mongodb-mapping.xml")
+        }
 
         /**
          * Return the DataStore persistent class used to persist WebPage.
@@ -146,14 +150,6 @@ class DataStorageFactory(val conf: ImmutableConfig) {
                 GoraStorage.goraProperties.setProperty(PROP_MONGO_SERVERS, servers)
                 conf.unbox()[PROP_MONGO_SERVERS] = servers
             }
-        }
-
-        private fun checkIfMongoClientAvailable(conf: ImmutableConfig): Boolean {
-            val mongoServers = conf.get(PROP_MONGO_SERVERS)
-            if (mongoServers != null) {
-                return MongoDBUtils.isMongoReachable(mongoServers)
-            }
-            return ResourceLoader.exists("gora-mongodb-mapping.xml")
         }
     }
 }

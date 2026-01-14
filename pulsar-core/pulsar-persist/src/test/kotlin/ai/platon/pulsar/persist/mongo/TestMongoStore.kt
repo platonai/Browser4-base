@@ -7,6 +7,7 @@ import ai.platon.pulsar.persist.DataStorageFactory
 import ai.platon.pulsar.persist.gora.generated.GWebPage
 import org.apache.commons.lang3.RandomStringUtils
 import org.apache.gora.mongodb.store.MongoStore
+import org.apache.gora.mongodb.store.MongoStoreParameters.PROP_MONGO_SERVERS
 import org.junit.jupiter.api.Assumptions
 import kotlin.test.*
 
@@ -27,8 +28,11 @@ class TestMongoStore : MongoTestBase() {
 
         val provider = DataStorageFactory(conf)
         val store2 = provider.getOrCreatePageStore()
-        Assumptions.assumeTrue(provider.schemaAvailable())
-        Assumptions.assumeTrue(AppConstants.MONGO_STORE_CLASS == provider.storeClassName)
+
+        Assumptions.assumeTrue(DataStorageFactory.checkIfMongoClientAvailable(conf)) {
+            "MongoDB is not available at ${conf[PROP_MONGO_SERVERS]}"
+        }
+        assertEquals(AppConstants.MONGO_STORE_CLASS, provider.storeClassName)
         assertTrue("Actual schema name: ${store2.schemaName}") { crawlId in store2.schemaName }
     }
 
