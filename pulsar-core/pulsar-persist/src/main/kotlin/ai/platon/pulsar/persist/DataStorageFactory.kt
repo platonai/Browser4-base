@@ -77,13 +77,13 @@ class DataStorageFactory(val conf: ImmutableConfig) {
                 throw IllegalApplicationStateException("Inactive application context")
             }
 
-            val specified = conf.get(STORAGE_DATA_STORE_CLASS)
+            val specified = conf[STORAGE_DATA_STORE_CLASS]
             if (specified != null) {
                 return specified
             }
 
             patchGoraMongoServersConfig(conf)
-            val mongoServers = conf.get(PROP_MONGO_SERVERS)
+            val mongoServers = conf[PROP_MONGO_SERVERS]
             if (mongoServers != null) {
                 return MONGO_STORE_CLASS
             }
