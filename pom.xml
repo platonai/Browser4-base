@@ -90,9 +90,7 @@
         <module>pulsar-core</module>
         <module>pulsar-rest</module>
         <module>pulsar-client</module>
-        <module>pulsar-tests-common</module>
-        <module>pulsar-it-tests</module>
-        <module>pulsar-e2e-tests</module>
+        <module>pulsar-tests</module>
         <module>pulsar-bom</module>
     </modules>
 
@@ -157,7 +155,6 @@
                 <module>pulsar-dependencies</module>
                 <module>pulsar-core</module>
 
-                <module>pulsar-tests-common</module>
                 <module>pulsar-tests</module>
                 <module>pulsar-client</module>
                 <module>pulsar-bom</module>
