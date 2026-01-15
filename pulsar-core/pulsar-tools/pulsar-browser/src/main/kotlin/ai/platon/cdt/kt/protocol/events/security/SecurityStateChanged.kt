@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 package ai.platon.cdt.kt.protocol.events.security
 
 import ai.platon.cdt.kt.protocol.support.annotations.Optional

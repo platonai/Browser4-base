@@ -116,6 +116,7 @@ object LoadOptionsJson {
     @JvmStatic
     @JvmOverloads
     fun fromJson(json: String, conf: VolatileConfig = VolatileConfig.UNSAFE): LoadOptions {
+        @Suppress("UNCHECKED_CAST")
         val jsonMap = objectMapper.readValue(json, Map::class.java) as Map<String, Any?>
         return fromMap(jsonMap, conf)
     }

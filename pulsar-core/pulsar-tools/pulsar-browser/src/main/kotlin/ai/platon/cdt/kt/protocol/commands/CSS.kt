@@ -1,4 +1,4 @@
-@file:Suppress("unused", "deprecated")
+@file:Suppress("unused", "DEPRECATION")
 package ai.platon.cdt.kt.protocol.commands
 
 import ai.platon.cdt.kt.protocol.events.css.FontsUpdated
