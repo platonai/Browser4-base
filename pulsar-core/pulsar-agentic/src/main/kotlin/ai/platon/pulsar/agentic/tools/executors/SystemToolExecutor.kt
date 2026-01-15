@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.tools.executors
 
+import ai.platon.pulsar.agentic.ToolCallSpec
 import ai.platon.pulsar.agentic.tools.AgentToolManager
 import ai.platon.pulsar.common.getLogger
 import kotlin.reflect.KClass
@@ -12,6 +13,40 @@ class SystemToolExecutor(
     override val domain = "system"
 
     override val targetClass: KClass<*> = SystemToolExecutor::class
+
+    init {
+        toolCallSpecs["help"] = ToolCallSpec(
+            domain = domain,
+            method = "help",
+            arguments = listOf(
+                ToolCallSpec.Arg("domain", "String", null),
+                ToolCallSpec.Arg("method", "String", null)
+            ),
+            returnType = "String",
+            description = "Get help information for a specific tool method in a domain"
+        )
+    }
+
+    override fun help(): String {
+        return """
+            System Tools - Utility functions for the agent system
+            
+            Available methods:
+            ${toolCallSpecs.values.joinToString("\n") { "- ${it.method}: ${it.description}" }}
+        """.trimIndent()
+    }
+
+    override fun help(method: String): String {
+        val spec = toolCallSpecs[method]
+        return if (spec != null) {
+            """
+                ${spec.description}
+                ${spec.expression}
+            """.trimIndent()
+        } else {
+            "Method '$method' not found in system tools"
+        }
+    }
 
     fun help(domain: String, method: String): String {
         return agentToolManager.help(domain, method)

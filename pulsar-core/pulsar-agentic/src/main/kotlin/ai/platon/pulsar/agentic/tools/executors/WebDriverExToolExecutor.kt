@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.tools.executors
 
+import ai.platon.pulsar.agentic.ToolCallSpec
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.agentic.ToolCall
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
@@ -12,6 +13,18 @@ class WebDriverExToolExecutor: AbstractToolExecutor() {
 
     // target must be AbstractWebDriver (was Browser before, incorrect)
     override val targetClass: KClass<*> = AbstractWebDriver::class
+
+    init {
+        toolCallSpecs["extract"] = ToolCallSpec(
+            domain = domain,
+            method = "extract",
+            arguments = listOf(
+                ToolCallSpec.Arg("selectors", "List<String>", null)
+            ),
+            returnType = "List<String>",
+            description = "Extract text content using multiple CSS selectors (union selection)"
+        )
+    }
 
     /**
      * Execute driverEx.* expressions with named args.

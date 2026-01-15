@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.tools.examples
 
+import ai.platon.pulsar.agentic.ToolCallSpec
 import ai.platon.pulsar.agentic.tools.executors.AbstractToolExecutor
 import kotlin.reflect.KClass
 
@@ -35,6 +36,52 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
     override val domain = "calc"
 
     override val targetClass: KClass<*> = Calculator::class
+
+    init {
+        toolCallSpecs["add"] = ToolCallSpec(
+            domain = domain,
+            method = "add",
+            arguments = listOf(
+                ToolCallSpec.Arg("a", "Double", null),
+                ToolCallSpec.Arg("b", "Double", null)
+            ),
+            returnType = "Double",
+            description = "Add two numbers"
+        )
+        
+        toolCallSpecs["subtract"] = ToolCallSpec(
+            domain = domain,
+            method = "subtract",
+            arguments = listOf(
+                ToolCallSpec.Arg("a", "Double", null),
+                ToolCallSpec.Arg("b", "Double", null)
+            ),
+            returnType = "Double",
+            description = "Subtract b from a"
+        )
+        
+        toolCallSpecs["multiply"] = ToolCallSpec(
+            domain = domain,
+            method = "multiply",
+            arguments = listOf(
+                ToolCallSpec.Arg("a", "Double", null),
+                ToolCallSpec.Arg("b", "Double", null)
+            ),
+            returnType = "Double",
+            description = "Multiply two numbers"
+        )
+        
+        toolCallSpecs["divide"] = ToolCallSpec(
+            domain = domain,
+            method = "divide",
+            arguments = listOf(
+                ToolCallSpec.Arg("a", "Double", null),
+                ToolCallSpec.Arg("b", "Double", null)
+            ),
+            returnType = "Double",
+            description = "Divide a by b (b must not be zero)"
+        )
+    }
 
     /**
      * Execute calculator operations using named arguments.

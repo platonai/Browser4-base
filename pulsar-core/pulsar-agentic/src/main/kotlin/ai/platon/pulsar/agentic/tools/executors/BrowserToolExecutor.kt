@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.tools.executors
 
+import ai.platon.pulsar.agentic.ToolCallSpec
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractBrowser
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
@@ -12,6 +13,18 @@ class BrowserToolExecutor : AbstractToolExecutor() {
     override val domain = "browser"
 
     override val targetClass: KClass<*> = Browser::class
+
+    init {
+        toolCallSpecs["switchTab"] = ToolCallSpec(
+            domain = domain,
+            method = "switchTab",
+            arguments = listOf(
+                ToolCallSpec.Arg("tabId", "String", null)
+            ),
+            returnType = "WebDriver",
+            description = "Switch to a specific browser tab by its ID"
+        )
+    }
 
     /**
      * Execute browser.* expressions against a Browser target using named args.

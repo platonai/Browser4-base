@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.tools.executors
 
+import ai.platon.pulsar.agentic.ToolCallSpec
 import ai.platon.pulsar.agentic.common.AgentFileSystem
 import kotlin.reflect.KClass
 
@@ -8,6 +9,113 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
     override val domain = "fs"
 
     override val targetClass: KClass<*> = AgentFileSystem::class
+
+    init {
+        toolCallSpecs["writeString"] = ToolCallSpec(
+            domain = domain,
+            method = "writeString",
+            arguments = listOf(
+                ToolCallSpec.Arg("filename", "String", null),
+                ToolCallSpec.Arg("content", "String", "\"\"")
+            ),
+            returnType = "String",
+            description = "Write content to a file"
+        )
+        
+        toolCallSpecs["readString"] = ToolCallSpec(
+            domain = domain,
+            method = "readString",
+            arguments = listOf(
+                ToolCallSpec.Arg("filename", "String", null),
+                ToolCallSpec.Arg("external", "Boolean", "false")
+            ),
+            returnType = "String",
+            description = "Read content from a file"
+        )
+        
+        toolCallSpecs["append"] = ToolCallSpec(
+            domain = domain,
+            method = "append",
+            arguments = listOf(
+                ToolCallSpec.Arg("filename", "String", null),
+                ToolCallSpec.Arg("content", "String", null)
+            ),
+            returnType = "String",
+            description = "Append content to a file"
+        )
+        
+        toolCallSpecs["replaceContent"] = ToolCallSpec(
+            domain = domain,
+            method = "replaceContent",
+            arguments = listOf(
+                ToolCallSpec.Arg("filename", "String", null),
+                ToolCallSpec.Arg("oldStr", "String", null),
+                ToolCallSpec.Arg("newStr", "String", null)
+            ),
+            returnType = "String",
+            description = "Replace content in a file"
+        )
+        
+        toolCallSpecs["fileExists"] = ToolCallSpec(
+            domain = domain,
+            method = "fileExists",
+            arguments = listOf(
+                ToolCallSpec.Arg("filename", "String", null)
+            ),
+            returnType = "Boolean",
+            description = "Check if a file exists"
+        )
+        
+        toolCallSpecs["getFileInfo"] = ToolCallSpec(
+            domain = domain,
+            method = "getFileInfo",
+            arguments = listOf(
+                ToolCallSpec.Arg("filename", "String", null)
+            ),
+            returnType = "Map<String, Any>",
+            description = "Get information about a file"
+        )
+        
+        toolCallSpecs["deleteFile"] = ToolCallSpec(
+            domain = domain,
+            method = "deleteFile",
+            arguments = listOf(
+                ToolCallSpec.Arg("filename", "String", null)
+            ),
+            returnType = "String",
+            description = "Delete a file"
+        )
+        
+        toolCallSpecs["copyFile"] = ToolCallSpec(
+            domain = domain,
+            method = "copyFile",
+            arguments = listOf(
+                ToolCallSpec.Arg("source", "String", null),
+                ToolCallSpec.Arg("dest", "String", null)
+            ),
+            returnType = "String",
+            description = "Copy a file from source to destination"
+        )
+        
+        toolCallSpecs["moveFile"] = ToolCallSpec(
+            domain = domain,
+            method = "moveFile",
+            arguments = listOf(
+                ToolCallSpec.Arg("source", "String", null),
+                ToolCallSpec.Arg("dest", "String", null)
+            ),
+            returnType = "String",
+            description = "Move a file from source to destination"
+        )
+        
+        toolCallSpecs["listFiles"] = ToolCallSpec(
+            domain = domain,
+            method = "listFiles",
+            arguments = emptyList(),
+            returnType = "List<Map<String, Any>>",
+            description = "List all files in the agent's file system"
+        )
+    }
 
     /**
      * Execute fs.* expressions against a FileSystem target using named args.
