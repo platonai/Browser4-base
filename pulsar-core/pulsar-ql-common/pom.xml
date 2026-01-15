@@ -62,6 +62,8 @@
                                         <exclude>META-INF/NOTICE.*</exclude>
                                         <exclude>META-INF/DEPENDENCIES</exclude>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/versions/**/module-info</exclude>
+                                        <exclude>META-INF/versions/**/module-info.class</exclude>
                                         <exclude>proxy.test.web.sites.txt</exclude>
                                     </excludes>
                                 </filter>
