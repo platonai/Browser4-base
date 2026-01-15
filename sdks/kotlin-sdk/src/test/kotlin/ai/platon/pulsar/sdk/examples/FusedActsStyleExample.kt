@@ -39,12 +39,16 @@ class FusedActsStyleExample {
         var page = session.open(url)
         println("Opened page: ${page.url}")
         
-        println("[STEP ${++step}] Parse the page into a lightweight local DOM")
+        println("[STEP ${++step}] Parse the page into a Jsoup document")
         var document = session.parse(page)
-        println("Parsed document: ${document?.take(100)}")
+        println("Parsed document title: ${document?.title() ?: "N/A"}")
         
         println("[STEP ${++step}] Extract fields (title) with CSS selector")
-        var fields = session.extract(document ?: "", mapOf("title" to "#title"))
+        var fields = if (document != null) {
+            session.extract(document, mapOf("title" to "#title"))
+        } else {
+            emptyMap()
+        }
         println("Extracted fields: $fields")
         
         // Natural language actions
@@ -80,7 +84,11 @@ class FusedActsStyleExample {
         println("[STEP ${++step}] Capture and parse the live page")
         page = session.capture(driver)
         document = session.parse(page)
-        fields = session.extract(document ?: "", mapOf("title" to "#title"))
+        fields = if (document != null) {
+            session.extract(document, mapOf("title" to "#title"))
+        } else {
+            emptyMap()
+        }
         println("Extracted after search: $fields")
         
         println("[STEP ${++step}] Action: scroll to bottom")
@@ -91,7 +99,11 @@ class FusedActsStyleExample {
         println("[STEP ${++step}] Re-open the original URL")
         page = session.open(url)
         document = session.parse(page)
-        fields = session.extract(document ?: "", mapOf("title" to "#title"))
+        fields = if (document != null) {
+            session.extract(document, mapOf("title" to "#title"))
+        } else {
+            emptyMap()
+        }
         println("Final fields: $fields")
         
         println("[STEP ${++step}] Print process trace")

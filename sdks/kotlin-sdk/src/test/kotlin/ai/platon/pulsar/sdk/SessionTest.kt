@@ -157,9 +157,23 @@ class AgenticSessionTest {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
         
-        assertEquals(session, session.companionAgent)
+        // AgenticSession implements PerceptiveAgent
+        val agent: PerceptiveAgent = session.companionAgent
+        assertEquals(session, agent)
         assertEquals(session, session.context)
         assertTrue(session.processTrace.isEmpty())
+        assertTrue(session.stateHistory.states.isEmpty())
+    }
+
+    @Test
+    fun `AgenticSession stateHistory is initially empty`() {
+        val client = PulsarClient(sessionId = "test-session")
+        val session = AgenticSession(client)
+        
+        val history = session.stateHistory
+        assertTrue(history.states.isEmpty())
+        assertFalse(history.hasErrors)
+        assertEquals(0, history.size)
     }
 
     @Test
@@ -203,5 +217,58 @@ class AgenticSessionTest {
         
         session.registerClosable(Object())
         // Should complete without exception
+    }
+
+    @Test
+    fun `PageEventHandlers can be created`() {
+        val handlers = PageEventHandlers()
+        
+        assertTrue(handlers.getBrowseEventHandlers().isEmpty())
+        assertTrue(handlers.getLoadEventHandlers().isEmpty())
+        assertTrue(handlers.getCrawlEventHandlers().isEmpty())
+    }
+
+    @Test
+    fun `AgentHistory can be created`() {
+        val history = AgentHistory()
+        
+        assertEquals(0, history.size)
+        assertFalse(history.hasErrors)
+        assertTrue(history.states.isEmpty())
+        assertNull(history.finalResult)
+    }
+
+    @Test
+    fun `AgentHistory can track states`() {
+        val state1 = AgentState(step = 1, action = "test", success = true)
+        val state2 = AgentState(step = 2, action = "test2", success = false)
+        val history = AgentHistory(states = mutableListOf(state1, state2), hasErrors = true)
+        
+        assertEquals(2, history.size)
+        assertTrue(history.hasErrors)
+        assertEquals("test", history.states[0].action)
+        assertEquals("test2", history.states[1].action)
+    }
+
+    @Test
+    fun `ChatResponse can be created from string`() {
+        val response = ChatResponse.fromAny("Hello, world!")
+        
+        assertEquals("Hello, world!", response.content)
+        assertEquals("assistant", response.role)
+    }
+
+    @Test
+    fun `ChatResponse can be created from map`() {
+        val map = mapOf(
+            "content" to "Test content",
+            "role" to "user",
+            "model" to "gpt-4"
+        )
+        val response = ChatResponse.fromAny(map)
+        
+        assertEquals("Test content", response.content)
+        assertEquals("user", response.role)
+        assertEquals("gpt-4", response.model)
     }
 }
