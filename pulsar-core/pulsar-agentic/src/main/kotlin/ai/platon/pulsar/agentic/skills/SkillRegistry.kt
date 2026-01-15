@@ -219,13 +219,17 @@ class SkillRegistry private constructor() {
      */
     suspend fun clear(context: SkillContext) {
         mutex.withLock {
-            // Unload all skills in reverse dependency order
+            // First, unload all skills without dependency checks
             val skillIds = skills.keys.toList()
             for (skillId in skillIds) {
                 try {
-                    unregister(skillId, context)
+                    val skill = skills[skillId]
+                    if (skill != null) {
+                        skill.onUnload(context)
+                        logger.info("✓ Unregistered skill: {}", skill.metadata.name)
+                    }
                 } catch (e: Exception) {
-                    logger.warn("Error unregistering skill '{}': {}", skillId, e.message)
+                    logger.warn("Error cleaning up skill '{}': {}", skillId, e.message)
                 }
             }
             skills.clear()
