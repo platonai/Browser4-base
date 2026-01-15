@@ -331,10 +331,6 @@
     <build>
         <defaultGoal>install</defaultGoal>
 
-        <sourceDirectory>src/main/kotlin</sourceDirectory>
-        <directory>target</directory>
-        <finalName>${project.artifactId}-${project.version}</finalName>
-
         <plugins>
             <!--  kotlin plugin should come before maven-compiler-plugin  -->
 
