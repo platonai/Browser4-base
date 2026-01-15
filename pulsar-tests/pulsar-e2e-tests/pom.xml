@@ -41,6 +41,11 @@
             </activation>
             <properties>
                 <skipTests>false</skipTests>
+                <!-- Override parent's excludedGroups to allow E2ETest to run -->
+                <surefire.excludedGroups>
+                    TimeConsumingTest,ExternalResourceDependent,IntegrationTest,HeavyTest,
+                    SkippableLowerLevelTest,TestInfraCheck,MustManuallyRun,OptionalTest
+                </surefire.excludedGroups>
             </properties>
         </profile>
     </profiles>

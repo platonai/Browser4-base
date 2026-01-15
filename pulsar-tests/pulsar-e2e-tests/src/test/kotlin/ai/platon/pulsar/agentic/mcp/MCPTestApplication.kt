@@ -3,6 +3,8 @@ package ai.platon.pulsar.agentic.mcp
 import ai.platon.pulsar.test.mcp.TestMCPServer
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 
 /**
  * Spring Boot test application for MCP end-to-end tests.
@@ -10,7 +12,13 @@ import org.springframework.context.annotation.Bean
  * This application automatically starts the TestMCPServer as a Spring bean,
  * making it available for testing MCPToolExecutor in a realistic environment.
  */
-@SpringBootApplication(scanBasePackages = ["ai.platon.pulsar"])
+@SpringBootApplication
+@ComponentScan(
+    basePackages = ["ai.platon.pulsar.agentic.mcp", "ai.platon.pulsar.test.mcp"],
+    excludeFilters = [
+        ComponentScan.Filter(type = FilterType.REGEX, pattern = ["ai\\.platon\\.pulsar\\.rest\\..*"])
+    ]
+)
 class MCPTestApplication {
 
     /**

@@ -86,9 +86,10 @@ class WebScrapingSkill : AbstractSkill() {
     }
 
     override suspend fun onBeforeExecute(context: SkillContext, params: Map<String, Any>): Boolean {
-        // Validate URL format
-        val url = params["url"] as? String ?: return false
-        return url.startsWith("http://") || url.startsWith("https://")
+        // Validate URL format only if URL is provided
+        // Let execute() handle missing parameter validation
+        val url = params["url"] as? String
+        return url == null || url.startsWith("http://") || url.startsWith("https://")
     }
 
     override suspend fun onAfterExecute(context: SkillContext, params: Map<String, Any>, result: SkillResult) {
