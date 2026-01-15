@@ -1,4 +1,4 @@
-package ai.platon.pulsar.self
+package ai.platon.pulsar.test.self
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue

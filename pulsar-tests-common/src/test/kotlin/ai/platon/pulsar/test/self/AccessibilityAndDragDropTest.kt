@@ -1,4 +1,4 @@
-package ai.platon.pulsar.self
+package ai.platon.pulsar.test.self
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Tag
