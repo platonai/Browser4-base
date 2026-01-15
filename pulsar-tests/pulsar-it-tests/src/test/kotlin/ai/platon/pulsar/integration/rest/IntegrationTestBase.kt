@@ -58,7 +58,7 @@ class IntegrationTestBase {
             .body(sql)
             .exchange()
             .expectStatus().is2xxSuccessful
-            .expectBody(ScrapeResponse::class.java)
+            .expectBody<ScrapeResponse>()
             .returnResult()
             .responseBody
     }
@@ -72,7 +72,7 @@ class IntegrationTestBase {
             .body(sql)
             .exchange()
             .expectStatus().is2xxSuccessful
-            .expectBody(String::class.java)
+            .expectBody<String>()
             .returnResult()
             .responseBody
 
@@ -86,7 +86,7 @@ class IntegrationTestBase {
         var response: ScrapeResponse = client.get().uri("/api/x/status?uuid=$uuid")
             .exchange()
             .expectStatus().is2xxSuccessful
-            .expectBody(ScrapeResponse::class.java)
+            .expectBody<ScrapeResponse>()
             .returnResult()
             .responseBody!!
 
