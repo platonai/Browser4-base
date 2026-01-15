@@ -584,6 +584,7 @@ function() {
     @Throws(WebDriverException::class)
     override suspend fun pageSource(): String? {
         return driverHelper.invokeOnPage("pageSource") {
+            // TODO: use pageAPI?.getResourceContent for better performance
             // pageAPI?.getResourceContent(mainFrameAPI?.id, currentUrl())
             val document = domAPI?.getDocument() ?: return@invokeOnPage null
             domAPI?.getOuterHTML(document.nodeId, document.backendNodeId)
