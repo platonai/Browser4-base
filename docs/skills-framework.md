@@ -13,6 +13,53 @@ The Skills framework consists of the following core components:
 - **SkillLoader**: Handles dynamic loading of skills with dependency resolution
 - **SkillComposer**: Creates composite skills from multiple simpler skills
 - **SkillResult**: Represents the outcome of a skill execution
+- **SkillDefinitionLoader**: Loads skill definitions from standardized directory structure
+
+## Skill Directory Structure
+
+Each skill follows a standardized directory structure based on agent skills best practices:
+
+```
+skill-name/
+├── SKILL.md          # Required: Instructions, metadata, and documentation
+├── scripts/          # Optional: Executable code and usage examples
+├── references/       # Optional: Developer guides and technical documentation
+└── assets/           # Optional: Configuration files, templates, resources
+```
+
+### SKILL.md
+
+The SKILL.md file is required and contains:
+- Skill metadata (ID, name, version, author, tags)
+- Description and purpose
+- Dependencies on other skills
+- Parameter specifications
+- Return value documentation
+- Usage examples
+- Error handling guidelines
+
+### scripts/
+
+Optional directory containing:
+- Example usage scripts (`.kts`, `.sh`, `.py`, etc.)
+- Test scripts
+- Utility scripts for skill operations
+
+### references/
+
+Optional directory containing:
+- Developer guides
+- Architecture documentation
+- Best practices
+- Troubleshooting guides
+
+### assets/
+
+Optional directory containing:
+- Configuration files (`config.json`)
+- Data templates
+- Example datasets
+- Resource files
 
 ## Quick Start
 
@@ -398,6 +445,74 @@ class SkillComposer(registry: SkillRegistry) {
     fun parallel(compositeId: String, skillIds: List<String>, metadata: SkillMetadata?): Skill
 }
 ```
+
+### SkillDefinitionLoader
+
+```kotlin
+class SkillDefinitionLoader {
+    fun loadFromDirectory(skillsDirectory: Path): List<SkillDefinition>
+    fun loadFromResources(resourcePath: String): List<SkillDefinition>
+    fun getSkillScripts(definition: SkillDefinition): List<Path>
+    fun getSkillReferences(definition: SkillDefinition): List<Path>
+    fun getSkillAssets(definition: SkillDefinition): List<Path>
+}
+```
+
+## Loading Skills from Directory Structure
+
+The framework supports loading skill definitions from the standardized directory structure:
+
+```kotlin
+val definitionLoader = SkillDefinitionLoader()
+
+// Load from resources
+val definitions = definitionLoader.loadFromResources("skills")
+
+// Load from filesystem
+val definitions = definitionLoader.loadFromDirectory(Paths.get("/path/to/skills"))
+
+// Access skill metadata
+definitions.forEach { definition ->
+    println("Skill: ${definition.name} v${definition.version}")
+    println("ID: ${definition.skillId}")
+    println("Description: ${definition.description}")
+    println("Dependencies: ${definition.dependencies}")
+    println("Parameters: ${definition.parameters.keys}")
+    
+    // Access associated resources
+    val scripts = definitionLoader.getSkillScripts(definition)
+    val references = definitionLoader.getSkillReferences(definition)
+    val assets = definitionLoader.getSkillAssets(definition)
+}
+```
+
+## Example Skills
+
+The framework includes three complete example skills with full directory structure:
+
+### 1. Web Scraping Skill
+- **Location**: `src/main/resources/skills/web-scraping/`
+- **Purpose**: Extract data from web pages using CSS selectors
+- **Features**: Rate limiting, caching, multiple attribute extraction
+- **Documentation**: [SKILL.md](../pulsar-core/pulsar-agentic/src/main/resources/skills/web-scraping/SKILL.md)
+
+### 2. Form Filling Skill
+- **Location**: `src/main/resources/skills/form-filling/`
+- **Purpose**: Automatically fill web forms with provided data
+- **Features**: Multi-step forms, security validation, field mapping
+- **Documentation**: [SKILL.md](../pulsar-core/pulsar-agentic/src/main/resources/skills/form-filling/SKILL.md)
+
+### 3. Data Validation Skill
+- **Location**: `src/main/resources/skills/data-validation/`
+- **Purpose**: Validate data against specified rules
+- **Features**: Email validation, required fields, extensible rules
+- **Documentation**: [SKILL.md](../pulsar-core/pulsar-agentic/src/main/resources/skills/data-validation/SKILL.md)
+
+Each example includes:
+- Complete SKILL.md with metadata and documentation
+- Example usage scripts in `scripts/`
+- Developer guides in `references/`
+- Configuration and templates in `assets/`
 
 ## Testing
 
