@@ -30,26 +30,6 @@
         <defaultGoal>package</defaultGoal>
     </build>
 
-    <profiles>
-        <profile>
-            <id>tests-integration</id>
-            <activation>
-                <property>
-                    <name>runITs</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <properties>
-                <skipTests>false</skipTests>
-                <!-- Override parent's excludedGroups to allow E2ETest to run -->
-                <surefire.excludedGroups>
-                    TimeConsumingTest,ExternalResourceDependent,IntegrationTest,HeavyTest,
-                    SkippableLowerLevelTest,TestInfraCheck,MustManuallyRun,OptionalTest
-                </surefire.excludedGroups>
-            </properties>
-        </profile>
-    </profiles>
-
     <dependencies>
         <!-- Internal Dependencies -->
         <dependency>

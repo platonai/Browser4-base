@@ -84,7 +84,6 @@
         <module>pulsar-core</module>
         <module>pulsar-rest</module>
         <module>pulsar-client</module>
-        <module>pulsar-tests</module>
         <module>pulsar-bom</module>
     </modules>
 
@@ -100,6 +99,19 @@
                 <module>examples/browser4-examples</module>
                 <module>examples/java-compatible</module>
             </modules>
+        </profile>
+
+        <profile>
+            <id>tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>pulsar-tests</module>
+            </modules>
+            <properties>
+                <surefire.excludedGroups>None</surefire.excludedGroups>
+            </properties>
         </profile>
 
         <profile>
