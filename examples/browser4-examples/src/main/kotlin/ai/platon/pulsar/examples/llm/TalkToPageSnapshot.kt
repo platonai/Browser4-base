@@ -2,7 +2,7 @@ package ai.platon.pulsar.examples.llm
 
 import ai.platon.pulsar.skeleton.PulsarSettings
 import ai.platon.pulsar.skeleton.context.PulsarContexts
-import ai.platon.pulsar.test.TestResourceUtil
+import ai.platon.pulsar.test.TestUrls
 
 /**
  * Demonstrates chat with a webpage.
@@ -13,7 +13,7 @@ suspend fun main() {
     // Create a pulsar session
     val session = PulsarContexts.createSession()
     // The main url we are playing with
-    val url = TestResourceUtil.PRODUCT_DETAIL_URL
+    val url = TestUrls.PRODUCT_DETAIL_URL
 
     val page = session.load(url)
     val document = session.parse(page)

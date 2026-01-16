@@ -3,7 +3,7 @@ package ai.platon.pulsar.examples.playwright.badcase
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.skeleton.PulsarSettings
 import ai.platon.pulsar.skeleton.context.PulsarContexts
-import ai.platon.pulsar.test.TestResourceUtil
+import ai.platon.pulsar.test.TestUrls
 import com.google.gson.Gson
 import kotlinx.coroutines.runBlocking
 
@@ -20,7 +20,7 @@ fun main() {
     // Create a pulsar session
     val session = PulsarContexts.createSession()
     // The main url we are playing with
-    val url = TestResourceUtil.PRODUCT_DETAIL_URL
+    val url = TestUrls.PRODUCT_DETAIL_URL
 
     // Open a page with the browser
     val page = session.open(url)

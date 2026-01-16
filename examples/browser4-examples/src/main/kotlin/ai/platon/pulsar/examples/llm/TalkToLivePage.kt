@@ -3,7 +3,7 @@ package ai.platon.pulsar.examples.llm
 import ai.platon.pulsar.agentic.context.AgenticContexts
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.skeleton.crawl.event.impl.DefaultPageEventHandlers
-import ai.platon.pulsar.test.TestResourceUtil
+import ai.platon.pulsar.test.TestUrls
 import kotlinx.coroutines.delay
 import java.time.OffsetDateTime
 
@@ -12,7 +12,7 @@ import java.time.OffsetDateTime
  * */
 fun main() {
     val session = AgenticContexts.createSession()
-    val url = TestResourceUtil.PRODUCT_DETAIL_URL
+    val url = TestUrls.PRODUCT_DETAIL_URL
 
     val actions = """
 move cursor to the search bar and click it

@@ -1,14 +1,11 @@
 package ai.platon.pulsar.rest.openapi.controller
 
-import ai.platon.pulsar.common.config.ImmutableConfig
-import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.rest.openapi.dto.*
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -24,13 +21,9 @@ import org.springframework.web.bind.annotation.*
 )
 @ConditionalOnBean(SessionManager::class)
 class NavigationController(
-    private val sessionManager: SessionManager,
-    @Value("\${pulsar.test.mode:false}")
-    private val testMode: Boolean = false
+    private val sessionManager: SessionManager
 ) {
     private val logger = LoggerFactory.getLogger(NavigationController::class.java)
-
-    private fun shouldStub(): Boolean = testMode || !ChatModelFactory.isModelConfigured(ImmutableConfig())
 
     /**
      * Navigates to a URL.
@@ -46,11 +39,6 @@ class NavigationController(
 
         val session = sessionManager.getSession(sessionId)
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
-
-        if (shouldStub()) {
-            sessionManager.setSessionUrl(sessionId, request.url)
-            return ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
-        }
 
         try {
             // Get or create bound driver and navigate to URL
