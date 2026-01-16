@@ -833,6 +833,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /session/{sessionId}/events/stream:
+    get:
+      tags:
+        - events
+      summary: Stream session events (Server-Sent Events)
+      operationId: streamEvents
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+        - name: subscriptionId
+          in: query
+          required: false
+          description: If provided, stream only event types included in the subscription.
+          schema:
+            type: string
+        - name: eventTypes
+          in: query
+          required: false
+          description: Optional event type filter (repeatable query param).
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   # ========== PerceptiveAgent Endpoints ==========
   /session/{sessionId}/agent/run:
     post:

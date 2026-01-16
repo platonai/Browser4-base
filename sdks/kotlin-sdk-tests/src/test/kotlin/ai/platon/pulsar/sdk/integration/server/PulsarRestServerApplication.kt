@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration
 
 /**
  * Test server application for Kotlin SDK integration tests.
- * 
+ *
  * Starts a complete Browser4 REST API server for SDK testing.
  */
 @SpringBootApplication
@@ -33,5 +33,5 @@ import org.springframework.test.context.ContextConfiguration
         "ai.platon.pulsar.test.server"  // Mock site server
     ]
 )
-@ImportResource("classpath:rest-beans/app-context.xml")
+@ImportResource("rest-beans/app-context.xml")
 class PulsarRestServerApplication

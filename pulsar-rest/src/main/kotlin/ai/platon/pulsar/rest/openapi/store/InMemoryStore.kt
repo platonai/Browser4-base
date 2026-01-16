@@ -178,6 +178,38 @@ class InMemoryStore {
     }
 
     /**
+     * Retrieves a subscription by ID for a session.
+     */
+    fun getSubscription(sessionId: String, subscriptionId: String): SubscriptionData? {
+        return sessionData[sessionId]?.subscriptions?.get(subscriptionId)
+    }
+
+    /**
+     * Retrieves events for a session starting from a given index.
+     *
+     * @param sessionId The session identifier.
+     * @param startIndex The inclusive start index in the event list.
+     * @param eventTypes Optional event type whitelist.
+     * @return Pair of (nextIndex, events). nextIndex is the new cursor position.
+     */
+    fun getEventsFrom(sessionId: String, startIndex: Int, eventTypes: Set<String>? = null): Pair<Int, List<Event>> {
+        val events = sessionData[sessionId]?.events ?: return 0 to emptyList()
+        synchronized(events) {
+            if (startIndex >= events.size) {
+                return events.size to emptyList()
+            }
+
+            val slice = events.subList(startIndex, events.size)
+            val filtered = if (eventTypes.isNullOrEmpty()) {
+                slice.toList()
+            } else {
+                slice.filter { it.eventType in eventTypes }
+            }
+            return events.size to filtered
+        }
+    }
+
+    /**
      * Cleans up supplementary data for a deleted session.
      *
      * @param sessionId The session identifier.

@@ -58,6 +58,26 @@ class PulsarClient(
         putAll(defaultHeaders)
     }
 
+    /**
+     * Exposes the configured base URL for building absolute request URIs.
+     */
+    internal val resolvedBaseUrl: String get() = baseUrl
+
+    /**
+     * Exposes the configured request timeout.
+     */
+    internal val resolvedTimeout: Duration get() = timeout
+
+    /**
+     * Exposes the underlying Java HttpClient for streaming operations (e.g., SSE).
+     */
+    internal val rawHttpClient: HttpClient get() = httpClient
+
+    /**
+     * Exposes default headers (excluding per-request overrides).
+     */
+    internal val resolvedDefaultHeaders: Map<String, String> get() = headers
+
     private fun url(path: String): String {
         val normalizedBase = baseUrl.trimEnd('/')
         return "$normalizedBase$path"

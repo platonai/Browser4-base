@@ -235,11 +235,22 @@ class ModelsTest {
     }
 
     @Test
-    fun `PageEventHandlers returns empty maps by default`() {
+    fun `PageEventHandlers has no handlers by default`() {
+        val handlers = PageEventHandlers()
+        assertTrue(handlers.registeredEventTypes().isEmpty())
+    }
+
+    @Test
+    fun `PageEventHandlers can register handlers`() {
         val handlers = PageEventHandlers()
 
-        assertTrue(handlers.getBrowseEventHandlers().isEmpty())
-        assertTrue(handlers.getLoadEventHandlers().isEmpty())
-        assertTrue(handlers.getCrawlEventHandlers().isEmpty())
+        handlers.load.on("onLoaded") { }
+        handlers.browse.on("onWillNavigate") { }
+        handlers.crawl.on("onLoaded") { }
+
+        val types = handlers.registeredEventTypes()
+
+        assertTrue(types.isNotEmpty())
+        assertEquals(setOf("onLoaded", "onWillNavigate"), types)
     }
 }

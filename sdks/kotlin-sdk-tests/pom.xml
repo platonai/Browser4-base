@@ -12,13 +12,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>ai.platon.pulsar</groupId>
+    <groupId>ai.platon.pulsar</groupId>
         <artifactId>pulsar</artifactId>
         <version>4.5.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>pulsar-sdk-kotlin-tests</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
 
     <name>Pulsar Kotlin SDK Integration Tests</name>
     <description>Integration tests for Kotlin SDK with real server</description>
@@ -28,46 +29,27 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- Skip tests by default in this module because they are time-consuming.
-             To run tests, use: mvn test -DrunITs=true -->
-        <skipTests>true</skipTests>
-
         <!--  Language  -->
         <javaVersion>17</javaVersion>
         <kotlinVersion>2.2.21</kotlinVersion>
 
         <!--  Kotlin  -->
         <kotlin.version>${kotlinVersion}</kotlin.version>
+
+        <pulsar.version>4.5.0-SNAPSHOT</pulsar.version>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>run-sdk-tests</id>
-            <activation>
-                <property>
-                    <name>runSDKTests</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <properties>
-                <skipTests>false</skipTests>
-            </properties>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <groups>IntegrationTest</groups>
-                            <!-- Don't exclude any tests in full mode -->
-                            <excludedGroups>None</excludedGroups>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ai.platon.pulsar</groupId>
+                <artifactId>pulsar-bom</artifactId>
+                <version>${pulsar.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- SDK dependency -->
@@ -126,11 +108,23 @@
                 <version>${kotlin.version}</version>
                 <executions>
                     <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>test-compile</id>
                         <phase>test-compile</phase>
                         <goals>
                             <goal>test-compile</goal>
                         </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>src/test/kotlin</sourceDir>
+                            </sourceDirs>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

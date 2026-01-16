@@ -274,28 +274,90 @@ data class ActionDescription(
 )
 
 /**
- * Placeholder for page event handlers.
- * This class provides structure for event-driven page interactions.
+ * SDK-side page event handlers.
+ *
+ * This is a lightweight, callback-based API intended for REST/OpenAPI mode.
+ * Events are received from `/session/{sessionId}/events/stream` (SSE) and dispatched
+ * locally by the SDK.
+ *
+ * Notes:
+ * - This is intentionally minimal and string-based.
+ * - The server currently emits events with an `eventType` string (e.g. "onLoaded").
+ * - Handlers are grouped by phase for API compatibility with Browser4 core.
  */
 class PageEventHandlers {
-    private val browseEventHandlers: MutableMap<String, Any> = mutableMapOf()
-    private val loadEventHandlers: MutableMap<String, Any> = mutableMapOf()
-    private val crawlEventHandlers: MutableMap<String, Any> = mutableMapOf()
+    /**
+     * A group of event handlers keyed by `eventType`.
+     */
+    class Group {
+        private val handlers: MutableMap<String, MutableList<(OpenApiEvent) -> Unit>> = mutableMapOf()
+
+        /**
+         * Registers a handler for an event type.
+         *
+         * @param eventType The event type emitted by the server, e.g. "onLoaded".
+         * @param handler Callback invoked with the raw [OpenApiEvent].
+         */
+        fun on(eventType: String, handler: (OpenApiEvent) -> Unit): Group {
+            val key = eventType.trim()
+            require(key.isNotEmpty()) { "eventType must not be blank" }
+            handlers.getOrPut(key) { mutableListOf() }.add(handler)
+            return this
+        }
+
+        internal fun dispatch(event: OpenApiEvent) {
+            handlers[event.eventType]?.forEach { h ->
+                try {
+                    h(event)
+                } catch (_: Exception) {
+                    // Best-effort: user callback errors must not break SSE processing.
+                }
+            }
+        }
+
+        internal fun isEmpty(): Boolean = handlers.isEmpty()
+        internal fun keys(): Set<String> = handlers.keys
+    }
+
+    /** Load phase handlers (fetch/parse). */
+    val load = Group()
+
+    /** Browse phase handlers (navigation/interaction). */
+    val browse = Group()
+
+    /** Crawl phase handlers (iteration-level). */
+    val crawl = Group()
 
     /**
-     * Gets browse event handlers.
+     * Registers a handler for all phases.
      */
-    fun getBrowseEventHandlers(): Map<String, Any> = browseEventHandlers.toMap()
+    fun onAny(eventType: String, handler: (OpenApiEvent) -> Unit): PageEventHandlers {
+        load.on(eventType, handler)
+        browse.on(eventType, handler)
+        crawl.on(eventType, handler)
+        return this
+    }
+
+    internal fun dispatch(event: OpenApiEvent) {
+        load.dispatch(event)
+        browse.dispatch(event)
+        crawl.dispatch(event)
+    }
 
     /**
-     * Gets load event handlers.
+     * Returns the set of event types registered in all groups.
+     *
+     * This is used by the SDK to decide what to subscribe to on the server.
+     * If no event handlers are registered, this returns an empty set.
      */
-    fun getLoadEventHandlers(): Map<String, Any> = loadEventHandlers.toMap()
+    fun registeredEventTypes(): Set<String> {
+        return (load.keys() + browse.keys() + crawl.keys()).toSet()
+    }
 
-    /**
-     * Gets crawl event handlers.
-     */
-    fun getCrawlEventHandlers(): Map<String, Any> = crawlEventHandlers.toMap()
+    internal fun subscribedEventTypesOrNull(): List<String>? {
+        val types = registeredEventTypes().toList()
+        return types.ifEmpty { null }
+    }
 }
 
 /**
@@ -320,7 +382,7 @@ data class AgentHistory(
     val finalResult: Any? = null
 ) {
     val size: Int get() = states.size
-    
+
     companion object {
         /**
          * Creates an AgentHistory from an API response map.
@@ -337,7 +399,7 @@ data class AgentHistory(
                     message = stateMap["message"] as? String ?: ""
                 )
             }.toMutableList()
-            
+
             return AgentHistory(
                 states = states,
                 hasErrors = data["hasErrors"] as? Boolean ?: false,

@@ -105,6 +105,15 @@
                 <module>browser4/browser4-spa</module>
                 <module>examples/browser4-examples</module>
                 <module>examples/java-compatible</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>sdk</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
                 <module>sdks/kotlin-sdk</module>
                 <module>sdks/kotlin-sdk-tests</module>
             </modules>

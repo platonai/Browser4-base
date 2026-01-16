@@ -22,11 +22,12 @@ import org.junit.jupiter.api.Tag
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
+import java.time.Duration
 import kotlin.test.assertTrue
 
 /**
  * Integration test base class.
- * 
+ *
  * Features:
  * - Automatically starts complete Browser4 REST server
  * - Uses random port to avoid conflicts
@@ -56,7 +57,7 @@ abstract class KotlinSdkIntegrationTestBase {
     /**
      * Server base URL
      */
-    protected val baseUrl: String 
+    protected val baseUrl: String
         get() = "http://localhost:$serverPort"
 
     /**
@@ -65,7 +66,7 @@ abstract class KotlinSdkIntegrationTestBase {
     @BeforeEach
     fun setupClient() {
         assertTrue(serverPort > 0, "Server port should be assigned")
-        client = PulsarClient(baseUrl = baseUrl, timeout = java.time.Duration.ofSeconds(60))
+        client = PulsarClient(baseUrl = baseUrl, timeout = Duration.ofSeconds(60))
     }
 
     /**

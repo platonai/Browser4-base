@@ -19,6 +19,7 @@ import org.springframework.beans.factory.InitializingBean
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ConfigurableApplicationContext
+import java.net.BindException
 import java.net.ServerSocket
 
 /**
@@ -148,7 +149,7 @@ class TestServerConfiguration : InitializingBean, DisposableBean {
     private fun isPortInUse(port: Int): Boolean {
         return try {
             ServerSocket(port).use { false }
-        } catch (e: java.net.BindException) {
+        } catch (e: BindException) {
             true
         }
     }

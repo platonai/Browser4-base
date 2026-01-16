@@ -12,6 +12,8 @@
  */
 package ai.platon.pulsar.sdk.integration.util
 
+import java.net.URL
+
 /**
  * Test URL constants for integration tests.
  */
@@ -41,7 +43,7 @@ object TestUrls {
      */
     fun isMockServerRunning(): Boolean {
         return try {
-            java.net.URL(MOCK_SERVER_BASE).openConnection().apply {
+            URL(MOCK_SERVER_BASE).openConnection().apply {
                 connectTimeout = 5000
                 readTimeout = 5000
             }.getInputStream().close()

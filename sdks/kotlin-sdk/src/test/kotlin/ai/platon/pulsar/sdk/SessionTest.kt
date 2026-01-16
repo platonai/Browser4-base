@@ -223,9 +223,9 @@ class AgenticSessionTest {
     fun `PageEventHandlers can be created`() {
         val handlers = PageEventHandlers()
         
-        assertTrue(handlers.getBrowseEventHandlers().isEmpty())
-        assertTrue(handlers.getLoadEventHandlers().isEmpty())
-        assertTrue(handlers.getCrawlEventHandlers().isEmpty())
+        assertTrue(handlers.browse.isEmpty())
+        assertTrue(handlers.load.isEmpty())
+        assertTrue(handlers.crawl.isEmpty())
     }
 
     @Test

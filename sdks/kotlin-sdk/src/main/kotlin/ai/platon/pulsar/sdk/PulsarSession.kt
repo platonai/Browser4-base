@@ -151,9 +151,70 @@ open class PulsarSession(
      */
     @Suppress("UNCHECKED_CAST")
     fun open(url: String, eventHandlers: PageEventHandlers, args: String? = null): WebPage {
-        // For now, event handlers are reserved for future use
-        // The implementation will delegate to the standard open method
-        return open(url, args)
+        // MVP implementation for REST/OpenAPI mode:
+        // - create a subscription
+        // - start an SSE listener using /events/stream
+        // - run the actual open()
+
+        val subscription = try {
+            val requestedEventTypes = eventHandlers.subscribedEventTypesOrNull() ?: listOf("page")
+            val value = driver.subscribeEvents(mapOf("eventTypes" to requestedEventTypes))
+
+            val map = value as? Map<String, Any?>
+
+            // OpenAPI endpoints typically return a WebDriver-shaped wrapper: {"value": {...}}
+            val valueObj = map?.get("value")
+            when (valueObj) {
+                is Map<*, *> -> (valueObj as Map<String, Any?>)["subscriptionId"] as? String
+                else -> map?.get("subscriptionId") as? String
+            }
+        } catch (_: Exception) {
+            null
+        }
+
+        val stopFlag = java.util.concurrent.atomic.AtomicBoolean(false)
+
+        // Start listener before open, so we can receive early events.
+        val listener = Thread {
+            try {
+                val base = client.resolvedBaseUrl.trimEnd('/')
+                val sessionId = client.sessionId ?: return@Thread
+                val query = if (!subscription.isNullOrBlank()) {
+                    "?subscriptionId=$subscription"
+                } else {
+                    ""
+                }
+                val uri = java.net.URI.create("$base/session/$sessionId/events/stream$query")
+
+                val sse = SseClient(client.rawHttpClient, client.resolvedTimeout)
+                sse.connect(
+                    uri = uri,
+                    headers = client.resolvedDefaultHeaders.filterKeys { it.lowercase() != "content-type" },
+                    shouldStop = { stopFlag.get() }
+                ) { evt ->
+                    // Server sends json string as data (we serialize Event DTO as JSON).
+                    val oe = OpenApiEvent.fromJson(evt.data)
+                    if (oe != null) {
+                        // Dispatch to SDK-side handlers.
+                        eventHandlers.dispatch(oe)
+                    }
+                    // else: ignore malformed frames (best-effort)
+                }
+            } catch (_: Exception) {
+                // Swallow listener errors to avoid breaking open(); users can still load the page.
+            }
+        }.apply {
+            name = "pulsar-sdk-open-sse-listener"
+            isDaemon = true
+        }
+
+        listener.start()
+
+        return try {
+            open(url, args)
+        } finally {
+            stopFlag.set(true)
+        }
     }
 
     /**
