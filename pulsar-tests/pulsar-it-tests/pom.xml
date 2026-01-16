@@ -32,7 +32,7 @@
 
     <profiles>
         <profile>
-            <id>run-its</id>
+            <id>tests-integration</id>
             <activation>
                 <property>
                     <name>runITs</name>
