@@ -7,6 +7,7 @@ enabling web scraping, data extraction, and AI-powered browser interaction.
 
 ## Features
 
+- **Local Driver Mode**: Automatically downloads and starts Browser4.jar (no server required!)
 - **Session Management**: Create, manage, and delete browser sessions
 - **Navigation**: Navigate to URLs, go back/forward, reload pages
 - **Element Interaction**: Click, fill, type, press keys, hover, focus
@@ -36,15 +37,15 @@ implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-SNAPSHOT")
 
 ## Quick Start
 
-### Simple Usage (FusedActs-style)
+### Local Driver Mode (Recommended)
 
-The simplest way to get started, matching the internal examples pattern:
+The SDK now automatically downloads and starts Browser4.jar when no server URL is specified:
 
 ```kotlin
 import ai.platon.pulsar.sdk.*
 
-suspend fun main() {
-    // Get or create default session (similar to AgenticContexts.getOrCreateSession())
+fun main() {
+    // Automatically downloads and starts Browser4.jar
     val session = AgenticSession.getOrCreate()
     val agent = session.companionAgent
     val driver = session.getOrCreateBoundDriver()
@@ -74,8 +75,36 @@ suspend fun main() {
     val content = driver.selectFirstTextOrNull("body")
     println("Content: ${content?.take(100)}")
     
-    // Clean up
+    // Clean up (stops local driver automatically)
     session.context.close()
+}
+```
+
+### Using Local Driver with Custom Configuration
+
+```kotlin
+import ai.platon.pulsar.sdk.*
+
+fun main() {
+    // Configure local driver options
+    val options = LocalDriverOptions(
+        port = 9000,
+        javaOptions = mapOf(
+            "OPENROUTER_API_KEY" to "your-api-key"
+        )
+    )
+    
+    val client = PulsarClient(
+        useLocalDriver = true,
+        localDriverOptions = options
+    )
+    client.createSession()
+    val session = AgenticSession(client)
+    
+    // Use session...
+    
+    session.close()
+    client.close() // Stops local driver
 }
 ```
 
@@ -351,11 +380,63 @@ data class ObserveResult(
 
 ## Server Requirements
 
-The SDK connects to a Browser4 server running at `http://localhost:8182` by default.
-You can configure a different URL when creating the `PulsarClient`:
+### Local Driver Mode (Default)
+
+When using `AgenticSession.getOrCreate()` without parameters, the SDK automatically:
+1. Downloads Browser4.jar from GitHub releases (if not already present in `~/.browser4/`)
+2. Starts the Browser4 server on port 8182
+3. Connects to the local server
+
+The Browser4.jar is stored in `~/.browser4/Browser4.jar` by default.
+
+**Environment Variables:**
+- `OPENROUTER_API_KEY`: Your OpenRouter API key (automatically passed to the local driver)
+
+### Remote Server Mode
+
+To connect to an existing Browser4 server instead of using the local driver:
+
+```kotlin
+val session = AgenticSession.getOrCreate(baseUrl = "http://your-server:8182")
+```
+
+Or with explicit configuration:
 
 ```kotlin
 val client = PulsarClient(baseUrl = "http://your-server:8182")
+client.createSession()
+val session = AgenticSession(client)
+```
+
+## Configuration
+
+### Local Driver Options
+
+```kotlin
+data class LocalDriverOptions(
+    val jarPath: String? = null,              // Custom path for Browser4.jar
+    val downloadUrl: String? = null,          // Custom download URL
+    val port: Int? = null,                    // Custom port (default: 8182)
+    val javaOptions: Map<String, String> = emptyMap()  // Java system properties
+)
+```
+
+Example:
+
+```kotlin
+val options = LocalDriverOptions(
+    jarPath = "/custom/path/Browser4.jar",
+    port = 9000,
+    javaOptions = mapOf(
+        "OPENROUTER_API_KEY" to "your-api-key",
+        "server.port" to "9000"
+    )
+)
+
+val client = PulsarClient(
+    useLocalDriver = true,
+    localDriverOptions = options
+)
 ```
 
 ## License

@@ -72,9 +72,12 @@ class AgenticSession(
         /**
          * Gets or creates a default AgenticSession instance.
          *
-         * This convenience method creates a session using the default server
-         * configuration (http://localhost:8182). The session is reused across
+         * This convenience method creates a session with automatic local driver
+         * when no explicit URL is provided. The session is reused across
          * multiple calls.
+         *
+         * When called without parameters, it will automatically download and start
+         * a local Browser4.jar instance if needed.
          *
          * Usage pattern similar to AgenticContexts.getOrCreateSession():
          * ```kotlin
@@ -83,13 +86,21 @@ class AgenticSession(
          * val driver = session.getOrCreateBoundDriver()
          * ```
          *
-         * @param baseUrl The base URL of the Browser4 server (default: http://localhost:8182)
+         * @param baseUrl Optional explicit base URL. If provided, connects to remote server.
+         *                If null, uses local driver mode.
+         * @param useLocalDriver If true, automatically starts local Browser4 driver (default when baseUrl is null)
          * @return The default AgenticSession instance
          */
         @Synchronized
-        fun getOrCreate(baseUrl: String = "http://localhost:8182"): AgenticSession {
+        fun getOrCreate(
+            baseUrl: String? = null,
+            useLocalDriver: Boolean = baseUrl == null
+        ): AgenticSession {
             if (needsNewDefaultSession()) {
-                val client = PulsarClient(baseUrl = baseUrl)
+                val client = PulsarClient(
+                    baseUrl = baseUrl,
+                    useLocalDriver = useLocalDriver
+                )
                 client.createSession()
                 defaultClient = client
                 defaultSession = AgenticSession(client)
@@ -102,11 +113,19 @@ class AgenticSession(
          *
          * Unlike [getOrCreate], this always creates a fresh session.
          *
-         * @param baseUrl The base URL of the Browser4 server (default: http://localhost:8182)
+         * @param baseUrl Optional explicit base URL. If provided, connects to remote server.
+         *                If null, uses local driver mode.
+         * @param useLocalDriver If true, automatically starts local Browser4 driver (default when baseUrl is null)
          * @return A new AgenticSession instance
          */
-        fun create(baseUrl: String = "http://localhost:8182"): AgenticSession {
-            val client = PulsarClient(baseUrl = baseUrl)
+        fun create(
+            baseUrl: String? = null,
+            useLocalDriver: Boolean = baseUrl == null
+        ): AgenticSession {
+            val client = PulsarClient(
+                baseUrl = baseUrl,
+                useLocalDriver = useLocalDriver
+            )
             client.createSession()
             return AgenticSession(client)
         }

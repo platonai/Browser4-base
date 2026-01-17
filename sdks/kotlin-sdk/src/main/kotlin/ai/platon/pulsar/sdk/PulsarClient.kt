@@ -26,26 +26,68 @@ import java.time.Duration
  * Provides low-level API communication with the Browser4 server,
  * handling session management and request/response serialization.
  *
- * Example usage:
+ * When [useLocalDriver] is true and no explicit [baseUrl] is provided,
+ * the client will automatically download and start a local Browser4.jar
+ * instance.
+ *
+ * Example usage with local driver:
  * ```kotlin
- * val client = PulsarClient()
+ * val client = PulsarClient(useLocalDriver = true)
  * val sessionId = client.createSession()
  * // Use client for API calls
  * client.deleteSession()
  * client.close()
  * ```
  *
- * @param baseUrl The base URL of the Browser4 server (default: http://localhost:8182)
+ * Example usage with remote server:
+ * ```kotlin
+ * val client = PulsarClient(baseUrl = "http://remote-server:8182")
+ * val sessionId = client.createSession()
+ * // Use client for API calls
+ * client.deleteSession()
+ * client.close()
+ * ```
+ *
+ * @param baseUrl The base URL of the Browser4 server. If null and [useLocalDriver] is true,
+ *                will use local driver. Otherwise defaults to http://localhost:8182
  * @param timeout Request timeout in seconds (default: 30.0)
  * @param sessionId Optional initial session ID
  * @param defaultHeaders Optional additional default headers
+ * @param useLocalDriver If true, automatically starts a local Browser4 driver when no baseUrl is provided
+ * @param localDriverOptions Options for the local Browser4 driver (jar path, download URL, etc.)
  */
-class PulsarClient(
-    private val baseUrl: String = "http://localhost:8182",
+class PulsarClient
+@JvmOverloads constructor(
+    baseUrl: String? = null,
     private val timeout: Duration = Duration.ofSeconds(30),
     var sessionId: String? = null,
-    private val defaultHeaders: Map<String, String> = emptyMap()
+    private val defaultHeaders: Map<String, String> = emptyMap(),
+    private val useLocalDriver: Boolean = false,
+    private val localDriverOptions: LocalDriverOptions = LocalDriverOptions()
 ) : AutoCloseable {
+
+    private var localDriver: Browser4Driver? = null
+    private val baseUrl: String
+
+    init {
+        this.baseUrl = when {
+            baseUrl != null -> baseUrl
+            useLocalDriver -> {
+                // Start local driver
+                val driver = Browser4Driver(
+                    jarPath = localDriverOptions.jarPath ?: Browser4Driver.defaultJarPath(),
+                    downloadUrl = localDriverOptions.downloadUrl ?: 
+                        "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar",
+                    port = localDriverOptions.port ?: 8182,
+                    javaOptions = localDriverOptions.javaOptions
+                )
+                driver.start(waitForReady = true)
+                localDriver = driver
+                driver.baseUrl
+            }
+            else -> "http://localhost:8182"
+        }
+    }
 
     private val httpClient: HttpClient = HttpClient.newBuilder()
         .connectTimeout(timeout)
@@ -213,10 +255,27 @@ class PulsarClient(
     }
 
     /**
-     * Closes the HTTP client.
+     * Closes the HTTP client and local driver if started.
      */
     override fun close() {
+        localDriver?.close()
         // HttpClient in Java 11+ doesn't require explicit closing,
         // but we implement AutoCloseable for consistency
     }
 }
+
+/**
+ * Configuration options for the local Browser4 driver.
+ *
+ * @param jarPath Path where Browser4.jar should be stored (default: ~/.browser4/Browser4.jar)
+ * @param downloadUrl URL to download Browser4.jar from (default: GitHub release v4.4.0)
+ * @param port Port for the Browser4 server (default: 8182)
+ * @param javaOptions Additional Java system properties (e.g., "OPENROUTER_API_KEY" to "your-key")
+ */
+data class LocalDriverOptions(
+    val jarPath: String? = null,
+    val downloadUrl: String? = null,
+    val port: Int? = null,
+    val javaOptions: Map<String, String> = emptyMap()
+)
+
