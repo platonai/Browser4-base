@@ -73,19 +73,6 @@
             <version>${gora-shaded-mongodb.version}</version>
         </dependency>
 
-        <!-- Requires org.apache.hadoop.conf.Configuration only, required by GoraStorage -->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.hadoop</groupId>-->
-<!--            <artifactId>hadoop-common</artifactId>-->
-<!--            <version>${hadoop.version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>*</groupId>-->
-<!--                    <artifactId>*</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
             <artifactId>pulsar-common</artifactId>
