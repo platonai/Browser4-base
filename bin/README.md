@@ -54,7 +54,11 @@ Python client scripts and examples.
 
 ### quality/
 
-Code quality check scripts.
+Code quality check scripts:
+- `check-links.py`, `check-links.sh`, `check-links.ps1` - Check documentation links for validity (internal paths and external connectivity)
+- `quality-check.sh`, `quality-check.ps1` - Overall quality checks
+
+See [quality/README.md](quality/README.md) for detailed documentation on the link checker.
 
 ### release/
 
