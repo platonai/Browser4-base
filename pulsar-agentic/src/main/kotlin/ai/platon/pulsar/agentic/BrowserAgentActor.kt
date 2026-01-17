@@ -81,9 +81,6 @@ open class BrowserAgentActor(
     }
     protected val fs get() = toolExecutor.fs
 
-    // Helper classes for better code organization
-//    protected lateinit var baseContext: ExecutionContext
-//    protected var activeContext: ExecutionContext? = null
     protected val pageStateTracker = PageStateTracker(session, config)
     protected val stateManager by lazy { AgentStateManager(this, pageStateTracker) }
 
@@ -156,7 +153,7 @@ open class BrowserAgentActor(
         logger.info("🛠️ tool.exec sid={} step={} tool={}", context.sid, context.step, toolCall.pseudoExpression)
 
         return try {
-            val result = toolexecutor.callFunctionOn(actionDescription, "resolve, #$step")
+            val result = toolExecutor.execute(actionDescription, "resolve, #$step")
             // Discuss: should we sync browser state after tool call immediately? probably not.
             // stateManager.syncBrowserUseState(context)
 

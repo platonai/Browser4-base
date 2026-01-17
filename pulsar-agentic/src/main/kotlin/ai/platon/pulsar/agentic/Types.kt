@@ -297,7 +297,6 @@ data class AgentHistory(
 /**
  * The action description for the agent to go forward in the next step.
  * */
-
 data class ActionDescription constructor(
     /**
      * The original instruction.

@@ -71,7 +71,7 @@ object MCPPluginExample {
                     )
                 )
 
-                val result = toolexecutor.callFunctionOn(toolCall)
+                val result = toolExecutor.callFunctionOn(toolCall)
                 println("Result: ${result.value}")
             } else {
                 println("Tool executor not found")
