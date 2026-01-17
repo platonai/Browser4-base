@@ -12,6 +12,7 @@
  */
 package ai.platon.pulsar.sdk
 
+import java.io.BufferedReader
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
@@ -53,7 +54,11 @@ class Browser4Driver(
 
     companion object {
         const val DEFAULT_DOWNLOAD_URL =
-            "https://github.com/platonai/Browser4/releases/download/v4.1.0-rc.3/Browser4.jar"
+            "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar"
+        private const val LATEST_RELEASE_API =
+            "https://api.github.com/repos/platonai/Browser4/releases/latest"
+        private val DOWNLOAD_URL_REGEX =
+            """"browser_download_url"\s*:\s*"([^"]*Browser4\.jar)"""".toRegex()
         private const val DEFAULT_PORT = 8182
         private const val STARTUP_TIMEOUT_SECONDS = 120L
         private const val HEALTH_CHECK_INTERVAL_MS = 500L
@@ -102,7 +107,8 @@ class Browser4Driver(
         }
 
         println("Browser4.jar not found at $jarPath")
-        println("Downloading from $downloadUrl...")
+        val resolvedDownloadUrl = resolveDownloadUrl()
+        println("Downloading from $resolvedDownloadUrl...")
 
         val jarFile = File(jarPath)
         jarFile.parentFile?.mkdirs()
@@ -113,7 +119,7 @@ class Browser4Driver(
 
         repeat(attempts) { idx ->
             try {
-                val url = URL(downloadUrl)
+                val url = URL(resolvedDownloadUrl)
                 val connection = openHttpConnection(url)
                 connection.instanceFollowRedirects = true
                 connection.connectTimeout = 60000
@@ -164,6 +170,42 @@ class Browser4Driver(
                 }
             }
         }
+    }
+
+    /**
+     * Resolves the download URL to the latest release asset when using the default URL.
+     */
+    private fun resolveDownloadUrl(): String {
+        if (downloadUrl != DEFAULT_DOWNLOAD_URL) {
+            return downloadUrl
+        }
+        val latestUrl = fetchLatestReleaseDownloadUrl()
+        if (!latestUrl.isNullOrBlank()) {
+            println("Resolved latest Browser4.jar download URL: $latestUrl")
+            return latestUrl
+        }
+        println("Falling back to default Browser4.jar URL: $downloadUrl")
+        return downloadUrl
+    }
+
+    private fun fetchLatestReleaseDownloadUrl(): String? {
+        return runCatching {
+            val url = URL(LATEST_RELEASE_API)
+            val connection = openHttpConnection(url)
+            connection.setRequestProperty("Accept", "application/vnd.github+json")
+            connection.setRequestProperty("User-Agent", "Browser4Driver")
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.inputStream.bufferedReader().use(BufferedReader::readText)
+        }.mapCatching { json ->
+            parseLatestBrowserDownloadUrl(json)
+        }.onFailure {
+            println("Failed to resolve latest Browser4.jar URL: ${it.message}")
+        }.getOrNull()
+    }
+
+    internal fun parseLatestBrowserDownloadUrl(json: String): String? {
+        return DOWNLOAD_URL_REGEX.find(json)?.groupValues?.getOrNull(1)
     }
 
     /**

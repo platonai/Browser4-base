@@ -17,7 +17,8 @@ import org.springframework.context.annotation.ImportResource
 @ImportResource("classpath:pulsar-beans/app-context.xml")
 @ComponentScan(
     "ai.platon.pulsar.boot.autoconfigure",
-    "ai.platon.pulsar.rest",
+    "ai.platon.pulsar.rest.api",
+    "ai.platon.pulsar.rest.openapi",
 )
 class Browser4Application {
     private val logger = getLogger(Browser4Application::class)
