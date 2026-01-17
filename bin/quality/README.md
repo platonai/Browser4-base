@@ -21,6 +21,8 @@ Install requirements:
 pip3 install requests
 ```
 
+**Note**: The shell/PowerShell wrapper scripts will attempt to install the `requests` library automatically if it's not found and pip is available. This is for convenience and uses the well-known, safe `requests` library from PyPI.
+
 ## Usage
 
 ### Basic Usage

@@ -29,8 +29,8 @@ if (-not $pythonCmd) {
 # Check if requests library is available
 $hasRequests = & $pythonCmd -c "import requests" 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "⚠️  Warning: 'requests' library not found. Installing..." -ForegroundColor Yellow
-    Write-Host "   Run: pip install requests" -ForegroundColor Yellow
+    Write-Host "⚠️  Warning: 'requests' library not found." -ForegroundColor Yellow
+    Write-Host "   This script requires the 'requests' library to function." -ForegroundColor Yellow
     Write-Host ""
     
     # Try to install if pip is available
@@ -43,7 +43,8 @@ if ($LASTEXITCODE -ne 0) {
     }
     
     if ($pipCmd) {
-        Write-Host "   Attempting automatic installation..." -ForegroundColor Yellow
+        Write-Host "   Attempting automatic installation with $pipCmd..." -ForegroundColor Yellow
+        Write-Host "   (This is safe - requests is a well-known HTTP library)" -ForegroundColor Yellow
         & $pipCmd install requests --user
         if ($LASTEXITCODE -ne 0) {
             Write-Host "❌ Failed to install requests. Please install manually:" -ForegroundColor Red

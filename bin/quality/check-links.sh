@@ -18,13 +18,14 @@ fi
 
 # Check if requests library is available
 if ! python3 -c "import requests" 2>/dev/null; then
-    echo "⚠️  Warning: 'requests' library not found. Installing..." >&2
-    echo "   Run: pip3 install requests" >&2
+    echo "⚠️  Warning: 'requests' library not found." >&2
+    echo "   This script requires the 'requests' library to function." >&2
     echo "" >&2
     
     # Try to install if pip is available
     if command -v pip3 &> /dev/null; then
-        echo "   Attempting automatic installation..." >&2
+        echo "   Attempting automatic installation with pip3..." >&2
+        echo "   (This is safe - requests is a well-known HTTP library)" >&2
         pip3 install requests --user || {
             echo "❌ Failed to install requests. Please install manually:" >&2
             echo "   pip3 install requests" >&2
