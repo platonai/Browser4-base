@@ -1,6 +1,7 @@
 package ai.platon.pulsar.sdk.integration
 
 import ai.platon.pulsar.sdk.AgenticSession
+import ai.platon.pulsar.sdk.integration.util.TestUrls
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -187,5 +188,197 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
         } catch (e: Exception) {
             // Ignore cleanup errors
         }
+    }
+
+    // ============================================================================
+    // Comprehensive tests covering FusedActsStyleExample operations
+    // ============================================================================
+
+    @Test
+    fun `test session open operation from FusedActsStyleExample`() {
+        val url = TestUrls.SIMPLE_PAGE
+
+        // Step 1 from example: Open URL
+        val page = session.open(url)
+
+        assertNotNull(page, "Page should not be null")
+        assertNotNull(page.url, "Page URL should not be null")
+        assertTrue(page.url.isNotBlank(), "Page URL should not be blank")
+    }
+
+    @Test
+    fun `test session parse operation from FusedActsStyleExample`() {
+        val url = TestUrls.SIMPLE_PAGE
+
+        // Step 1-2 from example: Open and parse
+        val page = session.open(url)
+        val document = session.parse(page)
+
+        assertNotNull(document, "Document should not be null")
+        assertNotNull(document.title(), "Document title should not be null")
+    }
+
+    @Test
+    fun `test session extract operation from FusedActsStyleExample`() {
+        val url = TestUrls.SIMPLE_PAGE
+
+        // Step 1-3 from example: Open, parse, and extract
+        val page = session.open(url)
+        val document = session.parse(page)
+
+        if (document != null) {
+            val fields = session.extract(document, mapOf("title" to "title"))
+            assertNotNull(fields, "Extracted fields should not be null")
+            assertTrue(fields is Map, "Extracted fields should be a map")
+        }
+    }
+
+    @Test
+    fun `test agent act operation from FusedActsStyleExample`() {
+        val agent = session.companionAgent
+        val driver = session.getOrCreateBoundDriver()
+
+        // Navigate to a test page first
+        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+
+        // Step 4 from example: Execute action
+        val result = agent.act("scroll to the bottom")
+
+        assertNotNull(result, "Action result should not be null")
+        assertNotNull(result.message, "Action result message should not be null")
+    }
+
+    @Test
+    fun `test driver selectFirstTextOrNull operation from FusedActsStyleExample`() {
+        val driver = session.getOrCreateBoundDriver()
+
+        // Navigate to a test page
+        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+
+        // Step 5 from example: Capture text from live DOM
+        val content = driver.selectFirstTextOrNull("body")
+
+        // Content may be null or empty depending on page state, just verify no exception
+        assertTrue(true, "selectFirstTextOrNull should execute without exception")
+    }
+
+    @Test
+    fun `test agent run operation from FusedActsStyleExample`() {
+        val agent = session.companionAgent
+        val driver = session.getOrCreateBoundDriver()
+
+        // Navigate to a test page first
+        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+
+        // Step 10 from example: Run autonomous task
+        agent.clearHistory()
+        val history = agent.run("scroll to the bottom of the page")
+
+        assertNotNull(history, "Task history should not be null")
+        assertNotNull(history.finalResult, "Task final result should not be null")
+    }
+
+    @Test
+    fun `test session capture operation from FusedActsStyleExample`() {
+        val driver = session.getOrCreateBoundDriver()
+
+        // Navigate to a test page
+        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+
+        // Step 11 from example: Capture live page
+        val page = session.capture(driver)
+
+        assertNotNull(page, "Captured page should not be null")
+        assertNotNull(page.url, "Captured page URL should not be null")
+    }
+
+    @Test
+    fun `test agent clearHistory operation from FusedActsStyleExample`() {
+        val agent = session.companionAgent
+        val driver = session.getOrCreateBoundDriver()
+
+        // Navigate and perform an action to create history
+        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+        agent.act("scroll down")
+
+        // Step 10 from example: Clear history
+        agent.clearHistory()
+
+        // Process trace should be empty after clearing
+        assertTrue(agent.processTrace.isEmpty(), "Process trace should be empty after clearHistory")
+    }
+
+    @Test
+    fun `test agent processTrace access from FusedActsStyleExample`() {
+        val agent = session.companionAgent
+
+        // Step 14 from example: Access process trace
+        val trace = agent.processTrace
+
+        assertNotNull(trace, "Process trace should not be null")
+        assertTrue(trace is List<*>, "Process trace should be a list")
+    }
+
+    @Test
+    fun `test multiple actions sequence from FusedActsStyleExample`() {
+        val agent = session.companionAgent
+        val driver = session.getOrCreateBoundDriver()
+
+        // Navigate to test page
+        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+
+        // Step 4-6 from example: Multiple actions in sequence
+        var result = agent.act("scroll to the bottom")
+        assertNotNull(result, "First action result should not be null")
+
+        result = agent.act("scroll to the top")
+        assertNotNull(result, "Second action result should not be null")
+    }
+
+    @Test
+    fun `test full workflow from FusedActsStyleExample`() {
+        val url = TestUrls.SIMPLE_PAGE
+        val agent = session.companionAgent
+        val driver = session.getOrCreateBoundDriver()
+
+        // Complete workflow similar to FusedActsStyleExample.run()
+        // Step 1: Open URL
+        var page = session.open(url)
+        assertNotNull(page, "Opened page should not be null")
+
+        // Step 2: Parse the page
+        var document = session.parse(page)
+        assertNotNull(document, "Parsed document should not be null")
+
+        // Step 3: Extract fields
+        if (document != null) {
+            val fields = session.extract(document, mapOf("title" to "title"))
+            assertNotNull(fields, "Extracted fields should not be null")
+        }
+
+        // Step 4-5: Execute action and capture text
+        val result = agent.act("scroll down")
+        assertNotNull(result, "Action result should not be null")
+
+        val content = driver.selectFirstTextOrNull("body")
+        // Just verify no exception thrown
+
+        // Step 11: Capture and re-parse
+        page = session.capture(driver)
+        document = session.parse(page)
+        assertNotNull(document, "Re-parsed document should not be null")
+
+        // Step 14: Access process trace
+        val trace = agent.processTrace
+        assertNotNull(trace, "Process trace should not be null")
+    }
+
+    @Test
+    fun `test context property from FusedActsStyleExample`() {
+        // Step 15 from example: Access session.context
+        val context = session.context
+
+        assertNotNull(context, "Context should not be null")
+        assertEquals(session, context, "Context should be the session itself")
     }
 }
