@@ -38,6 +38,5 @@
         <module>pulsar-skeleton</module>
         <module>pulsar-spring-support</module>
         <module>pulsar-ql</module>
-        <module>pulsar-agentic</module>
     </modules>
 </project>
