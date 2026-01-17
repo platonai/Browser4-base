@@ -261,9 +261,14 @@ class SkillDefinitionLoader {
                 }
                 inDependenciesSection -> {
                     if (line.trim().startsWith("-") || line.trim().startsWith("*")) {
-                        val dep = line.trim().removePrefix("-").removePrefix("*")
-                            .trim().removePrefix("`").removeSuffix("`")
-                        if (dep.lowercase() != "none") {
+                        val depLine = line.trim().removePrefix("-").removePrefix("*").trim()
+                        // Extract skill ID from backticks (e.g., "`web-scraping` - description" -> "web-scraping")
+                        val dep = if (depLine.contains("`")) {
+                            depLine.substringAfter("`").substringBefore("`")
+                        } else {
+                            depLine
+                        }
+                        if (dep.isNotBlank() && dep.lowercase() != "none") {
                             dependencies.add(dep)
                         }
                     }
@@ -278,7 +283,7 @@ class SkillDefinitionLoader {
                             val paramName = parts[0]
                             val paramType = parts[1]
                             val required = parts[2].lowercase() == "yes"
-                            val defaultValue = if (parts[3] == "-") null else parts[3]
+                            val defaultValue = parts[3]
                             val paramDesc = if (parts.size > 4) parts[4] else ""
                             
                             parameters[paramName] = SkillDefinition.ParameterInfo(
