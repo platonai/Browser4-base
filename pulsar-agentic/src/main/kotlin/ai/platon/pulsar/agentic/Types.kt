@@ -69,17 +69,17 @@ data class ToolSpec constructor(
 data class ToolCall constructor(
     val domain: String,
     val method: String,
-    val arguments: MutableMap<String, String?> = mutableMapOf(),
+    val arguments: MutableMap<String, Any?> = mutableMapOf(),
     val description: String? = null,
 ) {
     @get:JsonIgnore
     val weakTypeNamedArguments
-        get() = arguments.entries.joinToString { (k, v) -> "$k=" + Strings.doubleQuote(v) }
+        get() = arguments.entries.joinToString { (k, v) -> "$k=" + Strings.doubleQuote(v?.toString()) }
 
     @get:JsonIgnore
     val pseudoNamedArguments
         get() = arguments.entries
-            .joinToString { (k, v) -> "$k=" + Strings.doubleQuote(Strings.compactInline(v, 20)) }
+            .joinToString { (k, v) -> "$k=" + Strings.doubleQuote(Strings.compactInline(v?.toString(), 20)) }
 
     @get:JsonIgnore
     val weakTypeExpression: String get() = "$domain.${method}($weakTypeNamedArguments)"

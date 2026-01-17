@@ -5,6 +5,7 @@ import ai.platon.pulsar.agentic.skills.Skill
 import ai.platon.pulsar.agentic.skills.SkillRegistry
 import ai.platon.pulsar.agentic.tools.ToolCallSpecificationProvider
 import ai.platon.pulsar.agentic.tools.executors.AbstractToolExecutor
+import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import kotlin.reflect.KClass
 
 /**
@@ -65,7 +66,15 @@ class SkillToolExecutor(
                 val paramsMap: Map<String, Any?> = when (params) {
                     null -> emptyMap()
                     is Map<*, *> -> params.entries.associate { (k, v) -> k.toString() to v }
-                    else -> throw IllegalArgumentException("params must be Map<String, Any?> for $functionName | actual='${params::class.qualifiedName}'")
+                    is String -> {
+                        val trimmed = params.trim()
+                        if (trimmed.isEmpty()) emptyMap()
+                        else {
+                            @Suppress("UNCHECKED_CAST")
+                            pulsarObjectMapper().readValue(trimmed, Map::class.java) as Map<String, Any?>
+                        }
+                    }
+                    else -> throw IllegalArgumentException("params must be Map<String, Any?> or JSON string for $functionName | actual='${params::class.qualifiedName}'")
                 }
 
                 target.execute(id, paramsMap)
@@ -75,4 +84,3 @@ class SkillToolExecutor(
         }
     }
 }
-

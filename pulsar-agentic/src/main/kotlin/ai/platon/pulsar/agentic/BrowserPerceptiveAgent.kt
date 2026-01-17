@@ -664,7 +664,7 @@ open class BrowserPerceptiveAgent(
                 toolCall.arguments
             )
 
-            val toolCallResult = toolexecutor.callFunctionOn(actionDescription, "resolve, #$step")
+            val toolCallResult = toolExecutor.execute(actionDescription, "resolve, #$step")
             // Discuss: should we sync browser state after tool call immediately? probably not.
             // stateManager.syncBrowserUseState(context)
 
