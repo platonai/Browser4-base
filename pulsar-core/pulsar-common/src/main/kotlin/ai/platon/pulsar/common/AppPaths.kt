@@ -438,7 +438,7 @@ object AppPaths {
             return candidates[0]
         }
 
-        val fallback = SYS_TMP_DIR.resolve("pulsar").resolve("logs")
+        val fallback = SYS_TMP_DIR.resolve("browser4").resolve("logs")
         Files.createDirectories(fallback)
 
         return fallback

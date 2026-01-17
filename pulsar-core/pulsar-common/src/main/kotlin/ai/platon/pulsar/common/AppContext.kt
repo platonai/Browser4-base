@@ -1,17 +1,14 @@
 package ai.platon.pulsar.common
 
-import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.config.CapabilityTypes.*
 import org.apache.commons.lang3.SystemUtils
 import java.net.InetAddress
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 object AppContext {
-
-    private val logger = getLogger(AppContext::class)
 
     enum class State {
         NEW, RUNNING, TERMINATING, TERMINATED
@@ -78,7 +75,7 @@ object AppContext {
      * The real time application name, can be specified by system environment variable or system property.
      * The real time version is used for test only.
      * */
-    val APP_NAME_RT get() = System.getenv(APP_NAME_KEY) ?: System.getProperty(APP_NAME_KEY, "pulsar")
+    val APP_NAME_RT get() = System.getenv(APP_NAME_KEY) ?: System.getProperty(APP_NAME_KEY, "browser4")
     /**
      * The application name, can be specified by system environment variable or system property.
      * */
@@ -131,7 +128,7 @@ object AppContext {
      * */
     val APP_DATA_DIR_SPECIFIED = APP_DATA_DIR_SPECIFIED_RT
     /**
-     * The data directory used by the application, the default data dir is $HOME/.pulsar.
+     * The data directory used by the application, the default data dir is $HOME/.browser4.
      * Special users such as tomcat do not have its own home, $TMP_DIR/.$APP_NAME is used in such case.
      * */
     val APP_DATA_DIR_RT get() = when {
