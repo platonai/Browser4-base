@@ -23,14 +23,14 @@ abstract class AbstractToolExecutor : ToolExecutor {
 
     private val logger = getLogger(this)
 
-    protected val toolCallSpecs = mutableMapOf<String, ToolSpec>()
+    protected val toolSpec = mutableMapOf<String, ToolSpec>()
 
     override fun help(): String {
-        return toolCallSpecs.values.mapNotNull { it.description }.joinToString("\n")
+        return toolSpec.values.mapNotNull { it.description }.joinToString("\n")
     }
 
     override fun help(method: String): String {
-        val spec = toolCallSpecs[method] ?: return ""
+        val spec = toolSpec[method] ?: return ""
         return """
             ${spec.description}
             ${spec.expression}

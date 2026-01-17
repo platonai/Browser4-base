@@ -305,7 +305,7 @@ class WebScrapingSkill : AbstractSkill() {
         name = "Web Scraping"
     )
 
-    override val toolCallSpecs = listOf(
+    override val toolSpec = listOf(
         ToolSpec(
             domain = "skill.scraping",
             method = "extract",
@@ -393,7 +393,7 @@ See the `examples` package for complete implementations.
 ```kotlin
 interface Skill {
     val metadata: SkillMetadata
-    val toolCallSpecs: List<ToolSpec>
+    val toolSpec: List<ToolSpec>
     val targetClass: KClass<*>?
 
     suspend fun execute(context: SkillContext, params: Map<String, Any>): SkillResult

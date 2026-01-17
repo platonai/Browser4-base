@@ -328,14 +328,14 @@ class ExampleSkillsTest {
         val formFilling = FormFillingSkill()
         val dataValidation = DataValidationSkill()
 
-        assertTrue(webScraping.toolCallSpecs.isNotEmpty())
-        assertEquals("skill.scraping", webScraping.toolCallSpecs[0].domain)
-        assertEquals("extract", webScraping.toolCallSpecs[0].method)
+        assertTrue(webScraping.toolSpec.isNotEmpty())
+        assertEquals("skill.scraping", webScraping.toolSpec[0].domain)
+        assertEquals("extract", webScraping.toolSpec[0].method)
 
-        assertTrue(formFilling.toolCallSpecs.isNotEmpty())
-        assertEquals("skill.form", formFilling.toolCallSpecs[0].domain)
-        assertEquals("fill", formFilling.toolCallSpecs[0].method)
+        assertTrue(formFilling.toolSpec.isNotEmpty())
+        assertEquals("skill.form", formFilling.toolSpec[0].domain)
+        assertEquals("fill", formFilling.toolSpec[0].method)
 
-        assertTrue(dataValidation.toolCallSpecs.isEmpty())
+        assertTrue(dataValidation.toolSpec.isEmpty())
     }
 }

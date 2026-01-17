@@ -38,7 +38,7 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
     override val targetClass: KClass<*> = Calculator::class
 
     init {
-        toolCallSpecs["add"] = ToolSpec(
+        toolSpec["add"] = ToolSpec(
             domain = domain,
             method = "add",
             arguments = listOf(
@@ -49,7 +49,7 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
             description = "Add two numbers"
         )
 
-        toolCallSpecs["subtract"] = ToolSpec(
+        toolSpec["subtract"] = ToolSpec(
             domain = domain,
             method = "subtract",
             arguments = listOf(
@@ -60,7 +60,7 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
             description = "Subtract b from a"
         )
 
-        toolCallSpecs["multiply"] = ToolSpec(
+        toolSpec["multiply"] = ToolSpec(
             domain = domain,
             method = "multiply",
             arguments = listOf(
@@ -71,7 +71,7 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
             description = "Multiply two numbers"
         )
 
-        toolCallSpecs["divide"] = ToolSpec(
+        toolSpec["divide"] = ToolSpec(
             domain = domain,
             method = "divide",
             arguments = listOf(

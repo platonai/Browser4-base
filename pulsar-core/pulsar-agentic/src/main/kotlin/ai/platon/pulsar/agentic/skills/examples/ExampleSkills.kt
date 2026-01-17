@@ -43,7 +43,7 @@ class WebScrapingSkill : AbstractSkill() {
         tags = setOf("scraping", "extraction", "web")
     )
 
-    override val toolCallSpecs = listOf(
+    override val toolSpec = listOf(
         ToolSpec(
             domain = "skill.scraping",
             method = "extract",
@@ -147,7 +147,7 @@ class FormFillingSkill : AbstractSkill() {
         tags = setOf("forms", "automation", "input")
     )
 
-    override val toolCallSpecs = listOf(
+    override val toolSpec = listOf(
         ToolSpec(
             domain = "skill.form",
             method = "fill",

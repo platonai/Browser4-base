@@ -45,7 +45,7 @@ class CustomToolRegistry private constructor() {
     private val logger = getLogger(this)
 
     private val executors = ConcurrentHashMap<String, ToolExecutor>()
-    private val toolCallSpecs = ConcurrentHashMap<String, List<ai.platon.pulsar.agentic.ToolSpec>>()
+    private val toolSpec = ConcurrentHashMap<String, List<ai.platon.pulsar.agentic.ToolSpec>>()
 
     companion object {
         /**
@@ -78,7 +78,7 @@ class CustomToolRegistry private constructor() {
 
         val specs = (executor as? ToolCallSpecificationProvider)?.getToolCallSpecifications().orEmpty()
         if (specs.isNotEmpty()) {
-            toolCallSpecs[domain] = specs
+            toolSpec[domain] = specs
         }
 
         logger.info("✓ Registered custom tool executor for domain: {}", domain)
@@ -92,7 +92,7 @@ class CustomToolRegistry private constructor() {
     fun register(executor: ToolExecutor, specs: List<ai.platon.pulsar.agentic.ToolSpec>) {
         register(executor)
         if (specs.isNotEmpty()) {
-            toolCallSpecs[executor.domain] = specs
+            toolSpec[executor.domain] = specs
         }
     }
 
@@ -104,7 +104,7 @@ class CustomToolRegistry private constructor() {
      */
     fun unregister(domain: String): Boolean {
         val removed = executors.remove(domain)
-        toolCallSpecs.remove(domain)
+        toolSpec.remove(domain)
         if (removed != null) {
             logger.info("✓ Unregistered custom tool executor for domain: {}", domain)
             return true
@@ -154,14 +154,14 @@ class CustomToolRegistry private constructor() {
      * Get prompt-visible tool-call specs for a given domain.
      */
     fun getToolCallSpecifications(domain: String): List<ai.platon.pulsar.agentic.ToolSpec> {
-        return toolCallSpecs[domain].orEmpty()
+        return toolSpec[domain].orEmpty()
     }
 
     /**
      * Get all prompt-visible tool-call specs.
      */
     fun getAllToolCallSpecifications(): List<ai.platon.pulsar.agentic.ToolSpec> {
-        return toolCallSpecs.values.flatten()
+        return toolSpec.values.flatten()
     }
 
     /**
@@ -169,7 +169,7 @@ class CustomToolRegistry private constructor() {
      */
     fun clear() {
         executors.clear()
-        toolCallSpecs.clear()
+        toolSpec.clear()
         logger.info("✓ Cleared all custom tool executors")
     }
 

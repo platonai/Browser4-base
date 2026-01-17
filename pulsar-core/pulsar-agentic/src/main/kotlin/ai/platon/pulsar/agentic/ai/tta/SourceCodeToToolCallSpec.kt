@@ -32,7 +32,7 @@ object SourceCodeToToolCallSpec {
         // Parse WebDriver interface methods and build ToolCall specs
         val interfaceBody = extractInterfaceBody(sourceCode, interfaceName) ?: sourceCode
         val methods = parseFunctionsWithKDoc(interfaceBody)
-        val toolCallSpecs = mutableListOf<ToolSpec>()
+        val toolSpec = mutableListOf<ToolSpec>()
         for (m in methods) {
             val arguments = mutableListOf<ToolSpec.Arg>()
             for (p in m.params) {
@@ -49,10 +49,10 @@ object SourceCodeToToolCallSpec {
             // Use parsed return type; default to Unit when absent
             val returnType = m.returnType.ifBlank { "Unit" }
             val description = m.kdoc
-            toolCallSpecs += ToolSpec(domain, method, arguments, returnType, description)
+            toolSpec += ToolSpec(domain, method, arguments, returnType, description)
         }
 
-        return toolCallSpecs
+        return toolSpec
     }
 
     // Helper types and parsers for SourceCodeToToolCall

@@ -15,7 +15,7 @@ class SystemToolExecutor(
     override val targetClass: KClass<*> = SystemToolExecutor::class
 
     init {
-        toolCallSpecs["help"] = ToolSpec(
+        toolSpec["help"] = ToolSpec(
             domain = domain,
             method = "help",
             arguments = listOf(
@@ -32,12 +32,12 @@ class SystemToolExecutor(
             System Tools - Utility functions for the agent system
 
             Available methods:
-            ${toolCallSpecs.values.joinToString("\n") { "- ${it.method}: ${it.description}" }}
+            ${toolSpec.values.joinToString("\n") { "- ${it.method}: ${it.description}" }}
         """.trimIndent()
     }
 
     override fun help(method: String): String {
-        val spec = toolCallSpecs[method]
+        val spec = toolSpec[method]
         return if (spec != null) {
             """
                 ${spec.description}

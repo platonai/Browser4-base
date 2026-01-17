@@ -15,7 +15,7 @@ class WebDriverExToolExecutor: AbstractToolExecutor() {
     override val targetClass: KClass<*> = AbstractWebDriver::class
 
     init {
-        toolCallSpecs["extract"] = ToolSpec(
+        toolSpec["extract"] = ToolSpec(
             domain = domain,
             method = "extract",
             arguments = listOf(

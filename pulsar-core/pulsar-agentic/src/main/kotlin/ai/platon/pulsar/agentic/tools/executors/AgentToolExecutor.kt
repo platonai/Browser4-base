@@ -15,13 +15,13 @@ class AgentToolExecutor : AbstractToolExecutor() {
     override val targetClass: KClass<*> = PerceptiveAgent::class
 
     init {
-        SourceCodeToToolCallSpec.perceptiveAgentToolCallList.associateByTo(toolCallSpecs) { it.method }
+        SourceCodeToToolCallSpec.perceptiveAgentToolCallList.associateByTo(toolSpec) { it.method }
     }
 
     override fun help(method: String): String {
         return when (method) {
             "extract" -> extractHelp()
-            else -> toolCallSpecs[method]?.description ?: ""
+            else -> toolSpec[method]?.description ?: ""
         }
     }
 

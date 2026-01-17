@@ -11,7 +11,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
     override val targetClass: KClass<*> = AgentFileSystem::class
 
     init {
-        toolCallSpecs["writeString"] = ToolSpec(
+        toolSpec["writeString"] = ToolSpec(
             domain = domain,
             method = "writeString",
             arguments = listOf(
@@ -22,7 +22,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Write content to a file"
         )
 
-        toolCallSpecs["readString"] = ToolSpec(
+        toolSpec["readString"] = ToolSpec(
             domain = domain,
             method = "readString",
             arguments = listOf(
@@ -33,7 +33,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Read content from a file"
         )
 
-        toolCallSpecs["append"] = ToolSpec(
+        toolSpec["append"] = ToolSpec(
             domain = domain,
             method = "append",
             arguments = listOf(
@@ -44,7 +44,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Append content to a file"
         )
 
-        toolCallSpecs["replaceContent"] = ToolSpec(
+        toolSpec["replaceContent"] = ToolSpec(
             domain = domain,
             method = "replaceContent",
             arguments = listOf(
@@ -56,7 +56,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Replace content in a file"
         )
 
-        toolCallSpecs["fileExists"] = ToolSpec(
+        toolSpec["fileExists"] = ToolSpec(
             domain = domain,
             method = "fileExists",
             arguments = listOf(
@@ -66,7 +66,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Check if a file exists"
         )
 
-        toolCallSpecs["getFileInfo"] = ToolSpec(
+        toolSpec["getFileInfo"] = ToolSpec(
             domain = domain,
             method = "getFileInfo",
             arguments = listOf(
@@ -76,7 +76,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Get information about a file"
         )
 
-        toolCallSpecs["deleteFile"] = ToolSpec(
+        toolSpec["deleteFile"] = ToolSpec(
             domain = domain,
             method = "deleteFile",
             arguments = listOf(
@@ -86,7 +86,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Delete a file"
         )
 
-        toolCallSpecs["copyFile"] = ToolSpec(
+        toolSpec["copyFile"] = ToolSpec(
             domain = domain,
             method = "copyFile",
             arguments = listOf(
@@ -97,7 +97,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Copy a file from source to destination"
         )
 
-        toolCallSpecs["moveFile"] = ToolSpec(
+        toolSpec["moveFile"] = ToolSpec(
             domain = domain,
             method = "moveFile",
             arguments = listOf(
@@ -108,7 +108,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
             description = "Move a file from source to destination"
         )
 
-        toolCallSpecs["listFiles"] = ToolSpec(
+        toolSpec["listFiles"] = ToolSpec(
             domain = domain,
             method = "listFiles",
             arguments = emptyList(),

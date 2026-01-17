@@ -12,11 +12,11 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
     override val targetClass: KClass<*> = WebDriver::class
 
     init {
-        SourceCodeToToolCallSpec.webDriverToolCallList.associateByTo(toolCallSpecs) { it.method }
+        SourceCodeToToolCallSpec.webDriverToolCallList.associateByTo(toolSpec) { it.method }
     }
 
     override fun help(method: String): String {
-        val spec = toolCallSpecs[method] ?: return ""
+        val spec = toolSpec[method] ?: return ""
         return """
             ${spec.description}
             ${spec.expression}

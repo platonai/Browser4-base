@@ -152,7 +152,7 @@ interface Skill {
      * Tool call specifications provided by this skill.
      * These are exposed to the agent for use in automation tasks.
      */
-    val toolCallSpecs: List<ToolSpec>
+    val toolSpec: List<ToolSpec>
         get() = emptyList()
 
     /**

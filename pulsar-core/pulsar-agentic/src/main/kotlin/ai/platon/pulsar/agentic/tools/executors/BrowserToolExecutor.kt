@@ -15,7 +15,7 @@ class BrowserToolExecutor : AbstractToolExecutor() {
     override val targetClass: KClass<*> = Browser::class
 
     init {
-        toolCallSpecs["switchTab"] = ToolSpec(
+        toolSpec["switchTab"] = ToolSpec(
             domain = domain,
             method = "switchTab",
             arguments = listOf(
