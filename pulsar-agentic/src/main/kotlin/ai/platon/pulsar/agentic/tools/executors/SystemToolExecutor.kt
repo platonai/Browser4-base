@@ -60,7 +60,7 @@ class SystemToolExecutor(
     override suspend fun callFunctionOn(
         domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any? {
-        require(domain == "system") { "Object must be an System" }
+        require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
 
         return when (functionName) {

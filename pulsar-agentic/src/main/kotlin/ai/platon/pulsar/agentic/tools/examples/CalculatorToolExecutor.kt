@@ -99,7 +99,7 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
         args: Map<String, Any?>,
         target: Any
     ): Any? {
-        require(domain == "calc") { "Object must be calc" }
+        require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
         require(target is Calculator) { "Target must be a Calculator instance" }
 

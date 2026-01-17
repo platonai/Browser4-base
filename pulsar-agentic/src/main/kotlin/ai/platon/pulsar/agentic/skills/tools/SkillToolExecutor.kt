@@ -53,7 +53,7 @@ class SkillToolExecutor(
         args: Map<String, Any?>,
         target: Any
     ): Any? {
-        require(domain == domain) { "Object must be $domain" }
+        require(domain == this.domain) { "Unsupported domain: $domain" }
         require(target is SkillToolTarget) { "Target must be a SkillToolTarget" }
 
         return when (functionName) {

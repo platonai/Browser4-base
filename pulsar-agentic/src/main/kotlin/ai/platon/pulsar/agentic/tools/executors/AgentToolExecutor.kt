@@ -32,7 +32,7 @@ class AgentToolExecutor : AbstractToolExecutor() {
     override suspend fun callFunctionOn(
         domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any? {
-        require(domain == "agent") { "Object must be an Agent" }
+        require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
 
         val agent = requireNotNull(target as? PerceptiveAgent) { "Target must be a PerceptiveAgent" }

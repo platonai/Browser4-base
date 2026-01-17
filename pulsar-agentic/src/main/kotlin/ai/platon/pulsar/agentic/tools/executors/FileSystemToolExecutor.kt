@@ -125,7 +125,7 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
     override suspend fun callFunctionOn(
         domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any {
-        require(domain == "fs") { "Object must be fs" }
+        require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
         require(target is AgentFileSystem) { "Target must be a FileSystem" }
 

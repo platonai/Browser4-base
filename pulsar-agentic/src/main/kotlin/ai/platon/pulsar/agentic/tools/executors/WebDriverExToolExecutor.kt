@@ -34,7 +34,7 @@ class WebDriverExToolExecutor: AbstractToolExecutor() {
     override suspend fun callFunctionOn(
         domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any? {
-        require(domain == "driverEx") { "Object must be a driverEx" }
+        require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
         val driver = requireNotNull(target as? AbstractWebDriver) { "Target must be AbstractWebDriver" }
 
