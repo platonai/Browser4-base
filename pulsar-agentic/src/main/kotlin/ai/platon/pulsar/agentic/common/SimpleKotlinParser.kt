@@ -90,7 +90,7 @@ class SimpleKotlinParser {
             val t = tok.trim()
             if (t.isEmpty()) null else unquoteAndUnescape(t)
         }
-        val args: MutableMap<String, String?> = normalized.withIndex()
+        val args: MutableMap<String, Any?> = normalized.withIndex()
             .associateTo(mutableMapOf()) { it.index.toString() to it.value }
 
         return ToolCall(objectName, functionName, args)

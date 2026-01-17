@@ -52,14 +52,14 @@ class SkillToolExecutorTest {
         val tc = ToolCall(
             domain = "skill",
             method = "run",
-            arguments = mapOf(
+            arguments = mutableMapOf(
                 "id" to "web-scraping",
                 "params" to mapOf(
                     "url" to "https://example.com",
                     "selector" to ".content",
                 )
             ),
-            pseudoExpression = "skill.run(id=\"web-scraping\", params=...)"
+            // pseudoExpression = "skill.run(id=\"web-scraping\", params=...)"
         )
 
         val eval = executor.callFunctionOn(tc, target)
@@ -78,11 +78,11 @@ class SkillToolExecutorTest {
         val executor = SkillToolExecutor(registry)
         CustomToolRegistry.instance.register(executor)
 
-        val tc = ToolCall(domain = "skill", method = "run", arguments = emptyMap(), pseudoExpression = "skill.run()")
+        val tc = ToolCall(domain = "skill", method = "run", arguments = mutableMapOf())
         val eval = executor.callFunctionOn(tc, SkillToolTarget(ctx, registry))
 
         assertNotNull(eval.exception)
-        assertTrue(eval.help?.contains("skill.run") == true)
+        assertTrue(eval.expression?.contains("skill.run") == true)
     }
 }
 

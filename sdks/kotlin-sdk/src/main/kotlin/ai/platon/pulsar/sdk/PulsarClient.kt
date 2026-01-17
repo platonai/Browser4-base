@@ -73,16 +73,24 @@ class PulsarClient
         this.baseUrl = when {
             baseUrl != null -> baseUrl
             useLocalDriver -> {
-                // Start local driver
-                val driver = Browser4Driver(
-                    jarPath = localDriverOptions.jarPath ?: Browser4Driver.defaultJarPath(),
-                    downloadUrl = localDriverOptions.downloadUrl ?: Browser4Driver.DEFAULT_DOWNLOAD_URL,
-                    port = localDriverOptions.port ?: 8182,
-                    javaOptions = localDriverOptions.javaOptions
-                )
-                driver.start(waitForReady = true)
-                localDriver = driver
-                driver.baseUrl
+                val targetPort = localDriverOptions.port ?: 8182
+                val targetBaseUrl = "http://localhost:$targetPort"
+
+                // Reuse already running local service if healthy
+                if (isServerHealthy(targetBaseUrl)) {
+                    targetBaseUrl
+                } else {
+                    // Start local driver
+                    val driver = Browser4Driver(
+                        jarPath = localDriverOptions.jarPath ?: Browser4Driver.defaultJarPath(),
+                        downloadUrl = localDriverOptions.downloadUrl ?: Browser4Driver.DEFAULT_DOWNLOAD_URL,
+                        port = targetPort,
+                        javaOptions = localDriverOptions.javaOptions
+                    )
+                    driver.start(waitForReady = true)
+                    localDriver = driver
+                    driver.baseUrl
+                }
             }
             else -> "http://localhost:8182"
         }
@@ -118,6 +126,24 @@ class PulsarClient
      * Exposes default headers (excluding per-request overrides).
      */
     internal val resolvedDefaultHeaders: Map<String, String> get() = headers
+
+    private fun isServerHealthy(base: String): Boolean {
+        val client = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(2))
+            .build()
+        val endpoints = listOf("$base/health", "$base/actuator/health")
+        return endpoints.any { endpoint ->
+            runCatching {
+                val request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .timeout(Duration.ofSeconds(2))
+                    .GET()
+                    .build()
+                val response = client.send(request, HttpResponse.BodyHandlers.discarding())
+                response.statusCode() in 200..299
+            }.getOrElse { false }
+        }
+    }
 
     private fun url(path: String): String {
         val normalizedBase = baseUrl.trimEnd('/')
@@ -277,4 +303,3 @@ data class LocalDriverOptions(
     val port: Int? = null,
     val javaOptions: Map<String, String> = emptyMap()
 )
-

@@ -202,6 +202,14 @@ class Browser4Driver(
 
         val commands = mutableListOf("java")
 
+        // Ensure REST API profiles are active so /session endpoints are available by default
+        val profilePropertyName = "spring.profiles.active"
+        val hasProfileOption = javaOptions.keys.any { it.equals(profilePropertyName, ignoreCase = true) }
+        val envProfile = System.getProperty(profilePropertyName) ?: System.getenv("SPRING_PROFILES_ACTIVE")
+        if (!hasProfileOption && envProfile.isNullOrBlank()) {
+            commands.add("-D$profilePropertyName=rest,private,advanced")
+        }
+
         // Add Java system properties
         javaOptions.forEach { (key, value) ->
             commands.add("-D$key=$value")
