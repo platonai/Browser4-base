@@ -76,8 +76,7 @@ class PulsarClient
                 // Start local driver
                 val driver = Browser4Driver(
                     jarPath = localDriverOptions.jarPath ?: Browser4Driver.defaultJarPath(),
-                    downloadUrl = localDriverOptions.downloadUrl ?: 
-                        "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar",
+                    downloadUrl = localDriverOptions.downloadUrl ?: Browser4Driver.DEFAULT_DOWNLOAD_URL,
                     port = localDriverOptions.port ?: 8182,
                     javaOptions = localDriverOptions.javaOptions
                 )

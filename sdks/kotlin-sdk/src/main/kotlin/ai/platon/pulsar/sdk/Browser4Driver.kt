@@ -14,10 +14,11 @@ package ai.platon.pulsar.sdk
 
 import java.io.File
 import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.net.ProxySelector
 import java.net.URI
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.util.concurrent.TimeUnit
 
 /**
@@ -51,8 +52,8 @@ class Browser4Driver(
 ) : AutoCloseable {
 
     companion object {
-        private const val DEFAULT_DOWNLOAD_URL = 
-            "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar"
+        const val DEFAULT_DOWNLOAD_URL =
+            "https://github.com/platonai/Browser4/releases/download/v4.1.0-rc.3/Browser4.jar"
         private const val DEFAULT_PORT = 8182
         private const val STARTUP_TIMEOUT_SECONDS = 120L
         private const val HEALTH_CHECK_INTERVAL_MS = 500L
@@ -69,6 +70,8 @@ class Browser4Driver(
     }
 
     private var process: Process? = null
+    @Volatile
+    private var shutdownHook: Thread? = null
 
     /**
      * The base URL where the Browser4 server is accessible.
@@ -104,20 +107,75 @@ class Browser4Driver(
         val jarFile = File(jarPath)
         jarFile.parentFile?.mkdirs()
 
-        try {
-            val url = URL(downloadUrl)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.instanceFollowRedirects = true
-            connection.connectTimeout = 30000
-            connection.readTimeout = 60000
+        val attempts = 3
+        val backoffMs = 3000L
+        var lastError: Exception? = null
 
-            connection.inputStream.use { input ->
-                Files.copy(input, jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        repeat(attempts) { idx ->
+            try {
+                val url = URL(downloadUrl)
+                val connection = openHttpConnection(url)
+                connection.instanceFollowRedirects = true
+                connection.connectTimeout = 60000
+                connection.readTimeout = 120000
+
+                connection.inputStream.use { input ->
+                    jarFile.outputStream().use { output ->
+                        val total = connection.contentLengthLong
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var downloaded = 0L
+                        var lastPercent = -1
+
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read <= 0) break
+                            output.write(buffer, 0, read)
+                            downloaded += read
+
+                            if (total > 0) {
+                                val percent = ((downloaded * 100) / total).toInt()
+                                if (percent != lastPercent && percent % 5 == 0) {
+                                    println("Downloading Browser4.jar... $percent%")
+                                    lastPercent = percent
+                                }
+                            } else if (downloaded % (1024 * 1024) == 0L) {
+                                println("Downloading Browser4.jar... ${downloaded / (1024 * 1024)} MB")
+                            }
+                        }
+
+                        if (total > 0 && lastPercent != 100) {
+                            println("Downloading Browser4.jar... 100%")
+                        }
+                    }
+                }
+
+                println("Browser4.jar downloaded successfully to $jarPath")
+                return
+            } catch (e: Exception) {
+                lastError = e
+                val attempt = idx + 1
+                val retrying = attempt < attempts
+                val msg = "Failed to download Browser4.jar (attempt $attempt/$attempts): ${e.message}"
+                if (retrying) {
+                    println("$msg; retrying in ${backoffMs / 1000}s...")
+                    Thread.sleep(backoffMs)
+                } else {
+                    throw RuntimeException("$msg. Please check network/proxy or override downloadUrl.", e)
+                }
             }
+        }
+    }
 
-            println("Browser4.jar downloaded successfully to $jarPath")
-        } catch (e: Exception) {
-            throw RuntimeException("Failed to download Browser4.jar: ${e.message}", e)
+    /**
+     * Open an HTTP connection honoring the system proxy settings.
+     */
+    private fun openHttpConnection(url: URL): HttpURLConnection {
+        val proxies = runCatching { ProxySelector.getDefault()?.select(url.toURI()) }.getOrNull().orEmpty()
+        val proxy = proxies.firstOrNull { it != Proxy.NO_PROXY && it.address() is InetSocketAddress }
+        return if (proxy != null) {
+            url.openConnection(proxy) as HttpURLConnection
+        } else {
+            url.openConnection() as HttpURLConnection
         }
     }
 
@@ -169,6 +227,7 @@ class Browser4Driver(
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
 
         process = processBuilder.start()
+        installShutdownHook()
 
         if (waitForReady) {
             waitForServerReady()
@@ -208,17 +267,25 @@ class Browser4Driver(
      * @return true if server responds to health check, false otherwise
      */
     fun isServerHealthy(): Boolean {
-        return try {
-            val url = URI.create("$baseUrl/status").toURL()
-            val connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-            connection.connectTimeout = 1000
-            connection.readTimeout = 1000
-            val responseCode = connection.responseCode
-            connection.disconnect()
-            responseCode in 200..299
-        } catch (e: Exception) {
-            false
+        val candidates = listOf(
+            "$baseUrl/health",
+            "$baseUrl/actuator/health"
+        )
+        return candidates.any { endpoint ->
+            try {
+                val url = URI.create(endpoint).toURL()
+                val connection = openHttpConnection(url)
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 1000
+                connection.readTimeout = 1000
+                val code = connection.responseCode
+                // Some Spring actuator endpoints return JSON with status: "UP"
+                val ok = code in 200..299
+                connection.disconnect()
+                ok
+            } catch (_: Exception) {
+                false
+            }
         }
     }
 
@@ -228,10 +295,11 @@ class Browser4Driver(
      * @param force If true, forcibly kills the process; otherwise attempts graceful shutdown
      */
     fun stop(force: Boolean = false) {
+        removeShutdownHook()
         process?.let { proc ->
             if (proc.isAlive) {
                 println("Stopping Browser4 server...")
-                
+
                 if (force) {
                     proc.destroyForcibly()
                 } else {
@@ -242,11 +310,34 @@ class Browser4Driver(
                         proc.destroyForcibly()
                     }
                 }
-                
+
                 println("Browser4 server stopped")
             }
         }
         process = null
+    }
+
+    private fun installShutdownHook() {
+        if (shutdownHook != null) return
+        val hook = Thread {
+            try {
+                stop(force = true)
+            } catch (_: Exception) {
+                // best-effort during JVM shutdown
+            }
+        }
+        try {
+            Runtime.getRuntime().addShutdownHook(hook)
+            shutdownHook = hook
+        } catch (_: IllegalStateException) {
+            // JVM is already shutting down; ignore
+        }
+    }
+
+    private fun removeShutdownHook() {
+        val hook = shutdownHook ?: return
+        shutdownHook = null
+        runCatching { Runtime.getRuntime().removeShutdownHook(hook) }
     }
 
     /**
