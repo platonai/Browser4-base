@@ -108,7 +108,8 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <modules>
-                <module>pulsar-tests</module>
+                <module>pulsar-tests/pulsar-it-tests</module>
+                <module>pulsar-tests/pulsar-e2e-tests</module>
             </modules>
             <properties>
                 <surefire.excludedGroups>None</surefire.excludedGroups>
