@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import time
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Set, Tuple, Optional
@@ -88,6 +89,7 @@ class LinkChecker:
         self.skip_external = skip_external
         self.stats = Statistics()
         self.checked_external_urls: Set[str] = set()
+        self.external_urls_lock = threading.Lock()  # Thread safety for checked URLs
         
         # Configure requests session with retries
         self.session = requests.Session()
@@ -241,11 +243,11 @@ class LinkChecker:
     
     def check_external_link(self, url: str) -> Tuple[bool, str]:
         """Check if an external link is accessible"""
-        # Skip if we've already checked this URL
-        if url in self.checked_external_urls:
-            return True, ""
-        
-        self.checked_external_urls.add(url)
+        # Skip if we've already checked this URL (thread-safe check)
+        with self.external_urls_lock:
+            if url in self.checked_external_urls:
+                return True, ""
+            self.checked_external_urls.add(url)
         
         try:
             # Try HEAD request first (faster)
