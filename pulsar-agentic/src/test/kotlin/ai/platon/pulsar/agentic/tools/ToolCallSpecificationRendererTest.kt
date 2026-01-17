@@ -55,7 +55,7 @@ class ToolCallSpecificationRendererTest {
         override val targetClass: KClass<*> = Any::class
 
         override suspend fun callFunctionOn(
-            objectName: String,
+            domain: String,
             functionName: String,
             args: Map<String, Any?>,
             target: Any

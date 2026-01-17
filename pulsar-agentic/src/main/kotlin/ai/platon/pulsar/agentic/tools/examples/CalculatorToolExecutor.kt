@@ -94,12 +94,12 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
      */
     @Suppress("UNUSED_PARAMETER")
     override suspend fun callFunctionOn(
-        objectName: String,
+        domain: String,
         functionName: String,
         args: Map<String, Any?>,
         target: Any
     ): Any? {
-        require(objectName == "calc") { "Object must be calc" }
+        require(domain == "calc") { "Object must be calc" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
         require(target is Calculator) { "Target must be a Calculator instance" }
 

@@ -32,9 +32,9 @@ class BrowserToolExecutor : AbstractToolExecutor() {
     @Suppress("UNUSED_PARAMETER")
     @Throws(IllegalArgumentException::class)
     override suspend fun callFunctionOn(
-        objectName: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any? {
-        require(objectName == "browser") { "Object must be a Browser" }
+        require(domain == "browser") { "Object must be a Browser" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
         val browser = requireNotNull(target as AbstractBrowser) { "Target must be Browser" }
 

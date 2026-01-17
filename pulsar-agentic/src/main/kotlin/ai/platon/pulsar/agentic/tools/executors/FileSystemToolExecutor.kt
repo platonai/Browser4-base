@@ -123,9 +123,9 @@ class FileSystemToolExecutor : AbstractToolExecutor() {
     @Suppress("UNUSED_PARAMETER")
     @Throws(IllegalArgumentException::class)
     override suspend fun callFunctionOn(
-        objectName: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any {
-        require(objectName == "fs") { "Object must be fs" }
+        require(domain == "fs") { "Object must be fs" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
         require(target is AgentFileSystem) { "Target must be a FileSystem" }
 

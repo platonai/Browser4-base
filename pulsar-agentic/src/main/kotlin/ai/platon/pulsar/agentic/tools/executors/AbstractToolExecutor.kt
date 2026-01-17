@@ -59,11 +59,11 @@ abstract class AbstractToolExecutor : ToolExecutor {
     }
 
     @Throws(IllegalArgumentException::class)
-    abstract suspend fun callFunctionOn(objectName: String, functionName: String, args: Map<String, Any?>, target: Any): Any?
+    abstract suspend fun callFunctionOn(domain: String, functionName: String, args: Map<String, Any?>, target: Any): Any?
 
-    @Deprecated("Use callFunctionOn instead.", ReplaceWith("callFunctionOn(objectName, functionName, args, target)"))
+    @Deprecated("Use callFunctionOn instead.", ReplaceWith("callFunctionOn(domain, functionName, args, target)"))
     @Throws(IllegalArgumentException::class)
-    open suspend fun execute(objectName: String, functionName: String, args: Map<String, Any?>, target: Any): Any? = callFunctionOn(objectName, functionName, args, target)
+    open suspend fun execute(domain: String, functionName: String, args: Map<String, Any?>, target: Any): Any? = callFunctionOn(objectName, functionName, args, target)
 
     // ---------------- Shared helpers for named parameter executors ----------------
     protected fun validateArgs(

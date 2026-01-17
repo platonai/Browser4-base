@@ -4,7 +4,6 @@ import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.ExtractionSchema
 import ai.platon.pulsar.agentic.ai.tta.SourceCodeToToolCallSpec
-import ai.platon.pulsar.browser.driver.chrome.dom.util.DomDebug.summarize
 import kotlin.reflect.KClass
 
 class AgentToolExecutor : AbstractToolExecutor() {
@@ -31,9 +30,9 @@ class AgentToolExecutor : AbstractToolExecutor() {
     @Suppress("UNUSED_PARAMETER")
     @Throws(IllegalArgumentException::class)
     override suspend fun callFunctionOn(
-        objectName: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any? {
-        require(objectName == "agent") { "Object must be an Agent" }
+        require(domain == "agent") { "Object must be an Agent" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
 
         val agent = requireNotNull(target as? PerceptiveAgent) { "Target must be a PerceptiveAgent" }

@@ -32,9 +32,9 @@ class WebDriverExToolExecutor: AbstractToolExecutor() {
     @Suppress("UNUSED_PARAMETER")
     @Throws(IllegalArgumentException::class)
     override suspend fun callFunctionOn(
-        objectName: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any? {
-        require(objectName == "driverEx") { "Object must be a driverEx" }
+        require(domain == "driverEx") { "Object must be a driverEx" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
         val driver = requireNotNull(target as? AbstractWebDriver) { "Target must be AbstractWebDriver" }
 

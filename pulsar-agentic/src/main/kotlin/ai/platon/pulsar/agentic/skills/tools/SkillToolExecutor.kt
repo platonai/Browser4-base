@@ -48,12 +48,12 @@ class SkillToolExecutor(
 
     @Suppress("UNUSED_PARAMETER")
     override suspend fun callFunctionOn(
-        objectName: String,
+        domain: String,
         functionName: String,
         args: Map<String, Any?>,
         target: Any
     ): Any? {
-        require(objectName == domain) { "Object must be $domain" }
+        require(domain == domain) { "Object must be $domain" }
         require(target is SkillToolTarget) { "Target must be a SkillToolTarget" }
 
         return when (functionName) {

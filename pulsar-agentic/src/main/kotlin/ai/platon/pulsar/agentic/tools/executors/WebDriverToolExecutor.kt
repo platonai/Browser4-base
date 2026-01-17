@@ -29,7 +29,7 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
      */
     @Suppress("UNUSED_PARAMETER")
     override suspend fun callFunctionOn(
-        objectName: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, target: Any
     ): Any? {
         val driver = requireNotNull(target as? WebDriver) { "The target must be a WebDriver" }
 
