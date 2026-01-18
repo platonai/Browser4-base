@@ -12,6 +12,7 @@
  */
 package ai.platon.pulsar.sdk
 
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -43,7 +44,7 @@ class PulsarClientTest {
     }
 
     @Test
-    fun `PulsarClient requires session for session-dependent operations`() {
+    fun `PulsarClient requires session for session-dependent operations`() = runTest {
         val client = PulsarClient()
         
         // post with {sessionId} placeholder should throw without session

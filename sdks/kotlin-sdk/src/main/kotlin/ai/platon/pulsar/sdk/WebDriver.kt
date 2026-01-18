@@ -858,7 +858,7 @@ class WebDriver(
     /**
      * Closes the driver (cleanup).
      */
-    suspend fun close() {
+    fun close() {
         // No specific cleanup needed for REST-based driver
     }
 }

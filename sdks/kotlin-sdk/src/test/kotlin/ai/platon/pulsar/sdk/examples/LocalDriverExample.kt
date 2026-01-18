@@ -13,6 +13,7 @@
 package ai.platon.pulsar.sdk.examples
 
 import ai.platon.pulsar.sdk.AgenticSession
+import kotlinx.coroutines.runBlocking
 
 /**
  * Example demonstrating the automatic local driver mode.
@@ -27,7 +28,7 @@ import ai.platon.pulsar.sdk.AgenticSession
  * 4. The local server will start on port 8182
  * 5. The session will connect to the local server
  */
-fun main() {
+fun main() = runBlocking {
     println("=== Browser4 SDK - Local Driver Mode Example ===\n")
 
     // Automatically downloads and starts Browser4.jar

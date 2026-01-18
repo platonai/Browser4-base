@@ -127,7 +127,7 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession normalizeOrNull returns null for blank URL`() {
+    fun `PulsarSession normalizeOrNull returns null for blank URL`() = kotlinx.coroutines.test.runTest {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
         

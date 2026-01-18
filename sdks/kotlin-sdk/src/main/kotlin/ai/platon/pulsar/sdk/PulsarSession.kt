@@ -298,7 +298,7 @@ open class PulsarSession(
      * @param page The [WebPage] to parse
      * @return Jsoup Document object, or null if HTML is not available
      */
-    suspend fun parse(page: WebPage): org.jsoup.nodes.Document? {
+    fun parse(page: WebPage): org.jsoup.nodes.Document? {
         val html = page.html ?: return null
         val baseUrl = page.url
         return org.jsoup.Jsoup.parse(html, baseUrl)
@@ -311,7 +311,7 @@ open class PulsarSession(
      * @param fieldSelectors Map of field names to CSS selectors
      * @return Map of field names to extracted values (text content)
      */
-    suspend fun extract(document: org.jsoup.nodes.Document, fieldSelectors: Map<String, String>): Map<String, String?> {
+    fun extract(document: org.jsoup.nodes.Document, fieldSelectors: Map<String, String>): Map<String, String?> {
         return fieldSelectors.mapValues { (_, selector) ->
             val elements = document.select(selector)
             if (elements.isEmpty()) null else elements.first()?.text()
@@ -340,7 +340,7 @@ open class PulsarSession(
      * @param selectors List of selectors (selector becomes field name)
      * @return Map of field names to extracted values
      */
-    suspend fun extract(document: org.jsoup.nodes.Document, selectors: Iterable<String>): Map<String, String?> {
+    fun extract(document: org.jsoup.nodes.Document, selectors: Iterable<String>): Map<String, String?> {
         val fieldSelectors = selectors.associateWith { it }
         return extract(document, fieldSelectors)
     }
@@ -419,7 +419,7 @@ open class PulsarSession(
      *
      * @return The bound WebDriver instance
      */
-    suspend fun getOrCreateBoundDriver(): WebDriver {
+    fun getOrCreateBoundDriver(): WebDriver {
         return driver
     }
 
@@ -428,7 +428,7 @@ open class PulsarSession(
      *
      * @return A new WebDriver instance
      */
-    suspend fun createBoundDriver(): WebDriver {
+    fun createBoundDriver(): WebDriver {
         _driver = WebDriver(client)
         return _driver!!
     }
@@ -438,7 +438,7 @@ open class PulsarSession(
      *
      * @param driver The WebDriver to bind
      */
-    suspend fun bindDriver(driver: WebDriver) {
+    fun bindDriver(driver: WebDriver) {
         _driver = driver
     }
 
@@ -447,7 +447,7 @@ open class PulsarSession(
      *
      * @param driver The WebDriver to unbind
      */
-    suspend fun unbindDriver(driver: WebDriver) {
+    fun unbindDriver(driver: WebDriver) {
         if (_driver === driver) {
             _driver = null
         }
@@ -482,7 +482,7 @@ open class PulsarSession(
      *
      * @param closable Object with a close() method
      */
-    suspend fun registerClosable(closable: Any) {
+    fun registerClosable(closable: Any) {
         // Placeholder for resource management
     }
 
@@ -493,7 +493,7 @@ open class PulsarSession(
      * @param value Value to set (if provided)
      * @return Stored value for the name
      */
-    suspend fun data(name: String, value: Any? = null): Any? {
+    fun data(name: String, value: Any? = null): Any? {
         // Placeholder for session data storage
         return null
     }
@@ -505,7 +505,7 @@ open class PulsarSession(
      * @param value Value to set (if provided)
      * @return Property value
      */
-    suspend fun property(name: String, value: String? = null): String? {
+    fun property(name: String, value: String? = null): String? {
         // Placeholder for session properties
         return null
     }
@@ -517,7 +517,7 @@ open class PulsarSession(
      * @param eventHandlers Optional event handlers
      * @return Options map
      */
-    suspend fun options(args: String = "", eventHandlers: PageEventHandlers? = null): Map<String, Any?> {
+    fun options(args: String = "", eventHandlers: PageEventHandlers? = null): Map<String, Any?> {
         return mapOf("args" to args, "eventHandlers" to eventHandlers)
     }
 
@@ -529,7 +529,7 @@ open class PulsarSession(
      * @param url The URL to check
      * @return True if the page exists in storage
      */
-    suspend fun exists(url: String): Boolean {
+    fun exists(url: String): Boolean {
         // This would need a dedicated endpoint; using a workaround
         return false
     }
@@ -537,7 +537,7 @@ open class PulsarSession(
     /**
      * Flushes pending changes to storage.
      */
-    suspend fun flush() {
+    fun flush() {
         // Placeholder
     }
 
