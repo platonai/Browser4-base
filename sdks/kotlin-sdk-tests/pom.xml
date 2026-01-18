@@ -21,7 +21,7 @@
     <artifactId>pulsar-sdk-kotlin-tests</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>Pulsar Kotlin SDK Integration Tests</name>
+    <name>Browser4 Kotlin SDK Integration Tests</name>
     <description>Integration tests for Kotlin SDK with real server</description>
 
     <properties>
@@ -56,7 +56,7 @@
         <!-- SDK dependency -->
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-sdk-kotlin</artifactId>
+            <artifactId>browser4-sdk-kotlin</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 

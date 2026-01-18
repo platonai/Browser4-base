@@ -1,4 +1,4 @@
-# Pulsar Kotlin SDK
+# Browser4 Kotlin SDK
 
 Kotlin SDK for Browser4 WebDriver-Compatible API based on OpenAPI specification.
 
@@ -49,32 +49,32 @@ fun main() {
     val session = AgenticSession.getOrCreate()
     val agent = session.companionAgent
     val driver = session.getOrCreateBoundDriver()
-    
+
     // Open and parse a page
     val url = "https://example.com"
     var page = session.open(url)
     var document = session.parse(page)
-    
+
     // Extract data with CSS selectors
     var fields = session.extract(document, mapOf("title" to "h1"))
     println("Title: ${fields["title"]}")
-    
+
     // Use natural language actions
     var result = agent.act("click the search button")
     println("Action: ${result.message}")
-    
+
     // Run autonomous tasks
     var history = agent.run("search for 'kotlin' and extract results")
     println("Task: ${history.message}")
-    
+
     // Capture live page state
     page = session.capture(driver)
     document = session.parse(page)
-    
+
     // Get content from live DOM
     val content = driver.selectFirstTextOrNull("body")
     println("Content: ${content?.take(100)}")
-    
+
     // Clean up (stops local driver automatically)
     session.context.close()
 }
@@ -93,16 +93,16 @@ fun main() {
             "OPENROUTER_API_KEY" to "your-api-key"
         )
     )
-    
+
     val client = PulsarClient(
         useLocalDriver = true,
         localDriverOptions = options
     )
     client.createSession()
     val session = AgenticSession(client)
-    
+
     // Use session...
-    
+
     session.close()
     client.close() // Stops local driver
 }

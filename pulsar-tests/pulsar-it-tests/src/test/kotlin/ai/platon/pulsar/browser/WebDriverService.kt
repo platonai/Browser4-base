@@ -53,8 +53,6 @@ open class WebDriverService(
         }
     }
 
-
-
     fun runEnhancedWebDriverTest(url: String, block: suspend (driver: WebDriver) -> Unit) {
         runBlocking {
             browserFactory.launchRandomTempBrowser().use {

@@ -931,7 +931,7 @@ mvn test -pl sdks/kotlin-sdk-tests -Dgroups="IntegrationTest,!Slow"
     <groupId>ai.platon.pulsar</groupId>
     <artifactId>pulsar-sdk-kotlin-tests</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Pulsar Kotlin SDK Integration Tests</name>
+    <name>Browser4 Kotlin SDK Integration Tests</name>
 
     <properties>
         <!-- 默认跳过测试，需要显式运行 -->

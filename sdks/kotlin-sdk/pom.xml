@@ -12,11 +12,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ai.platon.pulsar</groupId>
-    <artifactId>pulsar-sdk-kotlin</artifactId>
+    <groupId>io.browser4</groupId>
+    <artifactId>browser4-sdk-kotlin</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>Pulsar Kotlin SDK</name>
+    <name>Browser4 Kotlin SDK</name>
     <description>Kotlin SDK for Browser4 based on OpenAPI specification</description>
 
     <url>https://browser4.io</url>
