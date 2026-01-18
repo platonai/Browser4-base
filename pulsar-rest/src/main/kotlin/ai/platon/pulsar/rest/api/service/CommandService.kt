@@ -18,6 +18,7 @@ import ai.platon.pulsar.rest.api.common.PLACEHOLDER_PAGE_CONTENT
 import ai.platon.pulsar.rest.api.common.RestAPIPromptUtils
 import ai.platon.pulsar.rest.api.common.ScrapeAPIUtils
 import ai.platon.pulsar.rest.api.entities.*
+import ai.platon.pulsar.skeleton.crawl.EventBus
 import ai.platon.pulsar.skeleton.crawl.PageEventHandlers
 import ai.platon.pulsar.skeleton.crawl.event.impl.PageEventHandlersFactory
 import kotlinx.coroutines.*
@@ -329,14 +330,14 @@ class CommandService(
             status.serverSideEventHandlers = serverSideEventHandlers
 
             // Set the global server-side event handlers
-            val previousServerSideEventHandlers = ai.platon.pulsar.skeleton.crawl.EventBus.serverSideEventHandlers
-            ai.platon.pulsar.skeleton.crawl.EventBus.serverSideEventHandlers = serverSideEventHandlers
+            val previousServerSideEventHandlers = EventBus.serverSideEventHandlers
+            EventBus.serverSideEventHandlers = serverSideEventHandlers
 
             try {
                 executeCommandStepByStep(request, status, eventHandlers)
             } finally {
                 // Restore previous server-side event handlers
-                ai.platon.pulsar.skeleton.crawl.EventBus.serverSideEventHandlers = previousServerSideEventHandlers
+                EventBus.serverSideEventHandlers = previousServerSideEventHandlers
             }
         } catch (e: Exception) {
             status.failed(ResourceStatus.SC_EXPECTATION_FAILED)
