@@ -10,9 +10,9 @@
  * OF ANY KIND, either express or implied. See the License for the specific
  * language governing permissions and limitations under the License.
  */
-package ai.platon.pulsar.sdk
+package ai.platon.pulsar.sdk.v0
 
-import ai.platon.pulsar.sdk.detail.OpenApiEvent
+import ai.platon.pulsar.sdk.v0.detail.OpenApiEvent
 
 /**
  * Reference to a DOM element, matching WebDriver element identifier.

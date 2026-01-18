@@ -13,7 +13,7 @@
 package ai.platon.pulsar.sdk.integration
 
 import ai.platon.pulsar.boot.autoconfigure.PulsarContextConfiguration
-import ai.platon.pulsar.sdk.detail.PulsarClient
+import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import ai.platon.pulsar.sdk.integration.server.PulsarRestServerApplication
 import ai.platon.pulsar.sdk.integration.server.TestServerConfiguration
 import org.junit.jupiter.api.AfterEach
@@ -75,7 +75,7 @@ abstract class KotlinSdkIntegrationTestBase {
      * Cleanup after each test
      */
     @AfterEach
-    fun cleanupClient() {
+    suspend fun cleanupClient() {
         try {
             // Try to delete session if exists
             if (client.sessionId != null) {
@@ -91,7 +91,7 @@ abstract class KotlinSdkIntegrationTestBase {
     /**
      * Create new session and set it to client
      */
-    protected fun createSession(): String {
+    protected suspend fun createSession(): String {
         val sessionId = client.createSession()
         client.sessionId = sessionId
         return sessionId

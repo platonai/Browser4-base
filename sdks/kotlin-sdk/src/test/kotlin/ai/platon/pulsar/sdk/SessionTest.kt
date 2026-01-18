@@ -12,7 +12,15 @@
  */
 package ai.platon.pulsar.sdk
 
-import ai.platon.pulsar.sdk.detail.PulsarClient
+import ai.platon.pulsar.sdk.v0.AgentHistory
+import ai.platon.pulsar.sdk.v0.AgentState
+import ai.platon.pulsar.sdk.v0.AgenticSession
+import ai.platon.pulsar.sdk.v0.ChatResponse
+import ai.platon.pulsar.sdk.v0.PageEventHandlers
+import ai.platon.pulsar.sdk.v0.PerceptiveAgent
+import ai.platon.pulsar.sdk.v0.PulsarSession
+import ai.platon.pulsar.sdk.v0.WebDriver
+import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

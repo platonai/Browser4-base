@@ -12,7 +12,7 @@
  */
 package ai.platon.pulsar.sdk.integration
 
-import ai.platon.pulsar.sdk.PulsarSession
+import ai.platon.pulsar.sdk.v0.PulsarSession
 import ai.platon.pulsar.sdk.integration.util.TestUrls
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -31,7 +31,7 @@ class PulsarSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
     private lateinit var session: PulsarSession
 
     @BeforeEach
-    fun setupSession() {
+    suspend fun setupSession() {
         createSession()
         session = PulsarSession(client)
     }

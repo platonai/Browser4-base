@@ -12,7 +12,7 @@
  */
 package ai.platon.pulsar.sdk.integration
 
-import ai.platon.pulsar.sdk.detail.PulsarClient
+import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import org.junit.jupiter.api.Test
 import kotlin.test.*
 

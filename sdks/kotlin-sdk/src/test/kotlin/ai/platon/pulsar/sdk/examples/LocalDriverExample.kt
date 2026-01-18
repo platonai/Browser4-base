@@ -12,7 +12,7 @@
  */
 package ai.platon.pulsar.sdk.examples
 
-import ai.platon.pulsar.sdk.AgenticSession
+import ai.platon.pulsar.sdk.v0.AgenticSession
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -34,43 +34,43 @@ fun main() = runBlocking {
     // Automatically downloads and starts Browser4.jar
     println("Creating session with local driver...")
     val session = AgenticSession.getOrCreate()
-    
+
     println("Session created successfully!")
     println("Session ID: ${session.uuid}")
     println("Session is active: ${session.isActive}")
-    
+
     // Example: Load a page
     println("\nAttempting to load example.com...")
-    
+
     try {
         val page = session.open("https://example.com")
         println("Page loaded: ${page.url}")
-        
+
         // Parse the page
         val document = session.parse(page)
-        
+
         // Extract data using CSS selectors (only if document is not null)
         if (document != null) {
             val fields = session.extract(document, mapOf(
                 "title" to "h1",
                 "description" to "p"
             ))
-            
+
             println("\nExtracted data:")
             fields.forEach { (key, value) ->
                 println("  $key: $value")
             }
         }
-        
+
     } catch (e: Exception) {
         println("Error: ${e.message}")
         println("Note: This example requires a working internet connection and API key.")
     }
-    
+
     // Clean up (automatically stops the local driver)
     println("\nClosing session...")
     session.close()
     println("Session closed. Local driver stopped.")
-    
+
     println("\n=== Example completed ===")
 }

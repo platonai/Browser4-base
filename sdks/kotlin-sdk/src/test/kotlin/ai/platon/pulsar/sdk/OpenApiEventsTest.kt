@@ -1,6 +1,7 @@
 package ai.platon.pulsar.sdk
 
-import ai.platon.pulsar.sdk.detail.OpenApiEvent
+import ai.platon.pulsar.sdk.v0.PageEventHandlers
+import ai.platon.pulsar.sdk.v0.detail.OpenApiEvent
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

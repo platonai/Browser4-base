@@ -1,4 +1,4 @@
-package ai.platon.pulsar.sdk.detail
+package ai.platon.pulsar.sdk.v0.detail
 
 import java.io.BufferedReader
 import java.io.File

@@ -10,9 +10,8 @@
  * OF ANY KIND, either express or implied. See the License for the specific
  * language governing permissions and limitations under the License.
  */
-package ai.platon.pulsar.sdk.detail
+package ai.platon.pulsar.sdk.v0.detail
 
-import ai.platon.pulsar.sdk.detail.Browser4Driver
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.ktor.client.*

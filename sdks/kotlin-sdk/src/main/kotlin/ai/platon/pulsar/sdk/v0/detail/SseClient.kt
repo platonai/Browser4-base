@@ -1,4 +1,4 @@
-package ai.platon.pulsar.sdk.detail
+package ai.platon.pulsar.sdk.v0.detail
 
 import com.google.gson.Gson
 import io.ktor.client.*

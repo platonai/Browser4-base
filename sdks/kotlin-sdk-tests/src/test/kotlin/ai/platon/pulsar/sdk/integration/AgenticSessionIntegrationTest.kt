@@ -12,7 +12,7 @@
  */
 package ai.platon.pulsar.sdk.integration
 
-import ai.platon.pulsar.sdk.AgenticSession
+import ai.platon.pulsar.sdk.v0.AgenticSession
 import ai.platon.pulsar.sdk.integration.util.TestUrls
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag

@@ -12,6 +12,19 @@
  */
 package ai.platon.pulsar.sdk
 
+import ai.platon.pulsar.sdk.v0.ActionDescription
+import ai.platon.pulsar.sdk.v0.AgentActResult
+import ai.platon.pulsar.sdk.v0.AgentObservation
+import ai.platon.pulsar.sdk.v0.AgentRunResult
+import ai.platon.pulsar.sdk.v0.ElementRef
+import ai.platon.pulsar.sdk.v0.ExtractionResult
+import ai.platon.pulsar.sdk.v0.FieldsExtraction
+import ai.platon.pulsar.sdk.v0.NormURL
+import ai.platon.pulsar.sdk.v0.ObserveResult
+import ai.platon.pulsar.sdk.v0.PageEventHandlers
+import ai.platon.pulsar.sdk.v0.PageSnapshot
+import ai.platon.pulsar.sdk.v0.ToolCallResult
+import ai.platon.pulsar.sdk.v0.WebPage
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

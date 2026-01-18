@@ -12,7 +12,9 @@
  */
 package ai.platon.pulsar.sdk
 
-import ai.platon.pulsar.sdk.detail.PulsarClient
+import ai.platon.pulsar.sdk.v0.PulsarSession
+import ai.platon.pulsar.sdk.v0.WebPage
+import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

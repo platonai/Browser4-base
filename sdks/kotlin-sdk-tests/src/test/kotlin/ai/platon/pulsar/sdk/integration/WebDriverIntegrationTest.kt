@@ -12,7 +12,7 @@
  */
 package ai.platon.pulsar.sdk.integration
 
-import ai.platon.pulsar.sdk.WebDriver
+import ai.platon.pulsar.sdk.v0.WebDriver
 import ai.platon.pulsar.sdk.integration.util.TestUrls
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -21,7 +21,7 @@ import kotlin.test.*
 
 /**
  * WebDriver integration tests.
- * 
+ *
  * Tests browser automation functionality including navigation,
  * element interaction, content extraction, and more.
  */
@@ -31,7 +31,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     private lateinit var driver: WebDriver
 
     @BeforeEach
-    fun setupDriver() {
+    suspend fun setupDriver() {
         createSession()
         driver = WebDriver(client)
     }
@@ -40,7 +40,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     suspend fun `should navigate to URL`() {
         val url = TestUrls.SIMPLE_PAGE
         driver.navigateTo(url)
-        
+
         val currentUrl = driver.currentUrl()
         assertNotNull(currentUrl, "Current URL should not be null")
         assertTrue(currentUrl.contains(url) || currentUrl == url, "Current URL should match navigated URL")
@@ -49,7 +49,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should get page title`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
-        
+
         val title = driver.title()
         assertNotNull(title, "Title should not be null")
         assertTrue(title.isNotBlank(), "Title should not be blank")
@@ -58,7 +58,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should check element exists`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
-        
+
         // Check common elements
         assertTrue(driver.exists("body"), "Body element should exist")
         assertTrue(driver.exists("html"), "HTML element should exist")
@@ -67,7 +67,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should extract text content`() {
         driver.navigateTo(TestUrls.PRODUCT_DETAIL)
-        
+
         val title = driver.selectFirstTextOrNull("#productTitle")
         assertNotNull(title, "Product title should not be null")
         assertTrue(title.isNotBlank(), "Product title should not be blank")
@@ -76,10 +76,10 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should scroll page`() {
         driver.navigateTo(TestUrls.PRODUCT_LIST)
-        
+
         // Scroll to bottom
         driver.scrollToBottom()
-        
+
         // Scroll to top
         driver.scrollToTop()
     }
@@ -88,7 +88,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Tag("Slow")
     suspend fun `should capture screenshot`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
-        
+
         val screenshot = driver.captureScreenshot()
         assertNotNull(screenshot, "Screenshot should not be null")
         assertTrue(screenshot.isNotEmpty(), "Screenshot should not be empty")
@@ -97,7 +97,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should execute script`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
-        
+
         val result = driver.executeScript("return document.title")
         assertNotNull(result, "Script result should not be null")
     }
@@ -105,7 +105,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should wait for selector`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
-        
+
         // Wait for body element
         driver.waitForSelector("body", timeout = 5000)
         assertTrue(driver.exists("body"), "Body element should exist after wait")
@@ -114,12 +114,12 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should extract multiple fields`() {
         driver.navigateTo(TestUrls.PRODUCT_DETAIL)
-        
+
         val fields = driver.extract(mapOf(
             "title" to "#productTitle",
             "price" to ".a-price-whole"
         ))
-        
+
         assertNotNull(fields, "Extracted fields should not be null")
         assertTrue(fields.containsKey("title"), "Should have title field")
     }
@@ -127,7 +127,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     @Test
     suspend fun `should get page source`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
-        
+
         val source = driver.pageSource()
         assertNotNull(source, "Page source should not be null")
         assertTrue(source.contains("<html"), "Page source should contain HTML")
@@ -138,16 +138,16 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
         // Navigate to first page
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         val url1 = driver.currentUrl()
-        
+
         // Navigate to second page
         driver.navigateTo(TestUrls.PRODUCT_LIST)
         val url2 = driver.currentUrl()
-        
+
         assertNotEquals(url1, url2, "URLs should be different")
-        
+
         // Go back
         driver.goBack()
-        
+
         // Go forward
         driver.goForward()
     }
@@ -156,9 +156,9 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     suspend fun `should reload page`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         val url1 = driver.currentUrl()
-        
+
         driver.reload()
-        
+
         val url2 = driver.currentUrl()
         assertEquals(url1, url2, "URL should remain the same after reload")
     }

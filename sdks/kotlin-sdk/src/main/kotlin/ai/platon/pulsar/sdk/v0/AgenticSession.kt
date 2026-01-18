@@ -1,3 +1,8 @@
+package ai.platon.pulsar.sdk.v0
+
+import ai.platon.pulsar.sdk.v0.detail.PulsarClient
+import kotlinx.coroutines.runBlocking
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more contributor
  * license agreements. See the NOTICE file distributed with this work for additional
@@ -10,10 +15,6 @@
  * OF ANY KIND, either express or implied. See the License for the specific
  * language governing permissions and limitations under the License.
  */
-package ai.platon.pulsar.sdk
-
-import ai.platon.pulsar.sdk.detail.PulsarClient
-import kotlinx.coroutines.runBlocking
 
 /**
  * AgenticSession extends PulsarSession with AI-powered browser automation.

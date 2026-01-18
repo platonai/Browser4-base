@@ -1,9 +1,15 @@
-package ai.platon.pulsar.sdk
+package ai.platon.pulsar.sdk.v0
 
-import ai.platon.pulsar.sdk.detail.OpenApiEvent
-import ai.platon.pulsar.sdk.detail.PulsarClient
-import ai.platon.pulsar.sdk.detail.SseClient
+import ai.platon.pulsar.sdk.v0.WebDriver
+import ai.platon.pulsar.sdk.v0.detail.OpenApiEvent
+import ai.platon.pulsar.sdk.v0.detail.PulsarClient
+import ai.platon.pulsar.sdk.v0.detail.SseClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * PulsarSession provides methods for loading pages from storage or internet,
@@ -177,10 +183,10 @@ open class PulsarSession(
             null
         }
 
-        val stopFlag = java.util.concurrent.atomic.AtomicBoolean(false)
+        val stopFlag = AtomicBoolean(false)
 
         // Start listener in a coroutine scope tied to the current operation
-        val listenerJob = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        val listenerJob = CoroutineScope(Dispatchers.IO).launch {
             try {
                 val base = client.resolvedBaseUrl.trimEnd('/')
                 val sessionId = client.sessionId ?: return@launch
@@ -198,7 +204,7 @@ open class PulsarSession(
                     shouldStop = { stopFlag.get() }
                 ) { evt ->
                     // Server sends json string as data (we serialize Event DTO as JSON).
-                    val oe = OpenApiEvent.fromJson(evt.data)
+                    val oe = OpenApiEvent.Companion.fromJson(evt.data)
                     if (oe != null) {
                         // Dispatch to SDK-side handlers.
                         eventHandlers.dispatch(oe)
@@ -300,10 +306,10 @@ open class PulsarSession(
      * @param page The [WebPage] to parse
      * @return Jsoup Document object, or null if HTML is not available
      */
-    fun parse(page: WebPage): org.jsoup.nodes.Document? {
+    fun parse(page: WebPage): Document? {
         val html = page.html ?: return null
         val baseUrl = page.url
-        return org.jsoup.Jsoup.parse(html, baseUrl)
+        return Jsoup.parse(html, baseUrl)
     }
 
     /**
@@ -313,7 +319,7 @@ open class PulsarSession(
      * @param fieldSelectors Map of field names to CSS selectors
      * @return Map of field names to extracted values (text content)
      */
-    fun extract(document: org.jsoup.nodes.Document, fieldSelectors: Map<String, String>): Map<String, String?> {
+    fun extract(document: Document, fieldSelectors: Map<String, String>): Map<String, String?> {
         return fieldSelectors.mapValues { (_, selector) ->
             val elements = document.select(selector)
             if (elements.isEmpty()) null else elements.first()?.text()
@@ -342,7 +348,7 @@ open class PulsarSession(
      * @param selectors List of selectors (selector becomes field name)
      * @return Map of field names to extracted values
      */
-    fun extract(document: org.jsoup.nodes.Document, selectors: Iterable<String>): Map<String, String?> {
+    fun extract(document: Document, selectors: Iterable<String>): Map<String, String?> {
         val fieldSelectors = selectors.associateWith { it }
         return extract(document, fieldSelectors)
     }

@@ -12,9 +12,10 @@
  */
 package ai.platon.pulsar.sdk
 
-import ai.platon.pulsar.sdk.detail.Browser4Driver
-import ai.platon.pulsar.sdk.detail.LocalDriverOptions
-import ai.platon.pulsar.sdk.detail.PulsarClient
+import ai.platon.pulsar.sdk.v0.AgenticSession
+import ai.platon.pulsar.sdk.v0.detail.Browser4Driver
+import ai.platon.pulsar.sdk.v0.detail.LocalDriverOptions
+import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
