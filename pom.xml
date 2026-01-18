@@ -102,11 +102,8 @@
                 <module>browser4</module>
 
                 <module>examples</module>
-
                 <module>pulsar-tests</module>
-
-                <module>sdks/kotlin-sdk</module>
-                <module>sdks/kotlin-sdk-tests</module>
+                <module>sdks</module>
             </modules>
         </profile>
 
