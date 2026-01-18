@@ -100,16 +100,10 @@
                 <module>pulsar-bom</module>
 
                 <module>browser4</module>
-                <module>browser4/browser4-agents</module>
-                <module>browser4/browser4-spa</module>
 
                 <module>examples</module>
-                <module>examples/browser4-examples</module>
-                <module>examples/java-compatible</module>
 
                 <module>pulsar-tests</module>
-                <module>pulsar-tests/pulsar-it-tests</module>
-                <module>pulsar-tests/pulsar-e2e-tests</module>
 
                 <module>sdks/kotlin-sdk</module>
                 <module>sdks/kotlin-sdk-tests</module>
