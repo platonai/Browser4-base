@@ -5,7 +5,7 @@ import ai.platon.pulsar.sdk.integration.util.TestUrls
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -50,7 +50,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `can create session with getOrCreate factory method`() {
+    suspend fun `can create session with getOrCreate factory method`() {
         val session = AgenticSession.getOrCreate(baseUrl)
 
         assertNotNull(session)
@@ -59,7 +59,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `getOrCreate returns same instance on multiple calls`() {
+    suspend fun `getOrCreate returns same instance on multiple calls`() {
         val session1 = AgenticSession.getOrCreate(baseUrl)
         val session2 = AgenticSession.getOrCreate(baseUrl)
 
@@ -68,7 +68,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `create factory method creates new instance each time`() {
+    suspend fun `create factory method creates new instance each time`() {
         val session1 = AgenticSession.create(baseUrl)
         val session2 = AgenticSession.create(baseUrl)
 
@@ -91,7 +91,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `FusedActs-style API is available`() {
+    suspend fun `FusedActs-style API is available`() {
         val session = this.session
 
         assertNotNull(session.companionAgent, "session.companionAgent should exist")
@@ -108,7 +108,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `session properties match FusedActs expectations`() {
+    suspend fun `session properties match FusedActs expectations`() {
         val session = this.session
         val agent = session.companionAgent
         val driver = session.getOrCreateBoundDriver()
@@ -120,7 +120,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `agent methods are available`() {
+    suspend fun `agent methods are available`() {
         val session = this.session
         val agent = session.companionAgent
 
@@ -135,7 +135,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `driver methods are available`() {
+    suspend fun `driver methods are available`() {
         val driver = session.getOrCreateBoundDriver()
 
         // Verify driver methods from FusedActs exist
@@ -145,7 +145,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `session methods match FusedActs usage`() {
+    suspend fun `session methods match FusedActs usage`() {
         val session = this.session
 
         // Verify methods used in FusedActs
@@ -158,13 +158,11 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `registerClosable does not throw`() {
+    suspend fun `registerClosable does not throw`() {
         // From FusedActs: session.registerClosable(starter)
         // Use a simple AutoCloseable implementation for testing
-        val testCloseable = object : AutoCloseable {
-            override fun close() {
-                // No-op for testing
-            }
+        val testCloseable = AutoCloseable {
+            // No-op for testing
         }
         session.registerClosable(testCloseable)
 
@@ -172,7 +170,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `context close is accessible`() {
+    suspend fun `context close is accessible`() {
         // In FusedActs: session.context.close()
         // We test that context.close() is the same as session.close()
         val session = AgenticSession.create(baseUrl)
@@ -195,7 +193,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     // ============================================================================
 
     @Test
-    fun `test session open operation from FusedActsStyleExample`() {
+    suspend fun `test session open operation from FusedActsStyleExample`() {
         val url = TestUrls.SIMPLE_PAGE
 
         // Step 1 from example: Open URL
@@ -207,7 +205,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test session parse operation from FusedActsStyleExample`() {
+    suspend fun `test session parse operation from FusedActsStyleExample`() {
         val url = TestUrls.SIMPLE_PAGE
 
         // Step 1-2 from example: Open and parse
@@ -219,7 +217,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test session extract operation from FusedActsStyleExample`() {
+    suspend fun `test session extract operation from FusedActsStyleExample`() {
         val url = TestUrls.SIMPLE_PAGE
 
         // Step 1-3 from example: Open, parse, and extract
@@ -234,7 +232,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test agent act operation from FusedActsStyleExample`() {
+    suspend fun `test agent act operation from FusedActsStyleExample`() {
         val agent = session.companionAgent
         val driver = session.getOrCreateBoundDriver()
 
@@ -249,7 +247,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test driver selectFirstTextOrNull operation from FusedActsStyleExample`() {
+    suspend fun `test driver selectFirstTextOrNull operation from FusedActsStyleExample`() {
         val driver = session.getOrCreateBoundDriver()
 
         // Navigate to a test page
@@ -263,7 +261,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test agent run operation from FusedActsStyleExample`() {
+    suspend fun `test agent run operation from FusedActsStyleExample`() {
         val agent = session.companionAgent
         val driver = session.getOrCreateBoundDriver()
 
@@ -279,7 +277,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test session capture operation from FusedActsStyleExample`() {
+    suspend fun `test session capture operation from FusedActsStyleExample`() {
         val driver = session.getOrCreateBoundDriver()
 
         // Navigate to a test page
@@ -293,7 +291,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test agent clearHistory operation from FusedActsStyleExample`() {
+    suspend fun `test agent clearHistory operation from FusedActsStyleExample`() {
         val agent = session.companionAgent
         val driver = session.getOrCreateBoundDriver()
 
@@ -309,7 +307,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test agent processTrace access from FusedActsStyleExample`() {
+    suspend fun `test agent processTrace access from FusedActsStyleExample`() {
         val agent = session.companionAgent
 
         // Step 14 from example: Access process trace
@@ -320,7 +318,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test multiple actions sequence from FusedActsStyleExample`() {
+    suspend fun `test multiple actions sequence from FusedActsStyleExample`() {
         val agent = session.companionAgent
         val driver = session.getOrCreateBoundDriver()
 
@@ -336,7 +334,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test full workflow from FusedActsStyleExample`() {
+    suspend fun `test full workflow from FusedActsStyleExample`() {
         val url = TestUrls.SIMPLE_PAGE
         val agent = session.companionAgent
         val driver = session.getOrCreateBoundDriver()
@@ -374,7 +372,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `test context property from FusedActsStyleExample`() {
+    suspend fun `test context property from FusedActsStyleExample`() {
         // Step 15 from example: Access session.context
         val context = session.context
 

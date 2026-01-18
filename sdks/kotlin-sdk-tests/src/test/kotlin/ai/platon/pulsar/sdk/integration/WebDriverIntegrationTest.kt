@@ -37,7 +37,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should navigate to URL`() {
+    suspend fun `should navigate to URL`() {
         val url = TestUrls.SIMPLE_PAGE
         driver.navigateTo(url)
         
@@ -47,7 +47,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should get page title`() {
+    suspend fun `should get page title`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         
         val title = driver.title()
@@ -56,7 +56,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should check element exists`() {
+    suspend fun `should check element exists`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         
         // Check common elements
@@ -65,7 +65,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should extract text content`() {
+    suspend fun `should extract text content`() {
         driver.navigateTo(TestUrls.PRODUCT_DETAIL)
         
         val title = driver.selectFirstTextOrNull("#productTitle")
@@ -74,7 +74,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should scroll page`() {
+    suspend fun `should scroll page`() {
         driver.navigateTo(TestUrls.PRODUCT_LIST)
         
         // Scroll to bottom
@@ -86,7 +86,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
 
     @Test
     @Tag("Slow")
-    fun `should capture screenshot`() {
+    suspend fun `should capture screenshot`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         
         val screenshot = driver.captureScreenshot()
@@ -95,7 +95,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should execute script`() {
+    suspend fun `should execute script`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         
         val result = driver.executeScript("return document.title")
@@ -103,7 +103,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should wait for selector`() {
+    suspend fun `should wait for selector`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         
         // Wait for body element
@@ -112,7 +112,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should extract multiple fields`() {
+    suspend fun `should extract multiple fields`() {
         driver.navigateTo(TestUrls.PRODUCT_DETAIL)
         
         val fields = driver.extract(mapOf(
@@ -125,7 +125,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should get page source`() {
+    suspend fun `should get page source`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         
         val source = driver.pageSource()
@@ -134,7 +134,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should navigate back and forward`() {
+    suspend fun `should navigate back and forward`() {
         // Navigate to first page
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         val url1 = driver.currentUrl()
@@ -153,7 +153,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should reload page`() {
+    suspend fun `should reload page`() {
         driver.navigateTo(TestUrls.SIMPLE_PAGE)
         val url1 = driver.currentUrl()
         

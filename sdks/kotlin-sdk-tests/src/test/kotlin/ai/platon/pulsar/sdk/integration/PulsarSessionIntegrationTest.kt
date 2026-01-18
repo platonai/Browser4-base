@@ -21,7 +21,7 @@ import kotlin.test.*
 
 /**
  * PulsarSession integration tests.
- * 
+ *
  * Tests session functionality including page loading, data extraction,
  * and document parsing.
  */
@@ -44,122 +44,122 @@ class PulsarSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should normalize URL`() {
+    suspend fun `should normalize URL`() {
         val url = "https://example.com"
         val normalized = session.normalize(url)
-        
+
         assertNotNull(normalized, "Normalized URL should not be null")
         assertNotNull(normalized.url, "Normalized URL string should not be null")
         assertTrue(normalized.url.isNotBlank(), "Normalized URL should not be blank")
     }
 
     @Test
-    fun `should normalize URL with arguments`() {
+    suspend fun `should normalize URL with arguments`() {
         val url = "https://example.com"
         val args = "-expire 1d"
         val normalized = session.normalize(url, args)
-        
+
         assertNotNull(normalized, "Normalized URL should not be null")
         assertNotNull(normalized.url, "Normalized URL string should not be null")
     }
 
     @Test
-    fun `should load page`() {
+    suspend fun `should load page`() {
         val url = TestUrls.SIMPLE_PAGE
         val page = session.load(url)
-        
+
         assertNotNull(page, "Page should not be null")
         assertFalse(page.isNil, "Page should not be nil")
         assertTrue(page.url.isNotBlank(), "Page URL should not be blank")
     }
 
     @Test
-    fun `should load page with arguments`() {
+    suspend fun `should load page with arguments`() {
         val url = TestUrls.SIMPLE_PAGE
         val args = "-expire 1d"
         val page = session.load(url, args)
-        
+
         assertNotNull(page, "Page should not be null")
         assertFalse(page.isNil, "Page should not be nil")
     }
 
     @Test
-    fun `should open page immediately`() {
+    suspend fun `should open page immediately`() {
         val url = TestUrls.SIMPLE_PAGE
         val page = session.open(url)
-        
+
         assertNotNull(page, "Page should not be null")
         assertFalse(page.isNil, "Page should not be nil")
         assertTrue(page.url.isNotBlank(), "Page URL should not be blank")
     }
 
     @Test
-    fun `should parse page`() {
+    suspend fun `should parse page`() {
         val url = TestUrls.SIMPLE_PAGE
         val page = session.load(url)
-        
+
         val document = session.parse(page)
         assertNotNull(document, "Parsed document should not be null")
     }
 
     @Test
-    fun `should extract fields from page with selectors`() {
+    suspend fun `should extract fields from page with selectors`() {
         val url = TestUrls.PRODUCT_DETAIL
         val page = session.load(url)
         val document = session.parse(page)
-        
+
         assertNotNull(document, "Document should not be null")
-        
+
         val selectors = mapOf(
             "title" to "#productTitle",
             "price" to ".a-price-whole"
         )
-        
+
         val result = session.extract(document, selectors)
-        
+
         assertNotNull(result, "Extracted result should not be null")
         assertTrue(result.containsKey("title"), "Should have title field")
         assertTrue(result.containsKey("price"), "Should have price field")
     }
 
     @Test
-    fun `should scrape page with selectors`() {
+    suspend fun `should scrape page with selectors`() {
         val url = TestUrls.PRODUCT_DETAIL
         val selectors = mapOf(
             "title" to "#productTitle",
             "price" to ".a-price-whole"
         )
-        
+
         val result = session.scrape(url, "", selectors)
-        
+
         assertNotNull(result, "Scrape result should not be null")
         assertTrue(result.containsKey("title"), "Should have title field")
         assertTrue(result.containsKey("price"), "Should have price field")
     }
 
     @Test
-    fun `should scrape page with arguments and selectors`() {
+    suspend fun `should scrape page with arguments and selectors`() {
         val url = TestUrls.PRODUCT_DETAIL
         val args = "-expire 1d"
         val selectors = mapOf(
             "title" to "#productTitle"
         )
-        
+
         val result = session.scrape(url, args, selectors)
-        
+
         assertNotNull(result, "Scrape result should not be null")
         assertTrue(result.containsKey("title"), "Should have title field")
     }
 
     @Test
-    fun `should load multiple pages`() {
+    suspend fun `should load multiple pages`() {
         val urls = listOf(
             TestUrls.SIMPLE_PAGE,
             TestUrls.PRODUCT_DETAIL
         )
-        
+
         val pages = session.loadAll(urls)
-        
+
         assertNotNull(pages, "Pages should not be null")
         assertEquals(urls.size, pages.size, "Should load all pages")
         pages.forEach { page ->
@@ -169,56 +169,56 @@ class PulsarSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should load multiple pages with arguments`() {
+    suspend fun `should load multiple pages with arguments`() {
         val urls = listOf(
             TestUrls.SIMPLE_PAGE,
             TestUrls.PRODUCT_LIST
         )
         val args = "-expire 1d"
-        
+
         val pages = session.loadAll(urls, args)
-        
+
         assertNotNull(pages, "Pages should not be null")
         assertEquals(urls.size, pages.size, "Should load all pages")
     }
 
     @Test
-    fun `should submit URL for async processing`() {
+    suspend fun `should submit URL for async processing`() {
         val url = TestUrls.SIMPLE_PAGE
-        
+
         val result = session.submit(url)
-        
+
         // Submit returns boolean indicating if submission was successful
         assertNotNull(result, "Submit result should not be null")
     }
 
     @Test
-    fun `should submit multiple URLs`() {
+    suspend fun `should submit multiple URLs`() {
         val urls = listOf(
             TestUrls.SIMPLE_PAGE,
             TestUrls.PRODUCT_LIST
         )
-        
+
         val result = session.submitAll(urls)
-        
+
         assertNotNull(result, "Submit result should not be null")
     }
 
     @Test
-    fun `should access bound driver`() {
+    suspend fun `should access bound driver`() {
         // Access driver through session
         val driver = session.driver
-        
+
         assertNotNull(driver, "Driver should not be null")
         assertEquals(client, driver.client, "Driver should use same client")
     }
 
     @Test
-    fun `should handle page with nil status`() {
+    suspend fun `should handle page with nil status`() {
         // Try to load a page that might not exist
         val url = TestUrls.MOCK_SERVER_BASE + "/nonexistent"
         val page = session.load(url)
-        
+
         assertNotNull(page, "Page object should not be null even if page doesn't exist")
         // Page may be nil or not, depending on server behavior
     }

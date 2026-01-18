@@ -13,6 +13,7 @@
 package ai.platon.pulsar.sdk
 
 import ai.platon.pulsar.sdk.detail.PulsarClient
+import kotlinx.coroutines.runBlocking
 
 /**
  * AgenticSession extends PulsarSession with AI-powered browser automation.
@@ -93,7 +94,7 @@ class AgenticSession(
          * @param useLocalDriver If true, automatically starts local Browser4 driver (default when baseUrl is null)
          * @return The default AgenticSession instance
          */
-        suspend fun getOrCreate(
+        fun getOrCreate(
             baseUrl: String? = null,
             useLocalDriver: Boolean = baseUrl == null
         ): AgenticSession {
@@ -102,7 +103,8 @@ class AgenticSession(
                     baseUrl = baseUrl,
                     useLocalDriver = useLocalDriver
                 )
-                client.createSession()
+
+                runBlocking { client.createSession() }
                 defaultClient = client
                 defaultSession = AgenticSession(client)
             }
@@ -136,7 +138,7 @@ class AgenticSession(
          *
          * Call this to clean up the default session created by [getOrCreate].
          */
-        suspend fun resetDefault() {
+        fun resetDefault() {
             try {
                 defaultSession?.close()
             } catch (e: Exception) {

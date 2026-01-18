@@ -25,7 +25,7 @@ import kotlin.test.*
 class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
 
     @Test
-    fun `should create and delete session`() {
+    suspend fun `should create and delete session`() {
         // Create session
         val sessionId = client.createSession()
         assertNotNull(sessionId, "Session ID should not be null")
@@ -44,7 +44,7 @@ class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should create session with capabilities`() {
+    suspend fun `should create session with capabilities`() {
         val capabilities = mapOf(
             "browserName" to "chrome",
             "pageLoadStrategy" to "normal"
@@ -59,7 +59,7 @@ class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should make GET request`() {
+    suspend fun `should make GET request`() {
         val sessionId = createSession()
 
         // GET current URL (should return empty or default value)
@@ -68,7 +68,7 @@ class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should make POST request`() {
+    suspend fun `should make POST request`() {
         val sessionId = createSession()
 
         // POST navigate to URL
@@ -83,7 +83,7 @@ class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should handle errors gracefully`() {
+    suspend fun `should handle errors gracefully`() {
         // Don't create session, try to access directly
         assertFailsWith<IllegalStateException> {
             client.post("/session/{sessionId}/url", mapOf("url" to "https://example.com"))
@@ -91,7 +91,7 @@ class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should handle session not found`() {
+    suspend fun `should handle session not found`() {
         // Try to delete non-existent session
         client.sessionId = "non-existent-session-id"
 
@@ -102,7 +102,7 @@ class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should support multiple sessions`() {
+    suspend fun `should support multiple sessions`() {
         // Create first session
         val sessionId1 = client.createSession()
         assertNotNull(sessionId1)

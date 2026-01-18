@@ -170,7 +170,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should receive SSE events from simple load`() {
+    suspend fun `should receive SSE events from simple load`() {
         val url = TestUrls.SIMPLE_PAGE
         val commandId = submitAsyncCommand(url, "-parse")
         
@@ -192,7 +192,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should receive LoadEventHandlers events`() {
+    suspend fun `should receive LoadEventHandlers events`() {
         val url = TestUrls.SIMPLE_PAGE
         val commandId = submitAsyncCommand(url, "-parse")
         
@@ -230,7 +230,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should receive events in correct order`() {
+    suspend fun `should receive events in correct order`() {
         val url = TestUrls.SIMPLE_PAGE
         val commandId = submitAsyncCommand(url, "-parse")
         
@@ -262,7 +262,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should receive status updates via SSE`() {
+    suspend fun `should receive status updates via SSE`() {
         val url = TestUrls.SIMPLE_PAGE
         val commandId = submitAsyncCommand(url)
         
@@ -279,7 +279,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should handle multiple concurrent SSE streams`() {
+    suspend fun `should handle multiple concurrent SSE streams`() {
         val url1 = TestUrls.SIMPLE_PAGE
         val url2 = TestUrls.PRODUCT_LIST
         
@@ -308,7 +308,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should include event metadata in SSE data`() {
+    suspend fun `should include event metadata in SSE data`() {
         val url = TestUrls.PRODUCT_DETAIL
         val commandId = submitAsyncCommand(url, "-parse")
         
@@ -328,7 +328,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should receive event when page load fails`() {
+    suspend fun `should receive event when page load fails`() {
         // Use a non-existent URL
         val url = TestUrls.MOCK_SERVER_BASE + "/nonexistent-page-404"
         val commandId = submitAsyncCommand(url)
@@ -354,7 +354,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should complete SSE stream when command finishes`() {
+    suspend fun `should complete SSE stream when command finishes`() {
         val url = TestUrls.SIMPLE_PAGE
         val commandId = submitAsyncCommand(url)
         
@@ -374,7 +374,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    fun `should trigger comprehensive LoadEventHandlers and BrowseEventHandlers events`() {
+    suspend fun `should trigger comprehensive LoadEventHandlers and BrowseEventHandlers events`() {
         val url = TestUrls.SIMPLE_PAGE
         // Submit command with parse to ensure HTML processing events
         val commandId = submitAsyncCommand(url, "-parse")

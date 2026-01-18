@@ -35,6 +35,7 @@
 
         <!--  Kotlin  -->
         <kotlin.version>${kotlinVersion}</kotlin.version>
+        <kotlinx-coroutines.version>1.10.1</kotlinx-coroutines.version>
 
         <pulsar.version>4.5.0-SNAPSHOT</pulsar.version>
     </properties>
@@ -90,6 +91,12 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-test-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-test</artifactId>
+            <version>${kotlinx-coroutines.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
