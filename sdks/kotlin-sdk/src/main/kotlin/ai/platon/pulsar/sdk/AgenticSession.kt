@@ -91,8 +91,7 @@ class AgenticSession(
          * @param useLocalDriver If true, automatically starts local Browser4 driver (default when baseUrl is null)
          * @return The default AgenticSession instance
          */
-        @Synchronized
-        fun getOrCreate(
+        suspend fun getOrCreate(
             baseUrl: String? = null,
             useLocalDriver: Boolean = baseUrl == null
         ): AgenticSession {
@@ -118,7 +117,7 @@ class AgenticSession(
          * @param useLocalDriver If true, automatically starts local Browser4 driver (default when baseUrl is null)
          * @return A new AgenticSession instance
          */
-        fun create(
+        suspend fun create(
             baseUrl: String? = null,
             useLocalDriver: Boolean = baseUrl == null
         ): AgenticSession {
@@ -135,8 +134,7 @@ class AgenticSession(
          *
          * Call this to clean up the default session created by [getOrCreate].
          */
-        @Synchronized
-        fun resetDefault() {
+        suspend fun resetDefault() {
             try {
                 defaultSession?.close()
             } catch (e: Exception) {
@@ -198,7 +196,7 @@ class AgenticSession(
      * @return [AgentActResult] with the action result
      */
     @Suppress("UNCHECKED_CAST")
-    override fun act(
+    override suspend fun act(
         action: String,
         multiAct: Boolean,
         modelName: String?,
@@ -221,7 +219,7 @@ class AgenticSession(
      * @return [AgentActResult] with the action result
      */
     @Suppress("UNCHECKED_CAST")
-    fun agentAct(
+    suspend fun agentAct(
         action: String,
         multiAct: Boolean = false,
         modelName: String? = null,
@@ -277,7 +275,7 @@ class AgenticSession(
      * @param timeoutMs Overall timeout
      * @return [AgentRunResult] with the task result
      */
-    override fun run(
+    override suspend fun run(
         task: String,
         multiAct: Boolean,
         modelName: String?,
@@ -300,7 +298,7 @@ class AgenticSession(
      * @return [AgentRunResult] with the task result
      */
     @Suppress("UNCHECKED_CAST")
-    fun agentRun(
+    suspend fun agentRun(
         task: String,
         multiAct: Boolean = false,
         modelName: String? = null,
@@ -353,7 +351,7 @@ class AgenticSession(
      * @param drawOverlay Whether to highlight interactive elements
      * @return [AgentObservation] with observation results
      */
-    override fun observe(
+    override suspend fun observe(
         instruction: String?,
         modelName: String?,
         domSettleTimeoutMs: Long?,
@@ -373,7 +371,7 @@ class AgenticSession(
      * @param drawOverlay Whether to highlight interactive elements
      * @return [AgentObservation] with observation results
      */
-    fun agentObserve(
+    suspend fun agentObserve(
         instruction: String? = null,
         modelName: String? = null,
         domSettleTimeoutMs: Long? = null,
@@ -402,7 +400,7 @@ class AgenticSession(
      * @return [ExtractionResult] with extracted data
      */
     @Suppress("UNCHECKED_CAST")
-    override fun extract(
+    override suspend fun extract(
         instruction: String,
         schema: Map<String, Any?>?,
         selector: String?,
@@ -423,7 +421,7 @@ class AgenticSession(
      * @return [ExtractionResult] with extracted data
      */
     @Suppress("UNCHECKED_CAST")
-    fun agentExtract(
+    suspend fun agentExtract(
         instruction: String,
         schema: Map<String, Any?>? = null,
         selector: String? = null,
@@ -451,7 +449,7 @@ class AgenticSession(
      * @param selector Optional CSS selector to limit summarization scope
      * @return Summary text
      */
-    override fun summarize(instruction: String?, selector: String?): String {
+    override suspend fun summarize(instruction: String?, selector: String?): String {
         return agentSummarize(instruction, selector)
     }
 
@@ -463,7 +461,7 @@ class AgenticSession(
      * @return Summary text
      */
     @Suppress("UNCHECKED_CAST")
-    fun agentSummarize(instruction: String? = null, selector: String? = null): String {
+    suspend fun agentSummarize(instruction: String? = null, selector: String? = null): String {
         val payload = mutableMapOf<String, Any?>()
         if (instruction != null) payload["instruction"] = instruction
         if (selector != null) payload["selector"] = selector
@@ -486,7 +484,7 @@ class AgenticSession(
      *
      * @return True if history was cleared successfully
      */
-    override fun clearHistory(): Boolean {
+    override suspend fun clearHistory(): Boolean {
         return agentClearHistory()
     }
 
@@ -495,7 +493,7 @@ class AgenticSession(
      *
      * @return True if history was cleared successfully
      */
-    fun agentClearHistory(): Boolean {
+    suspend fun agentClearHistory(): Boolean {
         val value = client.post("/session/{sessionId}/agent/clearHistory", emptyMap())
         _processTrace.clear()
         _stateHistory.clear()

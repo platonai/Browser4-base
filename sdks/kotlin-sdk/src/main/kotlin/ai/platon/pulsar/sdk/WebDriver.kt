@@ -60,7 +60,7 @@ class WebDriver(
      *
      * @param url The URL to navigate to
      */
-    fun open(url: String) {
+    suspend fun open(url: String) {
         navigateTo(url)
     }
 
@@ -70,7 +70,7 @@ class WebDriver(
      * @param url The URL to navigate to
      * @return Navigation result
      */
-    fun navigateTo(url: String): Any? {
+    suspend fun navigateTo(url: String): Any? {
         val result = client.post("/session/{sessionId}/url", mapOf("url" to url))
         _navigateHistory.add(url)
         return result
@@ -81,7 +81,7 @@ class WebDriver(
      *
      * @return Reload result
      */
-    fun reload(): Any? {
+    suspend fun reload(): Any? {
         return executeScript("location.reload()")
     }
 
@@ -90,7 +90,7 @@ class WebDriver(
      *
      * @return Navigation result
      */
-    fun goBack(): Any? {
+    suspend fun goBack(): Any? {
         return executeScript("history.back()")
     }
 
@@ -99,7 +99,7 @@ class WebDriver(
      *
      * @return Navigation result
      */
-    fun goForward(): Any? {
+    suspend fun goForward(): Any? {
         return executeScript("history.forward()")
     }
 
@@ -108,56 +108,56 @@ class WebDriver(
      *
      * @return The current URL as a string
      */
-    fun currentUrl(): String {
+    suspend fun currentUrl(): String {
         return client.get("/session/{sessionId}/url") as? String ?: ""
     }
 
     /**
      * Alias for [currentUrl].
      */
-    fun getCurrentUrl(): String = currentUrl()
+    suspend fun getCurrentUrl(): String = currentUrl()
 
     /**
      * Gets the document URL property.
      *
      * @return The document URL
      */
-    fun url(): String = currentUrl()
+    suspend fun url(): String = currentUrl()
 
     /**
      * Gets the document.documentURI property.
      *
      * @return The document URI
      */
-    fun documentUri(): String {
+    suspend fun documentUri(): String {
         return client.get("/session/{sessionId}/documentUri") as? String ?: ""
     }
 
     /**
      * Alias for [documentUri].
      */
-    fun getDocumentUri(): String = documentUri()
+    suspend fun getDocumentUri(): String = documentUri()
 
     /**
      * Gets the document.baseURI property.
      *
      * @return The base URI
      */
-    fun baseUri(): String {
+    suspend fun baseUri(): String {
         return client.get("/session/{sessionId}/baseUri") as? String ?: ""
     }
 
     /**
      * Alias for [baseUri].
      */
-    fun getBaseUri(): String = baseUri()
+    suspend fun getBaseUri(): String = baseUri()
 
     /**
      * Gets the current page title.
      *
      * @return The page title
      */
-    fun title(): String {
+    suspend fun title(): String {
         return executeScript("return document.title") as? String ?: ""
     }
 
@@ -166,7 +166,7 @@ class WebDriver(
      *
      * @return The page HTML source or null
      */
-    fun pageSource(): String? {
+    suspend fun pageSource(): String? {
         return outerHtml()
     }
 
@@ -180,7 +180,7 @@ class WebDriver(
      * @return True if the element exists
      */
     @Suppress("UNCHECKED_CAST")
-    fun exists(selector: String, strategy: String = "css"): Boolean {
+    suspend fun exists(selector: String, strategy: String = "css"): Boolean {
         val value = client.post(
             "/session/{sessionId}/selectors/exists",
             mapOf("selector" to selector, "strategy" to strategy)
@@ -198,7 +198,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return True if the element is visible
      */
-    fun isVisible(selector: String): Boolean {
+    suspend fun isVisible(selector: String): Boolean {
         val script = """
             (() => {
                 const el = document.querySelector('$selector');
@@ -216,7 +216,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return True if the element is hidden
      */
-    fun isHidden(selector: String): Boolean = !isVisible(selector)
+    suspend fun isHidden(selector: String): Boolean = !isVisible(selector)
 
     /**
      * Checks if a checkbox/radio element is checked.
@@ -224,7 +224,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return True if the element is checked
      */
-    fun isChecked(selector: String): Boolean {
+    suspend fun isChecked(selector: String): Boolean {
         val script = "document.querySelector('$selector')?.checked"
         return executeScript(script) as? Boolean ?: false
     }
@@ -240,7 +240,7 @@ class WebDriver(
      * @return True if the element was found before timeout
      */
     @Suppress("UNCHECKED_CAST")
-    fun waitForSelector(selector: String, strategy: String = "css", timeout: Int = 30000): Boolean {
+    suspend fun waitForSelector(selector: String, strategy: String = "css", timeout: Int = 30000): Boolean {
         val value = client.post(
             "/session/{sessionId}/selectors/waitFor",
             mapOf("selector" to selector, "strategy" to strategy, "timeout" to timeout)
@@ -256,7 +256,7 @@ class WebDriver(
     /**
      * Alias for [waitForSelector].
      */
-    fun waitFor(selector: String, strategy: String = "css", timeout: Int = 30000): Boolean {
+    suspend fun waitFor(selector: String, strategy: String = "css", timeout: Int = 30000): Boolean {
         return waitForSelector(selector, strategy, timeout)
     }
 
@@ -267,7 +267,7 @@ class WebDriver(
      * @param timeout Maximum wait time in milliseconds
      * @return True if navigation completed
      */
-    fun waitForNavigation(oldUrl: String = "", timeout: Int = 30000): Boolean {
+    suspend fun waitForNavigation(oldUrl: String = "", timeout: Int = 30000): Boolean {
         // Simple implementation using delay
         delay(minOf(timeout, 1000))
         return true
@@ -283,7 +283,7 @@ class WebDriver(
      * @return Element reference map
      */
     @Suppress("UNCHECKED_CAST")
-    fun findElementBySelector(selector: String, strategy: String = "css"): Map<String, Any?>? {
+    suspend fun findElementBySelector(selector: String, strategy: String = "css"): Map<String, Any?>? {
         return client.post(
             "/session/{sessionId}/selectors/element",
             mapOf("selector" to selector, "strategy" to strategy)
@@ -298,7 +298,7 @@ class WebDriver(
      * @return List of element reference maps
      */
     @Suppress("UNCHECKED_CAST")
-    fun findElementsBySelector(selector: String, strategy: String = "css"): List<Map<String, Any?>> {
+    suspend fun findElementsBySelector(selector: String, strategy: String = "css"): List<Map<String, Any?>> {
         val result = client.post(
             "/session/{sessionId}/selectors/elements",
             mapOf("selector" to selector, "strategy" to strategy)
@@ -314,7 +314,7 @@ class WebDriver(
      * @return Element reference map
      */
     @Suppress("UNCHECKED_CAST")
-    fun findElement(using: String, value: String): Map<String, Any?>? {
+    suspend fun findElement(using: String, value: String): Map<String, Any?>? {
         return client.post(
             "/session/{sessionId}/element",
             mapOf("using" to using, "value" to value)
@@ -329,7 +329,7 @@ class WebDriver(
      * @return List of element reference maps
      */
     @Suppress("UNCHECKED_CAST")
-    fun findElements(using: String, value: String): List<Map<String, Any?>> {
+    suspend fun findElements(using: String, value: String): List<Map<String, Any?>> {
         val result = client.post(
             "/session/{sessionId}/elements",
             mapOf("using" to using, "value" to value)
@@ -347,7 +347,7 @@ class WebDriver(
      * @param strategy Selector strategy
      * @return Click result
      */
-    fun click(selector: String, count: Int = 1, strategy: String = "css"): Any? {
+    suspend fun click(selector: String, count: Int = 1, strategy: String = "css"): Any? {
         return client.post(
             "/session/{sessionId}/selectors/click",
             mapOf("selector" to selector, "strategy" to strategy)
@@ -360,7 +360,7 @@ class WebDriver(
      * @param elementId WebDriver element ID
      * @return Click result
      */
-    fun clickElement(elementId: String): Any? {
+    suspend fun clickElement(elementId: String): Any? {
         return client.post("/session/{sessionId}/element/$elementId/click", emptyMap())
     }
 
@@ -370,7 +370,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return Hover result
      */
-    fun hover(selector: String): Any? {
+    suspend fun hover(selector: String): Any? {
         val script = """
             (() => {
                 const el = document.querySelector('$selector');
@@ -389,7 +389,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return Focus result
      */
-    fun focus(selector: String): Any? {
+    suspend fun focus(selector: String): Any? {
         return executeScript("document.querySelector('$selector')?.focus()")
     }
 
@@ -400,7 +400,7 @@ class WebDriver(
      * @param text Text to type
      * @return Type result
      */
-    fun type(selector: String, text: String): Any? {
+    suspend fun type(selector: String, text: String): Any? {
         return fill(selector, text)
     }
 
@@ -412,7 +412,7 @@ class WebDriver(
      * @param strategy Selector strategy
      * @return Fill result
      */
-    fun fill(selector: String, text: String, strategy: String = "css"): Any? {
+    suspend fun fill(selector: String, text: String, strategy: String = "css"): Any? {
         return client.post(
             "/session/{sessionId}/selectors/fill",
             mapOf("selector" to selector, "strategy" to strategy, "value" to text)
@@ -427,7 +427,7 @@ class WebDriver(
      * @param strategy Selector strategy
      * @return Press result
      */
-    fun press(selector: String, key: String, strategy: String = "css"): Any? {
+    suspend fun press(selector: String, key: String, strategy: String = "css"): Any? {
         return client.post(
             "/session/{sessionId}/selectors/press",
             mapOf("selector" to selector, "strategy" to strategy, "key" to key)
@@ -441,7 +441,7 @@ class WebDriver(
      * @param text Text to send
      * @return Send keys result
      */
-    fun sendKeys(elementId: String, text: String): Any? {
+    suspend fun sendKeys(elementId: String, text: String): Any? {
         return client.post(
             "/session/{sessionId}/element/$elementId/value",
             mapOf("text" to text)
@@ -454,7 +454,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return Check result
      */
-    fun check(selector: String): Any? {
+    suspend fun check(selector: String): Any? {
         val script = """
             (() => {
                 const el = document.querySelector('$selector');
@@ -470,7 +470,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return Uncheck result
      */
-    fun uncheck(selector: String): Any? {
+    suspend fun uncheck(selector: String): Any? {
         val script = """
             (() => {
                 const el = document.querySelector('$selector');
@@ -488,7 +488,7 @@ class WebDriver(
      * @param count Number of scroll actions
      * @return Current scroll position
      */
-    fun scrollDown(count: Int = 1): Double {
+    suspend fun scrollDown(count: Int = 1): Double {
         val script = "window.scrollBy(0, ${200 * count}); return window.scrollY;"
         return (executeScript(script) as? Number)?.toDouble() ?: 0.0
     }
@@ -499,7 +499,7 @@ class WebDriver(
      * @param count Number of scroll actions
      * @return Current scroll position
      */
-    fun scrollUp(count: Int = 1): Double {
+    suspend fun scrollUp(count: Int = 1): Double {
         val script = "window.scrollBy(0, ${-200 * count}); return window.scrollY;"
         return (executeScript(script) as? Number)?.toDouble() ?: 0.0
     }
@@ -510,7 +510,7 @@ class WebDriver(
      * @param selector CSS selector of the element
      * @return Current scroll position
      */
-    fun scrollTo(selector: String): Double {
+    suspend fun scrollTo(selector: String): Double {
         val script = """
             (() => {
                 const el = document.querySelector('$selector');
@@ -526,7 +526,7 @@ class WebDriver(
      *
      * @return Current scroll position (0)
      */
-    fun scrollToTop(): Double {
+    suspend fun scrollToTop(): Double {
         val script = "window.scrollTo(0, 0); return window.scrollY;"
         return (executeScript(script) as? Number)?.toDouble() ?: 0.0
     }
@@ -536,7 +536,7 @@ class WebDriver(
      *
      * @return Current scroll position
      */
-    fun scrollToBottom(): Double {
+    suspend fun scrollToBottom(): Double {
         val script = "window.scrollTo(0, document.body.scrollHeight); return window.scrollY;"
         return (executeScript(script) as? Number)?.toDouble() ?: 0.0
     }
@@ -547,7 +547,7 @@ class WebDriver(
      * @param ratio Scroll ratio (0.0 = top, 1.0 = bottom)
      * @return Current scroll position
      */
-    fun scrollToMiddle(ratio: Double = 0.5): Double {
+    suspend fun scrollToMiddle(ratio: Double = 0.5): Double {
         val script = """
             (() => {
                 const maxScroll = document.body.scrollHeight - window.innerHeight;
@@ -565,7 +565,7 @@ class WebDriver(
      * @param smooth Whether to use smooth scrolling
      * @return Current scroll position
      */
-    fun scrollBy(pixels: Double = 200.0, smooth: Boolean = true): Double {
+    suspend fun scrollBy(pixels: Double = 200.0, smooth: Boolean = true): Double {
         val behavior = if (smooth) "'smooth'" else "'auto'"
         val script = """
             (() => {
@@ -586,7 +586,7 @@ class WebDriver(
      * @return HTML content or null
      */
     @Suppress("UNCHECKED_CAST")
-    fun outerHtml(selector: String? = null, strategy: String = "css"): String? {
+    suspend fun outerHtml(selector: String? = null, strategy: String = "css"): String? {
         return if (selector != null) {
             val value = client.post(
                 "/session/{sessionId}/selectors/outerHtml",
@@ -608,7 +608,7 @@ class WebDriver(
      * @param selector CSS selector (optional)
      * @return Text content or null
      */
-    fun textContent(selector: String? = null): String? {
+    suspend fun textContent(selector: String? = null): String? {
         return if (selector != null) {
             selectFirstTextOrNull(selector)
         } else {
@@ -622,7 +622,7 @@ class WebDriver(
      * @param selector CSS selector
      * @return Text content or null if not found
      */
-    fun selectFirstTextOrNull(selector: String): String? {
+    suspend fun selectFirstTextOrNull(selector: String): String? {
         return executeScript("document.querySelector('$selector')?.innerText") as? String
     }
 
@@ -633,7 +633,7 @@ class WebDriver(
      * @return List of text contents
      */
     @Suppress("UNCHECKED_CAST")
-    fun selectTextAll(selector: String): List<String> {
+    suspend fun selectTextAll(selector: String): List<String> {
         val script = """
             Array.from(document.querySelectorAll('$selector'))
                 .map(el => el.innerText)
@@ -649,7 +649,7 @@ class WebDriver(
      * @param attrName Attribute name
      * @return Attribute value or null
      */
-    fun selectFirstAttributeOrNull(selector: String, attrName: String): String? {
+    suspend fun selectFirstAttributeOrNull(selector: String, attrName: String): String? {
         return executeScript("document.querySelector('$selector')?.getAttribute('$attrName')") as? String
     }
 
@@ -661,7 +661,7 @@ class WebDriver(
      * @return List of attribute values
      */
     @Suppress("UNCHECKED_CAST")
-    fun selectAttributeAll(selector: String, attrName: String): List<String> {
+    suspend fun selectAttributeAll(selector: String, attrName: String): List<String> {
         val script = """
             Array.from(document.querySelectorAll('$selector'))
                 .map(el => el.getAttribute('$attrName'))
@@ -678,7 +678,7 @@ class WebDriver(
      * @param name Attribute name
      * @return Attribute value
      */
-    fun getAttribute(elementId: String, name: String): Any? {
+    suspend fun getAttribute(elementId: String, name: String): Any? {
         return client.get("/session/{sessionId}/element/$elementId/attribute/$name")
     }
 
@@ -688,7 +688,7 @@ class WebDriver(
      * @param elementId WebDriver element ID
      * @return Text content
      */
-    fun getText(elementId: String): String {
+    suspend fun getText(elementId: String): String {
         return client.get("/session/{sessionId}/element/$elementId/text") as? String ?: ""
     }
 
@@ -698,7 +698,7 @@ class WebDriver(
      * @param fields Map of field names to CSS selectors
      * @return Map of field names to extracted values
      */
-    fun extract(fields: Map<String, String>): Map<String, String?> {
+    suspend fun extract(fields: Map<String, String>): Map<String, String?> {
         return fields.mapValues { (_, selector) -> selectFirstTextOrNull(selector) }
     }
 
@@ -711,7 +711,7 @@ class WebDriver(
      * @param fullPage Whether to capture the full page
      * @return Base64-encoded screenshot or null
      */
-    fun captureScreenshot(selector: String? = null, fullPage: Boolean = false): String? {
+    suspend fun captureScreenshot(selector: String? = null, fullPage: Boolean = false): String? {
         // Use "body" as default selector for full page screenshots
         val effectiveSelector = selector ?: "body"
         return screenshot(effectiveSelector)
@@ -724,7 +724,7 @@ class WebDriver(
      * @param strategy Selector strategy
      * @return Base64-encoded screenshot or null
      */
-    fun screenshot(selector: String? = null, strategy: String = "css"): String? {
+    suspend fun screenshot(selector: String? = null, strategy: String = "css"): String? {
         val effectiveSelector = selector ?: "body"
         val payload = mapOf(
             "selector" to effectiveSelector,
@@ -741,7 +741,7 @@ class WebDriver(
      * @param expression JavaScript expression to evaluate
      * @return Evaluation result
      */
-    fun evaluate(expression: String): Any? {
+    suspend fun evaluate(expression: String): Any? {
         return executeScript("return $expression")
     }
 
@@ -752,7 +752,7 @@ class WebDriver(
      * @param args Arguments to pass to the script
      * @return Script return value
      */
-    fun executeScript(script: String, args: List<Any?>? = null): Any? {
+    suspend fun executeScript(script: String, args: List<Any?>? = null): Any? {
         return client.post(
             "/session/{sessionId}/execute/sync",
             mapOf("script" to script, "args" to (args ?: emptyList<Any?>()))
@@ -767,7 +767,7 @@ class WebDriver(
      * @param timeout Execution timeout in milliseconds
      * @return Script return value
      */
-    fun executeAsyncScript(script: String, args: List<Any?>? = null, timeout: Int = 30000): Any? {
+    suspend fun executeAsyncScript(script: String, args: List<Any?>? = null, timeout: Int = 30000): Any? {
         return client.post(
             "/session/{sessionId}/execute/async",
             mapOf("script" to script, "args" to (args ?: emptyList<Any?>()), "timeout" to timeout)
@@ -782,7 +782,7 @@ class WebDriver(
      * @param millis Delay in milliseconds
      * @return Delay result
      */
-    fun delay(millis: Int): Any? {
+    suspend fun delay(millis: Int): Any? {
         return client.post("/session/{sessionId}/control/delay", mapOf("ms" to millis))
     }
 
@@ -791,7 +791,7 @@ class WebDriver(
      *
      * @return Pause result
      */
-    fun pause(): Any? {
+    suspend fun pause(): Any? {
         return client.post("/session/{sessionId}/control/pause", emptyMap())
     }
 
@@ -800,7 +800,7 @@ class WebDriver(
      *
      * @return Stop result
      */
-    fun stop(): Any? {
+    suspend fun stop(): Any? {
         return client.post("/session/{sessionId}/control/stop", emptyMap())
     }
 
@@ -809,7 +809,7 @@ class WebDriver(
      *
      * @return Result
      */
-    fun bringToFront(): Any? {
+    suspend fun bringToFront(): Any? {
         return executeScript("window.focus()")
     }
 
@@ -821,7 +821,7 @@ class WebDriver(
      * @param config Event configuration map
      * @return Created config response
      */
-    fun createEventConfig(config: Map<String, Any>): Any? {
+    suspend fun createEventConfig(config: Map<String, Any>): Any? {
         return client.post("/session/{sessionId}/event-configs", config)
     }
 
@@ -830,7 +830,7 @@ class WebDriver(
      *
      * @return List of event configurations
      */
-    fun listEventConfigs(): Any? {
+    suspend fun listEventConfigs(): Any? {
         return client.get("/session/{sessionId}/event-configs")
     }
 
@@ -839,7 +839,7 @@ class WebDriver(
      *
      * @return List of events
      */
-    fun getEvents(): Any? {
+    suspend fun getEvents(): Any? {
         return client.get("/session/{sessionId}/events")
     }
 
@@ -849,7 +849,7 @@ class WebDriver(
      * @param subscribeRequest Subscription request map
      * @return Subscription response
      */
-    fun subscribeEvents(subscribeRequest: Map<String, Any>): Any? {
+    suspend fun subscribeEvents(subscribeRequest: Map<String, Any>): Any? {
         return client.post("/session/{sessionId}/events/subscribe", subscribeRequest)
     }
 
@@ -858,7 +858,7 @@ class WebDriver(
     /**
      * Closes the driver (cleanup).
      */
-    fun close() {
+    suspend fun close() {
         // No specific cleanup needed for REST-based driver
     }
 }

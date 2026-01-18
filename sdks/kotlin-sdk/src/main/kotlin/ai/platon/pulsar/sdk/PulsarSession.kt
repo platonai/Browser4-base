@@ -1,5 +1,8 @@
 package ai.platon.pulsar.sdk
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+
 /**
  * PulsarSession provides methods for loading pages from storage or internet,
  * parsing them, and extracting data.
@@ -83,7 +86,7 @@ open class PulsarSession(
      * @return [NormURL] with normalized URL and parsed arguments
      */
     @Suppress("UNCHECKED_CAST")
-    fun normalize(url: String, args: String? = null, toItemOption: Boolean = false): NormURL {
+    suspend fun normalize(url: String, args: String? = null, toItemOption: Boolean = false): NormURL {
         val payload = mutableMapOf<String, Any?>("url" to url, "toItemOption" to toItemOption)
         if (args != null) {
             payload["args"] = args
@@ -104,7 +107,7 @@ open class PulsarSession(
      * @param toItemOption Whether to convert to item load options
      * @return [NormURL] or null if URL is invalid
      */
-    fun normalizeOrNull(url: String?, args: String? = null, toItemOption: Boolean = false): NormURL? {
+    suspend fun normalizeOrNull(url: String?, args: String? = null, toItemOption: Boolean = false): NormURL? {
         if (url.isNullOrBlank()) {
             return null
         }
@@ -125,7 +128,7 @@ open class PulsarSession(
      * @return [WebPage] with the loaded page information
      */
     @Suppress("UNCHECKED_CAST")
-    fun open(url: String, args: String? = null): WebPage {
+    suspend fun open(url: String, args: String? = null): WebPage {
         val payload = mutableMapOf<String, Any?>("url" to url)
         if (args != null) {
             payload["args"] = args
@@ -150,7 +153,7 @@ open class PulsarSession(
      * @return [WebPage] with the loaded page information
      */
     @Suppress("UNCHECKED_CAST")
-    fun open(url: String, eventHandlers: PageEventHandlers, args: String? = null): WebPage {
+    suspend fun open(url: String, eventHandlers: PageEventHandlers, args: String? = null): WebPage {
         // MVP implementation for REST/OpenAPI mode:
         // - create a subscription
         // - start an SSE listener using /events/stream
@@ -174,21 +177,21 @@ open class PulsarSession(
 
         val stopFlag = java.util.concurrent.atomic.AtomicBoolean(false)
 
-        // Start listener before open, so we can receive early events.
-        val listener = Thread {
+        // Start listener in a coroutine before open, so we can receive early events.
+        val listenerJob = kotlinx.coroutines.GlobalScope.launch {
             try {
                 val base = client.resolvedBaseUrl.trimEnd('/')
-                val sessionId = client.sessionId ?: return@Thread
+                val sessionId = client.sessionId ?: return@launch
                 val query = if (!subscription.isNullOrBlank()) {
                     "?subscriptionId=$subscription"
                 } else {
                     ""
                 }
-                val uri = java.net.URI.create("$base/session/$sessionId/events/stream$query")
+                val url = "$base/session/$sessionId/events/stream$query"
 
-                val sse = SseClient(client.rawHttpClient, client.resolvedTimeout)
+                val sse = SseClient(client.rawHttpClient)
                 sse.connect(
-                    uri = uri,
+                    url = url,
                     headers = client.resolvedDefaultHeaders.filterKeys { it.lowercase() != "content-type" },
                     shouldStop = { stopFlag.get() }
                 ) { evt ->
@@ -203,17 +206,13 @@ open class PulsarSession(
             } catch (_: Exception) {
                 // Swallow listener errors to avoid breaking open(); users can still load the page.
             }
-        }.apply {
-            name = "pulsar-sdk-open-sse-listener"
-            isDaemon = true
         }
-
-        listener.start()
 
         return try {
             open(url, args)
         } finally {
             stopFlag.set(true)
+            listenerJob.cancel()
         }
     }
 
@@ -229,7 +228,7 @@ open class PulsarSession(
      * @return [WebPage] with the loaded page information
      */
     @Suppress("UNCHECKED_CAST")
-    fun load(url: String, args: String? = null): WebPage {
+    suspend fun load(url: String, args: String? = null): WebPage {
         val payload = mutableMapOf<String, Any?>("url" to url)
         if (args != null) {
             payload["args"] = args
@@ -249,7 +248,7 @@ open class PulsarSession(
      * @param args Optional load arguments applied to all URLs
      * @return List of loaded [WebPage]s
      */
-    fun loadAll(urls: Iterable<String>, args: String? = null): List<WebPage> {
+    suspend fun loadAll(urls: Iterable<String>, args: String? = null): List<WebPage> {
         return urls.map { load(it, args) }
     }
 
@@ -263,7 +262,7 @@ open class PulsarSession(
      * @param args Optional load arguments
      * @return True if the URL was submitted successfully
      */
-    fun submit(url: String, args: String? = null): Boolean {
+    suspend fun submit(url: String, args: String? = null): Boolean {
         val payload = mutableMapOf<String, Any?>("url" to url)
         if (args != null) {
             payload["args"] = args
@@ -279,7 +278,7 @@ open class PulsarSession(
      * @param args Optional load arguments applied to all URLs
      * @return True if all URLs were submitted successfully
      */
-    fun submitAll(urls: Iterable<String>, args: String? = null): Boolean {
+    suspend fun submitAll(urls: Iterable<String>, args: String? = null): Boolean {
         for (url in urls) {
             if (!submit(url, args)) {
                 return false
@@ -299,7 +298,7 @@ open class PulsarSession(
      * @param page The [WebPage] to parse
      * @return Jsoup Document object, or null if HTML is not available
      */
-    fun parse(page: WebPage): org.jsoup.nodes.Document? {
+    suspend fun parse(page: WebPage): org.jsoup.nodes.Document? {
         val html = page.html ?: return null
         val baseUrl = page.url
         return org.jsoup.Jsoup.parse(html, baseUrl)
@@ -312,7 +311,7 @@ open class PulsarSession(
      * @param fieldSelectors Map of field names to CSS selectors
      * @return Map of field names to extracted values (text content)
      */
-    fun extract(document: org.jsoup.nodes.Document, fieldSelectors: Map<String, String>): Map<String, String?> {
+    suspend fun extract(document: org.jsoup.nodes.Document, fieldSelectors: Map<String, String>): Map<String, String?> {
         return fieldSelectors.mapValues { (_, selector) ->
             val elements = document.select(selector)
             if (elements.isEmpty()) null else elements.first()?.text()
@@ -330,7 +329,7 @@ open class PulsarSession(
      * @return Map of field names to extracted values
      */
     @Deprecated("Use extract(document: org.jsoup.nodes.Document, ...) for Jsoup documents")
-    fun extract(document: Any, fieldSelectors: Map<String, String>): Map<String, String?> {
+    suspend fun extract(document: Any, fieldSelectors: Map<String, String>): Map<String, String?> {
         return driver.extract(fieldSelectors)
     }
 
@@ -341,7 +340,7 @@ open class PulsarSession(
      * @param selectors List of selectors (selector becomes field name)
      * @return Map of field names to extracted values
      */
-    fun extract(document: org.jsoup.nodes.Document, selectors: Iterable<String>): Map<String, String?> {
+    suspend fun extract(document: org.jsoup.nodes.Document, selectors: Iterable<String>): Map<String, String?> {
         val fieldSelectors = selectors.associateWith { it }
         return extract(document, fieldSelectors)
     }
@@ -356,7 +355,7 @@ open class PulsarSession(
      * @return Map of field names to extracted values
      */
     @Deprecated("Use extract(document: org.jsoup.nodes.Document, ...) for Jsoup documents")
-    fun extract(document: Any, selectors: Iterable<String>): Map<String, String?> {
+    suspend fun extract(document: Any, selectors: Iterable<String>): Map<String, String?> {
         val fieldSelectors = selectors.associateWith { it }
         return driver.extract(fieldSelectors)
     }
@@ -369,7 +368,7 @@ open class PulsarSession(
      * @param fieldSelectors Field selectors for extraction
      * @return Map of field names to extracted values
      */
-    fun scrape(url: String, args: String, fieldSelectors: Map<String, String>): Map<String, String?> {
+    suspend fun scrape(url: String, args: String, fieldSelectors: Map<String, String>): Map<String, String?> {
         val page = load(url, args)
         val document = parse(page) ?: return emptyMap()
         return extract(document, fieldSelectors)
@@ -387,7 +386,7 @@ open class PulsarSession(
      * @return [ChatResponse] with the LLM's response
      */
     @Suppress("UNCHECKED_CAST")
-    fun chat(prompt: String): ChatResponse {
+    suspend fun chat(prompt: String): ChatResponse {
         val payload = mapOf("prompt" to prompt)
         val value = client.post("/session/{sessionId}/chat", payload)
         return ChatResponse.fromAny(value)
@@ -404,7 +403,7 @@ open class PulsarSession(
      * @return [ChatResponse] with the LLM's response
      */
     @Suppress("UNCHECKED_CAST")
-    fun chat(userMessage: String, systemMessage: String): ChatResponse {
+    suspend fun chat(userMessage: String, systemMessage: String): ChatResponse {
         val payload = mapOf(
             "userMessage" to userMessage,
             "systemMessage" to systemMessage
@@ -420,7 +419,7 @@ open class PulsarSession(
      *
      * @return The bound WebDriver instance
      */
-    fun getOrCreateBoundDriver(): WebDriver {
+    suspend fun getOrCreateBoundDriver(): WebDriver {
         return driver
     }
 
@@ -429,7 +428,7 @@ open class PulsarSession(
      *
      * @return A new WebDriver instance
      */
-    fun createBoundDriver(): WebDriver {
+    suspend fun createBoundDriver(): WebDriver {
         _driver = WebDriver(client)
         return _driver!!
     }
@@ -439,7 +438,7 @@ open class PulsarSession(
      *
      * @param driver The WebDriver to bind
      */
-    fun bindDriver(driver: WebDriver) {
+    suspend fun bindDriver(driver: WebDriver) {
         _driver = driver
     }
 
@@ -448,7 +447,7 @@ open class PulsarSession(
      *
      * @param driver The WebDriver to unbind
      */
-    fun unbindDriver(driver: WebDriver) {
+    suspend fun unbindDriver(driver: WebDriver) {
         if (_driver === driver) {
             _driver = null
         }
@@ -466,7 +465,7 @@ open class PulsarSession(
      * @return [PageSnapshot] with the captured page
      */
     @Suppress("UNCHECKED_CAST")
-    fun capture(driver: WebDriver? = null, url: String? = null): WebPage {
+    suspend fun capture(driver: WebDriver? = null, url: String? = null): WebPage {
         val drv = driver ?: this.driver
         val currentUrl = url ?: drv.getCurrentUrl()
         val value = client.post("/session/{sessionId}/open", mapOf("url" to currentUrl))
@@ -483,7 +482,7 @@ open class PulsarSession(
      *
      * @param closable Object with a close() method
      */
-    fun registerClosable(closable: Any) {
+    suspend fun registerClosable(closable: Any) {
         // Placeholder for resource management
     }
 
@@ -494,7 +493,7 @@ open class PulsarSession(
      * @param value Value to set (if provided)
      * @return Stored value for the name
      */
-    fun data(name: String, value: Any? = null): Any? {
+    suspend fun data(name: String, value: Any? = null): Any? {
         // Placeholder for session data storage
         return null
     }
@@ -506,7 +505,7 @@ open class PulsarSession(
      * @param value Value to set (if provided)
      * @return Property value
      */
-    fun property(name: String, value: String? = null): String? {
+    suspend fun property(name: String, value: String? = null): String? {
         // Placeholder for session properties
         return null
     }
@@ -518,7 +517,7 @@ open class PulsarSession(
      * @param eventHandlers Optional event handlers
      * @return Options map
      */
-    fun options(args: String = "", eventHandlers: PageEventHandlers? = null): Map<String, Any?> {
+    suspend fun options(args: String = "", eventHandlers: PageEventHandlers? = null): Map<String, Any?> {
         return mapOf("args" to args, "eventHandlers" to eventHandlers)
     }
 
@@ -530,7 +529,7 @@ open class PulsarSession(
      * @param url The URL to check
      * @return True if the page exists in storage
      */
-    fun exists(url: String): Boolean {
+    suspend fun exists(url: String): Boolean {
         // This would need a dedicated endpoint; using a workaround
         return false
     }
@@ -538,14 +537,18 @@ open class PulsarSession(
     /**
      * Flushes pending changes to storage.
      */
-    fun flush() {
+    suspend fun flush() {
         // Placeholder
     }
 
     /**
      * Closes the session.
+     * 
+     * Note: In coroutine-based SDK, proper cleanup should be done by calling deleteSession() 
+     * from a suspend context before closing. This method only closes resources that don't require suspension.
      */
     override fun close() {
-        client.deleteSession()
+        // Cannot call suspend deleteSession from non-suspend close()
+        // Users should call deleteSession() explicitly in suspend context if needed
     }
 }

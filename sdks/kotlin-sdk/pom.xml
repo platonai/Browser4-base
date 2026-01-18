@@ -162,7 +162,34 @@
             <version>${pulsar-jsoup.version}</version>
         </dependency>
 
-        <!-- HTTP client - using Java 11+ HttpClient (no extra dependency needed) -->
+        <!-- Kotlin Coroutines -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>${kotlinx-coroutines.version}</version>
+        </dependency>
+
+        <!-- Ktor HTTP client for coroutines -->
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-core-jvm</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-cio-jvm</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-content-negotiation-jvm</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-serialization-gson-jvm</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -199,6 +226,8 @@
 
         <!-- Dependencies -->
         <pulsar-jsoup.version>1.14.3</pulsar-jsoup.version>
+        <kotlinx-coroutines.version>1.10.1</kotlinx-coroutines.version>
+        <ktor.version>3.0.3</ktor.version>
 
     </properties>
 </project>

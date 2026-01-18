@@ -80,7 +80,7 @@ interface PerceptiveAgent {
      * @param drawOverlay Whether to highlight interactive elements
      * @return [AgentObservation] containing observation results
      */
-    fun observe(
+    suspend fun observe(
         instruction: String? = null,
         modelName: String? = null,
         domSettleTimeoutMs: Long? = null,
@@ -106,7 +106,7 @@ interface PerceptiveAgent {
      * @param timeoutMs Overall timeout for the action
      * @return [AgentActResult] with the execution result
      */
-    fun act(
+    suspend fun act(
         action: String,
         multiAct: Boolean = false,
         modelName: String? = null,
@@ -134,7 +134,7 @@ interface PerceptiveAgent {
      * @param timeoutMs Overall timeout for the entire task
      * @return [AgentRunResult] with the task execution result
      */
-    fun run(
+    suspend fun run(
         task: String,
         multiAct: Boolean = false,
         modelName: String? = null,
@@ -156,7 +156,7 @@ interface PerceptiveAgent {
      * @param domSettleTimeoutMs Timeout for DOM settling
      * @return [ExtractionResult] with the extracted data
      */
-    fun extract(
+    suspend fun extract(
         instruction: String,
         schema: Map<String, Any?>? = null,
         selector: String? = null,
@@ -174,7 +174,7 @@ interface PerceptiveAgent {
      * @param selector Optional CSS selector to limit the scope
      * @return Summary text
      */
-    fun summarize(instruction: String? = null, selector: String? = null): String
+    suspend fun summarize(instruction: String? = null, selector: String? = null): String
 
     /**
      * Clears the agent's history.
@@ -184,5 +184,5 @@ interface PerceptiveAgent {
      *
      * @return True if the history was cleared successfully
      */
-    fun clearHistory(): Boolean
+    suspend fun clearHistory(): Boolean
 }

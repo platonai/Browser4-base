@@ -14,10 +14,16 @@ package ai.platon.pulsar.sdk
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.gson.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.time.Duration
 
 /**
@@ -68,6 +74,8 @@ class PulsarClient
 
     private var localDriver: Browser4Driver? = null
     private val baseUrl: String
+    private val httpClient: HttpClient
+    private val gson = Gson()
 
     init {
         this.baseUrl = when {
@@ -94,17 +102,15 @@ class PulsarClient
             }
             else -> "http://localhost:8182"
         }
-    }
 
-    private val httpClient: HttpClient = HttpClient.newBuilder()
-        .connectTimeout(timeout)
-        .build()
-
-    private val gson = Gson()
-
-    private val headers: Map<String, String> = buildMap {
-        put("Content-Type", "application/json")
-        putAll(defaultHeaders)
+        this.httpClient = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                gson()
+            }
+            engine {
+                requestTimeout = timeout.toMillis()
+            }
+        }
     }
 
     /**
@@ -118,30 +124,33 @@ class PulsarClient
     internal val resolvedTimeout: Duration get() = timeout
 
     /**
-     * Exposes the underlying Java HttpClient for streaming operations (e.g., SSE).
+     * Exposes the underlying HttpClient for streaming operations (e.g., SSE).
      */
     internal val rawHttpClient: HttpClient get() = httpClient
 
     /**
      * Exposes default headers (excluding per-request overrides).
      */
-    internal val resolvedDefaultHeaders: Map<String, String> get() = headers
+    internal val resolvedDefaultHeaders: Map<String, String> get() = defaultHeaders
 
     private fun isServerHealthy(base: String): Boolean {
-        val client = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(2))
-            .build()
+        val tempClient = HttpClient(CIO) {
+            engine {
+                requestTimeout = 2000
+            }
+        }
         val endpoints = listOf("$base/health", "$base/actuator/health")
-        return endpoints.any { endpoint ->
-            runCatching {
-                val request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .timeout(Duration.ofSeconds(2))
-                    .GET()
-                    .build()
-                val response = client.send(request, HttpResponse.BodyHandlers.discarding())
-                response.statusCode() in 200..299
-            }.getOrElse { false }
+        return try {
+            endpoints.any { endpoint ->
+                runCatching {
+                    kotlinx.coroutines.runBlocking {
+                        val response = tempClient.get(endpoint)
+                        response.status.value in 200..299
+                    }
+                }.getOrElse { false }
+            }
+        } finally {
+            tempClient.close()
         }
     }
 
@@ -156,7 +165,7 @@ class PulsarClient
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun request(
+    private suspend fun request(
         method: String,
         path: String,
         sessionId: String? = null,
@@ -173,36 +182,32 @@ class PulsarClient
             resolvedPath = resolvedPath.replace("{sessionId}", sid)
         }
 
-        val requestBuilder = HttpRequest.newBuilder()
-            .uri(URI.create(url(resolvedPath)))
-            .timeout(timeout)
-
-        headers.forEach { (key, value) ->
-            requestBuilder.header(key, value)
-        }
-
-        when (method.uppercase()) {
-            "GET" -> requestBuilder.GET()
-            "DELETE" -> requestBuilder.DELETE()
-            "POST" -> {
-                val jsonBody = if (body != null) gson.toJson(body) else "{}"
-                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+        val response = httpClient.request(url(resolvedPath)) {
+            this.method = when (method.uppercase()) {
+                "GET" -> HttpMethod.Get
+                "DELETE" -> HttpMethod.Delete
+                "POST" -> HttpMethod.Post
+                "PUT" -> HttpMethod.Put
+                else -> throw IllegalArgumentException("Unsupported HTTP method: $method")
             }
-            "PUT" -> {
-                val jsonBody = if (body != null) gson.toJson(body) else "{}"
-                requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+
+            contentType(ContentType.Application.Json)
+            defaultHeaders.forEach { (key, value) ->
+                header(key, value)
             }
-            else -> throw IllegalArgumentException("Unsupported HTTP method: $method")
+
+            if (body != null && (method.uppercase() == "POST" || method.uppercase() == "PUT")) {
+                setBody(body)
+            }
         }
 
-        val response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString())
-
-        if (response.statusCode() >= 400) {
-            throw RuntimeException("HTTP ${response.statusCode()}: ${response.body()}")
+        if (response.status.value >= 400) {
+            val errorBody = response.bodyAsText()
+            throw RuntimeException("HTTP ${response.status.value}: $errorBody")
         }
 
-        val responseBody = response.body()
-        if (responseBody.isNullOrBlank()) {
+        val responseBody = response.bodyAsText()
+        if (responseBody.isBlank()) {
             return null
         }
 
@@ -223,7 +228,7 @@ class PulsarClient
      * @return The created session ID
      */
     @Suppress("UNCHECKED_CAST")
-    fun createSession(capabilities: Map<String, Any?>? = null): String {
+    suspend fun createSession(capabilities: Map<String, Any?>? = null): String {
         val response = request("POST", "/session", body = mapOf("capabilities" to (capabilities ?: emptyMap<String, Any?>())))
         val value = response as? Map<String, Any?>
         val newSessionId = value?.get("sessionId") as? String
@@ -237,7 +242,7 @@ class PulsarClient
      *
      * @param sessionId Optional session ID to delete (defaults to current session)
      */
-    fun deleteSession(sessionId: String? = null) {
+    suspend fun deleteSession(sessionId: String? = null) {
         val sid = requireSession(sessionId)
         request("DELETE", "/session/$sid")
         if (sessionId == null || sessionId == this.sessionId) {
@@ -253,7 +258,7 @@ class PulsarClient
      * @param sessionId Optional session ID
      * @return Response value
      */
-    fun post(path: String, body: Map<String, Any?>, sessionId: String? = null): Any? {
+    suspend fun post(path: String, body: Map<String, Any?>, sessionId: String? = null): Any? {
         return request("POST", path, sessionId = sessionId, body = body)
     }
 
@@ -264,7 +269,7 @@ class PulsarClient
      * @param sessionId Optional session ID
      * @return Response value
      */
-    fun get(path: String, sessionId: String? = null): Any? {
+    suspend fun get(path: String, sessionId: String? = null): Any? {
         return request("GET", path, sessionId = sessionId)
     }
 
@@ -275,7 +280,7 @@ class PulsarClient
      * @param sessionId Optional session ID
      * @return Response value
      */
-    fun delete(path: String, sessionId: String? = null): Any? {
+    suspend fun delete(path: String, sessionId: String? = null): Any? {
         return request("DELETE", path, sessionId = sessionId)
     }
 
@@ -283,9 +288,8 @@ class PulsarClient
      * Closes the HTTP client and local driver if started.
      */
     override fun close() {
+        httpClient.close()
         localDriver?.close()
-        // HttpClient in Java 11+ doesn't require explicit closing,
-        // but we implement AutoCloseable for consistency
     }
 }
 

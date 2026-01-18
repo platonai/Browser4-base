@@ -1,7 +1,7 @@
 package ai.platon.pulsar.sdk
 
 object AgenticContexts {
-    fun getOrCreateSession(
+    suspend fun getOrCreateSession(
         baseUrl: String? = null,
         useLocalDriver: Boolean = baseUrl == null
     ): AgenticSession {

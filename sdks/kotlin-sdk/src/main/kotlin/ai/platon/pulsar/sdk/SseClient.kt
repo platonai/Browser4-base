@@ -1,23 +1,23 @@
 package ai.platon.pulsar.sdk
 
 import com.google.gson.Gson
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.time.Duration
+import java.io.StringReader
 
 /**
- * A minimal Server-Sent Events (SSE) client.
+ * A minimal Server-Sent Events (SSE) client using Ktor.
  *
- * This is intentionally lightweight and dependency-free (uses Java HttpClient).
- * It parses SSE frames (event/id/data lines) and emits [SseEvent] callbacks.
+ * This is intentionally lightweight and parses SSE frames (event/id/data lines)
+ * and emits [SseEvent] callbacks.
  */
 internal class SseClient(
-    private val httpClient: HttpClient,
-    private val timeout: Duration
+    private val httpClient: HttpClient
 ) {
     data class SseEvent(
         val event: String? = null,
@@ -28,27 +28,26 @@ internal class SseClient(
     /**
      * Opens an SSE stream and invokes callbacks until the stream ends or [shouldStop] returns true.
      */
-    fun connect(
-        uri: URI,
+    suspend fun connect(
+        url: String,
         headers: Map<String, String> = emptyMap(),
         shouldStop: () -> Boolean = { false },
         onEvent: (SseEvent) -> Unit
     ) {
-        val requestBuilder = HttpRequest.newBuilder()
-            .uri(uri)
-            .timeout(timeout)
-            .GET()
-            .header("Accept", "text/event-stream")
-            .header("Cache-Control", "no-cache")
-
-        headers.forEach { (k, v) -> requestBuilder.header(k, v) }
-
-        val response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofInputStream())
-        if (response.statusCode() >= 400) {
-            throw RuntimeException("HTTP ${response.statusCode()}: ${response.body()}")
+        val response = httpClient.get(url) {
+            header("Accept", "text/event-stream")
+            header("Cache-Control", "no-cache")
+            headers.forEach { (k, v) -> header(k, v) }
         }
 
-        BufferedReader(InputStreamReader(response.body())).use { reader ->
+        if (response.status.value >= 400) {
+            throw RuntimeException("HTTP ${response.status.value}: ${response.bodyAsText()}")
+        }
+
+        val channel = response.bodyAsChannel()
+        
+        withContext(Dispatchers.IO) {
+            val buffer = StringBuilder()
             var eventName: String? = null
             var id: String? = null
             val data = StringBuilder()
@@ -64,26 +63,34 @@ internal class SseClient(
                 data.setLength(0)
             }
 
-            while (!shouldStop()) {
-                val line = reader.readLine() ?: break
+            while (!channel.isClosedForRead && !shouldStop()) {
+                val byte = channel.readByte()
+                val char = byte.toInt().toChar()
+                
+                if (char == '\n') {
+                    val line = buffer.toString()
+                    buffer.clear()
 
-                if (line.isEmpty()) {
-                    emit()
-                    continue
-                }
-
-                // comment line
-                if (line.startsWith(":")) {
-                    continue
-                }
-
-                when {
-                    line.startsWith("event:") -> eventName = line.substringAfter(':').trim()
-                    line.startsWith("id:") -> id = line.substringAfter(':').trim()
-                    line.startsWith("data:") -> {
-                        data.append(line.substringAfter(':'))
-                        data.append('\n')
+                    if (line.isEmpty()) {
+                        emit()
+                        continue
                     }
+
+                    // comment line
+                    if (line.startsWith(":")) {
+                        continue
+                    }
+
+                    when {
+                        line.startsWith("event:") -> eventName = line.substringAfter(':').trim()
+                        line.startsWith("id:") -> id = line.substringAfter(':').trim()
+                        line.startsWith("data:") -> {
+                            data.append(line.substringAfter(':'))
+                            data.append('\n')
+                        }
+                    }
+                } else if (char != '\r') {
+                    buffer.append(char)
                 }
             }
 
