@@ -12,6 +12,8 @@
  */
 package ai.platon.pulsar.sdk
 
+import ai.platon.pulsar.sdk.detail.PulsarClient
+
 /**
  * AgenticSession extends PulsarSession with AI-powered browser automation.
  *
@@ -240,7 +242,7 @@ class AgenticSession(
             val map = value as Map<String, Any?>
             val trace = map["trace"] as? List<String>
             trace?.let { _processTrace.addAll(it) }
-            
+
             // Add to state history
             val step = _stateHistory.size + 1
             _stateHistory.add(
@@ -252,7 +254,7 @@ class AgenticSession(
                     message = map["message"] as? String ?: ""
                 )
             )
-            
+
             AgentActResult.fromMap(map)
         } else {
             AgentActResult()
@@ -319,7 +321,7 @@ class AgenticSession(
             val map = value as Map<String, Any?>
             val trace = map["trace"] as? List<String>
             trace?.let { _processTrace.addAll(it) }
-            
+
             // The run operation typically involves multiple steps
             // We track this as a high-level task in the state history
             val step = _stateHistory.size + 1
@@ -332,7 +334,7 @@ class AgenticSession(
                     message = map["message"] as? String ?: ""
                 )
             )
-            
+
             AgentRunResult.fromMap(map)
         } else {
             AgentRunResult()

@@ -12,6 +12,7 @@
  */
 package ai.platon.pulsar.sdk
 
+import ai.platon.pulsar.sdk.detail.PulsarClient
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -30,7 +31,7 @@ class WebDriverTest {
     fun `WebDriver can be created with client`() {
         val client = PulsarClient(sessionId = "test-session")
         val driver = WebDriver(client)
-        
+
         assertEquals(0, driver.id)
         assertTrue(driver.navigateHistory.isEmpty())
     }
@@ -39,7 +40,7 @@ class WebDriverTest {
     fun `WebDriver tracks navigation history`() {
         val client = PulsarClient(sessionId = "test-session")
         val driver = WebDriver(client)
-        
+
         // Directly add to history (without actual navigation)
         // In real usage, navigateTo adds to history
         assertTrue(driver.navigateHistory.isEmpty())
@@ -63,7 +64,7 @@ class PulsarSessionTest {
     fun `PulsarSession can be created with client`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
-        
+
         assertEquals(0, session.id)
         assertEquals("test-session", session.uuid)
         assertTrue(session.isActive)
@@ -73,7 +74,7 @@ class PulsarSessionTest {
     fun `PulsarSession display shows session info`() {
         val client = PulsarClient(sessionId = "abcdefgh12345678")
         val session = PulsarSession(client)
-        
+
         assertTrue(session.display.contains("abcdefgh"))
     }
 
@@ -81,7 +82,7 @@ class PulsarSessionTest {
     fun `PulsarSession display shows no-session when inactive`() {
         val client = PulsarClient()
         val session = PulsarSession(client)
-        
+
         assertFalse(session.isActive)
         assertTrue(session.display.contains("no-session"))
     }
@@ -90,10 +91,10 @@ class PulsarSessionTest {
     fun `PulsarSession driver is lazily created`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
-        
+
         // boundDriver should be null initially
         assertNull(session.boundDriver)
-        
+
         // driver property should create it
         val driver = session.driver
         assertNotNull(driver)
@@ -104,10 +105,10 @@ class PulsarSessionTest {
     fun `PulsarSession createBoundDriver creates new driver`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
-        
+
         val driver1 = session.createBoundDriver()
         val driver2 = session.createBoundDriver()
-        
+
         // Each call creates a new driver
         assertNotNull(driver1)
         assertNotNull(driver2)
@@ -118,10 +119,10 @@ class PulsarSessionTest {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
         val driver = WebDriver(client)
-        
+
         session.bindDriver(driver)
         assertEquals(driver, session.boundDriver)
-        
+
         session.unbindDriver(driver)
         assertNull(session.boundDriver)
     }
@@ -130,7 +131,7 @@ class PulsarSessionTest {
     fun `PulsarSession normalizeOrNull returns null for blank URL`() = kotlinx.coroutines.test.runTest {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
-        
+
         assertNull(session.normalizeOrNull(null))
         assertNull(session.normalizeOrNull(""))
         assertNull(session.normalizeOrNull("   "))
@@ -140,7 +141,7 @@ class PulsarSessionTest {
     fun `PulsarSession loadAll returns list of pages`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
-        
+
         // Without server, this will fail, but we can test the structure
         // This test validates that the method signature is correct
         assertTrue(true)
@@ -156,7 +157,7 @@ class AgenticSessionTest {
     fun `AgenticSession can be created with client`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
-        
+
         // AgenticSession implements PerceptiveAgent
         val agent: PerceptiveAgent = session.companionAgent
         assertEquals(session, agent)
@@ -169,7 +170,7 @@ class AgenticSessionTest {
     fun `AgenticSession stateHistory is initially empty`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
-        
+
         val history = session.stateHistory
         assertTrue(history.states.isEmpty())
         assertFalse(history.hasErrors)
@@ -180,7 +181,7 @@ class AgenticSessionTest {
     fun `AgenticSession processTrace is initially empty`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
-        
+
         assertTrue(session.processTrace.isEmpty())
     }
 
@@ -188,9 +189,9 @@ class AgenticSessionTest {
     fun `AgenticSession options creates map with args`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
-        
+
         val opts = session.options("-expire 1d")
-        
+
         assertEquals("-expire 1d", opts["args"])
     }
 
@@ -198,7 +199,7 @@ class AgenticSessionTest {
     fun `AgenticSession data returns null by default`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
-        
+
         assertNull(session.data("test"))
     }
 
@@ -206,7 +207,7 @@ class AgenticSessionTest {
     fun `AgenticSession property returns null by default`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
-        
+
         assertNull(session.property("test"))
     }
 
@@ -214,7 +215,7 @@ class AgenticSessionTest {
     fun `AgenticSession registerClosable does not throw`() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
-        
+
         session.registerClosable(Object())
         // Should complete without exception
     }
@@ -222,7 +223,7 @@ class AgenticSessionTest {
     @Test
     fun `PageEventHandlers can be created`() {
         val handlers = PageEventHandlers()
-        
+
         assertTrue(handlers.browse.isEmpty())
         assertTrue(handlers.load.isEmpty())
         assertTrue(handlers.crawl.isEmpty())
@@ -231,7 +232,7 @@ class AgenticSessionTest {
     @Test
     fun `AgentHistory can be created`() {
         val history = AgentHistory()
-        
+
         assertEquals(0, history.size)
         assertFalse(history.hasErrors)
         assertTrue(history.states.isEmpty())
@@ -243,7 +244,7 @@ class AgenticSessionTest {
         val state1 = AgentState(step = 1, action = "test", success = true)
         val state2 = AgentState(step = 2, action = "test2", success = false)
         val history = AgentHistory(states = mutableListOf(state1, state2), hasErrors = true)
-        
+
         assertEquals(2, history.size)
         assertTrue(history.hasErrors)
         assertEquals("test", history.states[0].action)
@@ -253,7 +254,7 @@ class AgenticSessionTest {
     @Test
     fun `ChatResponse can be created from string`() {
         val response = ChatResponse.fromAny("Hello, world!")
-        
+
         assertEquals("Hello, world!", response.content)
         assertEquals("assistant", response.role)
     }
@@ -266,7 +267,7 @@ class AgenticSessionTest {
             "model" to "gpt-4"
         )
         val response = ChatResponse.fromAny(map)
-        
+
         assertEquals("Test content", response.content)
         assertEquals("user", response.role)
         assertEquals("gpt-4", response.model)

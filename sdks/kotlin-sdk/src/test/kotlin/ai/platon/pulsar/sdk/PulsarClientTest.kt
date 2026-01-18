@@ -12,6 +12,7 @@
  */
 package ai.platon.pulsar.sdk
 
+import ai.platon.pulsar.sdk.detail.PulsarClient
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -46,7 +47,7 @@ class PulsarClientTest {
     @Test
     fun `PulsarClient requires session for session-dependent operations`() = runTest {
         val client = PulsarClient()
-        
+
         // post with {sessionId} placeholder should throw without session
         assertThrows<IllegalStateException> {
             client.post("/session/{sessionId}/url", mapOf("url" to "https://example.com"))
@@ -57,7 +58,7 @@ class PulsarClientTest {
     fun `PulsarClient session ID can be updated`() {
         val client = PulsarClient()
         assertNull(client.sessionId)
-        
+
         client.sessionId = "new-session-id"
         assertEquals("new-session-id", client.sessionId)
     }

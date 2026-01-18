@@ -1,3 +1,15 @@
+package ai.platon.pulsar.sdk.detail
+
+import java.io.BufferedReader
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.net.ProxySelector
+import java.net.URI
+import java.net.URL
+import java.util.concurrent.TimeUnit
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more contributor
  * license agreements. See the NOTICE file distributed with this work for additional
@@ -10,18 +22,6 @@
  * OF ANY KIND, either express or implied. See the License for the specific
  * language governing permissions and limitations under the License.
  */
-package ai.platon.pulsar.sdk
-
-import java.io.BufferedReader
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.InetSocketAddress
-import java.net.Proxy
-import java.net.ProxySelector
-import java.net.URI
-import java.net.URL
-import java.util.concurrent.TimeUnit
-
 /**
  * Browser4Driver manages the lifecycle of a local Browser4.jar process.
  *

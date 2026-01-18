@@ -13,7 +13,7 @@
 package ai.platon.pulsar.sdk.integration
 
 import ai.platon.pulsar.boot.autoconfigure.PulsarContextConfiguration
-import ai.platon.pulsar.sdk.PulsarClient
+import ai.platon.pulsar.sdk.detail.PulsarClient
 import ai.platon.pulsar.sdk.integration.server.PulsarRestServerApplication
 import ai.platon.pulsar.sdk.integration.server.TestServerConfiguration
 import org.junit.jupiter.api.AfterEach

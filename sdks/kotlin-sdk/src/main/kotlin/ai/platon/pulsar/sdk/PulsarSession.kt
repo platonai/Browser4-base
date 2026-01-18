@@ -1,9 +1,9 @@
 package ai.platon.pulsar.sdk
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import ai.platon.pulsar.sdk.detail.OpenApiEvent
+import ai.platon.pulsar.sdk.detail.PulsarClient
+import ai.platon.pulsar.sdk.detail.SseClient
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.cancel
 
 /**
  * PulsarSession provides methods for loading pages from storage or internet,
@@ -545,8 +545,8 @@ open class PulsarSession(
 
     /**
      * Closes the session.
-     * 
-     * Note: In coroutine-based SDK, proper cleanup should be done by calling deleteSession() 
+     *
+     * Note: In coroutine-based SDK, proper cleanup should be done by calling deleteSession()
      * from a suspend context before closing. This method only closes resources that don't require suspension.
      */
     override fun close() {

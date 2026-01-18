@@ -12,6 +12,8 @@
  */
 package ai.platon.pulsar.sdk
 
+import ai.platon.pulsar.sdk.detail.PulsarClient
+
 /**
  * WebDriver-compatible façade mapping to selector-first REST endpoints.
  *

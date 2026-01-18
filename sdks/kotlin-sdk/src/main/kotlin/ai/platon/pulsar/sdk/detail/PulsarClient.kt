@@ -10,8 +10,9 @@
  * OF ANY KIND, either express or implied. See the License for the specific
  * language governing permissions and limitations under the License.
  */
-package ai.platon.pulsar.sdk
+package ai.platon.pulsar.sdk.detail
 
+import ai.platon.pulsar.sdk.detail.Browser4Driver
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.ktor.client.*
@@ -21,9 +22,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeout
-import java.net.URI
+import kotlinx.coroutines.runBlocking
 import java.time.Duration
 
 /**
@@ -90,8 +89,8 @@ class PulsarClient
                 } else {
                     // Start local driver
                     val driver = Browser4Driver(
-                        jarPath = localDriverOptions.jarPath ?: Browser4Driver.defaultJarPath(),
-                        downloadUrl = localDriverOptions.downloadUrl ?: Browser4Driver.DEFAULT_DOWNLOAD_URL,
+                        jarPath = localDriverOptions.jarPath ?: Browser4Driver.Companion.defaultJarPath(),
+                        downloadUrl = localDriverOptions.downloadUrl ?: Browser4Driver.Companion.DEFAULT_DOWNLOAD_URL,
                         port = targetPort,
                         javaOptions = localDriverOptions.javaOptions
                     )
@@ -141,7 +140,7 @@ class PulsarClient
         }
         val endpoints = listOf("$base/health", "$base/actuator/health")
         return try {
-            kotlinx.coroutines.runBlocking {
+            runBlocking {
                 endpoints.any { endpoint ->
                     runCatching {
                         val response = tempClient.get(endpoint)
@@ -150,7 +149,7 @@ class PulsarClient
                 }
             }
         } finally {
-            kotlinx.coroutines.runBlocking {
+            runBlocking {
                 tempClient.close()
             }
         }

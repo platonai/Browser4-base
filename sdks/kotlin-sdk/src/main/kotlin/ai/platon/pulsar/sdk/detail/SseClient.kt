@@ -1,4 +1,4 @@
-package ai.platon.pulsar.sdk
+package ai.platon.pulsar.sdk.detail
 
 import com.google.gson.Gson
 import io.ktor.client.*
@@ -43,7 +43,7 @@ internal class SseClient(
         }
 
         val channel = response.bodyAsChannel()
-        
+
         withContext(Dispatchers.IO) {
             var eventName: String? = null
             var id: String? = null

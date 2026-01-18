@@ -12,6 +12,8 @@
  */
 package ai.platon.pulsar.sdk
 
+import ai.platon.pulsar.sdk.detail.OpenApiEvent
+
 /**
  * Reference to a DOM element, matching WebDriver element identifier.
  */
