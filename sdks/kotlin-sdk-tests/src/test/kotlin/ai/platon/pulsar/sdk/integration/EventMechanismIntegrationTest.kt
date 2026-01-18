@@ -48,7 +48,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
         .build()
 
     @BeforeEach
-    fun setupSession() {
+    suspend fun setupSession() {
         createSession()
         session = PulsarSession(client)
     }

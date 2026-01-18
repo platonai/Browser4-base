@@ -35,7 +35,7 @@ class FusedActsStyleTest : KotlinSdkIntegrationTestBase() {
     private lateinit var session: AgenticSession
 
     @BeforeEach
-    fun setupSession() {
+    suspend fun setupSession() {
         createSession()
         session = AgenticSession(client)
     }
