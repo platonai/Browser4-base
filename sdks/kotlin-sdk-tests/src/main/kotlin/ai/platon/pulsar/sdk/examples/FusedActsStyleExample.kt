@@ -12,6 +12,7 @@
  */
 package ai.platon.pulsar.sdk.examples
 
+import ai.platon.pulsar.sdk.AgenticContexts
 import ai.platon.pulsar.sdk.AgenticSession
 import ai.platon.pulsar.test.server.DemoSiteStarter
 
@@ -26,8 +27,7 @@ class FusedActsStyleExample {
     private var step = 0
 
     // Create session using the convenient factory method
-    // This is similar to: AgenticContexts.getOrCreateSession()
-    private val session = AgenticSession.getOrCreate()
+    private val session = AgenticContexts.getOrCreateSession()
 
     suspend fun run() {
         // Use local mock site instead of external site so actions are deterministic.
