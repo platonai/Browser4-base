@@ -58,11 +58,6 @@ interface PulsarContext : java.lang.AutoCloseable {
     val globalCache: GlobalCache
 
     /**
-     * The main loops
-     * */
-    val taskLoops: TaskLoops
-
-    /**
      * The browser factory.
      * */
     val browserFactory: BrowserFactory
@@ -71,6 +66,11 @@ interface PulsarContext : java.lang.AutoCloseable {
      * The browser manager.
      * */
     val browserManager: BrowserManager
+
+    /**
+     * The main loops
+     * */
+    val taskLoops: TaskLoops
 
     /**
      * Get a bean with the specified class, throws [BeansException] if the bean doesn't exist

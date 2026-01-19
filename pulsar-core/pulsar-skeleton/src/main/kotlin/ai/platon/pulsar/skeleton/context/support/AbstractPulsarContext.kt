@@ -165,11 +165,11 @@ abstract class AbstractPulsarContext(
 
     override val globalCache: GlobalCache get() = globalCacheFactory.globalCache
 
-    override val taskLoops: TaskLoops get() = getBean()
-
     override val browserFactory: BrowserFactory get() = getBean()
 
     override val browserManager: BrowserManager get() = getBean()
+
+    override val taskLoops: TaskLoops get() = getBean()
 
     /**
      * The start time

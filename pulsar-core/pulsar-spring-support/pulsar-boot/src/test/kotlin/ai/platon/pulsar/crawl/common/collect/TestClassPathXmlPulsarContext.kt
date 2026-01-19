@@ -1,4 +1,4 @@
-package ai.platon.pulsar.basic
+package ai.platon.pulsar.crawl.common.collect
 
 import ai.platon.pulsar.agentic.context.AgenticContexts
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolManager
