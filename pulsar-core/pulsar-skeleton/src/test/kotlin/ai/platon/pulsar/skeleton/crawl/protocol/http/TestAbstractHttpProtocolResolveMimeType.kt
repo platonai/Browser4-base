@@ -41,7 +41,7 @@ class TestAbstractHttpProtocolResolveMimeType {
     fun `should return deterministic value for empty body and no content-type`() {
         val resolved = protocol.resolve(null, "http://example.com/", ByteArray(0))
         assertNotNull(resolved)
-        // With no extension and no body, octet-stream is the safest fallback.
+        // With no extension and empty body, octet-stream is the safest fallback.
         assertEquals(MimeTypes.OCTET_STREAM, resolved)
     }
 }
