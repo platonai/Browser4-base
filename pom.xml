@@ -452,7 +452,6 @@
             <!--
             The Surefire Plugin is used during the test phase of the build lifecycle to execute the unit tests of
             an application.
-            see https://maven.apache.org/surefire/maven-surefire-plugin/
             -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
