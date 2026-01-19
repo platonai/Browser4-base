@@ -72,3 +72,8 @@
 *.js linguist-detectable=false
 docs/* linguist-detectable=false
 static/* linguist-detectable=false
+
+agent-tool-call-specs.json linguist-detectable=false
+driver-tool-call-specs.json linguist-detectable=false
+PerceptiveAgent.kt.txt linguist-detectable=false
+WebDriver.kt.txt linguist-detectable=false
