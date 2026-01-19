@@ -154,7 +154,7 @@ abstract class AbstractHttpProtocol : Protocol {
         val httpCode = response.httpCode
         val pageDatum = response.pageDatum
         val content = pageDatum.content
-        // bytes = bytes == null ? EMPTY_CONTENT : bytes;
+
         val contentType = response.getHeader(HttpHeaders.CONTENT_TYPE)
         pageDatum.contentType = resolveMimeType(contentType, url, content)
 

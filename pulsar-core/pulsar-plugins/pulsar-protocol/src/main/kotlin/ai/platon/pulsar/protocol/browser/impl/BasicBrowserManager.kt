@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class BasicBrowserManager(
     val browserFactory: BrowserFactory,
     val conf: ImmutableConfig
-) : AutoCloseable {
+) : BrowserManager {
     private val logger = getLogger(this)
     private val closed = AtomicBoolean()
     private val _browsers = ConcurrentHashMap<BrowserId, Browser>()
@@ -23,17 +23,7 @@ open class BasicBrowserManager(
     /**
      * The active browsers
      * */
-    val browsers: Map<BrowserId, Browser> = _browsers
-
-    /**
-     * Find an existing browser by id.
-     * If the browser is not found, return null.
-     *
-     * @param browserId The browser id
-     * @return The browser or null if not found
-     * */
-    @Synchronized
-    fun findBrowserOrNull(browserId: BrowserId): Browser? = browsers[browserId]
+    override val browsers: Map<BrowserId, Browser> = _browsers
 
     /**
      * Check if the browser is active.
@@ -44,10 +34,20 @@ open class BasicBrowserManager(
     }
 
     /**
+     * Find an existing browser by id.
+     * If the browser is not found, return null.
+     *
+     * @param browserId The browser id
+     * @return The browser or null if not found
+     * */
+    @Synchronized
+    override fun findBrowserOrNull(browserId: BrowserId): Browser? = browsers[browserId]
+
+    /**
      * Close a browser.
      * */
     @Synchronized
-    fun closeBrowser(browserId: BrowserId) {
+    override fun closeBrowser(browserId: BrowserId) {
         val browser = _browsers.remove(browserId)
         if (browser is AbstractBrowser) {
             kotlin.runCatching { browser.close() }.onFailure { warnForClose(this, it) }
@@ -64,7 +64,7 @@ open class BasicBrowserManager(
     }
 
     @Synchronized
-    fun closeBrowser(browser: Browser) {
+    override fun closeBrowser(browser: Browser) {
         closeBrowser(browser.id)
     }
 
@@ -103,12 +103,6 @@ open class BasicBrowserManager(
         }
     }
 
-    private fun findLeastValuableDriver(drivers: Iterable<WebDriver>): WebDriver? {
-        return drivers.filterIsInstance<AbstractWebDriver>()
-            .filter { !it.isReady && !it.isWorking }
-            .minByOrNull { it.lastActiveTime }
-    }
-
     fun maintain() {
         browsers.values.forEach {
             require(it is AbstractBrowser)
@@ -127,5 +121,11 @@ open class BasicBrowserManager(
             }
             _browsers.clear()
         }
+    }
+
+    private fun findLeastValuableDriver(drivers: Iterable<WebDriver>): WebDriver? {
+        return drivers.filterIsInstance<AbstractWebDriver>()
+            .filter { !it.isReady && !it.isWorking }
+            .minByOrNull { it.lastActiveTime }
     }
 }

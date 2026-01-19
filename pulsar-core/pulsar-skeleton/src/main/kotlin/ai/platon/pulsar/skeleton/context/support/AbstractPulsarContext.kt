@@ -28,6 +28,7 @@ import ai.platon.pulsar.skeleton.crawl.component.LoadComponent
 import ai.platon.pulsar.skeleton.crawl.component.ParseComponent
 import ai.platon.pulsar.skeleton.crawl.component.UpdateComponent
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserFactory
+import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserManager
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import ai.platon.pulsar.skeleton.crawl.filter.ChainedUrlNormalizer
 import ai.platon.pulsar.skeleton.session.AbstractPulsarSession
@@ -164,6 +165,8 @@ abstract class AbstractPulsarContext(
     override val taskLoops: TaskLoops get() = getBean()
 
     override val browserFactory: BrowserFactory get() = getBean()
+
+    override val browserManager: BrowserManager get() = getBean()
 
     /**
      * The start time
