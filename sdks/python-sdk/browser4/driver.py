@@ -64,9 +64,11 @@ class Browser4Driver:
 
     DEFAULT_DOWNLOAD_URL = "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar"
     LATEST_RELEASE_API = "https://api.github.com/repos/platonai/Browser4/releases/latest"
+    JAR_FILENAME = "Browser4.jar"
     DEFAULT_PORT = 8182
     STARTUP_TIMEOUT_SECONDS = 120
     HEALTH_CHECK_INTERVAL_MS = 500
+    MEGABYTE = 1024 * 1024
 
     def __init__(
         self,
@@ -89,7 +91,7 @@ class Browser4Driver:
         home = Path.home()
         browser4_dir = home / ".browser4" / "lib"
         browser4_dir.mkdir(parents=True, exist_ok=True)
-        return str(browser4_dir / "Browser4.jar")
+        return str(browser4_dir / Browser4Driver.JAR_FILENAME)
 
     @property
     def base_url(self) -> str:
@@ -176,7 +178,7 @@ class Browser4Driver:
     @staticmethod
     def _parse_latest_browser_download_url(json_text: str) -> Optional[str]:
         """Parses the Browser4.jar download URL from GitHub API JSON response."""
-        pattern = r'"browser_download_url"\s*:\s*"([^"]*Browser4\.jar)"'
+        pattern = rf'"browser_download_url"\s*:\s*"([^"]*{Browser4Driver.JAR_FILENAME})"'
         match = re.search(pattern, json_text)
         return match.group(1) if match else None
 
@@ -209,8 +211,8 @@ class Browser4Driver:
                         if percent != last_percent and percent % 5 == 0:
                             print(f"Downloading Browser4.jar... {percent}%")
                             last_percent = percent
-                    elif downloaded % (1024 * 1024) == 0:
-                        print(f"Downloading Browser4.jar... {downloaded // (1024 * 1024)} MB")
+                    elif downloaded % Browser4Driver.MEGABYTE == 0:
+                        print(f"Downloading Browser4.jar... {downloaded // Browser4Driver.MEGABYTE} MB")
             
             if total_size > 0 and last_percent != 100:
                 print("Downloading Browser4.jar... 100%")
@@ -367,7 +369,8 @@ class Browser4Driver:
         if self._shutdown_hook_registered:
             try:
                 atexit.unregister(self._shutdown_hook)
-            except Exception:
+            except ValueError:
+                # Hook was already removed or never registered
                 pass
             self._shutdown_hook_registered = False
 
