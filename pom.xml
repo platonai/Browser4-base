@@ -194,7 +194,6 @@
                 <module>pulsar-core</module>
 
                 <module>pulsar-tests</module>
-                <module>pulsar-client</module>
                 <module>pulsar-bom</module>
             </modules>
 
