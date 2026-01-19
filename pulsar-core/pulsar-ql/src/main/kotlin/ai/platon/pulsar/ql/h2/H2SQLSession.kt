@@ -112,6 +112,7 @@ abstract class AbstractH2SQLSession(
             } catch (t: Throwable) {
                 warnForClose(this, t)
             }
+            super.close()
         }
     }
 

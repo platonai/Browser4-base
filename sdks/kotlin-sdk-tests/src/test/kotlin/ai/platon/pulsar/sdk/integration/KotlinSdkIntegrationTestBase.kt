@@ -19,6 +19,7 @@ import ai.platon.pulsar.sdk.integration.server.TestServerConfiguration
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
+import kotlinx.coroutines.runBlocking
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
@@ -75,7 +76,7 @@ abstract class KotlinSdkIntegrationTestBase {
      * Cleanup after each test
      */
     @AfterEach
-    suspend fun cleanupClient() {
+    fun cleanupClient() = runBlocking {
         try {
             // Try to delete session if exists
             if (client.sessionId != null) {
