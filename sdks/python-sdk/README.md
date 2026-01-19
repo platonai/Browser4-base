@@ -3,6 +3,7 @@
 Python SDK for Browser4 WebDriver-compatible and AgenticSession APIs.
 
 This SDK provides a Python interface to the Browser4 browser automation platform, enabling:
+- **Automatic server management** with Browser4Driver (download & start Browser4.jar automatically)
 - **Web scraping and data extraction** using CSS selectors
 - **AI-powered browser automation** with natural language instructions
 - **WebDriver-compatible API** for browser control
@@ -19,43 +20,104 @@ pip install requests beautifulsoup4
 
 ## Quick Start
 
-```python
-from browser4-sdk import PulsarClient, AgenticSession
+The easiest way to get started is using `Browser4Driver`, which automatically downloads and starts the Browser4 server:
 
-# Create client and session
+```python
+from browser4 import Browser4Driver, PulsarClient, AgenticSession
+
+# Browser4Driver automatically downloads and starts the server
+with Browser4Driver() as driver:
+    # Create client and session
+    client = PulsarClient(base_url=driver.base_url)
+    session_id = client.create_session()
+    session = AgenticSession(client)
+    
+    # Navigate to a page
+    page = session.open("https://example.com")
+    print(f"Opened: {page.url}")
+    
+    # Use WebDriver for element interaction
+    driver_wd = session.driver
+    driver_wd.fill("input[name='search']", "browser automation")
+    driver_wd.press("input[name='search']", "Enter")
+    
+    # Extract data using CSS selectors
+    fields = session.extract(page, {
+        "title": "h1",
+        "description": ".description"
+    })
+    print(fields)
+    
+    # Use AI-powered actions
+    result = session.act("click the login button")
+    print(f"Action success: {result.success}")
+    
+    # Run multi-step tasks
+    history = session.run("search for 'python' and click the first result")
+    print(f"Task completed: {history.success}")
+    
+    # Clean up
+    session.close()
+    client.close()
+
+# Server stops automatically when exiting the context
+```
+
+If you already have a Browser4 server running, you can connect to it directly:
+
+```python
+from browser4 import PulsarClient, AgenticSession
+
+# Connect to existing server
 client = PulsarClient(base_url="http://localhost:8182")
 session_id = client.create_session()
 session = AgenticSession(client)
 
-# Navigate to a page
-page = session.open("https://example.com")
-print(f"Opened: {page.url}")
+# ... use the session ...
 
-# Use WebDriver for element interaction
-driver = session.driver
-driver.fill("input[name='search']", "browser automation")
-driver.press("input[name='search']", "Enter")
-
-# Extract data using CSS selectors
-fields = session.extract(page, {
-    "title": "h1",
-    "description": ".description"
-})
-print(fields)
-
-# Use AI-powered actions
-result = session.act("click the login button")
-print(f"Action success: {result.success}")
-
-# Run multi-step tasks
-history = session.run("search for 'python' and click the first result")
-print(f"Task completed: {history.success}")
-
-# Clean up
 session.close()
 ```
 
 ## API Overview
+
+### Browser4Driver
+
+Manages the lifecycle of a local Browser4.jar process, including automatic download, startup, and shutdown.
+
+```python
+from browser4 import Browser4Driver
+
+# Using context manager (recommended)
+with Browser4Driver() as driver:
+    print(f"Server running at: {driver.base_url}")
+    # Use the server...
+
+# Manual control
+driver = Browser4Driver(
+    port=8183,  # Custom port
+    java_options={"custom.key": "value"}  # Java system properties
+)
+driver.start()
+print(f"Server healthy: {driver.is_server_healthy()}")
+# ... use the server ...
+driver.stop()
+
+# Configuration options
+driver = Browser4Driver(
+    jar_path="/custom/path/Browser4.jar",  # Custom jar location
+    download_url="https://custom-url/Browser4.jar",  # Custom download URL
+    port=8182,  # Server port
+    java_options={"spring.profiles.active": "rest,private"}  # Java options
+)
+```
+
+**Key features:**
+- Automatically downloads Browser4.jar from GitHub releases if not present
+- Starts and manages the Java process
+- Health checking with automatic retry
+- Graceful shutdown with cleanup
+- Context manager support for automatic resource management
+- Proxy support (uses system proxy settings)
 
 ### PulsarClient
 

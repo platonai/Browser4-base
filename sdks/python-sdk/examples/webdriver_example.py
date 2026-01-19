@@ -13,7 +13,7 @@ Prerequisites:
 - A running Browser4 server at http://localhost:8182
 """
 
-from browser4-sdk import PulsarClient, WebDriver
+from browser4 import PulsarClient, WebDriver
 
 
 def main():

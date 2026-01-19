@@ -14,7 +14,7 @@ Prerequisites:
 - OPENROUTER_API_KEY environment variable set
 """
 
-from browser4-sdk import PulsarClient, AgenticSession
+from browser4 import PulsarClient, AgenticSession
 
 
 def main():

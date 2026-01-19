@@ -15,7 +15,7 @@ Key features:
 - Control: delay, pause, stop
 
 Usage example:
-    >>> from browser4-sdk import PulsarClient, WebDriver
+    >>> from browser4 import PulsarClient, WebDriver
     >>> client = PulsarClient()
     >>> client.create_session()
     >>> driver = WebDriver(client)

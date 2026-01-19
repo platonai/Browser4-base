@@ -10,7 +10,7 @@ The AgenticSession class mirrors the Kotlin AgenticSession interface, providing:
 - WebDriver access for low-level browser control
 
 Usage example:
-    >>> from browser4-sdk import PulsarClient, AgenticSession
+    >>> from browser4 import PulsarClient, AgenticSession
     >>> client = PulsarClient()
     >>> session_id = client.create_session()
     >>> session = AgenticSession(client)
