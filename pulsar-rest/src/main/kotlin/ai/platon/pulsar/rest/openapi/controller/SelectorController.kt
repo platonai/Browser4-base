@@ -5,6 +5,7 @@ import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.rest.openapi.dto.*
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import ai.platon.pulsar.rest.openapi.store.InMemoryStore
+import ai.platon.pulsar.skeleton.context.PulsarContext
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriverException
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -26,13 +27,14 @@ import org.springframework.web.bind.annotation.*
 @ConditionalOnBean(SessionManager::class)
 class SelectorController(
     private val sessionManager: SessionManager,
+    private val pulsarContext: PulsarContext,
     private val store: InMemoryStore,
-    @param:Value("\${pulsar.test.mode:false}")
+    @param:Value($$"${pulsar.test.mode:false}")
     private val testMode: Boolean = false
 ) {
     private val logger = LoggerFactory.getLogger(SelectorController::class.java)
 
-    private fun shouldStub(): Boolean = testMode || !ChatModelFactory.isModelConfigured(ImmutableConfig())
+    private fun shouldStub(): Boolean = testMode || !ChatModelFactory.isModelConfigured(pulsarContext.configuration)
 
     /**
      * Checks if an element matching the selector exists.

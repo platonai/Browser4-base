@@ -1,6 +1,5 @@
 package ai.platon.pulsar.common.config
 
-import org.apache.commons.lang3.StringUtils
 import java.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertEquals

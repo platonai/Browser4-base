@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
  *
  * The volatile config is designed to read/write frequently.
  */
-open class VolatileConfig : MutableConfig {
+open class VolatileConfig: MutableConfig {
     var fallbackConfig: ImmutableConfig? = null
 
     private val ttls: MutableMap<String, Int> = ConcurrentHashMap()
@@ -61,6 +61,7 @@ open class VolatileConfig : MutableConfig {
                 super.unset(name)
             }
         }
+
         return fallbackConfig?.get(name)
     }
 

@@ -67,6 +67,7 @@ public class GoraStorage {
                 logger.info("Backend data store: {}, real schema: {}", className, dataStore.getSchemaName());
                 logger.info("FileBackendPageStore is only for development and testing, " +
                         "it is not suitable for production environment");
+                logger.info("Start a MongoDB instance and Browser4 will automatically use MongoStore as the backend data store");
             } else {
                 logger.info("Backend data store: {}, real schema: {}, storage id: <{}>, " +
                                 "set config `storage.crawl.id` to define the real schema",

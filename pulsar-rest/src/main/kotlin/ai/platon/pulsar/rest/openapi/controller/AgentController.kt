@@ -4,6 +4,7 @@ import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.rest.openapi.dto.*
 import ai.platon.pulsar.rest.openapi.service.SessionManager
+import ai.platon.pulsar.skeleton.context.PulsarContext
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -25,12 +26,13 @@ import org.springframework.web.bind.annotation.*
 @ConditionalOnBean(SessionManager::class)
 class AgentController(
     private val sessionManager: SessionManager,
-    @param:Value("\${pulsar.test.mode:false}")
+    private val pulsarContext: PulsarContext,
+    @param:Value($$"${pulsar.test.mode:false}")
     private val testMode: Boolean = false
 ) {
     private val logger = LoggerFactory.getLogger(AgentController::class.java)
 
-    private fun shouldStub(): Boolean = testMode || !ChatModelFactory.isModelConfigured(ImmutableConfig())
+    private fun shouldStub(): Boolean = testMode || !ChatModelFactory.isModelConfigured(pulsarContext.configuration)
 
     /**
      * Runs an autonomous agent task.

@@ -2,7 +2,8 @@ package ai.platon.pulsar.rest.openapi.service
 
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.PerceptiveAgent
-import ai.platon.pulsar.agentic.context.AgenticContexts
+import ai.platon.pulsar.agentic.context.AgenticContext
+import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.skeleton.context.PulsarContext
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -19,7 +20,9 @@ import java.util.concurrent.TimeUnit
  */
 @Service
 @ConditionalOnBean(PulsarContext::class)
-class SessionManager {
+class SessionManager(
+    val pulsarContext: PulsarContext
+) {
     private val logger = LoggerFactory.getLogger(SessionManager::class.java)
 
     /**
@@ -60,7 +63,8 @@ class SessionManager {
     fun createSession(capabilities: Map<String, Any?>? = null): ManagedSession {
         val sessionId = UUID.randomUUID().toString()
 
-        val agenticSession = AgenticContexts.createSession()
+        val context = pulsarContext as AgenticContext
+        val agenticSession = context.createSession()
 
         // Get the companion agent
         val agent = agenticSession.companionAgent
