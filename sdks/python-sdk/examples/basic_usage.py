@@ -21,14 +21,17 @@ def main():
     # Use Browser4Driver to automatically start the server
     print("Starting Browser4 server...")
     driver = Browser4Driver()
-    
+
     try:
         driver.start()
         print(f"Server started at: {driver.base_url}\n")
-        
+
         # Create client and session
         print("Creating session...")
         client = PulsarClient(base_url=driver.base_url)
+    except:
+        print("Failed to start Browser4 server.")
+        return
 
     try:
         session_id = client.create_session()
