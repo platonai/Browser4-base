@@ -2,10 +2,10 @@ package ai.platon.pulsar.skeleton.crawl.common
 
 import ai.platon.pulsar.common.urls.URLUtils
 import ai.platon.pulsar.common.urls.URLUtils.getURLOrNull
-import ai.platon.pulsar.skeleton.common.domain.DomainSuffix
-import ai.platon.pulsar.skeleton.common.domain.DomainSuffixes
 import org.slf4j.LoggerFactory
-import java.net.*
+import java.net.InetAddress
+import java.net.URL
+import java.net.UnknownHostException
 
 /**
  * Utility class for URL analysis.

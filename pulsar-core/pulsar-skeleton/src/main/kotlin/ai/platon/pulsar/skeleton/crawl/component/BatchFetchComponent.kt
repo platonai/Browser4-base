@@ -3,8 +3,10 @@ package ai.platon.pulsar.skeleton.crawl.component
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.config.ImmutableConfig
-import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.common.urls.Hyperlink
+import ai.platon.pulsar.persist.WebDb
+import ai.platon.pulsar.persist.WebPage
+import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.urls.NormURL
 import ai.platon.pulsar.skeleton.crawl.CoreMetrics
 import ai.platon.pulsar.skeleton.crawl.common.FetchEntry
@@ -12,13 +14,7 @@ import ai.platon.pulsar.skeleton.crawl.common.GlobalCacheFactory
 import ai.platon.pulsar.skeleton.crawl.protocol.Protocol
 import ai.platon.pulsar.skeleton.crawl.protocol.ProtocolFactory
 import ai.platon.pulsar.skeleton.crawl.protocol.Response
-import ai.platon.pulsar.persist.WebDb
-import ai.platon.pulsar.persist.WebPage
 import com.google.common.collect.Iterables
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 
 class BatchFetchComponent(
@@ -106,11 +102,7 @@ class BatchFetchComponent(
      */
     private fun parallelFetchAll0(urls: Iterable<String>, protocol: Protocol, options: LoadOptions): Collection<WebPage> {
         val optimizedUrls = optimizeBatchSize(urls, options)
-        return if (protocol.supportParallel) {
-            protocolParallelFetchAll(optimizedUrls, protocol, options)
-        } else {
-            manualParallelFetchAll(optimizedUrls, options)
-        }
+        return protocolParallelFetchAll(optimizedUrls, protocol, options)
     }
 
     private fun protocolParallelFetchAll(urls: Iterable<String>, protocol: Protocol, options: LoadOptions): Collection<WebPage> {
@@ -118,15 +110,6 @@ class BatchFetchComponent(
         return urls.map { FetchEntry(it, options).page }
                 .let { protocol.getResponses(it, options.conf) }
                 .map { getProtocolOutput(protocol, it, it.page) }
-    }
-
-    /**
-     * TODO: add to fetch queue instead of invoke new threads
-     * */
-    private fun manualParallelFetchAll(urls: Iterable<String>, options: LoadOptions): Collection<WebPage> {
-        val size = Iterables.size(urls)
-        coreMetrics?.markFetchTaskStart(size)
-        return runBlocking { urls.asFlow().map { fetch(it, options) }.toList(mutableListOf()) }
     }
 
     /**

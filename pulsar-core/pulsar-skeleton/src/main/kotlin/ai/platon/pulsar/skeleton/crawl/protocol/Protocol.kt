@@ -10,14 +10,12 @@ import crawlercommons.robots.BaseRobotRules
  */
 interface Protocol : LazyConfigurable, AutoCloseable {
 
-    val supportParallel: Boolean
-
     fun setResponse(response: Response) {}
 
     fun getResponses(pages: Collection<WebPage>, volatileConfig: VolatileConfig): Collection<Response> {
         return emptyList()
     }
-    
+
     /**
      * Reset the protocol environment, so the peer host view the client as a new one
      */
