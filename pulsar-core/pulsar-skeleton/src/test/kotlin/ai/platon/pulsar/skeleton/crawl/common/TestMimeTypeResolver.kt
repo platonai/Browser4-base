@@ -57,11 +57,13 @@ class TestMimeTypeResolver {
             "<html></html>".toByteArray(charset("UTF8")), "", p, mimeTypeResolver
         )
         assertEquals("text/html", c.resolve())
+
         c = MimeTypeDatum(
             "http://www.foo.com/foo.html", "http://www.foo.com/",
             "<html></html>".toByteArray(charset("UTF8")), "text/plain", p, mimeTypeResolver
         )
         assertEquals("text/html", c.resolve())
+
         c = MimeTypeDatum(
             "http://www.foo.com/foo.png", "http://www.foo.com/",
             "<html></html>".toByteArray(charset("UTF8")), "text/plain", p, mimeTypeResolver

@@ -7,6 +7,11 @@ class MimeTypeResolver {
     val tika: Tika = Tika()
 
     fun resolveMimeType(contentType: String?, url: String, data: ByteArray?): String? {
+        // Avoid calling magic detection when there is no content.
+        if (data != null && data.isNotEmpty()) {
+            return tika.detect(data)
+        }
+
         val cleaned = contentType
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
@@ -16,11 +21,6 @@ class MimeTypeResolver {
 
         if (cleaned != null) {
             return cleaned
-        }
-
-        // Avoid calling magic detection when there is no content.
-        if (data != null && data.isNotEmpty()) {
-            return tika.detect(data)
         }
 
         // Fall back to URL/extension-based detection.
