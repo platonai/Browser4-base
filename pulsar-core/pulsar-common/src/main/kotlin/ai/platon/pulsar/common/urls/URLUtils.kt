@@ -77,9 +77,14 @@ object URLUtils {
      * */
     @JvmStatic
     fun localURLToPath(url: String): Path {
-        val path = url.substringAfter("?path=")
-        val base64 = Base64.getUrlDecoder().decode(path).toString(Charsets.UTF_8)
-        return Path.of(base64)
+        val encodedPath = kotlin.runCatching {
+            URIBuilder(url).queryParams?.firstOrNull { it.name == "path" }?.value
+        }.getOrNull()
+
+        require(!encodedPath.isNullOrBlank()) { "Missing query parameter 'path' in local file url: $url" }
+
+        val decoded = Base64.getUrlDecoder().decode(encodedPath).toString(Charsets.UTF_8)
+        return Path.of(decoded)
     }
 
     /**
@@ -131,12 +136,15 @@ object URLUtils {
      */
     @JvmStatic
     fun standardURLToBrowserURL(url: String): String? {
-        val str = url.substringAfter("?url=")
-        if (str.isBlank() || str == url) {
+        val encoded = kotlin.runCatching {
+            URIBuilder(url).queryParams?.firstOrNull { it.name == "url" }?.value
+        }.getOrNull() ?: return null
+
+        if (encoded.isBlank()) {
             return null
         }
 
-        return URLDecoder.decode(str, Charsets.UTF_8)
+        return URLDecoder.decode(encoded, Charsets.UTF_8)
     }
 
     /**
@@ -400,7 +408,7 @@ object URLUtils {
      */
     @JvmStatic
     fun splitUrlArgs(configuredUrl: String): Pair<String, String> {
-        var url = configuredUrl.trim().replace("[\\r\\n\\t]".toRegex(), "");
+        var url = configuredUrl.trim().replace("[\\r\\n\\t]".toRegex(), "")
         val pos = url.indexOfFirst { it.isWhitespace() }
 
         var args = ""
@@ -716,7 +724,7 @@ object URLUtils {
      *
      * Note, the character is displayed as <U></U>+0001> in some output system
      *
-     * Now, we consider all the three character/string \u0001, "\\u0001", "\\\\u0001"
+     * Now, we consider all the three character/string \u0001, "\\u0001" and "\\\\u0001"
      * are the lower key bound
      */
     @JvmStatic
@@ -737,7 +745,7 @@ object URLUtils {
      * Note, the character may display as <U></U>+FFFF> in some output system
      *
      *
-     * Now, we consider all the three character/string \uFFFF, "\\uFFFF", "\\\\uFFFF"
+     * Now, we consider all the three character/string \uFFFF, "\\uFFFF" and "\\\\uFFFF"
      * are the upper key bound
      */
     @JvmStatic
@@ -896,10 +904,18 @@ object URLUtils {
     @Throws(MalformedURLException::class)
     fun getOrigin(url: String): String {
         val u = URI.create(url).toURL()
-        return if (u.port == 80) {
-            u.protocol + "://" + u.host
+
+        val defaultPort = when (u.protocol.lowercase(Locale.getDefault())) {
+            "http" -> 80
+            "https" -> 443
+            else -> -1
+        }
+
+        val port = u.port
+        return if (port == -1 || (defaultPort != -1 && port == defaultPort)) {
+            "${u.protocol}://${u.host}"
         } else {
-            u.protocol + "://" + u.host + ":" + u.port
+            "${u.protocol}://${u.host}:$port"
         }
     }
 
@@ -929,7 +945,11 @@ object URLUtils {
      * @return String The hostname for the url.
      */
     @Throws(MalformedURLException::class)
-    fun getHostName(url: String) = URI.create(url).host.lowercase(Locale.getDefault())
+    fun getHostName(url: String): String {
+        val host = URI.create(url).host
+        require(!host.isNullOrBlank()) { "Missing host in url: $url" }
+        return host.lowercase(Locale.getDefault())
+    }
 
     /**
      * Returns the lowercase hostname for the url or null if the url is not well-formed.
@@ -942,11 +962,10 @@ object URLUtils {
             return null
         }
 
-        return try {
-            URI.create(url).host.lowercase(Locale.getDefault())
-        } catch (e: MalformedURLException) {
-            null
-        }
+        return kotlin.runCatching {
+            val host = URI.create(url).host ?: return@runCatching null
+            host.lowercase(Locale.getDefault())
+        }.getOrNull()
     }
 
     fun getHostName(url: String?, defaultValue: String): String {
@@ -954,11 +973,10 @@ object URLUtils {
             return defaultValue
         }
 
-        return try {
-            URI.create(url).host.lowercase(Locale.getDefault())
-        } catch (e: MalformedURLException) {
-            defaultValue
-        }
+        return kotlin.runCatching {
+            val host = URI.create(url).host
+            if (host.isNullOrBlank()) defaultValue else host.lowercase(Locale.getDefault())
+        }.getOrDefault(defaultValue)
     }
 
 

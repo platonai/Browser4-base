@@ -95,8 +95,7 @@ class URLUtilsTest {
     @Test
     fun testNormalize_InvalidUrl() {
         assertThrows(IllegalArgumentException::class.java) {
-            val url = URLUtils.normalize("invalid-url")
-//            logPrintln(url)
+            URLUtils.normalize("invalid-url")
         }
     }
 
@@ -175,6 +174,37 @@ class URLUtilsTest {
     }
 
     @Test
+    fun `standardURLToBrowserURL should parse url param even when not first`() {
+        val expected = "chrome://settings"
+        val encoded = URLEncoder.encode(expected, Charsets.UTF_8)
+        val url = "$BROWSER_INTERNAL_BASE_URL?a=1&url=$encoded&b=2"
+        assertEquals(expected, URLUtils.standardURLToBrowserURL(url))
+    }
+
+    @Test
+    fun `standardURLToBrowserURL should return null for blank url param`() {
+        val url = "$BROWSER_INTERNAL_BASE_URL?url="
+        assertNull(URLUtils.standardURLToBrowserURL(url))
+    }
+
+    @Test
+    fun `localURLToPath should throw if path param is missing`() {
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            URLUtils.localURLToPath(AppConstants.LOCAL_FILE_BASE_URL)
+        }
+        assertTrue(ex.message!!.contains("Missing query parameter 'path'"))
+    }
+
+    @Test
+    fun `getOrigin should omit default ports and handle no explicit port`() {
+        assertEquals("http://example.com", URLUtils.getOrigin("http://example.com/a"))
+        assertEquals("http://example.com", URLUtils.getOrigin("http://example.com:80/a"))
+        assertEquals("https://example.com", URLUtils.getOrigin("https://example.com/a"))
+        assertEquals("https://example.com", URLUtils.getOrigin("https://example.com:443/a"))
+        assertEquals("https://example.com:444", URLUtils.getOrigin("https://example.com:444/a"))
+    }
+
+    @Test
     fun testPathToLocalURL() {
         // 准备测试数据
         val path = AppPaths.getTmpDirectory("test.txt")
@@ -194,4 +224,3 @@ class URLUtilsTest {
         assertEquals(expectedURL, result)
     }
 }
-
