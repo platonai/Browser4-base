@@ -18,12 +18,6 @@ interface BrowserFactory {
     val settings: BrowserSettings
 
     /**
-     * Backward-compatible accessor for Java/Kotlin call-sites compiled against older versions.
-     */
-    @Suppress("unused")
-    fun getSettings(): BrowserSettings = settings
-
-    /**
      * Connect to a browser instance, the browser instance should be open with Chrome devtools open.
      * */
     fun connect(browserType: BrowserType, port: Int, settings: BrowserSettings = BrowserSettings()): Browser
