@@ -39,6 +39,41 @@ object TestUrls {
     const val PRODUCT_DETAIL = "$MOCK_SERVER_BASE/ec/dp/B0E000001"
 
     /**
+     * Generated assets base URL
+     */
+    const val GENERATED_BASE = "$MOCK_SERVER_BASE/generated"
+
+    /**
+     * Assets base URL
+     */
+    const val ASSETS_BASE = "$MOCK_SERVER_BASE/assets"
+
+    /**
+     * Assets-p base URL
+     */
+    const val ASSETS_P_BASE = "$MOCK_SERVER_BASE/assets-p"
+
+    /**
+     * Simple DOM page for testing form interactions
+     */
+    const val SIMPLE_DOM = "$ASSETS_BASE/dom.html"
+
+    /**
+     * Interactive page 1
+     */
+    const val INTERACTIVE_1 = "$GENERATED_BASE/interactive-1.html"
+
+    /**
+     * Interactive page 2 (with hover card)
+     */
+    const val INTERACTIVE_2 = "$GENERATED_BASE/interactive-2.html"
+
+    /**
+     * Multi-screen interactive page for scrolling tests
+     */
+    const val MULTI_SCREENS = "$GENERATED_BASE/interactive-screens.html"
+
+    /**
      * Verify if mock server is running
      */
     fun isMockServerRunning(): Boolean {
