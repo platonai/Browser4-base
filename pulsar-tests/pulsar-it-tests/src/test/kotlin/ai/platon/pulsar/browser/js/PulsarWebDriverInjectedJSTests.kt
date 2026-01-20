@@ -1,8 +1,8 @@
 package ai.platon.pulsar.browser.js
 
+import ai.platon.browser4.driver.common.ScriptLoader
 import ai.platon.pulsar.WebDriverTestBase
 import ai.platon.pulsar.browser.FastWebDriverService
-import ai.platon.pulsar.browser.common.ScriptLoader
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.printlnPro

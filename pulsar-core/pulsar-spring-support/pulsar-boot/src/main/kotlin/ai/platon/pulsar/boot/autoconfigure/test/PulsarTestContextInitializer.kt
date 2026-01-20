@@ -1,10 +1,10 @@
 package ai.platon.pulsar.boot.autoconfigure.test
 
+import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.boot.autoconfigure.PulsarContextInitializer
-import ai.platon.pulsar.browser.common.BrowserSettings
 import ai.platon.pulsar.common.browser.BrowserProfileMode
-import ai.platon.pulsar.skeleton.common.options.LoadOptionDefaults
 import ai.platon.pulsar.common.browser.BrowserType
+import ai.platon.pulsar.skeleton.common.options.LoadOptionDefaults
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.AbstractApplicationContext
 

@@ -1,12 +1,12 @@
 package ai.platon.browser4.driver.chrome.dom.model
 
-import ai.platon.pulsar.browser.common.BrowserSettings.Companion.VIEWPORT
 import ai.platon.browser4.driver.chrome.dom.DOMSerializer
 import ai.platon.browser4.driver.chrome.dom.FBNLocator
 import ai.platon.browser4.driver.chrome.dom.LocatorMap
 import ai.platon.browser4.driver.chrome.dom.model.MicroDOMTreeNodeHelper.Companion.estimatedSize
 import ai.platon.browser4.driver.chrome.dom.util.CSSSelectorUtils
 import ai.platon.browser4.driver.chrome.dom.util.DOMUtils
+import ai.platon.browser4.driver.common.BrowserSettings.Companion.VIEWPORT
 import ai.platon.pulsar.common.math.roundTo
 import ai.platon.pulsar.common.serialize.json.Pson
 import com.fasterxml.jackson.annotation.JsonIgnore

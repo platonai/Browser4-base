@@ -1,6 +1,6 @@
 package ai.platon.pulsar.skeleton.common.options
 
-import ai.platon.pulsar.browser.common.InteractSettings
+import ai.platon.browser4.driver.common.InteractSettings
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.Priority13
 import ai.platon.pulsar.common.browser.InteractLevel

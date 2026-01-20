@@ -1,12 +1,12 @@
 package ai.platon.pulsar
 
-import ai.platon.pulsar.browser.common.BrowserSettings
-import ai.platon.pulsar.browser.common.SimpleScriptConfuser
 import ai.platon.browser4.driver.chrome.dom.DomService
 import ai.platon.browser4.driver.chrome.dom.model.DOMTreeNodeEx
 import ai.platon.browser4.driver.chrome.dom.model.PageTarget
 import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
 import ai.platon.browser4.driver.chrome.dom.util.DomDebug
+import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.browser4.driver.common.SimpleScriptConfuser
 import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.protocol.browser.impl.DefaultBrowserFactory
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser

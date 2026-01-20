@@ -1,6 +1,6 @@
 package ai.platon.pulsar.examples.advanced;
 
-import ai.platon.pulsar.browser.common.BlockRule;
+import ai.platon.browser4.driver.common.BlockRule;
 import ai.platon.pulsar.common.LinkExtractors;
 import ai.platon.pulsar.common.NetUtil;
 import ai.platon.pulsar.common.config.CapabilityTypes;
@@ -15,8 +15,6 @@ import kotlin.coroutines.Continuation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class JvmHighPerformanceCrawler {
     private final PulsarSession session;

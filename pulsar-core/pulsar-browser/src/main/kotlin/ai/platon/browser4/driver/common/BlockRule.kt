@@ -1,4 +1,4 @@
-package ai.platon.pulsar.browser.common
+package ai.platon.browser4.driver.common
 
 import ai.platon.cdt.kt.protocol.types.network.ResourceType
 import ai.platon.pulsar.common.Wildchar

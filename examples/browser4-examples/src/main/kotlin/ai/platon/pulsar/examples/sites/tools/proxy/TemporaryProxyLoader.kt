@@ -1,6 +1,5 @@
 package ai.platon.pulsar.examples.sites.tools.proxy
 
-import ai.platon.pulsar.browser.common.BrowserSettings
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.NetUtil
 import ai.platon.pulsar.common.getLogger

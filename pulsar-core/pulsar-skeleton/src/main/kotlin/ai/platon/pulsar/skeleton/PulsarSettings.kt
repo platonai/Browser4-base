@@ -1,9 +1,9 @@
 package ai.platon.pulsar.skeleton
 
-import ai.platon.pulsar.browser.common.BrowserSettings
-import ai.platon.pulsar.browser.common.DisplayMode
-import ai.platon.pulsar.browser.common.DomSettlePolicy
-import ai.platon.pulsar.browser.common.InteractSettings
+import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.browser4.driver.common.DisplayMode
+import ai.platon.browser4.driver.common.DomSettlePolicy
+import ai.platon.browser4.driver.common.InteractSettings
 import ai.platon.pulsar.common.browser.BrowserProfileMode
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.browser.InteractLevel

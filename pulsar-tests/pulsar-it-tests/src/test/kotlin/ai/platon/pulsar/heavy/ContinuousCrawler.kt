@@ -1,13 +1,13 @@
 package ai.platon.pulsar.heavy
 
-import ai.platon.pulsar.browser.common.BrowserSettings
+import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.common.LinkExtractors
 import ai.platon.pulsar.common.browser.BrowserProfileMode
+import ai.platon.pulsar.common.printlnPro
+import ai.platon.pulsar.dom.FeaturedDocument
+import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.skeleton.context.PulsarContexts
 import ai.platon.pulsar.skeleton.crawl.common.url.ParsableHyperlink
-import ai.platon.pulsar.dom.FeaturedDocument
-import ai.platon.pulsar.common.printlnPro
-import ai.platon.pulsar.persist.WebPage
 
 /**
  * Demonstrates continuous crawls.

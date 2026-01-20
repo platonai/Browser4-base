@@ -1,5 +1,10 @@
 package ai.platon.browser4.driver.chrome
 
+import ai.platon.browser4.driver.chrome.dom.Locator
+import ai.platon.browser4.driver.chrome.util.CDPReturnError
+import ai.platon.browser4.driver.chrome.util.ChromeDriverException
+import ai.platon.browser4.driver.chrome.util.ChromeRPCException
+import ai.platon.browser4.driver.common.ScriptConfuser
 import ai.platon.cdt.kt.protocol.support.annotations.Experimental
 import ai.platon.cdt.kt.protocol.support.annotations.Optional
 import ai.platon.cdt.kt.protocol.support.annotations.ParamName
@@ -9,11 +14,6 @@ import ai.platon.cdt.kt.protocol.types.page.ReferrerPolicy
 import ai.platon.cdt.kt.protocol.types.page.TransitionType
 import ai.platon.cdt.kt.protocol.types.runtime.CallFunctionOn
 import ai.platon.cdt.kt.protocol.types.runtime.Evaluate
-import ai.platon.pulsar.browser.common.ScriptConfuser
-import ai.platon.browser4.driver.chrome.dom.Locator
-import ai.platon.browser4.driver.chrome.util.CDPReturnError
-import ai.platon.browser4.driver.chrome.util.ChromeDriverException
-import ai.platon.browser4.driver.chrome.util.ChromeRPCException
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.brief

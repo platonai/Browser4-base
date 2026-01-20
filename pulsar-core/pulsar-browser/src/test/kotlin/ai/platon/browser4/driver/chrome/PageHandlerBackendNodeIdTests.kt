@@ -1,14 +1,5 @@
 package ai.platon.browser4.driver.chrome
 
-import ai.platon.cdt.kt.protocol.commands.DOM
-import ai.platon.cdt.kt.protocol.commands.Runtime
-import ai.platon.cdt.kt.protocol.types.dom.Node
-import ai.platon.cdt.kt.protocol.types.runtime.RemoteObject
-import ai.platon.pulsar.browser.common.ScriptConfuser
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
-
 /**
  * Tests for backend node ID support in PageHandler selectors.
  *

@@ -1,6 +1,6 @@
 package ai.platon.pulsar.protocol.browser.driver.playwright
 
-import ai.platon.pulsar.browser.common.BrowserSettings
+import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.warnForClose

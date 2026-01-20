@@ -1,8 +1,7 @@
 package ai.platon.browser4.driver.chrome.common
 
-import ai.platon.pulsar.browser.common.BrowserSettings
+import ai.platon.browser4.driver.common.BrowserSettings
 import java.time.Duration
-import kotlin.collections.iterator
 
 /**
  * The launch config

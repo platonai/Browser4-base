@@ -1,8 +1,8 @@
 package ai.platon.browser4.driver.chrome
 
+import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.cdt.kt.protocol.types.page.CaptureScreenshotFormat
 import ai.platon.cdt.kt.protocol.types.page.Viewport
-import ai.platon.pulsar.browser.common.BrowserSettings
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.math.geometric.RectD

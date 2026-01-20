@@ -1,10 +1,9 @@
-package ai.platon.pulsar.browser.common
+package ai.platon.browser4.driver.common
 
 import ai.platon.browser4.driver.chrome.common.ChromeOptions
 import ai.platon.pulsar.common.Runtimes
 import ai.platon.pulsar.common.browser.BrowserProfileMode
 import ai.platon.pulsar.common.browser.BrowserType
-import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.AppConstants.*
 import ai.platon.pulsar.common.config.CapabilityTypes.*
 import ai.platon.pulsar.common.config.ImmutableConfig
@@ -26,7 +25,7 @@ open class BrowserSettings constructor(
         /**
          * The viewport size for browser to rendering all webpages.
          * */
-        var VIEWPORT = AppConstants.DEFAULT_VIEWPORT!!
+        var VIEWPORT = DEFAULT_VIEWPORT!!
 
         /**
          * The screenshot quality.

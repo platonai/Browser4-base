@@ -1,4 +1,4 @@
-package ai.platon.pulsar.browser.common
+package ai.platon.browser4.driver.common
 
 import ai.platon.pulsar.common.ResourceLoader
 import org.apache.commons.lang3.SystemUtils
