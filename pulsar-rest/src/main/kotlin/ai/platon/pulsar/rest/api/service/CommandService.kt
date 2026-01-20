@@ -16,6 +16,7 @@ import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.rest.api.entities.*
 import ai.platon.pulsar.skeleton.crawl.PageEventHandlers
 import ai.platon.pulsar.skeleton.crawl.event.impl.PageEventHandlersFactory
+import ai.platon.pulsar.tools.crawl.ScrapeRequest
 import ai.platon.pulsar.tools.crawl.common.DomUtils
 import ai.platon.pulsar.tools.crawl.common.PLACEHOLDER_PAGE_CONTENT
 import ai.platon.pulsar.tools.crawl.common.RestAPIPromptUtils

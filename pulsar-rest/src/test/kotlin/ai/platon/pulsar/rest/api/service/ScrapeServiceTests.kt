@@ -3,6 +3,7 @@ package ai.platon.pulsar.rest.api.service
 import ai.platon.pulsar.boot.autoconfigure.test.PulsarTestContextInitializer
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.config.ImmutableConfig
+import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import ai.platon.pulsar.common.sleepSeconds
@@ -10,9 +11,8 @@ import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.rest.api.TestHelper
 import ai.platon.pulsar.rest.api.common.MockEcServerTestBase
 import ai.platon.pulsar.rest.api.config.MockEcServerConfiguration
-import ai.platon.pulsar.rest.api.entities.ScrapeRequest
-import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.rest.api.entities.ScrapeStatusRequest
+import ai.platon.pulsar.tools.crawl.ScrapeRequest
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired

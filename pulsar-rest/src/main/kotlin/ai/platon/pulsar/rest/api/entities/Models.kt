@@ -41,77 +41,77 @@ data class PromptRequest(
     var actions: List<String>? = null
 )
 
-data class ScrapeRequest(
-    var sql: String,
-)
-
-data class ScrapeResponse(
-    var id: String? = null,
-    var statusCode: Int = ResourceStatus.SC_CREATED,
-    var pageStatusCode: Int = ProtocolStatusCodes.SC_CREATED,
-    var pageContentBytes: Int = 0,
-    var isDone: Boolean = false,
-    var resultSet: List<Map<String, Any?>>? = null,
-
-    var event: String = "",
-) {
-    val status: String get() = ResourceStatus.getStatusText(statusCode)
-    var lastModifiedTime: Instant? = null
-    var finishTime: Instant? = null
-
-    companion object {
-        fun notFound(id: String) = ScrapeResponse(id, ResourceStatus.SC_NOT_FOUND, ResourceStatus.SC_NOT_FOUND)
-        fun failed(id: String, statusCode: Int, pageStatusCode: Int) =
-            ScrapeResponse(id, statusCode = statusCode, pageStatusCode = pageStatusCode)
-
-        fun failed(id: String, e: Exception) =
-            ScrapeResponse(
-                id,
-                statusCode = ResourceStatus.SC_EXPECTATION_FAILED,
-                pageStatusCode = ResourceStatus.SC_EXPECTATION_FAILED
-            )
-    }
-}
-
-fun ScrapeResponse.refresh(isDone: Boolean = false) {
-    lastModifiedTime = Instant.now()
-    this.isDone = isDone
-}
-
-fun ScrapeResponse.refresh(statusCode: Int) = refresh(statusCode, this.pageStatusCode, false)
-
-fun ScrapeResponse.refresh(statusCode: Int, pageStatusCode: Int, isDone: Boolean) {
-    lastModifiedTime = Instant.now()
-    this.statusCode = statusCode
-    this.pageStatusCode = pageStatusCode
-    this.isDone = isDone
-}
-
-fun ScrapeResponse.failed(statusCode: Int): ScrapeResponse {
-    // do not change pageStatusCode
-    refresh(statusCode, pageStatusCode, isDone = true)
-    return this
-}
-
-fun ScrapeResponse.refresh(event: String) {
-    this.event = event
-    this.lastModifiedTime = Instant.now()
-}
-
-fun ScrapeResponse.failed(statusCode: Int, pageStatusCode: Int): ScrapeResponse {
-    refresh(statusCode, pageStatusCode, isDone = true)
-    return this
-}
-
-fun ScrapeResponse.done() {
-    refresh(isDone = true)
-    finishTime = Instant.now()
-}
-
-fun ScrapeResponse.refreshed(lastModifiedTime: Instant): Boolean {
-    val time = this.lastModifiedTime ?: return false
-    return time > lastModifiedTime
-}
+//data class ScrapeRequest(
+//    var sql: String,
+//)
+//
+//data class ScrapeResponse(
+//    var id: String? = null,
+//    var statusCode: Int = ResourceStatus.SC_CREATED,
+//    var pageStatusCode: Int = ProtocolStatusCodes.SC_CREATED,
+//    var pageContentBytes: Int = 0,
+//    var isDone: Boolean = false,
+//    var resultSet: List<Map<String, Any?>>? = null,
+//
+//    var event: String = "",
+//) {
+//    val status: String get() = ResourceStatus.getStatusText(statusCode)
+//    var lastModifiedTime: Instant? = null
+//    var finishTime: Instant? = null
+//
+//    companion object {
+//        fun notFound(id: String) = ScrapeResponse(id, ResourceStatus.SC_NOT_FOUND, ResourceStatus.SC_NOT_FOUND)
+//        fun failed(id: String, statusCode: Int, pageStatusCode: Int) =
+//            ScrapeResponse(id, statusCode = statusCode, pageStatusCode = pageStatusCode)
+//
+//        fun failed(id: String, e: Exception) =
+//            ScrapeResponse(
+//                id,
+//                statusCode = ResourceStatus.SC_EXPECTATION_FAILED,
+//                pageStatusCode = ResourceStatus.SC_EXPECTATION_FAILED
+//            )
+//    }
+//}
+//
+//fun ScrapeResponse.refresh(isDone: Boolean = false) {
+//    lastModifiedTime = Instant.now()
+//    this.isDone = isDone
+//}
+//
+//fun ScrapeResponse.refresh(statusCode: Int) = refresh(statusCode, this.pageStatusCode, false)
+//
+//fun ScrapeResponse.refresh(statusCode: Int, pageStatusCode: Int, isDone: Boolean) {
+//    lastModifiedTime = Instant.now()
+//    this.statusCode = statusCode
+//    this.pageStatusCode = pageStatusCode
+//    this.isDone = isDone
+//}
+//
+//fun ScrapeResponse.failed(statusCode: Int): ScrapeResponse {
+//    // do not change pageStatusCode
+//    refresh(statusCode, pageStatusCode, isDone = true)
+//    return this
+//}
+//
+//fun ScrapeResponse.refresh(event: String) {
+//    this.event = event
+//    this.lastModifiedTime = Instant.now()
+//}
+//
+//fun ScrapeResponse.failed(statusCode: Int, pageStatusCode: Int): ScrapeResponse {
+//    refresh(statusCode, pageStatusCode, isDone = true)
+//    return this
+//}
+//
+//fun ScrapeResponse.done() {
+//    refresh(isDone = true)
+//    finishTime = Instant.now()
+//}
+//
+//fun ScrapeResponse.refreshed(lastModifiedTime: Instant): Boolean {
+//    val time = this.lastModifiedTime ?: return false
+//    return time > lastModifiedTime
+//}
 
 data class ScrapeStatusRequest(
     val id: String,
