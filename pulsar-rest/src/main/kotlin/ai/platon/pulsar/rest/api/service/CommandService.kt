@@ -23,9 +23,7 @@ import java.util.concurrent.Executors
 @Service
 class CommandService(
     val session: AgenticSession,
-    val loadService: LoadService,
     val conversationService: ConversationService,
-    val scrapeService: ScrapeService,
 ) {
     companion object {
         const val FLOW_POLLING_INTERVAL = 1000L
@@ -314,7 +312,7 @@ class CommandService(
 
         // instruct results -> REST instruct results
         @Suppress("UNCHECKED_CAST")
-        val restResults = visitStatus.instructResults.mapNotNull { it.toRestInstructResultOrNull() }
+        val restResults = visitStatus.instructResults.map { it.toRestInstructResult() }
         restResults.forEach { addInstructResult(it) }
 
         // best-effort summary mapping
@@ -334,12 +332,9 @@ class CommandService(
         }
     }
 
-    private fun PGInstructResult.toRestInstructResultOrNull(): InstructResult {
+    private fun PGInstructResult.toRestInstructResult(): InstructResult {
         // Keep naming aligned to REST API conventions.
         val t = resultType ?: "string"
         return InstructResult.ok(name, result ?: "", t)
     }
-
-    // NOTE: The old step-by-step implementation (loadService + prompt/link/xsql handling) is intentionally
-    // removed in favor of AgenticPageVisitor to avoid duplication and keep behavior consistent.
 }
