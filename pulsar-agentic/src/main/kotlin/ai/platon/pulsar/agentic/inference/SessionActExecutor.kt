@@ -3,7 +3,7 @@ package ai.platon.pulsar.agentic.inference
 import ai.platon.pulsar.agentic.ActionDescription
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.ToolCallResult
-import ai.platon.pulsar.agentic.inference.tta.TextToAction
+import ai.platon.pulsar.agentic.inference.action.TextToAction
 import ai.platon.pulsar.agentic.tools.BasicToolCallExecutor
 import ai.platon.pulsar.agentic.tools.executors.BrowserToolExecutor
 import ai.platon.pulsar.agentic.tools.executors.WebDriverToolExecutor

@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.inference.tta
+package ai.platon.pulsar.agentic.tools
 
 import ai.platon.pulsar.agentic.ToolSpec
 import ai.platon.pulsar.common.ExperimentalApi

@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.inference.tta
+package ai.platon.pulsar.agentic.inference.action
 
 import ai.platon.pulsar.agentic.ActionDescription
 import ai.platon.pulsar.agentic.inference.AgentMessageList

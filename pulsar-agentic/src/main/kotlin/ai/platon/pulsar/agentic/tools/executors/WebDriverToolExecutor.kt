@@ -1,6 +1,6 @@
 package ai.platon.pulsar.agentic.tools.executors
 
-import ai.platon.pulsar.agentic.inference.tta.SourceCodeToToolCallSpec
+import ai.platon.pulsar.agentic.tools.SourceCodeToToolCallSpec
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.NavigateEntry
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import java.time.Duration

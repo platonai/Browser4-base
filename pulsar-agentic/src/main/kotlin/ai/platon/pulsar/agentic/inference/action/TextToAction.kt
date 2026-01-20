@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.inference.tta
+package ai.platon.pulsar.agentic.inference.action
 
 import ai.platon.browser4.driver.chrome.dom.model.DOMTreeNodeEx
 import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions

@@ -5,8 +5,8 @@ import ai.platon.pulsar.agentic.ActionDescription
 import ai.platon.pulsar.agentic.AgentState
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.ExtractionSchema
+import ai.platon.pulsar.agentic.inference.action.ContextToAction
 import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
-import ai.platon.pulsar.agentic.inference.tta.ContextToAction
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.MessageWriter
