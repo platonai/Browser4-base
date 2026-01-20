@@ -1,37 +1,24 @@
 package ai.platon.pulsar.rest.api.service
 
 import ai.platon.pulsar.agentic.AgenticSession
-import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.ResourceStatus
-import ai.platon.pulsar.common.ai.llm.PromptTemplate
-import ai.platon.pulsar.common.alwaysFalse
 import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.common.serialize.json.FlatJSONExtractor
-import ai.platon.pulsar.common.sql.SQLTemplate
-import ai.platon.pulsar.common.urls.URLUtils
-import ai.platon.pulsar.dom.FeaturedDocument
-import ai.platon.pulsar.dom.UriExtractor
-import ai.platon.pulsar.dom.nodes.node.ext.numChars
-import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.rest.api.entities.*
 import ai.platon.pulsar.skeleton.crawl.PageEventHandlers
 import ai.platon.pulsar.skeleton.crawl.event.impl.PageEventHandlersFactory
-import ai.platon.pulsar.tools.crawl.ScrapeRequest
-import ai.platon.pulsar.tools.crawl.common.DomUtils
-import ai.platon.pulsar.tools.crawl.common.PLACEHOLDER_PAGE_CONTENT
-import ai.platon.pulsar.tools.crawl.common.RestAPIPromptUtils
-import ai.platon.pulsar.tools.crawl.common.ScrapeAPIUtils
+import ai.platon.pulsar.tools.crawl.AgenticPageVisitor
+import ai.platon.pulsar.tools.crawl.PGInstructResult
+import ai.platon.pulsar.tools.crawl.PageVisitRequest
+import ai.platon.pulsar.tools.crawl.PageVisitStatus
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.FluxSink
-import java.nio.file.Files
 import java.time.Instant
 import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.Executors
-import kotlin.io.path.writeText
 
 @Service
 class CommandService(
@@ -41,7 +28,6 @@ class CommandService(
     val scrapeService: ScrapeService,
 ) {
     companion object {
-        const val MIN_USER_MESSAGE_LENGTH = 2
         const val FLOW_POLLING_INTERVAL = 1000L
     }
 
@@ -57,6 +43,8 @@ class CommandService(
     )
 
     private val logger = getLogger(CommandService::class)
+
+    private val pageVisitor = AgenticPageVisitor(session)
 
     suspend fun executeSync(request: CommandRequest, eventHandlers: PageEventHandlers): CommandStatus {
         val status = createCachedCommandStatus(request)
@@ -264,16 +252,6 @@ class CommandService(
         return status
     }
 
-
-    /**
-     * Executes a command based on the provided PromptRequestL2 object.
-     *
-     * This method loads the document associated with the request, processes the chat and data extraction rules,
-     * and returns a PromptResponseL2 object containing the results.
-     *
-     * @param request The PromptRequestL2 object containing the URL and other parameters.
-     * @return A PromptResponseL2 object containing the result of the command execution.
-     * */
     suspend fun executeCommand(
         request: CommandRequest,
         status: CommandStatus,
@@ -281,8 +259,12 @@ class CommandService(
     ): CommandStatus {
         try {
             status.refresh(ResourceStatus.SC_PROCESSING)
-            executeCommandStepByStep(request, status, eventHandlers)
+
+            // Delegate the heavy lifting to AgenticPageVisitor so CommandService stays thin.
+            val visitStatus = pageVisitor.executeSync(request.toPageVisitRequest(), eventHandlers)
+            status.applyVisitStatus(visitStatus)
         } catch (e: Exception) {
+            status.message = e.message
             status.failed(ResourceStatus.SC_EXPECTATION_FAILED)
         } finally {
             status.done()
@@ -291,9 +273,9 @@ class CommandService(
         return status
     }
 
-    suspend fun executeCommand(page: WebPage, document: FeaturedDocument, request: CommandRequest, status: CommandStatus) {
-        return executeCommandStepByStep(page, document, request, status)
-    }
+    // =====================
+    // Internals
+    // =====================
 
     private fun createCachedCommandStatus(request: CommandRequest? = null): CommandStatus {
         val status = CommandStatus()
@@ -303,161 +285,61 @@ class CommandService(
         return status
     }
 
-    internal suspend fun executeCommandStepByStep(request: CommandRequest, status: CommandStatus, eventHandlers: PageEventHandlers) {
-        val url = request.url
-        require(URLUtils.isStandard(url)) { "Invalid URL: $url" }
-
-        request.enhanceArgs()
-        val (page, document) = loadService.loadDocument(request, eventHandlers)
-
-        if (page.isNil) {
-            status.failed(ResourceStatus.SC_EXPECTATION_FAILED)
-            return
-        }
-
-        executeCommandStepByStep(page, document, request, status)
+    private fun CommandRequest.toPageVisitRequest(): PageVisitRequest {
+        return PageVisitRequest(
+            url = url,
+            args = args,
+            onBrowserLaunchedActions = onBrowserLaunchedActions,
+            onPageReadyActions = onPageReadyActions,
+            actions = actions,
+            pageSummaryPrompt = pageSummaryPrompt,
+            dataExtractionRules = dataExtractionRules,
+            uriExtractionRules = uriExtractionRules,
+            xsql = xsql,
+            richText = richText,
+            async = async,
+            id = null,
+        )
     }
 
-    internal suspend fun executeCommandStepByStep(page: WebPage, document: FeaturedDocument, request: CommandRequest, status: CommandStatus) {
-        val url = request.url
-        require(URLUtils.isStandard(url)) { "Invalid URL: $url" }
+    /**
+     * Map a visitor execution result back onto REST [CommandStatus]/[CommandResult] types.
+     */
+    private fun CommandStatus.applyVisitStatus(visitStatus: PageVisitStatus) {
+        // high-level status
+        statusCode = visitStatus.statusCode
+        pageStatusCode = visitStatus.pageStatusCode
+        pageContentBytes = visitStatus.pageContentBytes
+        message = visitStatus.message
 
-        status.pageStatusCode = page.protocolStatus.minorCode
-        status.pageContentBytes = page.originalContentLength.toInt()
-        if (!page.protocolStatus.isSuccess) {
-            return
+        // instruct results -> REST instruct results
+        @Suppress("UNCHECKED_CAST")
+        val restResults = visitStatus.instructResults.mapNotNull { it.toRestInstructResultOrNull() }
+        restResults.forEach { addInstructResult(it) }
+
+        // best-effort summary mapping
+        val visitResult = visitStatus.pageVisitResult
+        if (visitResult != null) {
+            val commandResult = ensureCommandResult()
+            commandResult.pageSummary = visitResult.pageSummary
+            commandResult.fields = visitResult.fields
+            commandResult.xsqlResultSet = visitResult.xsqlResultSet
         }
 
-        doExecuteCommandStepByStep(page, document, request, status)
-
-        logger.info("Finished executeCommandStepByStep | status: {} | {}", status.status, document.baseURI)
-
-        val sqlTemplate = request.xsql
-        if (sqlTemplate != null && ScrapeAPIUtils.isScrapeUDF(sqlTemplate)) {
-            status.refresh(ResourceStatus.SC_PROCESSING)
-            val sql = SQLTemplate(sqlTemplate).createSQL(url)
-            kotlin.runCatching { executeQuery(sql, status) }.onFailure { logger.warn("Failed to execute query", it) }
-        }
-
-        status.refresh(ResourceStatus.SC_OK)
-    }
-
-    private suspend fun doExecuteCommandStepByStep(
-        page: WebPage, document: FeaturedDocument, request: CommandRequest, status: CommandStatus
-    ) {
-        try {
-            doExecuteCommandStepByStep2(page, document, request, status)
-        } catch (e: Exception) {
-            status.failed(ResourceStatus.SC_EXPECTATION_FAILED)
-        }
-    }
-
-    private suspend fun doExecuteCommandStepByStep2(
-        page: WebPage, document: FeaturedDocument, request: CommandRequest, status: CommandStatus
-    ) {
-        // the 0-based screen number, 0.00 means at the top of the first screen, 1.50 means halfway through the second screen.
-        val screenNumber = page.activeDOMMetadata?.screenNumber ?: 0f
-
-        val pageSummaryPrompt = RestAPIPromptUtils.normalizePageSummaryPrompt(request.pageSummaryPrompt)
-        val dataExtractionRules = RestAPIPromptUtils.normalizeDataExtractionRules(request.dataExtractionRules)
-        var richText: String? = null
-        var textContent: String? = null
-        if (pageSummaryPrompt != null || dataExtractionRules != null) {
-            textContent = if (request.richText == true) {
-                DomUtils.selectNthScreenRichText(screenNumber, document).also { richText = it }
-            } else {
-                DomUtils.selectNthScreenText(screenNumber, document)
-            }
-            status.refresh("textContent")
-
-            if (textContent.isBlank()) {
-                if (document.body.numChars > 100) {
-                    val path = document.export()
-                    logger.warn(
-                        "Not textContent found on screen: {} but there are chars in body: {}, exported to {}",
-                        screenNumber, document.body.numChars, path.toUri()
-                    )
-                }
-                return
-            }
-
-            if (pageSummaryPrompt != null) {
-                val instruct = PromptTemplate(pageSummaryPrompt, mapOf(PLACEHOLDER_PAGE_CONTENT to textContent)).render()
-                performInstruct("pageSummary", instruct, status)
-                logger.info("pageSummary: {}", status.commandResult?.pageSummary)
-            }
-
-            if (dataExtractionRules != null) {
-                val instruct = PromptTemplate(dataExtractionRules, mapOf(PLACEHOLDER_PAGE_CONTENT to textContent)).render()
-                performInstruct("fields", instruct, status, "map") { content ->
-                    FlatJSONExtractor.extract(content)
-                }
-                logger.info("fields: {}", status.commandResult?.fields)
-            }
-        }
-
-        var uriExtractionRules = request.uriExtractionRules
-        uriExtractionRules = RestAPIPromptUtils.normalizeURIExtractionRules(uriExtractionRules)
-        if (uriExtractionRules != null) {
-            if (!uriExtractionRules.startsWith("Regex:")) {
-                val prompt = RestAPIPromptUtils.normalizeURIExtractionRules(uriExtractionRules) ?: return
-                uriExtractionRules = chatWithLLM(prompt)
-                if (!uriExtractionRules.startsWith("Regex:")) {
-                    logger.warn("Link extraction rules must start with 'Regex:', but got: {}", uriExtractionRules)
-                    return
-                }
-            }
-
-            val regex = RestAPIPromptUtils.normalizeURIExtractionRegex(uriExtractionRules) ?: return
-
-            val allURIs = UriExtractor().extractAllUris(document, document.baseURI)
-
-            if (alwaysFalse()) {
-                val allURIText = allURIs.joinToString("\n")
-                val path = AppPaths.getProcTmpTmpDirectory("command").resolve("uris.txt")
-                withContext(Dispatchers.IO) {
-                    Files.createDirectories(path.parent)
-                }
-                path.writeText(allURIText)
-            }
-
-            val uris = allURIs.filter { it.matches(regex) }
-            if (uris.isNotEmpty()) {
-                val result = InstructResult.ok("links", uris, "list")
-                status.addInstructResult(result)
-            }
-
-            logger.info("Extracted {}/{} uris using regex >>>{}<<<", uris.size, allURIs.size, regex)
+        // Align internal state string with HTTP status.
+        if (visitStatus.statusCode == ResourceStatus.SC_OK) {
+            refresh(ResourceStatus.SC_OK)
+        } else if (visitStatus.statusCode >= 400) {
+            failed(visitStatus.statusCode)
         }
     }
 
-    private suspend fun performInstruct(
-        name: String, instruct: String, status: CommandStatus,
-        resultType: String = "string",
-        mappingFunction: (String) -> Any = { it.trim() }
-    ) {
-        val content = chatWithLLM(instruct)
-        val result = InstructResult.ok(name, mappingFunction(content), resultType)
-        status.addInstructResult(result)
+    private fun PGInstructResult.toRestInstructResultOrNull(): InstructResult? {
+        // Keep naming aligned to REST API conventions.
+        val t = resultType ?: "string"
+        return InstructResult.ok(name, result ?: "", t)
     }
 
-    private suspend fun chatWithLLM(instruct: String): String {
-        try {
-            return session.chat(instruct).content
-        } catch (e: Exception) {
-            logger.error("Failed to chat with LLM for instruct: $instruct", e)
-            return ""
-        }
-    }
-
-    private fun executeQuery(sql: String, status: CommandStatus) {
-        val scrapeRequest = ScrapeRequest(sql)
-        try {
-            val scrapeResponse = scrapeService.executeQuery(scrapeRequest)
-            status.statusCode = scrapeResponse.statusCode
-            status.ensureCommandResult().xsqlResultSet = scrapeResponse.resultSet
-        } catch (e: Exception) {
-            status.statusCode = ResourceStatus.SC_EXPECTATION_FAILED
-        }
-    }
+    // NOTE: The old step-by-step implementation (loadService + prompt/link/xsql handling) is intentionally
+    // removed in favor of AgenticPageVisitor to avoid duplication and keep behavior consistent.
 }
