@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.random.Random
+import kotlin.random.nextInt
 
 @Suppress("unused")
 abstract class AbstractWebDriver(
@@ -296,7 +297,9 @@ abstract class AbstractWebDriver(
     override suspend fun navigateTo(url: String) = navigateTo(NavigateEntry(url))
 
     @Throws(WebDriverException::class)
-    override suspend fun reload() { evaluate("location.reload(true)") }
+    override suspend fun reload() {
+        evaluate("location.reload(true)")
+    }
 
     override suspend fun currentUrl(): String = evaluate("document.URL", navigateEntry.url)
 
@@ -366,7 +369,9 @@ abstract class AbstractWebDriver(
     @Throws(WebDriverException::class)
     override suspend fun scrollBy(pixels: Double, smooth: Boolean): Double {
         // Gather current viewport and document information
-        val totalHeight = (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble() ?: 0.0
+        val totalHeight =
+            (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble()
+                ?: 0.0
         val viewportHeight = (evaluate("window.innerHeight") as? Number)?.toDouble() ?: 800.0
         val currentY = (evaluate("window.scrollY") as? Number)?.toDouble() ?: 0.0
 
@@ -395,7 +400,8 @@ abstract class AbstractWebDriver(
             // Wait for current step to stabilize: poll until scrollY ~ target y (error <=2px) or timeout
             val stepStart = Instant.now()
             while (kotlin.math.abs(((evaluate("window.scrollY") as? Number)?.toDouble() ?: y) - y) > 2 &&
-                Duration.between(stepStart, Instant.now()).toMillis() < 400 && isActive && !isCanceled) {
+                Duration.between(stepStart, Instant.now()).toMillis() < 400 && isActive && !isCanceled
+            ) {
                 kotlinx.coroutines.delay(25)
             }
             // Minor buffer to allow lazy loading or layout jitter to settle
@@ -406,7 +412,8 @@ abstract class AbstractWebDriver(
         evaluate("window.scrollTo(0, $targetY)")
         val finalStart = Instant.now()
         while (kotlin.math.abs(((evaluate("window.scrollY") as? Number)?.toDouble() ?: targetY) - targetY) > 1 &&
-            Duration.between(finalStart, Instant.now()).toMillis() < 1000 && isActive && !isCanceled) {
+            Duration.between(finalStart, Instant.now()).toMillis() < 1000 && isActive && !isCanceled
+        ) {
             kotlinx.coroutines.delay(30)
         }
 
@@ -424,7 +431,9 @@ abstract class AbstractWebDriver(
     @Throws(WebDriverException::class)
     override suspend fun scrollToBottom(): Double {
         // Compute delta to bottom using same clamping logic as scrollBy
-        val totalHeight = (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble() ?: 0.0
+        val totalHeight =
+            (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble()
+                ?: 0.0
         val viewportHeight = (evaluate("window.innerHeight") as? Number)?.toDouble() ?: 0.0
         val currentY = (evaluate("window.scrollY") as? Number)?.toDouble() ?: 0.0
         val maxScrollY = (totalHeight - viewportHeight).coerceAtLeast(0.0)
@@ -436,7 +445,9 @@ abstract class AbstractWebDriver(
     override suspend fun scrollToMiddle(ratio: Double): Double {
         // Ratio defines relative position between top(0.0) and bottom(1.0)
         val r = ratio.coerceIn(0.0, 1.0)
-        val totalHeight = (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble() ?: 0.0
+        val totalHeight =
+            (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble()
+                ?: 0.0
         val viewportHeight = (evaluate("window.innerHeight") as? Number)?.toDouble() ?: 0.0
         val currentY = (evaluate("window.scrollY") as? Number)?.toDouble() ?: 0.0
         val maxScrollY = (totalHeight - viewportHeight).coerceAtLeast(0.0)
@@ -455,7 +466,9 @@ abstract class AbstractWebDriver(
     override suspend fun scrollToViewport(n: Double, smooth: Boolean): Double {
         // Reuse scrollBy logic: compute delta to target viewport
         val viewportHeight = (evaluate("window.innerHeight") as? Number)?.toDouble() ?: 0.0
-        val totalHeight = (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble() ?: 0.0
+        val totalHeight =
+            (evaluate("Math.min(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 15000)") as? Number)?.toDouble()
+                ?: 0.0
         val currentY = (evaluate("window.scrollY") as? Number)?.toDouble() ?: 0.0
         val maxScrollY = (totalHeight - viewportHeight).coerceAtLeast(0.0)
         val targetY = ((n - 1.0) * viewportHeight).coerceIn(0.0, maxScrollY)
