@@ -5,8 +5,8 @@ import ai.platon.pulsar.agentic.inference.action.TextToAction
 import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.ToolCallResult
 import ai.platon.pulsar.agentic.tools.BasicToolCallExecutor
-import ai.platon.pulsar.agentic.tools.executors.BrowserToolExecutor
-import ai.platon.pulsar.agentic.tools.executors.WebDriverToolExecutor
+import ai.platon.pulsar.agentic.tools.builtin.BrowserToolExecutor
+import ai.platon.pulsar.agentic.tools.builtin.WebDriverToolExecutor
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 

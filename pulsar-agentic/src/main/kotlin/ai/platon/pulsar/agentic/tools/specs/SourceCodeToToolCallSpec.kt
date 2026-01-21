@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.tools
+package ai.platon.pulsar.agentic.tools.specs
 
 import ai.platon.pulsar.agentic.model.ToolSpec
 import ai.platon.pulsar.common.ExperimentalApi

@@ -34,7 +34,7 @@ class Calculator {
 ### 2. Create Your Tool Executor
 
 ```kotlin
-import ai.platon.pulsar.agentic.tools.executors.AbstractToolExecutor
+import ai.platon.pulsar.agentic.tools.builtin.AbstractToolExecutor
 import kotlin.reflect.KClass
 
 class CalculatorToolExecutor : AbstractToolExecutor() {

@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.tools
+package ai.platon.pulsar.agentic.tools.specs
 
 object ToolSpecification {
 

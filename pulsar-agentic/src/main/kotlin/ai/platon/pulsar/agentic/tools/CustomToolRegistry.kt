@@ -1,7 +1,8 @@
 package ai.platon.pulsar.agentic.tools
 
 import ai.platon.pulsar.agentic.model.ToolSpec
-import ai.platon.pulsar.agentic.tools.executors.ToolExecutor
+import ai.platon.pulsar.agentic.tools.builtin.ToolExecutor
+import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationProvider
 import ai.platon.pulsar.common.getLogger
 import java.util.concurrent.ConcurrentHashMap
 
@@ -58,7 +59,7 @@ class CustomToolRegistry private constructor() {
     /**
      * Register a custom tool executor for a specific domain.
      *
-     * If the executor also implements [ToolCallSpecificationProvider], its tool-call specs will be
+     * If the executor also implements [ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationProvider], its tool-call specs will be
      * available for prompt injection.
      *
      * @param executor The tool executor to register.

@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.tools
+package ai.platon.pulsar.agentic.tools.util
 
 import ai.platon.browser4.driver.chrome.dom.FBNLocator
 import ai.platon.pulsar.agentic.model.ToolCall
@@ -96,7 +96,7 @@ class ActionValidator(
             return false
         }
 
-        val isSimplifiedFBN = selector.matches(FBNLocator.SIMPLIFIED_REGEX)
+        val isSimplifiedFBN = selector.matches(FBNLocator.Companion.SIMPLIFIED_REGEX)
         if (isSimplifiedFBN) {
             return true
         }

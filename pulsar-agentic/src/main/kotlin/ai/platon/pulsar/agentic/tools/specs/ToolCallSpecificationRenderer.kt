@@ -1,6 +1,7 @@
-package ai.platon.pulsar.agentic.tools
+package ai.platon.pulsar.agentic.tools.specs
 
 import ai.platon.pulsar.agentic.model.ToolSpec
+import ai.platon.pulsar.agentic.tools.CustomToolRegistry
 
 /**
  * Renders tool-call specifications (signatures) into a prompt-friendly string.
@@ -24,10 +25,10 @@ object ToolCallSpecificationRenderer {
             return builtIn
         }
 
-        val customSpecs = CustomToolRegistry.instance.getAllDomains()
+        val customSpecs = CustomToolRegistry.Companion.instance.getAllDomains()
             .asSequence()
             .filter { customDomainFilter?.invoke(it) ?: true }
-            .flatMap { CustomToolRegistry.instance.getToolCallSpecifications(it).asSequence() }
+            .flatMap { CustomToolRegistry.Companion.instance.getToolCallSpecifications(it).asSequence() }
             .toList()
 
         if (customSpecs.isEmpty()) {

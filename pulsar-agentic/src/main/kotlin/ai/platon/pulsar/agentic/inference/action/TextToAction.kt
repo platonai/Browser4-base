@@ -9,7 +9,7 @@ import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.AgentState
 import ai.platon.pulsar.agentic.model.ObserveElement
 import ai.platon.pulsar.agentic.model.ToolCall
-import ai.platon.pulsar.agentic.tools.ToolCallSpecificationRenderer
+import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationRenderer
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.ExperimentalApi
 import ai.platon.pulsar.common.Strings

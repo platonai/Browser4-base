@@ -3,8 +3,8 @@ package ai.platon.pulsar.agentic.skills.tools
 import ai.platon.pulsar.agentic.model.ToolSpec
 import ai.platon.pulsar.agentic.skills.Skill
 import ai.platon.pulsar.agentic.skills.SkillRegistry
-import ai.platon.pulsar.agentic.tools.ToolCallSpecificationProvider
-import ai.platon.pulsar.agentic.tools.executors.AbstractToolExecutor
+import ai.platon.pulsar.agentic.tools.builtin.AbstractToolExecutor
+import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationProvider
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import kotlin.reflect.KClass
 

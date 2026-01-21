@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.tools.executors
+package ai.platon.pulsar.agentic.tools.builtin
 
 import ai.platon.pulsar.agentic.model.ToolCall
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractBrowser

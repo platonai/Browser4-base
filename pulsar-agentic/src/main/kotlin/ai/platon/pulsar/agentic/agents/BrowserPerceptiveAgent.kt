@@ -7,7 +7,7 @@ import ai.platon.pulsar.agentic.inference.todo.ToDoManager
 import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.AgentHistory
 import ai.platon.pulsar.agentic.model.DetailedActResult
-import ai.platon.pulsar.agentic.tools.ActionValidator
+import ai.platon.pulsar.agentic.tools.util.ActionValidator
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.config.AppConstants
