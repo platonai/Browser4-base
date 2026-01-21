@@ -44,15 +44,15 @@ class CommandService(
 
     private val pageVisitor = AgenticPageVisitor(session)
 
-    suspend fun executeSync(request: CommandRequest, eventHandlers: PageEventHandlers): CommandStatus {
+    suspend fun executePageVisitCommandSync(request: CommandRequest, eventHandlers: PageEventHandlers): CommandStatus {
         val status = createCachedCommandStatus(request)
-        executeCommand(request, status, eventHandlers)
+        executePageVisitCommand(request, status, eventHandlers)
         return status
     }
 
-    fun submitAsync(request: CommandRequest, eventHandlers: PageEventHandlers): String {
+    fun submitPageVisitCommandAsync(request: CommandRequest, eventHandlers: PageEventHandlers): String {
         val status = createCachedCommandStatus(request)
-        commanderScope.launch { executeCommand(request, status, eventHandlers) }
+        commanderScope.launch { executePageVisitCommand(request, status, eventHandlers) }
         return status.id
     }
 
@@ -79,7 +79,7 @@ class CommandService(
             // Page visit execution
             val status = createCachedCommandStatus(request)
             val eventHandlers = PageEventHandlersFactory.create()
-            executeCommand(request, status, eventHandlers)
+            executePageVisitCommand(request, status, eventHandlers)
         } else {
             // Open task execution
             executeAgentCommand(plainCommand)
@@ -108,7 +108,7 @@ class CommandService(
         return if (request != null) {
             // Standard URL-based async command execution
             val eventHandlers = PageEventHandlersFactory.create()
-            submitAsync(request, eventHandlers)
+            submitPageVisitCommandAsync(request, eventHandlers)
         } else {
             // Agent-based async command execution
             submitAgentCommandAsync(plainCommand)
@@ -226,7 +226,7 @@ class CommandService(
      * @param request The request string containing a URL and other parameters.
      * @return A PromptResponseL2 object containing the result of the command execution.
      * */
-    suspend fun executeCommand(request: String): CommandStatus {
+    suspend fun executePageVisitCommand(request: String): CommandStatus {
         if (request.isBlank()) {
             return CommandStatus.failed(ResourceStatus.SC_BAD_REQUEST)
         }
@@ -239,18 +239,18 @@ class CommandService(
         }
 
         val eventHandlers = PageEventHandlersFactory.create()
-        return executeCommand(request2, status, eventHandlers)
+        return executePageVisitCommand(request2, status, eventHandlers)
     }
 
-    suspend fun executeCommand(request: CommandRequest): CommandStatus {
+    suspend fun executePageVisitCommand(request: CommandRequest): CommandStatus {
         val status = createCachedCommandStatus(request)
 
         val eventHandlers = PageEventHandlersFactory.create()
-        executeCommand(request, status, eventHandlers)
+        executePageVisitCommand(request, status, eventHandlers)
         return status
     }
 
-    suspend fun executeCommand(
+    suspend fun executePageVisitCommand(
         request: CommandRequest,
         status: CommandStatus,
         eventHandlers: PageEventHandlers

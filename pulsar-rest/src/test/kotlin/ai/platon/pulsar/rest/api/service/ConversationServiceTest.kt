@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.*
 
-const val API_COMMAND_PROMPT1 = """
+const val PAGE_VISIT_COMMAND_PROMPT1 = """
 Visit http://localhost:18080/ec/dp/B0E000001
 After page load: click #title, then scroll to the middle.
 Summarize the product.
@@ -29,7 +29,7 @@ Extract: product name, price, ratings.
 Find all links containing /dp/.
     """
 
-const val API_COMMAND_PROMPT2 = """
+const val PAGE_VISIT_COMMAND_PROMPT2 = """
 Visit http://localhost:18080/ec/dp/B0E000001
 When the page is ready, click the element with id "title" and scroll to the middle.
 
@@ -39,7 +39,7 @@ Extract links: all links containing `/dp/` on the page.
 
     """
 
-const val API_COMMAND_PROMPT3 = """
+const val PAGE_VISIT_COMMAND_PROMPT3 = """
 Visit the page: http://localhost:8182/ec/dp/B0E000001
 
 ### 📝 Tasks:
@@ -82,7 +82,7 @@ class ConversationServiceTest : MockEcServerTestBase() {
 
     @Test
     fun `test prompt conversion to request`() {
-        val prompt = API_COMMAND_PROMPT1
+        val prompt = PAGE_VISIT_COMMAND_PROMPT1
 
         val request = runBlocking { conversationService.normalizePlainCommand(prompt) }
         printlnPro(prettyPulsarObjectMapper().writeValueAsString(request).toString())
@@ -92,7 +92,7 @@ class ConversationServiceTest : MockEcServerTestBase() {
 
     @Test
     fun `test prompt conversion to request 2`() {
-        val prompt = API_COMMAND_PROMPT2
+        val prompt = PAGE_VISIT_COMMAND_PROMPT2
 
         val request = runBlocking { conversationService.normalizePlainCommand(prompt) }
         printlnPro(prettyPulsarObjectMapper().writeValueAsString(request).toString())
@@ -149,7 +149,7 @@ from load_and_select(@url, 'body');
 
     @Test
     fun `test prompt conversion to request 3`() {
-        val prompt = API_COMMAND_PROMPT3
+        val prompt = PAGE_VISIT_COMMAND_PROMPT3
 
         val request = runBlocking { conversationService.normalizePlainCommand(prompt) }
         printlnPro(prettyPulsarObjectMapper().writeValueAsString(request).toString())

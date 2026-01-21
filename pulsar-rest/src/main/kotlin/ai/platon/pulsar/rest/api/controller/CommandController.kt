@@ -32,8 +32,8 @@ class CommandController(
     fun submitCommand(@RequestBody request: CommandRequest): ResponseEntity<Any> {
         val eventHandlers = PageEventHandlersFactory.create()
         val response = when {
-            request.isAsync() -> commandService.submitAsync(request, eventHandlers)
-            else -> runBlocking { commandService.executeSync(request, eventHandlers) }
+            request.isAsync() -> commandService.submitPageVisitCommandAsync(request, eventHandlers)
+            else -> runBlocking { commandService.executePageVisitCommandSync(request, eventHandlers) }
         }
 
         return ResponseEntity.ok(response)
