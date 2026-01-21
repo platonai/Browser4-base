@@ -5,6 +5,7 @@ import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.ResourceStatus
 import ai.platon.pulsar.common.ai.llm.PromptTemplate
 import ai.platon.pulsar.common.alwaysFalse
+import ai.platon.pulsar.common.concurrent.ConcurrentExpiringLRUCache
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.serialize.json.FlatJSONExtractor
 import ai.platon.pulsar.common.sql.SQLTemplate
@@ -27,7 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 import java.nio.file.Files
-import java.util.concurrent.ConcurrentSkipListMap
+import java.time.Duration
 import kotlin.io.path.writeText
 
 class AgenticPageVisitor(
@@ -37,16 +38,12 @@ class AgenticPageVisitor(
 
     private val scrapeService = ScrapeService(session)
 
-    // TODO: use ehcache
-    private val commandStatusCache = ConcurrentSkipListMap<String, PageVisitStatus>()
+    private val statusCache = ConcurrentExpiringLRUCache<String, PageVisitStatus>(Duration.ofHours(2))
 
-    // Create a dedicated dispatcher for long-running command operations
-//    private val crawlerExecutor = Executors.newFixedThreadPool(10)
-//    private val commandDispatcher = crawlerExecutor.asCoroutineDispatcher()
-//
-//    private val commanderScope: CoroutineScope = CoroutineScope(
-//        commandDispatcher + SupervisorJob() + CoroutineName("commander")
-//    )
+    suspend fun visit(request: PageVisitRequest): PageVisitStatus {
+        val eventHandlers = PageEventHandlersFactory.create()
+        return visit(request, eventHandlers)
+    }
 
     /**
      * Executes a page-visit command.
@@ -55,29 +52,15 @@ class AgenticPageVisitor(
      * coroutine via [EventBus.withServerSideEventHandlers], so multiple commands can run concurrently without
      * cross-talk between SSE streams.
      */
-    suspend fun executeSync(request: PageVisitRequest, eventHandlers: PageEventHandlers): PageVisitStatus {
-        val status = createCachedCommandStatus(request)
-        executeCommand(request, status, eventHandlers)
+    suspend fun visit(request: PageVisitRequest, eventHandlers: PageEventHandlers): PageVisitStatus {
+        val status = createCachedStatus(request)
+        doVisit(request, status, eventHandlers)
         return status
     }
 
-//    fun submitAsync(request: PageVisitRequest, eventHandlers: PageEventHandlers): String {
-//        val status = createCachedCommandStatus(request)
-//        commanderScope.launch { executeCommand(request, status, eventHandlers) }
-//        return status.id
-//    }
+    fun getStatus(id: String) = statusCache.getDatum(id)
 
-    fun getStatus(id: String) = commandStatusCache[id]
-
-    fun getResult(id: String) = commandStatusCache[id]?.pageVisitResult
-
-    suspend fun executeCommand(request: PageVisitRequest): PageVisitStatus {
-        val status = createCachedCommandStatus(request)
-
-        val eventHandlers = PageEventHandlersFactory.create()
-        executeCommand(request, status, eventHandlers)
-        return status
-    }
+    fun getResult(id: String) = statusCache.getDatum(id)?.pageVisitResult
 
     /**
      * Executes a command based on the provided PromptRequestL2 object.
@@ -88,7 +71,7 @@ class AgenticPageVisitor(
      * @param request The PromptRequestL2 object containing the URL and other parameters.
      * @return A PromptResponseL2 object containing the result of the command execution.
      * */
-    suspend fun executeCommand(
+    private suspend fun doVisit(
         request: PageVisitRequest,
         status: PageVisitStatus,
         eventHandlers: PageEventHandlers
@@ -102,7 +85,7 @@ class AgenticPageVisitor(
 
             // Bind server-side event handlers to THIS coroutine so multiple commands can run concurrently.
             EventBus.withServerSideEventHandlers(serverSideEventHandlers) {
-                executeCommandStepByStep(request, status, eventHandlers)
+                visitPageStepByStep(request, status, eventHandlers)
             }
         } catch (e: CancellationException) {
             throw e
@@ -116,24 +99,15 @@ class AgenticPageVisitor(
         return status
     }
 
-    suspend fun executeCommand(
-        page: WebPage,
-        document: FeaturedDocument,
-        request: PageVisitRequest,
-        status: PageVisitStatus
-    ) {
-        return executeCommandStepByStep(page, document, request, status)
-    }
-
-    private fun createCachedCommandStatus(request: PageVisitRequest? = null): PageVisitStatus {
+    private fun createCachedStatus(request: PageVisitRequest? = null): PageVisitStatus {
         val status = PageVisitStatus()
         // status.request = request
-        commandStatusCache[status.id] = status
+        statusCache.putDatum(status.id, status)
         status.refresh("created")
         return status
     }
 
-    internal suspend fun executeCommandStepByStep(
+    internal suspend fun visitPageStepByStep(
         request: PageVisitRequest,
         status: PageVisitStatus,
         eventHandlers: PageEventHandlers
@@ -149,10 +123,10 @@ class AgenticPageVisitor(
             return
         }
 
-        executeCommandStepByStep(page, document, request, status)
+        visitPageStepByStep1(page, document, request, status)
     }
 
-    internal suspend fun executeCommandStepByStep(
+    internal suspend fun visitPageStepByStep1(
         page: WebPage,
         document: FeaturedDocument,
         request: PageVisitRequest,
@@ -167,7 +141,7 @@ class AgenticPageVisitor(
             return
         }
 
-        doExecuteCommandStepByStep(page, document, request, status)
+        visitPageStepByStep2(page, document, request, status)
 
         logger.info("Finished executeCommandStepByStep | status: {} | {}", status.status, document.baseURI)
 
@@ -181,11 +155,11 @@ class AgenticPageVisitor(
         status.refresh(ResourceStatus.SC_OK)
     }
 
-    private suspend fun doExecuteCommandStepByStep(
+    private suspend fun visitPageStepByStep2(
         page: WebPage, document: FeaturedDocument, request: PageVisitRequest, status: PageVisitStatus
     ) {
         try {
-            doExecuteCommandStepByStep2(page, document, request, status)
+            visitPageStepByStep3(page, document, request, status)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -194,7 +168,7 @@ class AgenticPageVisitor(
         }
     }
 
-    private suspend fun doExecuteCommandStepByStep2(
+    private suspend fun visitPageStepByStep3(
         page: WebPage, document: FeaturedDocument, request: PageVisitRequest, status: PageVisitStatus
     ) {
         // the 0-based screen number, 0.00 means at the top of the first screen, 1.50 means halfway through the second screen.
@@ -309,9 +283,5 @@ class AgenticPageVisitor(
     }
 
     override fun close() {
-        // Make best effort to stop in-flight tasks and release the backing threads.
-//        commanderScope.cancel("AgenticPageVisitor is closed")
-//        crawlerExecutor.shutdownNow()
-//        commandDispatcher.close()
     }
 }

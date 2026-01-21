@@ -76,12 +76,12 @@ class CommandService(
 
         val request = conversationService.normalizePlainCommand(plainCommand)
         return if (request != null) {
-            // Standard URL-based command execution
+            // Page visit execution
             val status = createCachedCommandStatus(request)
             val eventHandlers = PageEventHandlersFactory.create()
             executeCommand(request, status, eventHandlers)
         } else {
-            // Agent-based command execution
+            // Open task execution
             executeAgentCommand(plainCommand)
         }
     }
@@ -124,7 +124,7 @@ class CommandService(
      * @param plainCommand The plain text command for the agent to execute.
      * @return CommandStatus containing the execution result.
      */
-    suspend fun executeAgentCommand(plainCommand: String): CommandStatus {
+    internal suspend fun executeAgentCommand(plainCommand: String): CommandStatus {
         val status = createCachedCommandStatus()
         executeAgentCommandInternal(plainCommand, status)
         return status
@@ -136,7 +136,7 @@ class CommandService(
      * @param plainCommand The plain text command for the agent to execute.
      * @return The command status ID for tracking execution progress.
      */
-    fun submitAgentCommandAsync(plainCommand: String): String {
+    internal fun submitAgentCommandAsync(plainCommand: String): String {
         val status = createCachedCommandStatus()
         commanderScope.launch { executeAgentCommandInternal(plainCommand, status) }
         return status.id
@@ -259,7 +259,7 @@ class CommandService(
             status.refresh(ResourceStatus.SC_PROCESSING)
 
             // Delegate the heavy lifting to AgenticPageVisitor so CommandService stays thin.
-            val visitStatus = pageVisitor.executeSync(request.toPageVisitRequest(), eventHandlers)
+            val visitStatus = pageVisitor.visit(request.toPageVisitRequest(), eventHandlers)
             status.applyVisitStatus(visitStatus)
         } catch (e: Exception) {
             status.message = e.message
