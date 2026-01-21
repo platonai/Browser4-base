@@ -195,8 +195,15 @@ class CommandService(
 
     private fun AgentTaskStatus.toCommandStatus(): CommandStatus {
         val status = CommandStatus(this.id)
+        // Transfer all status fields
         status.statusCode = this.statusCode
+        status.event = this.event
+        status.processState = this.processState
         status.message = this.message
+        status.lastModifiedTime = this.lastModifiedTime
+        status.finishTime = this.finishTime
+        
+        // Transfer agent-specific data
         status.agentHistory = this.agentHistory
         if (this.agentHistory != null) {
             val summary = this.agentHistory?.lastOrNull()?.summary ?: ""
@@ -204,22 +211,33 @@ class CommandService(
                 status.ensureCommandResult().summary = summary
             }
         }
-        status.done()
+        
+        // Note: pageStatusCode and pageContentBytes remain at their default values
+        // as AgentTaskStatus doesn't have these fields
+        
         return status
     }
 
     private fun PageVisitStatus.toCommandStatus(): CommandStatus {
         val status = CommandStatus(this.id)
-        // high-level status
-        status.statusCode = statusCode
-        status.pageStatusCode = pageStatusCode
-        status.pageContentBytes = pageContentBytes
-        status.message = message
+        
+        // Transfer all basic status fields
+        status.statusCode = this.statusCode
+        status.event = this.event
+        status.processState = this.processState
+        status.pageStatusCode = this.pageStatusCode
+        status.pageContentBytes = this.pageContentBytes
+        status.message = this.message
+        status.lastModifiedTime = this.lastModifiedTime
+        status.finishTime = this.finishTime
+        
+        // Transfer request if present
+        status.request = this.request
 
         // instruct results -> REST instruct results
         @Suppress("UNCHECKED_CAST")
         val restResults = instructResults.map { it.toRestInstructResult() }
-        restResults.forEach { status.addInstructResult(it) }
+        status.instructResults = restResults.toMutableList()
 
         // best-effort summary mapping
         val visitResult = pageVisitResult
@@ -228,13 +246,6 @@ class CommandService(
             commandResult.pageSummary = visitResult.pageSummary
             commandResult.fields = visitResult.fields
             commandResult.xsqlResultSet = visitResult.xsqlResultSet
-        }
-
-        // Align internal state string with HTTP status.
-        if (statusCode == ResourceStatus.SC_OK) {
-            status.refresh(ResourceStatus.SC_OK)
-        } else if (statusCode >= 400) {
-            status.failed(statusCode)
         }
 
         return status
