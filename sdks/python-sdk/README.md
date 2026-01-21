@@ -11,11 +11,15 @@ This SDK provides a Python interface to the Browser4 browser automation platform
 ## Installation
 
 ```bash
-# From source (editable)
-pip install -e .[dev]
+# Recommended: use uv (fast, lockfile-aware)
+# Creates/updates a virtualenv and installs this project + dev deps
+uv sync --extra dev
 
-# Or install dependencies manually
-pip install requests beautifulsoup4
+# Run commands inside the managed environment
+uv run python -c "import browser4; print(browser4.__version__ if hasattr(browser4, '__version__') else 'ok')"
+
+# (Optional) pip-style workflow via uv's pip wrapper
+# uv pip install -e ".[dev]"
 ```
 
 ## Quick Start
@@ -31,31 +35,31 @@ with Browser4Driver() as driver:
     client = PulsarClient(base_url=driver.base_url)
     session_id = client.create_session()
     session = AgenticSession(client)
-    
+
     # Navigate to a page
     page = session.open("https://example.com")
     print(f"Opened: {page.url}")
-    
+
     # Use WebDriver for element interaction
     driver_wd = session.driver
     driver_wd.fill("input[name='search']", "browser automation")
     driver_wd.press("input[name='search']", "Enter")
-    
+
     # Extract data using CSS selectors
     fields = session.extract(page, {
         "title": "h1",
         "description": ".description"
     })
     print(fields)
-    
+
     # Use AI-powered actions
     result = session.act("click the login button")
     print(f"Action success: {result.success}")
-    
+
     # Run multi-step tasks
     history = session.run("search for 'python' and click the first result")
     print(f"Task completed: {history.success}")
-    
+
     # Clean up
     session.close()
     client.close()
@@ -410,10 +414,10 @@ session.close()
 
 ```bash
 # Run tests
-pytest
+uv run pytest
 
 # Run with coverage
-pytest --cov=browser4-sdk
+uv run pytest --cov=browser4
 ```
 
 ## Configuration

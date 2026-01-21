@@ -8,7 +8,8 @@ Before running these examples, ensure you have:
 
 1. **Installed the SDK**:
    ```bash
-   pip install -e .
+   # From the python-sdk directory
+   uv sync --extra dev
    ```
 
 2. **Running Browser4 Server**:
@@ -18,7 +19,11 @@ Before running these examples, ensure you have:
 
 3. **API Key (for AI features)**:
    ```bash
+   # bash/zsh
    export OPENROUTER_API_KEY="your-api-key-here"
+
+   # PowerShell
+   $env:OPENROUTER_API_KEY = "your-api-key-here"
    ```
 
 ## Examples
@@ -96,7 +101,10 @@ If imports fail:
 ```bash
 # Install in development mode
 cd /path/to/python-sdk
-pip install -e .
+uv sync --extra dev
+
+# Or run examples without activating a venv
+uv run python examples/basic_usage.py
 ```
 
 ## Further Reading
