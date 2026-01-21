@@ -17,47 +17,49 @@ This module contains comprehensive integration tests that:
 ### Prerequisites
 - JDK 17+
 - Chrome/Chromium installed (for browser tests)
-- Maven 3.9+
+- Maven Wrapper (recommended: `mvnw.cmd` from repo root)
 
 ### Run Integration Tests
 
-```bash
-# From this directory
-mvn test -DrunITs=true
+> Notes
+> - This module is configured via Surefire to run tests tagged `IntegrationTest` and to exclude `RequiresAI` by default.
+> - Prefer running from the repo root so the Maven Wrapper and multi-module build work consistently.
 
-# Or use the profile
-mvn test -Prun-integration-tests
-
-# Run all tests including AI features
-mvn test -DrunSDKTests=true
-
+```powershell
 # From project root
-mvn test -pl sdks/kotlin-sdk-tests -DrunITs=true
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test
+
+# From this module directory
+..\..\mvnw.cmd test
 ```
 
 ### Run Specific Test Classes
 
-```bash
-mvn test -Dtest=PulsarClientIntegrationTest -DrunITs=true
-mvn test -Dtest=WebDriverIntegrationTest -DrunITs=true
-mvn test -Dtest=PulsarSessionIntegrationTest -DrunITs=true
+```powershell
+# From project root
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dtest=PulsarClientIntegrationTest
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dtest=WebDriverIntegrationTest
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dtest=PulsarSessionIntegrationTest
 
-# AgenticSession tests are disabled by default (require AI/LLM config)
-# To enable them, remove @Disabled annotation and configure AI
-mvn test -Dtest=AgenticSessionIntegrationTest -DrunSDKTests=true
+# AgenticSession tests are disabled by default (and also excluded by tag).
+# To enable them, remove @Disabled and include the tag RequiresAI (and configure AI/LLM).
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dtest=AgenticSessionIntegrationTest
 ```
 
 ### Run Tests with Specific Tags
 
-```bash
+```powershell
 # Run only fast tests
-mvn test -Dgroups="IntegrationTest,Fast" -DrunITs=true
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dgroups="IntegrationTest,Fast"
 
 # Exclude slow tests
-mvn test -Dgroups="IntegrationTest,!Slow" -DrunITs=true
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dgroups="IntegrationTest" -DexcludedGroups="Slow"
 
-# Exclude AI tests (default)
-mvn test -Dgroups="IntegrationTest,!RequiresAI" -DrunITs=true
+# Exclude browser tests
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dgroups="IntegrationTest" -DexcludedGroups="RequiresBrowser"
+
+# Include AI tests (requires AI/LLM config AND removing @Disabled)
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dgroups="IntegrationTest,RequiresAI" -DexcludedGroups=""
 ```
 
 ## Test Structure
@@ -148,22 +150,22 @@ Key settings:
 ## Troubleshooting
 
 ### Tests are skipped
-By default, tests are skipped. Use `-DrunITs=true` to run them.
+If you see no tests running, make sure you didn't accidentally exclude the `IntegrationTest` tag.
 
 ### Port already in use
 The REST server uses a random port. The mock server uses port 18080. If 18080 is in use, tests may fail.
 
 ### Chrome not found
 Browser tests require Chrome/Chromium. Install it or skip browser tests:
-```bash
-mvn test -Dgroups="IntegrationTest,!RequiresBrowser" -DrunITs=true
+```powershell
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dgroups="IntegrationTest" -DexcludedGroups="RequiresBrowser"
 ```
 
 ### Tests are slow
 Integration tests are slower than unit tests. Use:
-```bash
-# Run only fast tests
-mvn test -Dgroups="IntegrationTest,!Slow" -DrunITs=true
+```powershell
+# Exclude slow tests
+.\mvnw.cmd -pl sdks/kotlin-sdk-tests -am test -Dgroups="IntegrationTest" -DexcludedGroups="Slow"
 ```
 
 ## Related Documentation

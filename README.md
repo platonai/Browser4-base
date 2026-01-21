@@ -68,7 +68,7 @@ val result = agent.run("""
 
 ## 🚀 Quick Start
 
-**Prerequisites**: Java 17+ and Maven 3.9+
+**Prerequisites**: Java 17+
 
 1. **Clone the repository**
    ```shell

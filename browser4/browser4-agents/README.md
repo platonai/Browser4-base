@@ -5,7 +5,6 @@ This module provides the Browser4 Agents application, which can be packaged as a
 ## Prerequisites
 
 - **JDK 17 or later** (with jpackage tool included)
-- **Maven 3.9+**
 - **For EXE installer**: [WiX Toolset v3.x](https://wixtoolset.org/releases/) must be installed and added to PATH
 
 ## Building the Application

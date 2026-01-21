@@ -71,7 +71,7 @@ val result = agent.run("""
 
 ## 🚀 快速开始
 
-**前置要求**：Java 17+ 与 Maven 3.9+
+**前置要求**：Java 17+
 
 1. **克隆仓库**
    ```shell

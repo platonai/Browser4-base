@@ -16,7 +16,6 @@ Browser4 Agents can be packaged as a Windows installer using JDK's jpackage tool
 ### Prerequisites
 
 - JDK 17 or later (with jpackage)
-- Maven 3.9+
 - For EXE installer: [WiX Toolset v3.x](https://wixtoolset.org/releases/)
 
 ### Quick Start

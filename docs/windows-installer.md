@@ -43,7 +43,6 @@ mvnw clean package -pl browser4/browser4-agents -am -Pwin-jpackage -Djpackage.in
 ## Prerequisites
 
 - **JDK 17+** with jpackage tool
-- **Maven 3.9+**
 - **WiX Toolset v3.x** (for .exe installer only)
   - Download from: https://github.com/wixtoolset/wix3/releases
   - Add to PATH (candle.exe and light.exe must be accessible)
