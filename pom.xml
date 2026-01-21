@@ -89,6 +89,7 @@
         <module>pulsar-tests/pulsar-tests-common</module>
         <module>pulsar-core</module>
         <module>pulsar-agentic</module>
+        <module>pulsar-tools</module>
         <module>pulsar-rest</module>
         <module>pulsar-bom</module>
     </modules>
