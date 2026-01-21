@@ -124,7 +124,7 @@ class CommandService(
      * @param plainCommand The plain text command for the agent to execute.
      * @return CommandStatus containing the execution result.
      */
-    internal suspend fun executeAgentCommand(plainCommand: String): CommandStatus {
+    suspend fun executeAgentCommand(plainCommand: String): CommandStatus {
         val status = createCachedCommandStatus()
         executeAgentTaskInternal(plainCommand, status)
         return status
@@ -136,7 +136,7 @@ class CommandService(
      * @param plainCommand The plain text command for the agent to execute.
      * @return The command status ID for tracking execution progress.
      */
-    internal fun submitAgentTaskAsync(plainCommand: String): String {
+    fun submitAgentTaskAsync(plainCommand: String): String {
         val status = createCachedCommandStatus()
         commanderScope.launch { executeAgentTaskInternal(plainCommand, status) }
         return status.id
