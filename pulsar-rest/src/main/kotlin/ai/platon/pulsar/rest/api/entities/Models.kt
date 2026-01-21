@@ -45,78 +45,6 @@ data class PromptRequest(
     var actions: List<String>? = null
 )
 
-//data class ScrapeRequest(
-//    var sql: String,
-//)
-//
-//data class ScrapeResponse(
-//    var id: String? = null,
-//    var statusCode: Int = ResourceStatus.SC_CREATED,
-//    var pageStatusCode: Int = ProtocolStatusCodes.SC_CREATED,
-//    var pageContentBytes: Int = 0,
-//    var isDone: Boolean = false,
-//    var resultSet: List<Map<String, Any?>>? = null,
-//
-//    var event: String = "",
-//) {
-//    val status: String get() = ResourceStatus.getStatusText(statusCode)
-//    var lastModifiedTime: Instant? = null
-//    var finishTime: Instant? = null
-//
-//    companion object {
-//        fun notFound(id: String) = ScrapeResponse(id, ResourceStatus.SC_NOT_FOUND, ResourceStatus.SC_NOT_FOUND)
-//        fun failed(id: String, statusCode: Int, pageStatusCode: Int) =
-//            ScrapeResponse(id, statusCode = statusCode, pageStatusCode = pageStatusCode)
-//
-//        fun failed(id: String, e: Exception) =
-//            ScrapeResponse(
-//                id,
-//                statusCode = ResourceStatus.SC_EXPECTATION_FAILED,
-//                pageStatusCode = ResourceStatus.SC_EXPECTATION_FAILED
-//            )
-//    }
-//}
-//
-//fun ScrapeResponse.refresh(isDone: Boolean = false) {
-//    lastModifiedTime = Instant.now()
-//    this.isDone = isDone
-//}
-//
-//fun ScrapeResponse.refresh(statusCode: Int) = refresh(statusCode, this.pageStatusCode, false)
-//
-//fun ScrapeResponse.refresh(statusCode: Int, pageStatusCode: Int, isDone: Boolean) {
-//    lastModifiedTime = Instant.now()
-//    this.statusCode = statusCode
-//    this.pageStatusCode = pageStatusCode
-//    this.isDone = isDone
-//}
-//
-//fun ScrapeResponse.failed(statusCode: Int): ScrapeResponse {
-//    // do not change pageStatusCode
-//    refresh(statusCode, pageStatusCode, isDone = true)
-//    return this
-//}
-//
-//fun ScrapeResponse.refresh(event: String) {
-//    this.event = event
-//    this.lastModifiedTime = Instant.now()
-//}
-//
-//fun ScrapeResponse.failed(statusCode: Int, pageStatusCode: Int): ScrapeResponse {
-//    refresh(statusCode, pageStatusCode, isDone = true)
-//    return this
-//}
-//
-//fun ScrapeResponse.done() {
-//    refresh(isDone = true)
-//    finishTime = Instant.now()
-//}
-//
-//fun ScrapeResponse.refreshed(lastModifiedTime: Instant): Boolean {
-//    val time = this.lastModifiedTime ?: return false
-//    return time > lastModifiedTime
-//}
-
 data class ScrapeStatusRequest(
     val id: String,
 )
@@ -128,59 +56,6 @@ data class W3DocumentRequest(
     var url: String,
     val args: String? = null,
 )
-
-///**
-// * Request for web page interactions with structured data extraction capabilities.
-// *
-// * @property url The target page URL to process.
-// * @property args Optional load arguments to customize page loading behavior.
-// * @property onBrowserLaunchedActions Actions to perform when the browser is launched (e.g., "clearBrowserCookies", "navigateTo").
-// * @property onPageReadyActions Actions to perform when the document is fully loaded (e.g., "scroll down", "click button").
-// * @property pageSummaryPrompt A prompt to analyze or discuss the HTML structure of the page.
-// * @property dataExtractionRules Specifications for extracting structured fields from the HTML content.
-// * @property uriExtractionRules A regex pattern to extract specific URIs from the page, e.g. "links containing /dp/".
-// * @property xsql An X-SQL query for structured data extraction, e.g. "select dom_first_text(dom, '#title') as title, llm_extract(dom, 'price') as price".
-// * @property richText Whether to retain rich text formatting in the extracted content.
-// * @property async If true, the command is executed asynchronous; otherwise, it's synchronously.
-// * @property mode The execution mode, either "sync" or "async", default to "sync". (Deprecated: use [async] instead)
-// */
-//data class CommandRequest @JsonCreator constructor(
-//    @param:JsonProperty("url") var url: String,
-//    @param:JsonProperty("args") var args: String? = null,
-//    @param:JsonProperty("onBrowserLaunchedActions") var onBrowserLaunchedActions: List<String>? = null,
-//    @param:JsonProperty("onPageReadyActions") var onPageReadyActions: List<String>? = null,
-//    @param:JsonProperty("actions") var actions: List<String>? = null,
-//    @param:JsonProperty("pageSummaryPrompt") var pageSummaryPrompt: String? = null,
-//    @param:JsonProperty("dataExtractionRules") var dataExtractionRules: String? = null,
-//    @param:JsonProperty("uriExtractionRules") var uriExtractionRules: String? = null,
-//    @param:JsonProperty("xsql") var xsql: String? = null,
-//    @param:JsonProperty("richText") var richText: Boolean? = null,
-//    @param:JsonProperty("async") var async: Boolean? = null,
-//    @param:JsonProperty("id") var id: String? = null,
-//) {
-//    fun hasAction(): Boolean {
-//        return !onBrowserLaunchedActions.isNullOrEmpty() || !onPageReadyActions.isNullOrEmpty()
-//    }
-//
-//    fun isAsync(): Boolean {
-//        return when {
-//            async == true -> true
-//            else -> false
-//        }
-//    }
-//
-//    fun enhanceArgs(): String {
-//        val minimalSize = 100 // minimal page size required
-//        val args = if (hasAction()) {
-//            LoadOptions.mergeArgs(this.args, "-refresh -requireSize $minimalSize")
-//        } else {
-//            LoadOptions.mergeArgs(this.args, "-requireSize $minimalSize")
-//        }
-//
-//        this.args = args
-//        return args
-//    }
-//}
 
 typealias CommandRequest = PageVisitRequest
 
