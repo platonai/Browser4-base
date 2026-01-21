@@ -29,6 +29,10 @@ from typing import Dict, Optional, List
 from urllib.error import URLError
 from urllib.request import Request, ProxyHandler, build_opener
 
+# add lightweight stdlib helpers (no new deps)
+import shutil
+import socket
+
 
 class Browser4Driver:
     """
@@ -70,6 +74,9 @@ class Browser4Driver:
     HEALTH_CHECK_INTERVAL_MS = 500
     MEGABYTE = 1024 * 1024
 
+    # How many bytes of recent logs to include in exceptions.
+    LOG_TAIL_BYTES = 64 * 1024
+
     def __init__(
         self,
         jar_path: Optional[str] = None,
@@ -84,6 +91,7 @@ class Browser4Driver:
         self.java_options = java_options or {}
         self._process: Optional[subprocess.Popen] = None
         self._shutdown_hook_registered = False
+        self._log_file_path: Optional[str] = None
 
     @staticmethod
     def _default_jar_path() -> str:
@@ -92,6 +100,14 @@ class Browser4Driver:
         browser4_dir = home / ".browser4" / "lib"
         browser4_dir.mkdir(parents=True, exist_ok=True)
         return str(browser4_dir / Browser4Driver.JAR_FILENAME)
+
+    @staticmethod
+    def _default_log_dir() -> Path:
+        """Returns the default log directory in the user's home directory."""
+        home = Path.home()
+        log_dir = home / ".browser4" / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        return log_dir
 
     @property
     def base_url(self) -> str:
@@ -116,7 +132,16 @@ class Browser4Driver:
             RuntimeError: If download fails after retries.
         """
         if self.is_jar_present:
-            return
+            # Basic integrity check: avoid launching an empty/corrupted download.
+            try:
+                size = Path(self.jar_path).stat().st_size
+                if size <= 0:
+                    raise RuntimeError(f"Browser4.jar exists but is empty: {self.jar_path}")
+            except OSError:
+                # If stat fails, fall back to trying download.
+                pass
+            else:
+                return
 
         print(f"Browser4.jar not found at {self.jar_path}")
         resolved_url = self._resolve_download_url()
@@ -127,15 +152,21 @@ class Browser4Driver:
 
         attempts = 3
         backoff_ms = 3000
-        last_error: Optional[Exception] = None
 
         for attempt in range(attempts):
             try:
                 self._download_file(resolved_url, jar_file)
+
+                # Fail fast if download didn't create a non-empty file.
+                # (Some unit tests mock _download_file without writing to disk, so only
+                # enforce this when the file actually exists.)
+                if jar_file.exists():
+                    if jar_file.stat().st_size <= 0:
+                        raise RuntimeError(f"Downloaded jar is empty: {jar_file}")
+
                 print(f"Browser4.jar downloaded successfully to {self.jar_path}")
                 return
             except Exception as e:
-                last_error = e
                 is_last_attempt = attempt == attempts - 1
                 msg = f"Failed to download Browser4.jar (attempt {attempt + 1}/{attempts}): {e}"
 
@@ -188,6 +219,45 @@ class Browser4Driver:
         proxy_handler = ProxyHandler()
         return build_opener(proxy_handler)
 
+    @staticmethod
+    def _is_port_available(port: int) -> bool:
+        """Returns True if the given TCP port on localhost is available for binding."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                s.bind(("127.0.0.1", port))
+                return True
+            except OSError:
+                return False
+
+    @staticmethod
+    def _tail_file_text(path: Optional[str], max_bytes: int) -> str:
+        """Reads the tail of a text file for diagnostics."""
+        if not path:
+            return ""
+        try:
+            p = Path(path)
+            if not p.exists():
+                return ""
+            size = p.stat().st_size
+            start = max(0, size - max_bytes)
+            with open(p, "rb") as f:
+                f.seek(start)
+                data = f.read()
+            text = data.decode("utf-8", errors="replace")
+            return text.strip()
+        except Exception:
+            return ""
+
+    def _ensure_java_available(self) -> None:
+        """Raises a RuntimeError with hints if Java isn't on PATH."""
+        if shutil.which("java"):
+            return
+        raise RuntimeError(
+            "Java executable not found on PATH. Install a JRE/JDK (Java 17+ recommended) "
+            "and ensure 'java' is available in your PATH."
+        )
+
     def _download_file(self, url: str, target_path: Path) -> None:
         """Downloads a file from URL to target path with progress tracking."""
         request = Request(url)
@@ -235,7 +305,15 @@ class Browser4Driver:
         if self.is_running:
             raise RuntimeError("Browser4 server is already running")
 
+        # Fail fast if port is already in use.
+        if not self._is_port_available(self.port):
+            raise RuntimeError(
+                f"Port {self.port} is already in use. Choose a different port (Browser4Driver(port=...)) "
+                f"or stop the process using that port."
+            )
+
         self.download_if_needed()
+        self._ensure_java_available()
 
         print(f"Starting Browser4 server on port {self.port}...")
 
@@ -266,19 +344,43 @@ class Browser4Driver:
 
         commands.extend(["-jar", self.jar_path])
 
-        self._process = subprocess.Popen(
-            commands,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-        )
+        # Capture server output to a log file for easier debugging.
+        log_dir = self._default_log_dir()
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        log_file = log_dir / f"browser4-{self.port}-{timestamp}.log"
+        self._log_file_path = str(log_file)
+
+        try:
+            log_handle = open(log_file, "w", encoding="utf-8", errors="replace")
+        except OSError:
+            log_handle = None
+
+        try:
+            self._process = subprocess.Popen(
+                commands,
+                stdout=log_handle or subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+            )
+        except FileNotFoundError as e:
+            # This can happen even if shutil.which failed to detect due to PATH quirks.
+            raise RuntimeError(
+                "Failed to start Browser4 because the 'java' executable could not be found. "
+                "Install Java and ensure it's on PATH."
+            ) from e
+        except Exception as e:
+            raise RuntimeError(f"Failed to start Browser4 process: {e}") from e
+        finally:
+            # If we used a log file, keep it open for the process.
+            # (Don't close log_handle here.)
+            pass
 
         self._install_shutdown_hook()
 
         if wait_for_ready:
             self.wait_for_server_ready()
 
-        print("Browser4 server started successfully")
+        print(f"Browser4 server started successfully (logs: {self._log_file_path})")
 
     def wait_for_server_ready(
         self, timeout_seconds: float = STARTUP_TIMEOUT_SECONDS
@@ -297,15 +399,23 @@ class Browser4Driver:
 
         while (time.time() - start_time) * 1000 < timeout_ms:
             if not self.is_running:
-                raise RuntimeError("Browser4 process terminated unexpectedly")
+                tail = self._tail_file_text(self._log_file_path, self.LOG_TAIL_BYTES)
+                details = f"\n\n--- Browser4 logs (tail) ---\n{tail}" if tail else ""
+                log_hint = f"\nLog file: {self._log_file_path}" if self._log_file_path else ""
+                raise RuntimeError(
+                    "Browser4 process terminated unexpectedly." + log_hint + details
+                )
 
             if self.is_server_healthy():
                 return
 
             time.sleep(self.HEALTH_CHECK_INTERVAL_MS / 1000)
 
+        tail = self._tail_file_text(self._log_file_path, self.LOG_TAIL_BYTES)
+        details = f"\n\n--- Browser4 logs (tail) ---\n{tail}" if tail else ""
+        log_hint = f"\nLog file: {self._log_file_path}" if self._log_file_path else ""
         raise RuntimeError(
-            f"Browser4 server failed to start within {timeout_seconds} seconds"
+            f"Browser4 server failed to start within {timeout_seconds} seconds." + log_hint + details
         )
 
     def is_server_healthy(self) -> bool:
@@ -318,6 +428,7 @@ class Browser4Driver:
         candidates = [
             f"{self.base_url}/health",
             f"{self.base_url}/actuator/health",
+            f"{self.base_url}/",
         ]
 
         for endpoint in candidates:
@@ -325,7 +436,21 @@ class Browser4Driver:
                 request = Request(endpoint)
                 opener = self._create_opener()
                 with opener.open(request, timeout=1) as response:
-                    return 200 <= response.status < 300
+                    status_ok = 200 <= response.status < 300
+                    if not status_ok:
+                        continue
+
+                    # If we hit actuator, try to ensure status==UP when possible.
+                    if endpoint.endswith("/actuator/health"):
+                        try:
+                            body = response.read().decode("utf-8", errors="replace")
+                            if body and '"status"' in body:
+                                return '"UP"' in body or '"status":"UP"' in body
+                        except Exception:
+                            # Fall back to HTTP status.
+                            return True
+
+                    return True
             except Exception:
                 continue
 
