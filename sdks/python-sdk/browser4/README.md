@@ -9,13 +9,12 @@ Low-level HTTP client for Browser4 API communication.
 
 ### `models.py`
 Data models matching Kotlin interfaces:
-- `WebPage` - Loaded page result
+- `WebPage` - Loaded page result (also used for captured page state)
 - `NormURL` - Normalized URL with arguments
 - `AgentRunResult` - Agent run operation result
 - `AgentActResult` - Agent action result
 - `AgentObservation` / `ObserveResult` - Page observation results
 - `ExtractionResult` - AI extraction result
-- `PageSnapshot` - Captured page state
 - `FieldsExtraction` - CSS selector extraction result
 - `PageEventHandlers` - Event handlers placeholder
 
@@ -31,12 +30,12 @@ WebDriver-compatible browser control:
 ### `agentic_session.py`
 Session management with AI-powered automation:
 - `PulsarSession` - Page loading and extraction (open, load, submit, normalize, extract, scrape)
-- `AgenticSession` - AI-powered actions (act, run, observe, summarize, agent_extract)
+- `AgenticSession` - AI-powered actions (observe, act, run, summarize, agent_extract)
 
 ## Usage
 
 ```python
-from browser4-sdk import PulsarClient, AgenticSession
+from browser4 import PulsarClient, AgenticSession
 
 client = PulsarClient(base_url="http://localhost:8182")
 client.create_session()
@@ -54,4 +53,3 @@ session.close()
 ```
 
 See the parent README.md for comprehensive documentation.
-

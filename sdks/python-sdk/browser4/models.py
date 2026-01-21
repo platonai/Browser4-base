@@ -184,13 +184,6 @@ class ExtractionResult:
 
 
 @dataclass
-class PageSnapshot:
-    """Snapshot of a web page, used for capture operations."""
-    url: str
-    html: Optional[str] = None
-
-
-@dataclass
 class FieldsExtraction:
     """Result of field extraction with CSS selectors."""
     fields: Dict[str, Any] = field(default_factory=dict)
@@ -305,31 +298,31 @@ class ChatResponse:
 class PageEventHandlers:
     """
     Placeholder for page event handlers.
-    
+
     This class will be implemented in future tasks to support event-driven
     page interactions similar to the Kotlin PageEventHandlers interface.
-    
+
     Future implementation will include:
     - Browse event handlers (onWillNavigate, onDocumentSteady, etc.)
     - Load event handlers (onLoaded, onHTMLDocumentParsed, etc.)
     - Crawl event handlers
     """
-    
+
     def __init__(self):
         self._browse_event_handlers = {}
         self._load_event_handlers = {}
         self._crawl_event_handlers = {}
-    
+
     @property
     def browse_event_handlers(self) -> Dict[str, Any]:
         """Get browse event handlers (placeholder)."""
         return self._browse_event_handlers
-    
+
     @property
     def load_event_handlers(self) -> Dict[str, Any]:
         """Get load event handlers (placeholder)."""
         return self._load_event_handlers
-    
+
     @property
     def crawl_event_handlers(self) -> Dict[str, Any]:
         """Get crawl event handlers (placeholder)."""
@@ -345,7 +338,6 @@ __all__ = [
     "ObserveResult",
     "AgentObservation",
     "ExtractionResult",
-    "PageSnapshot",
     "FieldsExtraction",
     "ToolCallResult",
     "ActionDescription",

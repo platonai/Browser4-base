@@ -20,15 +20,15 @@ Quick start:
     ...     client = PulsarClient(base_url=driver.base_url)
     ...     session_id = client.create_session()
     ...     session = AgenticSession(client)
-    ...     
+    ...
     ...     # Navigate and interact
     ...     session.driver.navigate_to("https://example.com")
     ...     print(session.driver.get_current_url())
-    ...     
+    ...
     ...     # Use AI-powered actions
     ...     result = session.run("scroll to the bottom of the page")
     ...     print(result.success)
-    ...     
+    ...
     ...     # Clean up
     ...     session.close()
 
@@ -43,7 +43,7 @@ from .models import (
     # Core data models
     WebPage,
     NormURL,
-    PageSnapshot,
+    # PageSnapshot,  # removed: use WebPage instead
     ElementRef,
     FieldsExtraction,
     # Agent result models
@@ -74,7 +74,7 @@ __all__ = [
     # Core models
     "WebPage",
     "NormURL",
-    "PageSnapshot",
+    # "PageSnapshot",  # removed: use WebPage instead
     "ElementRef",
     "FieldsExtraction",
     # Agent models

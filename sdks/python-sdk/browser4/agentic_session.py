@@ -27,19 +27,20 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
 
 from .client import PulsarClient
 from .models import (
+    WebPage,
+    NormURL,
+    ElementRef,
+    FieldsExtraction,
+    AgentRunResult,
     AgentActResult,
     AgentObservation,
-    AgentRunResult,
+    ObserveResult,
+    ExtractionResult,
+    ToolCallResult,
+    ActionDescription,
     AgentState,
     AgentHistory,
     ChatResponse,
-    ExtractionResult,
-    FieldsExtraction,
-    NormURL,
-    ObserveResult,
-    PageSnapshot,
-    ToolCallResult,
-    WebPage,
     PageEventHandlers,
 )
 from .webdriver import WebDriver
@@ -740,26 +741,23 @@ class AgenticSession(PulsarSession):
 
     # ========== Capture Operations ==========
 
-    def capture(self, driver: Optional[WebDriver] = None, url: Optional[str] = None) -> PageSnapshot:
+    def capture(self, driver: Optional[WebDriver] = None, url: Optional[str] = None) -> WebPage:
         """
         Capture the live page controlled by a WebDriver.
 
-        This creates a static snapshot of the current page state.
+        In the SDK semantics, a captured snapshot is represented by `WebPage`.
 
         Args:
             driver: The WebDriver controlling the page (uses bound driver if None).
             url: Optional URL to identify the capture.
 
         Returns:
-            PageSnapshot with the captured page.
+            WebPage with the captured page content.
         """
         drv = driver or self.driver
         current_url = url or drv.get_current_url()
         value = self.client.post("/session/{sessionId}/open", {"url": current_url})
-        return PageSnapshot(
-            url=value.get("url", current_url) if isinstance(value, dict) else current_url,
-            html=value.get("html") if isinstance(value, dict) else None
-        )
+        return WebPage.from_dict(value) if isinstance(value, dict) else WebPage(url=current_url)
 
     # ========== Helper Methods (Kotlin API Compatibility) ==========
 
