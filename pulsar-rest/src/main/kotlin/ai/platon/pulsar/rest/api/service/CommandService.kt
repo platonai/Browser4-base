@@ -111,7 +111,7 @@ class CommandService(
             submitPageVisitCommandAsync(request, eventHandlers)
         } else {
             // Agent-based async command execution
-            submitAgentCommandAsync(plainCommand)
+            submitAgentTaskAsync(plainCommand)
         }
     }
 
@@ -126,7 +126,7 @@ class CommandService(
      */
     internal suspend fun executeAgentCommand(plainCommand: String): CommandStatus {
         val status = createCachedCommandStatus()
-        executeAgentCommandInternal(plainCommand, status)
+        executeAgentTaskInternal(plainCommand, status)
         return status
     }
 
@@ -136,9 +136,9 @@ class CommandService(
      * @param plainCommand The plain text command for the agent to execute.
      * @return The command status ID for tracking execution progress.
      */
-    internal fun submitAgentCommandAsync(plainCommand: String): String {
+    internal fun submitAgentTaskAsync(plainCommand: String): String {
         val status = createCachedCommandStatus()
-        commanderScope.launch { executeAgentCommandInternal(plainCommand, status) }
+        commanderScope.launch { executeAgentTaskInternal(plainCommand, status) }
         return status.id
     }
 
@@ -148,7 +148,7 @@ class CommandService(
      * The status is updated with the agent's state history reference, allowing callers
      * to access the latest agent state via [CommandStatus.currentAgentState] during execution.
      */
-    private suspend fun executeAgentCommandInternal(plainCommand: String, status: CommandStatus) {
+    private suspend fun executeAgentTaskInternal(plainCommand: String, status: CommandStatus) {
         try {
             status.refresh(ResourceStatus.SC_PROCESSING)
             val agent = session.companionAgent

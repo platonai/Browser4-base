@@ -361,7 +361,7 @@ class CommandServiceTest : MockEcServerTestBase() {
         // Use a simple command that will trigger agent execution
         val plainCommand = "Search for test information"
 
-        val statusId = commandService.submitAgentCommandAsync(plainCommand)
+        val statusId = commandService.submitAgentTaskAsync(plainCommand)
         assertNotNull(statusId)
         assertTrue { statusId.isNotBlank() }
 
