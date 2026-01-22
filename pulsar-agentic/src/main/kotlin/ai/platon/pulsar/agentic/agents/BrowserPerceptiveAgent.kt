@@ -937,6 +937,7 @@ open class BrowserPerceptiveAgent(
 
         val files = fs.listOSFiles().filterNot { it.fileName.toString().contains("todolist.md") }
         if (files.isNotEmpty()) {
+            logger.info("Agent data dir: \n{}", fs.dataDir)
             logger.info("Agent files: \n{}", files.joinToString("\n") { it.toUri().toString() })
         } else {
             logger.info("No files used by this agent")

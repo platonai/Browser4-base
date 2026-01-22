@@ -72,7 +72,7 @@ sealed class BaseFile(
     open fun content(): String = content
 
     val size: Int get() = content.length
-    val lineCount: Int get() = content.split("\n").size
+    val lineCount: Int get() = if (content.isEmpty()) 0 else content.split("\n").size
 }
 
 class MarkdownFile(override val name: String, override var content: String = "") : BaseFile(name, content) {
@@ -117,7 +117,7 @@ class AgentFileSystem constructor(
 
     private val logger = getLogger(this)
 
-    private val dataDir: Path = baseDir.resolve(DEFAULT_FILE_SYSTEM_PATH)
+    val dataDir: Path = baseDir.resolve(DEFAULT_FILE_SYSTEM_PATH)
 
     private val fileFactories: Map<String, (String, String) -> BaseFile> = mapOf(
         "md" to { name, c -> MarkdownFile(name, c) },
@@ -131,7 +131,9 @@ class AgentFileSystem constructor(
     private var extractedContentCount: Int = 0
     private val allowedExtensionsPattern: Pattern = run {
         val exts = fileFactories.keys.joinToString("|")
-        Pattern.compile("^[a-zA-Z0-9_\\-]+\\.($exts)$")
+        // Allow dots in basename (e.g. "a.b.txt"), but disallow path separators and empty segments.
+        // Also disallow leading/trailing dot.
+        Pattern.compile("^[A-Za-z0-9_\\-]+(?:\\.[A-Za-z0-9_\\-]+)*\\.($exts)$")
     }
 
     init {
@@ -178,9 +180,9 @@ class AgentFileSystem constructor(
         return files[fullFileName]
     }
 
-    fun listFiles(): List<String> = files.values.map { it.fullName }
+    fun listFiles(): List<String> = files.values.map { it.fullName }.sorted()
 
-    fun listOSFiles(): List<Path> = files.values.map { dataDir.resolve(it.fullName) }
+    fun listOSFiles(): List<Path> = files.values.map { dataDir.resolve(it.fullName) }.sortedBy { it.toString() }
 
     fun displayFile(fullFileName: String): String? {
         if (!isValidFilename(fullFileName)) return null
@@ -346,9 +348,9 @@ class AgentFileSystem constructor(
         if (!isValidFilename(sourceFileName)) return "Error: Invalid source fileName format. Must be alphanumeric with supported extension."
         if (!isValidFilename(destFileName)) return "Error: Invalid destination fileName format. Must be alphanumeric with supported extension."
         if (sourceFileName == destFileName) return "Error: Source and destination file names must be different."
-        
+
         val sourceFile = getFile(sourceFileName) ?: return "Source file '$sourceFileName' not found."
-        
+
         return try {
             val (destName, destExt) = parseFilename(destFileName)
             val newFile = createFile(destExt, destName, sourceFile.content())
@@ -373,9 +375,9 @@ class AgentFileSystem constructor(
         if (!isValidFilename(sourceFileName)) return "Error: Invalid source fileName format. Must be alphanumeric with supported extension."
         if (!isValidFilename(destFileName)) return "Error: Invalid destination fileName format. Must be alphanumeric with supported extension."
         if (sourceFileName == destFileName) return "Error: Source and destination file names must be different."
-        
+
         val sourceFile = files.remove(sourceFileName) ?: return "Source file '$sourceFileName' not found."
-        
+
         return try {
             // Delete old file from disk
             val oldPath = dataDir.resolve(sourceFile.fullName)
@@ -384,13 +386,13 @@ class AgentFileSystem constructor(
                     Files.delete(oldPath)
                 }
             }
-            
+
             // Create new file with same content
             val (destName, destExt) = parseFilename(destFileName)
             val newFile = createFile(destExt, destName, sourceFile.content())
             files[destFileName] = newFile
             newFile.writeString(dataDir)
-            
+
             "File '$sourceFileName' moved to '$destFileName' successfully."
         } catch (e: FileSystemError) {
             // Restore source file on failure
@@ -412,7 +414,7 @@ class AgentFileSystem constructor(
         if (files.isEmpty()) {
             return "No files in the file system."
         }
-        
+
         val sb = StringBuilder()
         sb.appendLine("Files in agent file system (${files.size} files):")
         for ((fileName, file) in files) {

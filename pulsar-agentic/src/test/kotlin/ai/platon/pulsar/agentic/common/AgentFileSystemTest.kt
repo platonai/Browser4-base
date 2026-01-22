@@ -115,7 +115,7 @@ class AgentFileSystemTest {
     fun `deleteFile removes file`() = runBlocking {
         fs.writeString("test.txt", "content")
         assertTrue(fs.listFiles().contains("test.txt"))
-        
+
         val result = fs.deleteFile("test.txt")
         assertTrue(result.contains("deleted successfully"))
         assertFalse(fs.listFiles().contains("test.txt"))
@@ -132,11 +132,11 @@ class AgentFileSystemTest {
         fs.writeString("source.txt", "Original content")
         val result = fs.copyFile("source.txt", "dest.txt")
         assertTrue(result.contains("copied"))
-        
+
         // Both files should exist
         assertTrue(fs.listFiles().contains("source.txt"))
         assertTrue(fs.listFiles().contains("dest.txt"))
-        
+
         // Content should be the same
         val sourceContent = fs.readString("source.txt")
         val destContent = fs.readString("dest.txt")
@@ -162,11 +162,11 @@ class AgentFileSystemTest {
         fs.writeString("old.txt", "Content to move")
         val result = fs.moveFile("old.txt", "new.txt")
         assertTrue(result.contains("moved"))
-        
+
         // Old file should not exist, new file should
         assertFalse(fs.listFiles().contains("old.txt"))
         assertTrue(fs.listFiles().contains("new.txt"))
-        
+
         // Content should be preserved
         val content = fs.readString("new.txt")
         assertTrue(content.contains("Content to move"))
@@ -189,7 +189,7 @@ class AgentFileSystemTest {
     fun `listFilesInfo returns formatted file list`() = runBlocking {
         fs.writeString("file1.txt", "Content 1")
         fs.writeString("file2.md", "# Markdown content")
-        
+
         val result = fs.listFilesInfo()
         assertTrue(result.contains("2 files"))
         assertTrue(result.contains("file1.txt"))
@@ -228,6 +228,13 @@ class AgentFileSystemTest {
             val result = fs.writeString(name, "content")
             assertTrue(result.contains("Invalid") || result.contains("Error"), "Should reject: $name")
         }
+    }
+
+    @Test
+    fun `allows dot in base name`() = runBlocking {
+        val result = fs.writeString("a.b.txt", "content")
+        assertTrue(result.contains("successfully"), result)
+        assertTrue(fs.listFiles().contains("a.b.txt"))
     }
 
     // --- Edge cases ---
@@ -270,7 +277,7 @@ class AgentFileSystemTest {
     fun `handles multiple concurrent writes`() = runBlocking {
         val files = (1..10).map { "file$it.txt" }
         files.forEach { fs.writeString(it, "Content for $it") }
-        
+
         assertEquals(10, fs.listFiles().size)
         files.forEach { assertTrue(fs.listFiles().contains(it)) }
     }

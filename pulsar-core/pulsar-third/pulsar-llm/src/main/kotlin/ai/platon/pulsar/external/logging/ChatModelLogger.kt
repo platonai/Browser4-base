@@ -12,25 +12,29 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicInteger
 
 class ChatModelLogger : AutoCloseable {
+    companion object {
+        const val LOG_BASE_DIR = "logs/agent/chat-model"
+    }
+
     private val logger = LoggerFactory.getLogger(ChatModelLogger::class.java)
     private val counter = AtomicInteger(0)
     private val requestResponseMap =
         ConcurrentExpiringLRUCache<Int, RequestResponsePair>(ttl = Duration.ofMinutes(10))
 
-    private var logDirectory = "logs/chat-model"
+    private var logBaseDir = LOG_BASE_DIR
     private var enableSystemMessages = false
     private val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss.SSS")
     private val writer: MessageWriter
 
-    fun configure(logDirectory: String = "logs/chat-model", enableSystemMessages: Boolean = false) {
-        this.logDirectory = logDirectory
+    fun configure(logDirectory: String = LOG_BASE_DIR, enableSystemMessages: Boolean = false) {
+        this.logBaseDir = logDirectory
         this.enableSystemMessages = enableSystemMessages
     }
 
     init {
-        File(logDirectory).mkdirs()
+        File(logBaseDir).mkdirs()
         val dateStr = LocalDateTime.now().format(dateFormat)
-        writer = MessageWriter(Paths.get(logDirectory).resolve("chat_$dateStr.log"))
+        writer = MessageWriter(Paths.get(logBaseDir).resolve("chat_$dateStr.log"))
     }
 
     fun logRequest(systemMessage: String, userMessage: String) = logRequestSmUm(systemMessage, userMessage)
@@ -68,8 +72,12 @@ class ChatModelLogger : AutoCloseable {
             sb.append(";;REQUEST ID: ${pair.id}\n")
             sb.append(";;TIMESTAMP: ${pair.timestamp}\n")
 
-            if (counter.get() > 1 && enableSystemMessages) {
-                sb.append(";;SYSTEM MESSAGE:\n${pair.systemMessage}\n")
+            val logCount = counter.get()
+            if (logCount > 1) {
+                if (enableSystemMessages || logCount == 2) {
+                    // Log system message only if enabled or this is the second log (first pair)
+                    sb.append(";;SYSTEM MESSAGE:\n${pair.systemMessage}\n")
+                }
             }
 
             sb.append(";;USER MESSAGE:\n${pair.userMessage}\n")
