@@ -34,22 +34,22 @@ open class DualWorldScriptLoader(
          * Scripts that should be injected into the Page World.
          * These are minimal stealth patches and fingerprint patches only.
          */
-        val PAGE_WORLD_RESOURCES = """
-            stealth.js
-        """.trimIndent().split("\n").map { "js/" + it.trim() }.toMutableList()
+        val PAGE_WORLD_RESOURCES = listOf(
+            "js/stealth.js"
+        )
         
         /**
          * Scripts that should be injected into the Isolated World.
          * These contain the full Browser4 runtime and utilities.
          */
-        val ISOLATED_WORLD_RESOURCES = """
-            runtime_bridge.js
-            configs.js
-            node_ext.js
-            node_traversor.js
-            feature_calculator.js
-            __pulsar_utils__.js
-        """.trimIndent().split("\n").map { "js/" + it.trim() }.toMutableList()
+        val ISOLATED_WORLD_RESOURCES = listOf(
+            "js/runtime_bridge.js",
+            "js/configs.js",
+            "js/node_ext.js",
+            "js/node_traversor.js",
+            "js/feature_calculator.js",
+            "js/__pulsar_utils__.js"
+        )
         
         /**
          * Add initialization parameters that will be available to JavaScript.

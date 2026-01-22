@@ -912,14 +912,8 @@ function() {
     }
 
     private suspend fun addScriptToEvaluateOnNewDocument() {
-        // Use dual-world script loader if available, otherwise fall back to legacy loader
-        val useDualWorld = settings.dualWorldScriptLoader != null
-        
-        if (useDualWorld) {
-            addDualWorldScripts()
-        } else {
-            addLegacyScripts()
-        }
+        // Use dual-world script loader (always available in BrowserSettings)
+        addDualWorldScripts()
     }
     
     /**

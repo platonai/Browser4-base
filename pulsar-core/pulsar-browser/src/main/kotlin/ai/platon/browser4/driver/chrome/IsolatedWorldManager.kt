@@ -58,7 +58,7 @@ class IsolatedWorldManager(
         // Create isolated world using CDP Page.createIsolatedWorld
         val params = mutableMapOf<String, Any?>(
             "worldName" to RUNTIME_WORLD_NAME,
-            "grantUniveralAccess" to true // Allow access to cross-origin frames
+            "grantUniversalAccess" to true // Allow access to cross-origin frames
         )
         
         if (frameId != null) {
