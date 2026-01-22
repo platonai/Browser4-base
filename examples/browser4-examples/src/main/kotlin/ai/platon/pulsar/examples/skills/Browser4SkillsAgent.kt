@@ -14,7 +14,7 @@ import ai.platon.pulsar.agentic.skills.examples.DataValidationSkill
  * 1. Register skills to a SkillRegistry
  * 2. Execute skills programmatically
  * 3. Use skills with an agent
- * 4. Chain skills together
+ * 4. Discover skills by tags
  */
 suspend fun main() {
     // Create the agent
