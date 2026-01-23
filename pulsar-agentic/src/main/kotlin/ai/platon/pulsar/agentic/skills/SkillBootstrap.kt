@@ -7,6 +7,7 @@ import ai.platon.pulsar.agentic.skills.examples.WebScrapingSkill
 import ai.platon.pulsar.common.getLogger
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
 /**
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component
  * using the @PostConstruct annotation.
  */
 @Component
+@Lazy(false)  // Ensure eager initialization to load skills on startup
 class SkillBootstrap {
     private val logger = getLogger(this)
     private val registry = SkillRegistry.instance

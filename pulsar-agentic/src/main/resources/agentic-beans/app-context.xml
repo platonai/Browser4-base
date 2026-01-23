@@ -10,10 +10,8 @@
 
     <import resource="classpath*:pulsar-beans/components-context.xml"/>
 
-    <!-- Scan for Spring components in agentic package (including SkillBootstrap) -->
+    <!-- Scan for Spring components in agentic package (including SkillBootstrap)
+         SkillBootstrap uses @Lazy(false) annotation to ensure eager initialization -->
     <context:component-scan base-package="ai.platon.pulsar.agentic.skills"/>
-    
-    <!-- Explicitly define SkillBootstrap as eager to ensure skills are loaded on startup -->
-    <bean id="skillBootstrap" class="ai.platon.pulsar.agentic.skills.SkillBootstrap" lazy-init="false"/>
 
 </beans>
