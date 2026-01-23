@@ -101,7 +101,9 @@ Naming conventions:
 - Unit: `<ClassName>Test.kt`
 - Integration: `<ClassName>IT.kt` or `<ClassName>Test.kt`
 - E2E: `<ClassName>E2ETest.kt`
-- Method names: Backticks + BDD style, e.g. ``Given X When Y Then Z``
+- **Method names: Use camelCase naming convention. DO NOT use Kotlin's backtick naming (e.g., `` `some test name` ``)**
+  - ✅ Good: `testUserLoginWithValidCredentials()`, `shouldReturnErrorWhenInputIsInvalid()`
+  - ❌ Bad: `` `test user login with valid credentials` ``, `` `should return error when input is invalid` ``
 
 ---
 

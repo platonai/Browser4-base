@@ -107,6 +107,7 @@ fun load(url: String, options: LoadOptions): PageSnapshot {
 - 速度目标：单测 <100ms；集成 <5s；E2E <30s
 - 覆盖率：CI 配置启用 Jacoco（全局至少约 70% 指令覆盖）
 - 标签：按 `docs/copilot/templates/test-tag-usage.md`
+- **命名规则**：测试方法名必须使用驼峰命名法（camelCase），禁止使用 Kotlin 的反引号命名法（如 `` `some test name` ``）
 
 ## 8) 常见命令速查
 - 构建（不跑测）：
