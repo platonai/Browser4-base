@@ -5,6 +5,7 @@ import ai.platon.pulsar.agentic.tools.crawl.PageVisitStatus
 import ai.platon.pulsar.common.ResourceStatus
 import ai.platon.pulsar.persist.metadata.ProtocolStatusCodes
 import ai.platon.pulsar.rest.api.entities.CommandStatus
+import ai.platon.pulsar.rest.api.entities.toCommandStatus
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import kotlin.test.assertEquals
@@ -37,14 +38,8 @@ class CommandStatusConversionTest {
         pageVisitStatus.lastModifiedTime = now
         pageVisitStatus.finishTime = now.plusSeconds(10)
         
-        // Convert using reflection to call the private method
-        val commandService = createDummyCommandService()
-        val method = CommandService::class.java.getDeclaredMethod(
-            "toCommandStatus",
-            PageVisitStatus::class.java
-        )
-        method.isAccessible = true
-        val commandStatus = method.invoke(commandService, pageVisitStatus) as CommandStatus
+        // Convert using extension function
+        val commandStatus = pageVisitStatus.toCommandStatus()
         
         // Verify all fields are transferred
         assertEquals("test-id-123", commandStatus.id)
@@ -66,13 +61,8 @@ class CommandStatusConversionTest {
             processState = "done"
         )
         
-        val commandService = createDummyCommandService()
-        val method = CommandService::class.java.getDeclaredMethod(
-            "toCommandStatus",
-            PageVisitStatus::class.java
-        )
-        method.isAccessible = true
-        val commandStatus = method.invoke(commandService, pageVisitStatus) as CommandStatus
+        // Convert using extension function
+        val commandStatus = pageVisitStatus.toCommandStatus()
         
         // Verify processState is preserved
         assertEquals("done", commandStatus.processState)
@@ -93,14 +83,8 @@ class CommandStatusConversionTest {
         agentTaskStatus.lastModifiedTime = now
         agentTaskStatus.finishTime = now.plusSeconds(5)
         
-        // Convert using reflection to call the private method
-        val commandService = createDummyCommandService()
-        val method = CommandService::class.java.getDeclaredMethod(
-            "toCommandStatus",
-            AgentTaskStatus::class.java
-        )
-        method.isAccessible = true
-        val commandStatus = method.invoke(commandService, agentTaskStatus) as CommandStatus
+        // Convert using extension function
+        val commandStatus = agentTaskStatus.toCommandStatus()
         
         // Verify all fields are transferred
         assertEquals("agent-id-456", commandStatus.id)
@@ -125,13 +109,8 @@ class CommandStatusConversionTest {
             processState = "created"
         )
         
-        val commandService = createDummyCommandService()
-        val method = CommandService::class.java.getDeclaredMethod(
-            "toCommandStatus",
-            AgentTaskStatus::class.java
-        )
-        method.isAccessible = true
-        val commandStatus = method.invoke(commandService, agentTaskStatus) as CommandStatus
+        // Convert using extension function
+        val commandStatus = agentTaskStatus.toCommandStatus()
         
         // Verify processState is preserved and not forced to "done"
         assertEquals("created", commandStatus.processState)
@@ -146,23 +125,11 @@ class CommandStatusConversionTest {
             processState = "done"
         )
         
-        val commandService = createDummyCommandService()
-        val method = CommandService::class.java.getDeclaredMethod(
-            "toCommandStatus",
-            AgentTaskStatus::class.java
-        )
-        method.isAccessible = true
-        val commandStatus = method.invoke(commandService, agentTaskStatus) as CommandStatus
+        // Convert using extension function
+        val commandStatus = agentTaskStatus.toCommandStatus()
         
         // Verify processState is preserved
         assertEquals("done", commandStatus.processState)
         assertEquals(true, commandStatus.isDone)
-    }
-
-    // Helper method to create a dummy CommandService instance for testing
-    private fun createDummyCommandService(): CommandService {
-        // We don't need to actually initialize the service for these tests
-        // since we're testing the conversion methods directly via reflection
-        return null as CommandService
     }
 }
