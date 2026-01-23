@@ -276,6 +276,15 @@ open class BrowserPerceptiveAgent(
     override fun close() {
         if (closed.compareAndSet(false, true)) {
             runCatching { agentJob.cancel(CancellationException("USER interrupted via close()")) }
+            
+            // Close bound WebDriver if exists
+            runCatching {
+                session.boundDriver?.let { driver ->
+                    driver.close()
+                    session.unbindDriver(driver)
+                }
+            }.onFailure { logger.warn("Failed to close bound WebDriver: ${it.message}") }
+            
             // Best-effort trace for visibility; avoid throwing
             runCatching {
                 val last = stateHistory.states.lastOrNull()

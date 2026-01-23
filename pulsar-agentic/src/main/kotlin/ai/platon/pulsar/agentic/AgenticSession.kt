@@ -47,7 +47,9 @@ open class BasicAgenticSession(
     id: Long = generateNextInProcessId()
 ) : AbstractAgenticSession(context, sessionConfig, id) {
 
-    override val companionAgent: PerceptiveAgent by lazy { ObserveActBrowserAgent(this) }
+    override val companionAgent: PerceptiveAgent by lazy {
+        ObserveActBrowserAgent(this).also { registerClosable(it) }
+    }
 
     private val executor by lazy { SessionActExecutor(this) }
 
@@ -62,7 +64,9 @@ open class AbstractAgenticQLSession(
     config: SessionConfig
 ) : AbstractH2SQLSession(context, sessionDelegate, config), AgenticSession {
 
-    override val companionAgent: PerceptiveAgent by lazy { ObserveActBrowserAgent(this) }
+    override val companionAgent: PerceptiveAgent by lazy {
+        ObserveActBrowserAgent(this).also { registerClosable(it) }
+    }
 
     private val executor by lazy { SessionActExecutor(this) }
 
