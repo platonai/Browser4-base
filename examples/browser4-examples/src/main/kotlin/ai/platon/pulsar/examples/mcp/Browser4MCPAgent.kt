@@ -5,6 +5,7 @@ import ai.platon.pulsar.agentic.mcp.MCPBootstrap
 import ai.platon.pulsar.agentic.mcp.MCPConfig
 import ai.platon.pulsar.agentic.mcp.MCPPluginRegistry
 import ai.platon.pulsar.agentic.mcp.MCPTransportType
+import ai.platon.pulsar.test.mcp.MCPServerStarter
 
 /**
  * # Browser4 MCP Agent Example
@@ -92,31 +93,46 @@ suspend fun connectToMCPServer() {
     println("\n=== Connecting to MCP Server ===\n")
     
     try {
-        // Example 1: Connect to a local STDIO MCP server
-        // This would start a Node.js process running an MCP server
-        val stdioConfig = MCPConfig(
-            serverName = "weather-server",
-            transportType = MCPTransportType.STDIO,
-            command = "node",
-            args = listOf("path/to/weather-server.js"),
-            enabled = true  // Set to false to disable this server
-        )
+        // Use local test MCP server instead of external server so examples are deterministic.
+        val url = "http://localhost:18182/mcp/info"
         
-        // Example 2: Connect to an HTTP-based MCP server
-        val sseConfig = MCPConfig(
-            serverName = "database-tools",
+        // Start the test MCP server (auto-start if not running)
+        val starter = MCPServerStarter()
+        starter.start(url)
+        
+        // Example 1: Connect to the test MCP server via SSE (HTTP)
+        val testServerConfig = MCPConfig(
+            serverName = "test-mcp-server",
             transportType = MCPTransportType.SSE,
-            url = "http://localhost:8080/mcp",
+            url = "http://localhost:18182/mcp",
             enabled = true
         )
         
-        // Register a single server with auto-registration of tools
+        // Register the server with auto-registration of tools
         // autoRegisterTools = true means tools will be available to the agent
         println("Registering MCP server...")
-        MCPBootstrap.register(stdioConfig, autoRegisterTools = true)
+        MCPBootstrap.register(testServerConfig, autoRegisterTools = true)
         
         println("✓ MCP server registered successfully!")
-        println("  The agent can now use tools from '${stdioConfig.serverName}'")
+        println("  The agent can now use tools from '${testServerConfig.serverName}'")
+        
+        // Note: For external MCP servers (not the test server), use configurations like:
+        // Example 2: Connect to a local STDIO MCP server
+        // val stdioConfig = MCPConfig(
+        //     serverName = "weather-server",
+        //     transportType = MCPTransportType.STDIO,
+        //     command = "node",
+        //     args = listOf("path/to/weather-server.js"),
+        //     enabled = true
+        // )
+        
+        // Example 3: Connect to an HTTP-based MCP server
+        // val sseConfig = MCPConfig(
+        //     serverName = "database-tools",
+        //     transportType = MCPTransportType.SSE,
+        //     url = "http://localhost:8080/mcp",
+        //     enabled = true
+        // )
         
     } catch (e: Exception) {
         println("✗ Failed to register MCP server: ${e.message}")
@@ -137,33 +153,38 @@ suspend fun connectToMultipleMCPServers() {
     println("\n=== Connecting to Multiple MCP Servers ===\n")
     
     try {
+        // Start the test MCP server
+        val url = "http://localhost:18182/mcp/info"
+        val starter = MCPServerStarter()
+        starter.start(url)
+        
         // Configure multiple MCP servers
         val configs = listOf(
+            MCPConfig(
+                serverName = "test-mcp-server",
+                transportType = MCPTransportType.SSE,
+                url = "http://localhost:18182/mcp",
+                enabled = true
+            ),
+            // Example configurations for other MCP servers (disabled by default)
             MCPConfig(
                 serverName = "weather-service",
                 transportType = MCPTransportType.STDIO,
                 command = "python",
                 args = listOf("weather_mcp_server.py"),
-                enabled = true
+                enabled = false  // Set to true if you have this server
             ),
             MCPConfig(
                 serverName = "database-tools",
                 transportType = MCPTransportType.SSE,
                 url = "http://localhost:8080/mcp",
-                enabled = true
+                enabled = false  // Set to true if you have this server
             ),
             MCPConfig(
                 serverName = "file-operations",
                 transportType = MCPTransportType.WEBSOCKET,
                 url = "ws://localhost:8081/ws",
-                enabled = true
-            ),
-            MCPConfig(
-                serverName = "optional-service",
-                transportType = MCPTransportType.STDIO,
-                command = "node",
-                args = listOf("optional-server.js"),
-                enabled = false  // This server won't be connected
+                enabled = false  // Set to true if you have this server
             )
         )
         
@@ -204,12 +225,16 @@ suspend fun agentWithMCPTools() {
     println("\n=== Agent Using MCP Tools ===\n")
     
     try {
-        // First, register MCP servers (in a real app, this would be done at startup)
+        // Start the test MCP server
+        val url = "http://localhost:18182/mcp/info"
+        val starter = MCPServerStarter()
+        starter.start(url)
+        
+        // Register the test MCP server
         val config = MCPConfig(
-            serverName = "calculator",
-            transportType = MCPTransportType.STDIO,
-            command = "node",
-            args = listOf("calculator-server.js"),
+            serverName = "test-mcp-server",
+            transportType = MCPTransportType.SSE,
+            url = "http://localhost:18182/mcp",
             enabled = true
         )
         
@@ -220,8 +245,9 @@ suspend fun agentWithMCPTools() {
         val agent = AgenticContexts.getOrCreateAgent()
         
         // The agent can now use MCP tools in natural language
+        // The test MCP server provides: echo, add, multiply tools
         val task = """
-            Using the calculator MCP tools, please:
+            Using the MCP tools available, please:
             1. Add 123 and 456
             2. Multiply the result by 2
             3. Tell me the final answer
@@ -265,12 +291,16 @@ suspend fun inspectMCPTools() {
     println("\n=== Inspecting MCP Tools ===\n")
     
     try {
-        // Register an MCP server (without auto-registering tools to the agent)
+        // Start the test MCP server
+        val url = "http://localhost:18182/mcp/info"
+        val starter = MCPServerStarter()
+        starter.start(url)
+        
+        // Register the test MCP server (without auto-registering tools to the agent)
         val config = MCPConfig(
-            serverName = "example-server",
-            transportType = MCPTransportType.STDIO,
-            command = "node",
-            args = listOf("example-server.js"),
+            serverName = "test-mcp-server",
+            transportType = MCPTransportType.SSE,
+            url = "http://localhost:18182/mcp",
             enabled = true
         )
         
@@ -278,7 +308,7 @@ suspend fun inspectMCPTools() {
         MCPPluginRegistry.instance.registerMCPServer(config, autoRegisterTools = false)
         
         // Get the tool executor for this server
-        val toolExecutor = MCPPluginRegistry.instance.getToolExecutor("example-server")
+        val toolExecutor = MCPPluginRegistry.instance.getToolExecutor("test-mcp-server")
         
         if (toolExecutor != null) {
             // Display available tools and their descriptions
@@ -301,14 +331,12 @@ suspend fun inspectMCPTools() {
  * Main entry point - demonstrates MCP integration patterns
  *
  * This example shows various ways to integrate MCP with Browser4.
- * Uncomment the examples you want to run.
  *
  * ## Running the Examples:
  *
- * 1. Ensure you have an MCP server running or available
- * 2. Update the configuration with your MCP server details
- * 3. Configure LLM API key in application.properties
- * 4. Run this file
+ * 1. The TestMCPServer will be automatically started
+ * 2. Configure LLM API key in application.properties (for agent examples)
+ * 3. Run this file
  *
  * ## Learn More:
  *
@@ -332,38 +360,44 @@ suspend fun main() {
         Examples included:
         1. Connecting to a single MCP server
         2. Connecting to multiple MCP servers
-        3. Using MCP tools with the Browser4 agent
+        3. Using MCP tools with the Browser4 agent (requires LLM API key)
         4. Inspecting available MCP tools
         
-        Note: To run these examples, you need:
-        - An MCP server (STDIO, SSE, or WebSocket)
-        - LLM API key configured for agent integration
+        The TestMCPServer will be automatically started and provides:
+        - echo: Returns the input message
+        - add: Adds two numbers
+        - multiply: Multiplies two numbers
         
     """.trimIndent())
     
     println("\n" + "─".repeat(66))
-    println("Select an example to run (uncomment in the code):")
+    println("Running examples:")
     println("─".repeat(66))
     
     try {
         // Example 1: Connect to a single MCP server
-        // Uncomment to run:
-        // connectToMCPServer()
+        connectToMCPServer()
+        
+        println("\n" + "─".repeat(66))
         
         // Example 2: Connect to multiple MCP servers
-        // Uncomment to run:
-        // connectToMultipleMCPServers()
+        connectToMultipleMCPServers()
         
-        // Example 3: Use MCP tools with the agent (requires LLM configuration)
-        // Uncomment to run:
-        // agentWithMCPTools()
+        println("\n" + "─".repeat(66))
         
         // Example 4: Inspect MCP tools manually
-        // Uncomment to run:
-        // inspectMCPTools()
+        inspectMCPTools()
         
-        println("\n💡 Tip: Uncomment the examples above to run them!")
-        println("   Each example demonstrates a different MCP integration pattern.")
+        println("\n" + "─".repeat(66))
+        
+        // Example 3: Use MCP tools with the agent (requires LLM configuration)
+        // Uncomment to run (requires valid LLM API key):
+        // agentWithMCPTools()
+        
+        println("\n💡 Tip: To run the agent example (Example 3), configure your LLM:")
+        println("   llm.provider=openai")
+        println("   llm.apiKey=your-api-key-here")
+        println("   Then uncomment agentWithMCPTools() in the main function.")
         
     } catch (e: Exception) {
         println("\n✗ Unexpected error: ${e.message}")
