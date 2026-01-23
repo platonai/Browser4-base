@@ -1,10 +1,11 @@
 package ai.platon.pulsar.browser
 
-import ai.platon.pulsar.WebDriverTestBase
 import ai.platon.browser4.driver.chrome.RemoteDevTools
-import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
+import ai.platon.pulsar.WebDriverTestBase
 import ai.platon.pulsar.common.printlnPro
+import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
+import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
+import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
@@ -13,9 +14,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
 import java.text.MessageFormat
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
+import kotlin.test.*
 
 class PulsarWebDriverCDPTests : WebDriverTestBase() {
     fun setLogLevel(loggerName: String?, level: Level?) {
@@ -48,6 +47,25 @@ class PulsarWebDriverCDPTests : WebDriverTestBase() {
     @AfterEach
     fun tearDown() {
         resetLogs()
+    }
+
+    @Test
+    @Ignore("Disabled temporarily")
+    fun whenNavigateToAHtmlPageThenTheNavigateStateAreCorrect() = runEnhancedWebDriverTest(browser) { driver ->
+        openEnhanced(interactiveUrl, driver, 1)
+
+        val navigateEntry = driver.navigateEntry
+        assertTrue("Expect mainFrameReceived") { navigateEntry.mainFrameReceived }
+        assertTrue { navigateEntry.networkRequestCount.get() > 0 }
+        assertTrue { navigateEntry.networkResponseCount.get() > 0 }
+
+        require(driver is AbstractWebDriver)
+        assertEquals(200, driver.mainResponseStatus)
+        assertTrue { driver.mainResponseStatus == 200 }
+        assertTrue { driver.mainResponseHeaders.isNotEmpty() }
+        assertEquals(200, navigateEntry.mainResponseStatus)
+        assertTrue { navigateEntry.mainResponseStatus == 200 }
+        assertTrue { navigateEntry.mainResponseHeaders.isNotEmpty() }
     }
 
     @Test

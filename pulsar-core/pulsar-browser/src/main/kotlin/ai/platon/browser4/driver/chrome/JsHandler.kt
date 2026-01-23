@@ -39,7 +39,7 @@ class JsHandler(
         if (lines.size > 1) {
             val firstLine = lines[0]
             expression = if (!firstLine.startsWith("(")) {
-                JsUtils.toIIFE(confuser.confuse(script))
+                JsUtils.toIIFE(script)
             } else {
                 script
             }
@@ -49,15 +49,15 @@ class JsHandler(
 
         val confusedExpr = confuser.confuse(expression)
 
-        val isolatedContextId = isolatedWorldManager
-            .getContextId(runCatching { pageAPI?.getFrameTree()?.frame?.id }.getOrNull())
-        if (isolatedContextId != null && isolatedContextId > 0) {
-            val isolatedResult = runCatching { evaluateInContext(confusedExpr, isolatedContextId, returnByValue = false) }
-                .getOrNull()
-            if (isolatedResult != null) {
-                return isolatedResult
-            }
-        }
+//        val isolatedContextId = isolatedWorldManager
+//            .getContextId(runCatching { pageAPI?.getFrameTree()?.frame?.id }.getOrNull())
+//        if (isolatedContextId != null && isolatedContextId > 0) {
+//            val isolatedResult = runCatching { evaluateInContext(confusedExpr, isolatedContextId, returnByValue = false) }
+//                .getOrNull()
+//            if (isolatedResult != null) {
+//                return isolatedResult
+//            }
+//        }
 
         return try {
             runtimeAPI?.evaluate(confusedExpr)

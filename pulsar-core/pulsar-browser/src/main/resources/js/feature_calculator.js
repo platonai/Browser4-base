@@ -18,9 +18,6 @@ let __pulsar_NodeFeatureCalculator = function() {
     this.sequence = 0;
 };
 
-window.__pulsar_ = window.__pulsar_ || function () {}
-window.__pulsar_.__pulsar_NodeFeatureCalculator = __pulsar_NodeFeatureCalculator
-
 /**
  * Check if stopped
  */
@@ -34,12 +31,8 @@ __pulsar_NodeFeatureCalculator.prototype.isStopped = function() {
  * @param  depth {Number} the depth in the DOM
  */
 __pulsar_NodeFeatureCalculator.prototype.head = function(node, depth) {
-    // 2023.08: google sites complains that node.__pulsar_isIFrame is not defined sometimes
-    if (!node.__pulsar_isIFrame) {
-        return;
-    }
-
-    if (node.__pulsar_isIFrame()) {
+    // Previously we relied on Node.prototype injections. Now we use NodeOps / NodeExt.
+    if (NodeOps.isIFrame(node)) {
         return
     }
 
@@ -58,14 +51,14 @@ __pulsar_NodeFeatureCalculator.prototype.head = function(node, depth) {
 __pulsar_NodeFeatureCalculator.prototype.calcSelfIndicator = function(node, depth) {
     let nodeExt = node.__pulsar_nodeExt;
 
-    if (node.__pulsar_isText()) {
+    if (NodeOps.isText(node)) {
         this.calcCharacterWidth(node, depth);
     }
 
     nodeExt.depth = depth;
     nodeExt.sequence = this.sequence;
 
-    if (node.__pulsar_isElement()) {
+    if (NodeOps.isElement(node)) {
         // Browser computed styles. Only leaf elements matter
         nodeExt.propertyNames = this.config.propertyNames || [];
         let morePropertyNames = nodeExt.propertyNames.concat("overflow");
@@ -73,9 +66,9 @@ __pulsar_NodeFeatureCalculator.prototype.calcSelfIndicator = function(node, dept
     }
 
     // Calculate the rectangle of this node
-    nodeExt.rect = node.__pulsar_getRect();
+    nodeExt.rect = NodeOps.getRect(node);
 
-    if (node.__pulsar_isElement()) {
+    if (NodeOps.isElement(node)) {
         // "hidden" seems not defined properly,
         // In some cases, the parent element is "hidden", but the children are not expected to be hidden.
         // for example, ul tag often have a zero dimension.
@@ -112,12 +105,7 @@ __pulsar_NodeFeatureCalculator.prototype.calcSelfIndicator = function(node, dept
  * @param  depth {Number} the depth in the DOM
  */
 __pulsar_NodeFeatureCalculator.prototype.tail = function(node, depth) {
-    // 2023.08: google sites complains that node.__pulsar_isIFrame is not defined sometimes
-    if (!node.__pulsar_isIFrame) {
-        return;
-    }
-
-    if (node.__pulsar_isIFrame()) {
+    if (NodeOps.isIFrame(node)) {
         return
     }
 
@@ -127,20 +115,20 @@ __pulsar_NodeFeatureCalculator.prototype.tail = function(node, depth) {
         return
     }
 
-    if (node.__pulsar_isElement()) {
+    if (NodeOps.isElement(node)) {
         if (config.ATTR_ELEMENT_NODE_DATA) {
             let data = nodeExt.formatDOMRect() + "|" + nodeExt.sequence + "|" + nodeExt.formatStyles()
-            node.__pulsar_setAttributeIfNotBlank(config.ATTR_ELEMENT_NODE_DATA, data);
+            NodeOps.setAttributeIfNotBlank(node, config.ATTR_ELEMENT_NODE_DATA, data);
         }
 
-        node.__pulsar_setAttributeIfNotBlank(config.ATTR_ELEMENT_NODE_VI, nodeExt.formatDOMRect());
+        NodeOps.setAttributeIfNotBlank(node, config.ATTR_ELEMENT_NODE_VI, nodeExt.formatDOMRect());
 
         // calculate the rectangle of each child text node
         for (let i = 0; i < node.childNodes.length; ++i) {
             let childNodeExt = node.childNodes[i].__pulsar_nodeExt;
-            if (childNodeExt && childNodeExt.node.__pulsar_isText()) {
+            if (childNodeExt && NodeOps.isText(childNodeExt.node)) {
                 // 'tv' is short for 'text node vision information'
-                node.__pulsar_setAttributeIfNotBlank(config.ATTR_TEXT_NODE_VI + i, childNodeExt.formatDOMRect());
+                NodeOps.setAttributeIfNotBlank(node, config.ATTR_TEXT_NODE_VI + i, childNodeExt.formatDOMRect());
             }
         }
     }
@@ -148,6 +136,8 @@ __pulsar_NodeFeatureCalculator.prototype.tail = function(node, depth) {
     if (this.debug > 0) {
         this.addDebugInfo()
     }
+
+    delete node.__pulsar_nodeExt
 };
 
 /**
@@ -180,7 +170,7 @@ __pulsar_NodeFeatureCalculator.prototype.addDebugInfo = function(node) {
     let config = this.config;
     let nodeExt = node.__pulsar_nodeExt;
 
-    if (node.__pulsar_isText()) {
+    if (NodeOps.isText(node)) {
         // 'tl' is short for 'text length', it's used to diagnosis
         if (node.textContent) {
             __pulsar_utils__.addTuple(node, config.ATTR_DEBUG, "tl" + i, node.textContent.length);

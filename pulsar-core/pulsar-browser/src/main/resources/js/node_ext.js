@@ -1,161 +1,160 @@
 "use strict";
 
+// NOTE: Deliberately avoid injecting methods into Node.prototype.
+// All helpers live in NodeOps or on __pulsar_NodeExt.prototype.
+
+let NodeOps = {};
+
 /**
  * Set attribute if it's not blank
+ * @param node {Node|Element}
  * @param attrName {String}
  * @param attrValue {String}
- * */
-Node.prototype.__pulsar_setAttributeIfNotBlank = function(attrName, attrValue) {
-    if (this instanceof HTMLElement && attrValue && attrValue.trim().length > 0) {
-        this.setAttribute(attrName, attrValue.trim())
+ */
+NodeOps.setAttributeIfNotBlank = function(node, attrName, attrValue) {
+    if (node instanceof HTMLElement && attrValue && attrValue.trim().length > 0) {
+        node.setAttribute(attrName, attrValue.trim())
     }
 };
 
 /**
- * @param predicate The predicate
- * */
-Node.prototype.__pulsar_count = function(predicate) {
+ * @param node {Node}
+ * @param predicate {Function}
+ * @return {Number}
+ */
+NodeOps.count = function(node, predicate) {
     let c = 0;
     let visitor = function () {};
-    visitor.head = function (node, depth) {
-        if (predicate(node)) {
+    visitor.head = function (n, depth) {
+        if (predicate(n)) {
             ++c;
         }
     };
 
-    new __pulsar_NodeTraversor(visitor).traverse(this);
+    new __pulsar_NodeTraversor(visitor).traverse(node);
     return c;
 };
 
 /**
- * @param action The action applied to each node
- * */
-Node.prototype.__pulsar_forEach = function(action) {
+ * @param node {Node}
+ * @param action {Function}
+ */
+NodeOps.forEach = function(node, action) {
     let visitor = {};
-    visitor.head = function (node, depth) {
-        action(node)
+    visitor.head = function (n, depth) {
+        action(n)
     };
-    new __pulsar_NodeTraversor(visitor).traverse(this);
+    new __pulsar_NodeTraversor(visitor).traverse(node);
 };
 
 /**
- * @param action The action applied to each node
- * */
-Node.prototype.__pulsar_forEachElement = function(action) {
+ * @param node {Node}
+ * @param action {Function}
+ */
+NodeOps.forEachElement = function(node, action) {
     let visitor = {};
-    visitor.head = function (node, depth) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-            action(node)
+    visitor.head = function (n, depth) {
+        if (n.nodeType === Node.ELEMENT_NODE) {
+            action(n)
         }
     };
-    new __pulsar_NodeTraversor(visitor).traverse(this);
+    new __pulsar_NodeTraversor(visitor).traverse(node);
 };
 
 /**
- * @param pattern The pattern to match
+ * @param node {Node}
+ * @param pattern {RegExp}
  * @return {Element|null}
- * */
-Node.prototype.__pulsar_findMatches = function(pattern) {
+ */
+NodeOps.findMatches = function(node, pattern) {
     let visitor = {};
 
-    let result = null
-    visitor.head = function (node, depth) {
-        if (node instanceof HTMLElement) {
-            let text = node.textContent
+    let result = null;
+    visitor.head = function (n, depth) {
+        if (n instanceof HTMLElement) {
+            let text = n.textContent;
             if (text.match(pattern)) {
-                result = node
-                visitor.stopped = true
+                result = n;
+                visitor.stopped = true;
             }
         }
     };
 
-    new __pulsar_NodeTraversor(visitor).traverse(this);
+    new __pulsar_NodeTraversor(visitor).traverse(node);
 
-    return result
+    return result;
 };
 
 /**
+ * @param node {Node}
  * @return {boolean}
- * */
-Node.prototype.__pulsar_isText = function() {
-    return this.nodeType === Node.TEXT_NODE;
+ */
+NodeOps.isText = function(node) {
+    return node && node.nodeType === Node.TEXT_NODE;
 };
 
 /**
- * @return {string}
- * */
-Node.prototype.__pulsar_cleanText = function() {
-    let text = this.textContent.replace(/\s+/g, ' ');
+ * @param node {Node}
+ * @return {boolean}
+ */
+NodeOps.isElement = function(node) {
+    return node && node.nodeType === Node.ELEMENT_NODE;
+};
+
+/**
+ * @param node {Node}
+ * @return {Element|null}
+ */
+NodeOps.bestElement = function(node) {
+    if (!node) return null;
+    if (NodeOps.isElement(node)) return node;
+    return node.parentElement;
+};
+
+/**
+ * @param node {Node}
+ * @return {String}
+ */
+NodeOps.cleanText = function(node) {
+    if (!node || node.textContent == null) {
+        return "";
+    }
+    let text = node.textContent.replace(/\s+/g, ' ');
     // remove &nbsp;
     text = text.replace(/\u00A0/g, ' ');
     return text.trim();
 };
 
 /**
+ * @param node {Node}
  * @return {boolean}
- * */
-Node.prototype.__pulsar_isShortText = function() {
-    if (!this.__pulsar_isText()) return false;
-
-    let text = this.__pulsar_cleanText();
+ */
+NodeOps.isShortText = function(node) {
+    if (!NodeOps.isText(node)) return false;
+    let text = NodeOps.cleanText(node);
     return text.length >= 1 && text.length <= 9;
 };
 
 /**
+ * @param node {Node}
  * @return {boolean}
- * */
-Node.prototype.__pulsar_isNumberLike = function() {
-    if (!this.__pulsar_isShortText()) return false;
+ */
+NodeOps.isNumberLike = function(node) {
+    if (!NodeOps.isShortText(node)) return false;
 
-    let text = this.__pulsar_cleanText().replace(/\s+/g, '');
+    let text = NodeOps.cleanText(node).replace(/\s+/g, '');
     // matches ￥3,412.25, ￥3,412.25, 3,412.25, 3412.25, etc
     return /.{0,4}((\d+),?)*(\d+)\.?\d+.{0,3}/.test(text);
 };
 
 /**
- * @return {boolean}
- * */
-Node.prototype.__pulsar_isElement = function() {
-    return this.nodeType === Node.ELEMENT_NODE;
-};
-
-/**
- * @return {Element}
- * */
-Node.prototype.__pulsar_bestElement = function() {
-    if (this.__pulsar_isElement()) return this;
-    else return this.parentElement;
-};
-
-/**
- * @return {boolean}
- * */
-Node.prototype.__pulsar_isTextOrElement = function() {
-    return this.__pulsar_isText() || this.__pulsar_isElement();
-};
-
-/**
- * @return {boolean}
- * */
-Node.prototype.__pulsar_isDiv = function() {
-    // HTML-uppercased qualified name
-    return this.nodeName === "DIV";
-};
-
-/**
- * @return {boolean}
- * */
-Node.prototype.__pulsar_isImage = function() {
-    // HTML-uppercased qualified name
-    return this.nodeName === "IMG";
-};
-
-/**
  * 1-based screen number in the viewport
+ * @param node {Node}
  * @return {Number}
- * */
-Node.prototype.__pulsar_nScreen = function() {
-    let rect = this.__pulsar_getRect();
+ */
+NodeOps.nScreen = function(node) {
+    const rect = NodeOps.getRect(node);
+    if (!rect) return 0;
     const config = __pulsar_utils__.getConfig();
     const viewPortHeight = config.viewPortHeight;
     let ns = rect.y / viewPortHeight;
@@ -163,103 +162,79 @@ Node.prototype.__pulsar_nScreen = function() {
 };
 
 /**
+ * @param node {Node}
  * @return {boolean}
- * */
-Node.prototype.__pulsar_isSmallImage = function() {
-    if (!this.__pulsar_isImage()) {
+ */
+NodeOps.isDiv = function(node) {
+    // HTML-uppercased qualified name
+    return !!node && node.nodeName === "DIV";
+};
+
+/**
+ * @param node {Node}
+ * @return {boolean}
+ */
+NodeOps.isImage = function(node) {
+    // HTML-uppercased qualified name
+    return !!node && node.nodeName === "IMG";
+};
+
+/**
+ * @param node {Node}
+ * @return {boolean}
+ */
+NodeOps.isSmallImage = function(node) {
+    if (!NodeOps.isImage(node)) {
         return false
     }
 
-    let rect = this.__pulsar_getRect();
+    const rect = NodeOps.getRect(node);
+    if (!rect) {
+        return true
+    }
+
     return rect.width <= 50 || rect.height <= 50;
 };
 
 /**
+ * @param node {Node}
  * @return {boolean}
- * */
-Node.prototype.__pulsar_isMediumImage = function() {
-    if (!this.__pulsar_isImage()) {
-        return false
-    }
-
-    let rect = this.__pulsar_getRect();
-    let area = rect.width * rect.height;
-    return rect.width > 50 && rect.height > 50 && area < 300 * 300;
-};
-
-/**
- * @return {boolean}
- * */
-Node.prototype.__pulsar_isLargeImage = function() {
-    if (!this.__pulsar_isImage()) {
-        return false
-    }
-
-    let rect = this.__pulsar_getRect();
-    let area = rect.width * rect.height;
-    return area > 300 * 300;
-};
-
-/**
- * @return {boolean}
- * */
-Node.prototype.__pulsar_isAnchor = function() {
+ */
+NodeOps.isAnchor = function(node) {
     // HTML-uppercased qualified name
-    // if (this instanceof HTMLAnchorElement)
-    return this.nodeName === "A";
+    return !!node && node.nodeName === "A";
 };
 
 /**
+ * @param node {Node}
  * @return {boolean}
- * */
-Node.prototype.__pulsar_maybeClickable = function() {
-    let element = this.__pulsar_bestElement();
-    if (element == null) {
-        return false
-    }
-    if (!element.__pulsar_isAnchor()) {
-        return false
-    }
-
-    let clickable = true
-    let rect = this.__pulsar_getRect()
-    if (rect.x < 0 || rect.y < 0) {
-        clickable = false
-    }
-    if (rect.width < 5 || rect.height < 5.0) {
-        clickable = false
-    }
-
-    return clickable
+ */
+NodeOps.isIFrame = function(node) {
+    return !!node && node.nodeName === "IFRAME";
 };
 
 /**
+ * @param node {Node}
  * @return {boolean}
- * */
-Node.prototype.__pulsar_isTile = function() {
-    return this.__pulsar_isImage() || this.__pulsar_isText();
+ */
+NodeOps.isTile = function(node) {
+    return NodeOps.isImage(node) || NodeOps.isText(node);
 };
 
 /**
- * @return {boolean}
- * */
-Node.prototype.__pulsar_isIFrame = function() {
-    return this.nodeName === "IFRAME";
-};
-
-/**
- * Get the estimated rect of this node, if the node is not an element, return it's parent element's rect
+ * Get the estimated rect of this node; if the node is not an element, return its parent element's rect.
+ * @param node {Node}
  * @return {DOMRect|null}
- * */
-Node.prototype.__pulsar_getRect = function() {
-    let element = this.__pulsar_bestElement();
+ */
+NodeOps.getRect = function(node) {
+    let element = NodeOps.bestElement(node);
     if (element == null) {
         return null
     }
 
     let rect = __pulsar_utils__.getClientRect(element);
 
-    if (element.__pulsar_isImage()) {
+    if (NodeOps.isImage(element)) {
         if (!rect) {
             rect = new DOMRect(0, 0, 0, 0)
         }
@@ -280,6 +255,35 @@ Node.prototype.__pulsar_getRect = function() {
     }
 
     return rect
+};
+
+/**
+ * @param node {Node}
+ * @return {boolean}
+ */
+NodeOps.maybeClickable = function(node) {
+    let element = NodeOps.bestElement(node);
+    if (element == null) {
+        return false
+    }
+    if (!NodeOps.isAnchor(element)) {
+        return false
+    }
+
+    let clickable = true;
+    let rect = NodeOps.getRect(node);
+    if (!rect) {
+        return false
+    }
+
+    if (rect.x < 0 || rect.y < 0) {
+        clickable = false
+    }
+    if (rect.width < 5 || rect.height < 5.0) {
+        clickable = false
+    }
+
+    return clickable
 };
 
 let __pulsar_NodeExt = function (node, config) {
@@ -494,7 +498,7 @@ __pulsar_NodeExt.prototype.updateMaxWidth = function(width) {
  * @return {String|null}
  * */
 __pulsar_NodeExt.prototype.attr = function(attrName) {
-    if (this.node.__pulsar_isElement()) {
+    if (NodeOps.isElement(this.node)) {
         return this.node.getAttribute(attrName)
     }
     return null
@@ -525,3 +529,69 @@ __pulsar_NodeExt.prototype.adjustDOMRect = function() {
         this.rect.width = Math.min(this.rect.width, this.maxWidth);
     }
 };
+
+// Bridge instance methods for callers that already have node.__pulsar_nodeExt
+__pulsar_NodeExt.prototype.__pulsar_setAttributeIfNotBlank = function(attrName, attrValue) {
+    return NodeOps.setAttributeIfNotBlank(this.node, attrName, attrValue);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isText = function() {
+    return NodeOps.isText(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isElement = function() {
+    return NodeOps.isElement(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_bestElement = function() {
+    return NodeOps.bestElement(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_cleanText = function() {
+    return NodeOps.cleanText(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isShortText = function() {
+    return NodeOps.isShortText(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isNumberLike = function() {
+    return NodeOps.isNumberLike(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isDiv = function() {
+    return NodeOps.isDiv(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isImage = function() {
+    return NodeOps.isImage(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isSmallImage = function() {
+    return NodeOps.isSmallImage(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isAnchor = function() {
+    return NodeOps.isAnchor(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isIFrame = function() {
+    return NodeOps.isIFrame(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_isTile = function() {
+    return NodeOps.isTile(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_getRect = function() {
+    return NodeOps.getRect(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_nScreen = function() {
+    return NodeOps.nScreen(this.node);
+};
+
+__pulsar_NodeExt.prototype.__pulsar_maybeClickable = function() {
+    return NodeOps.maybeClickable(this.node);
+};
+

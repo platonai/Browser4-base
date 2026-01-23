@@ -37,13 +37,13 @@ __pulsar_utils__.checkStatus = function(scroll = 3) {
         return false
     }
 
-    if (!document.__pulsar__Data) {
+    if (!__pulsar_utils__.data) {
         // initialization
         this.createDataIfAbsent();
         this.updateStat(true);
     }
 
-    let status = document.__pulsar__Data.trace.status;
+    let status = __pulsar_utils__.data.trace.status;
     status.n += 1;
 
     if (status.scroll < scroll) {
@@ -57,11 +57,11 @@ __pulsar_utils__.checkStatus = function(scroll = 3) {
     }
 
     if (this.isBrowserError()) {
-        document.__pulsar__Data.trace.status.ec = document.querySelector(".error-code").textContent
+        __pulsar_utils__.data.trace.status.ec = document.querySelector(".error-code").textContent
     }
 
     // The document is ready
-    return JSON.stringify(document.__pulsar__Data)
+    return JSON.stringify(__pulsar_utils__.data)
 };
 
 __pulsar_utils__.isBrowserError = function () {
@@ -69,7 +69,7 @@ __pulsar_utils__.isBrowserError = function () {
 };
 
 __pulsar_utils__.createDataIfAbsent = function() {
-    if (!document.__pulsar__Data) {
+    if (!__pulsar_utils__.data) {
         let location;
         if (window.location instanceof Location) {
             location = window.location.href
@@ -77,7 +77,7 @@ __pulsar_utils__.createDataIfAbsent = function() {
             location = window.location
         }
 
-        document.__pulsar__Data = {
+        __pulsar_utils__.data = {
             trace: {
                 status: { n: 0, scroll: 0, idl: 0, st: "", r: "", ec: "" },
                 initStat: null,
@@ -110,11 +110,10 @@ __pulsar_utils__.writeData = function() {
 
     script = document.createElement('script');
     script.id = config.SCRIPT_SECTION_ID;
-    // javascript only
-    // script.type = 'text/javascript';
-    script.type = 'javascript';
+    // JavaScript only (leave default type, or set a valid one for compatibility)
+    script.type = 'text/javascript';
 
-    let pulsarData = JSON.stringify(document.__pulsar__Data, null, 3);
+    let pulsarData = JSON.stringify(__pulsar_utils__.data, null, 3);
     script.textContent = "\n" + `;let __pulsar__Data = ${pulsarData};\n`;
 
     document.body.appendChild(script);
@@ -140,12 +139,12 @@ __pulsar_utils__.isActuallyReady = function() {
 
     this.updateStat();
 
-    if (!document.__pulsar__Data) {
+    if (!__pulsar_utils__.data) {
         return false
     }
 
     let ready = false;
-    let trace = document.__pulsar__Data.trace;
+    let trace = __pulsar_utils__.data.trace;
     let status = trace.status;
     let d = trace.lastD;
 
@@ -178,7 +177,7 @@ __pulsar_utils__.isActuallyReady = function() {
 
 __pulsar_utils__.isIdle = function(init = false) {
     let idle = false;
-    let trace = document.__pulsar__Data.trace;
+    let trace = __pulsar_utils__.data.trace;
     let status = trace.status;
     let d = trace.lastD;
     if (d.h < 10 && d.na === 0 && d.ni === 0 && d.nst === 0 && d.nnm === 0) {
@@ -214,29 +213,29 @@ __pulsar_utils__.updateStat = function(init = false) {
     let nnm = 0; // number like text in first screen
 
     if (!this.isBrowserError()) {
-        document.body.__pulsar_forEach((node) => {
+        NodeOps.forEach(document.body, (node) => {
             // 2023.08: google sites complains that node.__pulsar_isIFrame is not defined sometimes
-            if (!node.__pulsar_isIFrame) {
+            if (!NodeOps.isIFrame(node)) {
                 return;
             }
 
-            if (node.__pulsar_isIFrame()) {
+            if (NodeOps.isIFrame(node)) {
                 return
             }
 
-            if (node.__pulsar_isAnchor()) ++na;
-            if (node.__pulsar_isImage() && !node.__pulsar_isSmallImage()) ++ni;
+            if (NodeOps.isAnchor(node)) ++na;
+            if (NodeOps.isImage(node) && !NodeOps.isSmallImage(node)) ++ni;
 
-            if (node.__pulsar_isText() && node.__pulsar_nScreen() <= 20) {
-                let isShortText = node.__pulsar_isShortText();
-                let isNumberLike = isShortText && node.__pulsar_isNumberLike();
+            if (NodeOps.isText(node) && NodeOps.nScreen(node) <= 20) {
+                let isShortText = NodeOps.isShortText(node);
+                let isNumberLike = isShortText && NodeOps.isNumberLike(node);
                 if (isShortText) {
                     ++nst;
                     if (isNumberLike) {
                         ++nnm;
                     }
 
-                    let ele = node.__pulsar_bestElement();
+                    let ele = NodeOps.bestElement(node);
                     if (ele != null && !init && !ele.hasAttribute("tp")) {
                         // not set at initialization, it's lazy loaded.
                         // "lz" is short for lazy.
@@ -252,17 +251,17 @@ __pulsar_utils__.updateStat = function(init = false) {
                 }
             }
 
-            if (node.__pulsar_isDiv() && node.scrollWidth > width && node.scrollWidth < maxWidth) width = node.scrollWidth;
-            if (node.__pulsar_isDiv() && node.scrollWidth >= fineWidth && node.scrollHeight > height) height = node.scrollHeight;
+            if (NodeOps.isDiv(node) && node.scrollWidth > width && node.scrollWidth < maxWidth) width = node.scrollWidth;
+            if (NodeOps.isDiv(node) && node.scrollWidth >= fineWidth && node.scrollHeight > height) height = node.scrollHeight;
         });
     }
 
     // unexpected but occurs when do performance test to parallel harvest Websites
-    if (!document.__pulsar__Data) {
+    if (!__pulsar_utils__.data) {
         return
     }
 
-    let trace = document.__pulsar__Data.trace;
+    let trace = __pulsar_utils__.data.trace;
     let initStat = trace.initStat;
     if (!initStat) {
         initStat = { w: width, h: height, na: na, ni: ni, nst: nst, nnm: nnm };
@@ -294,7 +293,9 @@ __pulsar_utils__.updateStat = function(init = false) {
         }
     };
 
-    document.__pulsar__Data.trace = Object.assign(trace, newMultiStatus)
+    __pulsar_utils__.data.trace = Object.assign(trace, newMultiStatus)
+
+    return __pulsar_utils__.data
 };
 
 /**
@@ -375,7 +376,7 @@ __pulsar_utils__.scrollToBottom = function() {
  * @deprecated using CDP instead
  * */
 __pulsar_utils__.scrollUp = function() {
-    if (!document.__pulsar__Data) {
+    if (!__pulsar_utils__.data) {
         // TODO: this occurs when do performance test, but the reason is not investigated
         // return false
     }
@@ -394,21 +395,16 @@ __pulsar_utils__.scrollToTop = function() {
  * @deprecated using CDP instead
  * */
 __pulsar_utils__.scrollDown = function() {
-    if (!document.__pulsar__Data) {
-        // TODO: this occurs when do performance test, but the reason is not investigated
-        // return false
-    }
-
     window.scrollBy(0, 500);
 };
 
 __pulsar_utils__.scrollDownN = function(scrollCount = 5) {
-    if (!document.__pulsar__Data) {
+    if (!__pulsar_utils__.data) {
         // TODO: this occurs when do performance test, but the reason is not investigated
         // return false
     }
 
-    let status = document.__pulsar__Data.trace.status;
+    let status = __pulsar_utils__.data.trace.status;
 
     window.scrollBy(0, 500);
     status.scroll += 1;
@@ -719,18 +715,6 @@ __pulsar_utils__.outerHTML = function(selector) {
 };
 
 /**
- * @deprecated Use selectFirstText instead
- * @deprecated use CDP instead
- */
-__pulsar_utils__.firstText = function(selector) {
-    let element = document.querySelector(selector)
-    if (element != null) {
-        return element.textContent
-    }
-    return null
-};
-
-/**
  * Select the first element and extract the text
  *
  * @param  {String} selector
@@ -762,14 +746,6 @@ __pulsar_utils__.selectTextAll = function(selector) {
     let texts = Array.from(elements).map(e => e.textContent)
     return JSON.stringify(texts, null, 2)
 };
-
-/**
- * @deprecated Use {@code __pulsar_utils__.selectFirstAttribute()} instead
- */
-__pulsar_utils__.firstAttr = function(selector, attrName) {
-    return __pulsar_utils__.selectFirstAttribute(selector, attrName)
-};
-
 
 
 
@@ -810,9 +786,9 @@ __pulsar_utils__.selectFirstAttribute = function(selector, attrName) {
 __pulsar_utils__.selectAttributes = function(selector) {
     let element = document.querySelector(selector)
     if (element != null) {
-        let attrs = Array.from(element.attributes).flatMap(a => [a.name, a.value])
         // return JSON.stringify(attrs, null, 2)
-        return attrs
+        return Array.from(element.attributes)
+            .flatMap(a => [a.name, a.value])
     }
     return []
 };
@@ -1057,6 +1033,7 @@ __pulsar_utils__.doForAllFrames = function(selector, attrName) {
  * Select elements and extract the texts.
  *
  * @param  {Window} rootFrame
+ * @param depth {number}
  * @param  {string} selector
  * @param  {string} attrName
  * @return {any}
@@ -1587,7 +1564,7 @@ __pulsar_utils__.showInfoBox = function(selector) {
 }
 
 /**
- * Compute the final metadata, the metadata is stored in the document.__pulsar__Data.metadata
+ * Compute the final metadata, the metadata is stored in the __pulsar_utils__.data.metadata
  * */
 __pulsar_utils__.computeMetadata = function() {
     let config = this.getConfig();
@@ -1655,6 +1632,9 @@ __pulsar_utils__.compute = function() {
         return
     }
 
+    // Ensure data exists even if compute() is called without a prior checkStatus() call.
+    this.createDataIfAbsent();
+
     const DATA_ERROR = "data-error";
 
     let done = document.body.hasAttribute(DATA_ERROR);
@@ -1662,7 +1642,7 @@ __pulsar_utils__.compute = function() {
         return
     }
 
-    document.__pulsar__Data.metadata = this.computeMetadata();
+    __pulsar_utils__.data.metadata = this.computeMetadata();
 
     this.scrollToTop();
 
@@ -1673,7 +1653,7 @@ __pulsar_utils__.compute = function() {
     this.writeData();
 
     // remove temporary flags
-    document.body.__pulsar_forEachElement(ele => {
+    NodeOps.forEachElement(document.body, ele => {
         ele.removeAttribute("tp")
     });
 
@@ -1696,11 +1676,11 @@ __pulsar_utils__.addProjectSpecifiedData = function() {
 
 /**
  * Get the active DOM message which is the current state of the DOM.
- * The active DOM message is the JSON string of the document.__pulsar__Data.
+ * The active DOM message is the JSON string of the __pulsar_utils__.data.
  * It's computed in updateStat(), and computeFinalMetadata()
  * */
 __pulsar_utils__.getActiveDomMessage = function() {
-    return JSON.stringify(document.__pulsar__Data)
+    return JSON.stringify(__pulsar_utils__.data)
 };
 
 /**
@@ -1756,10 +1736,5 @@ __pulsar_utils__.typeInfo = function() {
 // However, the JavaScript global objects on both sides are isolated (each has its own window/ globalThis/ prototype chain),
 // So when you execute window.__pulsar_utils__ = ...in the Isolated World, it is, by default, attached only to the window of the Isolated World,
 // The page's own scripts (Page World) access the window of the Page World and cannot see the global variables of the Isolated World.
-
-// window.__pulsar_ is deprecated, since it safe to inject variables in isolate world's window, will remove later
-window.__pulsar_ = window.__pulsar_ || function () {}
-window.__pulsar_.__pulsar_utils__ = __pulsar_utils__
-
 window.__pulsar_utils__ = __pulsar_utils__
 window.__pulsar_CONFIGS = __pulsar_CONFIGS
