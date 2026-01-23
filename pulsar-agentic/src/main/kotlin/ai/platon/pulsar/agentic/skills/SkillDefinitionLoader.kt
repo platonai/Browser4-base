@@ -1,7 +1,6 @@
 package ai.platon.pulsar.agentic.skills
 
 import ai.platon.pulsar.common.getLogger
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -171,7 +170,7 @@ class SkillDefinitionLoader {
                 return parseFromYamlAndMarkdown(content, yamlMetadata)
             }
         }
-        
+
         // Fall back to traditional markdown parsing
         return parseFromMarkdown(content)
     }
@@ -187,10 +186,10 @@ class SkillDefinitionLoader {
         if (lines.isEmpty() || lines[0].trim() != "---") {
             return null
         }
-        
+
         val yamlLines = mutableListOf<String>()
         var endIndex = -1
-        
+
         // Find the closing ---
         for (i in 1 until lines.size) {
             if (lines[i].trim() == "---") {
@@ -199,16 +198,16 @@ class SkillDefinitionLoader {
             }
             yamlLines.add(lines[i])
         }
-        
+
         if (endIndex == -1) {
             return null
         }
-        
+
         // Parse YAML manually (simple key-value pairs and lists)
         val metadata = mutableMapOf<String, Any>()
         var currentKey: String? = null
         val currentList = mutableListOf<String>()
-        
+
         for (line in yamlLines) {
             val trimmed = line.trim()
             when {
@@ -225,11 +224,11 @@ class SkillDefinitionLoader {
                         metadata[currentKey] = currentList.toList()
                         currentList.clear()
                     }
-                    
+
                     val parts = trimmed.split(":", limit = 2)
                     val key = parts[0].trim()
                     val value = if (parts.size > 1) parts[1].trim() else ""
-                    
+
                     currentKey = key
                     if (value.isNotEmpty() && value != "[]") {
                         metadata[key] = value
@@ -238,12 +237,12 @@ class SkillDefinitionLoader {
                 }
             }
         }
-        
+
         // Save last list if any
         if (currentKey != null && currentList.isNotEmpty()) {
             metadata[currentKey] = currentList.toList()
         }
-        
+
         return metadata
     }
 
@@ -263,31 +262,31 @@ class SkillDefinitionLoader {
         val name = yamlMetadata["name"] as? String ?: ""
         val version = yamlMetadata["version"] as? String ?: "1.0.0"
         val author = yamlMetadata["author"] as? String ?: ""
-        
+
         @Suppress("UNCHECKED_CAST")
         val tags = when (val tagValue = yamlMetadata["tags"]) {
             is List<*> -> (tagValue as? List<String>)?.toSet() ?: emptySet()
             is String -> setOf(tagValue)
             else -> emptySet()
         }
-        
+
         @Suppress("UNCHECKED_CAST")
         val dependencies = when (val depValue = yamlMetadata["dependencies"]) {
             is List<*> -> (depValue as? List<String>) ?: emptyList()
             is String -> listOf(depValue)
             else -> emptyList()
         }
-        
+
         // Parse remaining sections from markdown (description, parameters, examples)
         val markdownSections = parseMarkdownSections(content)
-        
+
         return SkillDefinition(
             skillId = skillId,
             name = name,
             version = version,
             author = author,
             tags = tags,
-            description = markdownSections["description"] ?: "",
+            description = markdownSections["description"]?.toString() ?: "",
             dependencies = dependencies,
             parameters = markdownSections["parameters"] as? Map<String, SkillDefinition.ParameterInfo> ?: emptyMap(),
             examples = markdownSections["examples"] as? List<String> ?: emptyList()
@@ -353,7 +352,7 @@ class SkillDefinitionLoader {
                     inParametersSection = true
                     inExamplesSection = false
                 }
-                line.trim().startsWith("## Usage Examples") || 
+                line.trim().startsWith("## Usage Examples") ||
                 line.trim().startsWith("## Examples") -> {
                     inMetadataSection = false
                     inDescriptionSection = false
@@ -414,8 +413,8 @@ class SkillDefinitionLoader {
                 }
                 inParametersSection -> {
                     // Parse parameter table rows
-                    if (line.trim().startsWith("|") && 
-                        !line.contains("Parameter") && 
+                    if (line.trim().startsWith("|") &&
+                        !line.contains("Parameter") &&
                         !line.contains("---")) {
                         val parts = line.split("|").map { it.trim() }.filter { it.isNotEmpty() }
                         if (parts.size >= 4) {
@@ -424,7 +423,7 @@ class SkillDefinitionLoader {
                             val required = parts[2].lowercase() == "yes"
                             val defaultValue = parts[3]
                             val paramDesc = if (parts.size > 4) parts[4] else ""
-                            
+
                             parameters[paramName] = SkillDefinition.ParameterInfo(
                                 name = paramName,
                                 type = paramType,
@@ -490,17 +489,17 @@ class SkillDefinitionLoader {
     private fun parseMarkdownSections(content: String): Map<String, Any> {
         val result = mutableMapOf<String, Any>()
         val lines = content.lines()
-        
+
         var description = StringBuilder()
         val parameters = mutableMapOf<String, SkillDefinition.ParameterInfo>()
         val examples = mutableListOf<String>()
-        
+
         var inDescriptionSection = false
         var inParametersSection = false
         var inExamplesSection = false
         var currentExample = StringBuilder()
         var skipFrontmatter = true
-        
+
         for (line in lines) {
             // Skip YAML frontmatter
             if (skipFrontmatter) {
@@ -509,7 +508,7 @@ class SkillDefinitionLoader {
                 }
                 continue
             }
-            
+
             when {
                 line.trim().startsWith("## Description") -> {
                     if (inExamplesSection && currentExample.isNotEmpty()) {
@@ -529,7 +528,7 @@ class SkillDefinitionLoader {
                     inParametersSection = true
                     inExamplesSection = false
                 }
-                line.trim().startsWith("## Usage Examples") || 
+                line.trim().startsWith("## Usage Examples") ||
                 line.trim().startsWith("## Examples") -> {
                     if (inExamplesSection && currentExample.isNotEmpty()) {
                         examples.add(currentExample.toString().trim())
@@ -576,17 +575,85 @@ class SkillDefinitionLoader {
                 }
             }
         }
-        
+
         // Add last example if any
         if (inExamplesSection && currentExample.isNotEmpty()) {
             examples.add(currentExample.toString().trim())
         }
-        
+
         result["description"] = description.toString().trim()
         result["parameters"] = parameters
         result["examples"] = examples
-        
+
         return result
+    }
+
+    /**
+     * Parse a markdown table row in the Parameters section.
+     *
+     * Expected formats (both supported):
+     * - `| name | type | required | default | description |`
+     * - `| name | type | required | description |` (default omitted)
+     *
+     * Header rows and separator rows (e.g. `| --- | --- |`) return null.
+     */
+    private fun parseParameterRow(line: String): SkillDefinition.ParameterInfo? {
+        val trimmed = line.trim()
+        if (!trimmed.startsWith("|")) {
+            return null
+        }
+
+        // Split by pipe and discard the leading/trailing empties caused by outer pipes.
+        val cells = trimmed.split("|")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        if (cells.isEmpty()) return null
+
+        // Skip header rows
+        val headerTokens = setOf("parameter", "name", "type", "required", "default", "description")
+        if (cells.any { it.lowercase() in headerTokens } && cells.size <= 6) {
+            return null
+        }
+
+        // Skip separator rows like | --- | --- |
+        if (cells.all { it.isNotBlank() && it.all { ch -> ch == '-' || ch == ':' } }) {
+            return null
+        }
+
+        // Need at least: name, type, required, (default?), description
+        if (cells.size < 4) return null
+
+        val name = cells[0].removeSurrounding("`")
+        val type = cells[1].removeSurrounding("`")
+        val requiredToken = cells[2].removeSurrounding("`").lowercase()
+
+        val required = requiredToken in setOf("yes", "y", "true", "required")
+
+        // Two common layouts:
+        // 1) 5 columns: name, type, required, default, description
+        // 2) 4 columns: name, type, required, description
+        val (defaultValueRaw, descriptionRaw) = when {
+            cells.size >= 5 -> cells[3] to cells.subList(4, cells.size).joinToString(" | ")
+            else -> "" to cells.subList(3, cells.size).joinToString(" | ")
+        }
+
+        val defaultValue = defaultValueRaw
+            .removeSurrounding("`")
+            .trim()
+            .takeIf { it.isNotBlank() && it.lowercase() != "none" && it != "-" }
+
+        val description = descriptionRaw.removeSurrounding("`").trim()
+
+        if (name.isBlank()) return null
+
+        return SkillDefinition.ParameterInfo(
+            name = name,
+            type = type,
+            required = required,
+            defaultValue = defaultValue,
+            description = description
+        )
     }
 
     /**
