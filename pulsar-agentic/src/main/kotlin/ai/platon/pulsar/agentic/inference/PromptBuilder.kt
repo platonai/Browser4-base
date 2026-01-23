@@ -42,10 +42,10 @@ class PromptBuilder() {
 {
   "elements": [
     {
-      "locator": "Web page node locator, composed of two numbers, such as `0,4`",
-      "description": "Description of the current locator and tool selection",
       "domain": "Tool domain, such as `driver`",
       "method": "Method name, such as `click`",
+      "description": "Description of the current locator and tool selection",
+      "locator": "Web page node locator, composed of two numbers, such as `0,4`",
       "arguments": [
         {
           "name": "Parameter name, such as `selector`",
@@ -84,7 +84,8 @@ class PromptBuilder() {
         val TOOL_CALL_RULE_CONTENT = """
 严格遵循以下规则使用浏览器和浏览网页：
 
-- domain: 方法域，如 driver, browser 等
+- domain: 方法域，如 driver, browser, skill.scraping 等，可以用点号区分子域
+- method: 方法名，如 click, fill, extract 等，与 Kotlin 函数名保持一致，遵循 Kotlin 命名规范
 - 输出结果中，定位节点时 `selector` 字段始终填入 `locator` 的值，不提供不能确定的参数
 - 确保 `locator` 与对应的可交互元素列表中的 `locator` 完全匹配，或者与无障碍树节点属性完全匹配，准确定位该节点
 - JSON 格式输出时，禁止包含任何额外文本

@@ -99,8 +99,9 @@ class AgentToolManager constructor(
         try {
             val tc = requireNotNull(actionDescription.toolCall) { "Tool call is required" }
 
+            val topDomain = tc.domain.split(".").first()
             // First try built-in tool domains
-            val evaluate = when (tc.domain) {
+            val evaluate = when (topDomain) {
                 "driver" -> executor.callFunctionOn(tc, driver)
                 "browser" -> executor.callFunctionOn(tc, driver.browser)
                 "fs" -> executor.callFunctionOn(tc, fs)

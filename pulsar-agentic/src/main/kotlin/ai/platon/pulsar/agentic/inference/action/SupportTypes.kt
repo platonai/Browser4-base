@@ -46,7 +46,7 @@ data class ObserveResponseElement(
     val domain: String? = null,
     val method: String? = null,
 
-    val arguments: List<Map<String, String>?>? = null,
+    val arguments: List<Map<String, Any>?>? = null,
 
     val memory: String? = null,
     val thinking: String? = null,

@@ -282,8 +282,8 @@ open class TextToAction(
         fun toObserveElement(ele: ObserveResponseElement, response: ModelResponse): ObserveElement {
             val arguments = ele.arguments
                 ?.mapNotNull { arg -> arg?.get("name") to arg?.get("value") }
-                ?.filter { it.first != null && it.second != null }
-                ?.associate { it.first!! to it.second!! }
+                ?.filter { it.first != null }
+                ?.associate { it.first.toString() to it.second }
 
             val observeElement = ObserveElement(
                 locator = ele.locator?.removeSurrounding("[", "]"),

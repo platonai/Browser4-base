@@ -62,7 +62,7 @@ open class BrowserAgentActor(
             // Auto-wire Skills as a custom tool domain: skill.run(id, params)
             runCatching {
                 val skillDomain = "skill"
-                val customRegistry = CustomToolRegistry.Companion.instance
+                val customRegistry = CustomToolRegistry.instance
                 if (!customRegistry.contains(skillDomain)) {
                     customRegistry.register(SkillToolExecutor())
                 }
@@ -75,7 +75,7 @@ open class BrowserAgentActor(
                         "driver" to activeDriver,
                     ),
                 )
-                tm.registerCustomTarget(skillDomain, SkillToolTarget(ctx, SkillRegistry.Companion.instance))
+                tm.registerCustomTarget(skillDomain, SkillToolTarget(ctx, SkillRegistry.instance))
             }.onFailure {
                 logger.debug("Failed to auto-wire skill tools: {}", it.message)
             }
