@@ -12,5 +12,8 @@
 
     <!-- Scan for Spring components in agentic package (including SkillBootstrap) -->
     <context:component-scan base-package="ai.platon.pulsar.agentic.skills"/>
+    
+    <!-- Explicitly define SkillBootstrap as eager to ensure skills are loaded on startup -->
+    <bean id="skillBootstrap" class="ai.platon.pulsar.agentic.skills.SkillBootstrap" lazy-init="false"/>
 
 </beans>
