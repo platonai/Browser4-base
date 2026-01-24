@@ -96,8 +96,6 @@ class AgentStateManager(
 
     suspend fun getOrCreateActiveContext(options: ObserveOptions): ExecutionContext {
         if (_activeContext == null) {
-//            val instruction = promptBuilder.initObserveUserInstruction(options.instruction).instruction?.content
-//            baseContext = buildInitExecutionContext(options.copy(instruction = instruction), "observe")
             _baseContext = buildInitExecutionContext(options, "observe")
             setActiveContext(_baseContext)
         }
@@ -135,14 +133,12 @@ class AgentStateManager(
 
     suspend fun buildBaseExecutionContext(action: ActionOptions, event: String): ExecutionContext {
         val context = buildExecutionContext(action.action, 0, event)
-        // action.setContext(context)
         _baseContext = context
         return context
     }
 
     suspend fun buildInitExecutionContext(action: ActionOptions, event: String): ExecutionContext {
         val context = buildExecutionContext(action.action, 1, event)
-        // action.setContext(context)
         return context
     }
 
@@ -291,12 +287,6 @@ class AgentStateManager(
      * Make sure add to history at every end of step
      * */
     fun addToHistory(state: AgentState) {
-//        val trace = ProcessTrace(
-//            state.step,
-//            state.method,
-//            agentState = state.toString()
-//        )
-
         val history = _stateHistory.states
         synchronized(this) {
             history.add(state)
@@ -306,7 +296,6 @@ class AgentStateManager(
                 history.clear()
                 history.addAll(remaining)
             }
-            // _processTrace.add(trace)
         }
     }
 
