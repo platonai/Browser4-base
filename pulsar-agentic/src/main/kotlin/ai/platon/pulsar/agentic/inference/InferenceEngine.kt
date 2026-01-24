@@ -11,17 +11,15 @@ import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.MultiSinkMessageWriter
 import ai.platon.pulsar.common.Strings
-import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import ai.platon.pulsar.external.ModelResponse
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
-import java.nio.file.*
+import java.nio.file.Path
 import java.time.Instant
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 data class ExtractParams(
     val instruction: String,
@@ -115,9 +113,8 @@ class InferenceEngine(
         val prefix = if (params.fromAct) "act" else "observe"
         val timestamp = AppPaths.fromNow()
 
-        val callFile: Path? = info(
-            dirPrefix = "${prefix}-summary",
-            kind = "${prefix}Call",
+        val callFile: Path? = log(
+            dirPrefix = "${prefix}-request-summary",
             requestId = context.uuid,
             timestamp = timestamp,
             modelCall = prefix,
@@ -136,9 +133,8 @@ class InferenceEngine(
         val tokenUsage = modelResponse.tokenUsage
         val responseContent = modelResponse.content
 
-        val respFile = info(
-            prefix = "${prefix}-summary",
-            kind = "${prefix}Response",
+        val respFile = log(
+            prefix = "${prefix}-response-summary",
             suffix = "$timestamp.json",
             payload = mapOf(
                 "requestId" to context.uuid,
@@ -147,9 +143,9 @@ class InferenceEngine(
             )
         )
 
-        appendSummaryToFile(
+        logSummary(
             prefix = prefix,
-            entry = mapOf(
+            payload = mapOf(
                 "${prefix}InferenceType" to prefix,
                 "timestamp" to timestamp,
                 "llmInputFile" to callFile,
@@ -174,9 +170,8 @@ class InferenceEngine(
 
         // 1) Extraction call -----------------------------------------------------------------
         val timestamp = AppPaths.fromNow()
-        val callFile: Path? = info(
-            dirPrefix = "extract-summary",
-            kind = "call",
+        val callFile: Path? = log(
+            dirPrefix = "extract-request-summary",
             timestamp = timestamp,
             requestId = params.requestId,
             modelCall = "extract",
@@ -187,12 +182,12 @@ class InferenceEngine(
         val extractResponse: ModelResponse = cta.generateResponseRaw(messages)
 
         val extractedNode: ObjectNode = runCatching {
-            pulsarObjectMapper().readTree(extractResponse.content) as? ObjectNode ?: JsonNodeFactory.instance.objectNode()
+            pulsarObjectMapper().readTree(extractResponse.content) as? ObjectNode
+                ?: JsonNodeFactory.instance.objectNode()
         }.getOrElse { JsonNodeFactory.instance.objectNode() }
 
-        val extractRespFile: Path = info(
-            prefix = "extract-summary",
-            kind = "response",
+        val extractRespFile: Path = log(
+            prefix = "extract-response-summary",
             suffix = "$timestamp.json",
             payload = mapOf(
                 "requestId" to params.requestId,
@@ -201,9 +196,9 @@ class InferenceEngine(
             )
         )
 
-        appendSummaryToFile(
+        logSummary(
             prefix = "extract",
-            entry = mapOf(
+            payload = mapOf(
                 "extractInferenceType" to "extract",
                 "timestamp" to timestamp,
                 "llmInputFile" to callFile,
@@ -218,9 +213,8 @@ class InferenceEngine(
         // 2) Metadata call -------------------------------------------------------------------
         val metadataMessages = InferenceMessageBuilder.buildMetadataPrompt(params, extractedNode)
 
-        val metadataCallFile: Path? = info(
+        val metadataCallFile = log(
             dirPrefix = "extract-summary",
-            kind = "metadataCall",
             timestamp = timestamp,
             requestId = params.requestId,
             modelCall = "metadata",
@@ -231,14 +225,14 @@ class InferenceEngine(
         val metadataResponse = cta.generateResponseRaw(metadataMessages)
 
         val metaNode: ObjectNode = runCatching {
-            pulsarObjectMapper().readTree(metadataResponse.content) as? ObjectNode ?: JsonNodeFactory.instance.objectNode()
+            pulsarObjectMapper().readTree(metadataResponse.content) as? ObjectNode
+                ?: JsonNodeFactory.instance.objectNode()
         }.getOrElse { JsonNodeFactory.instance.objectNode() }
         val progress = metaNode.path("progress").asText("")
         val completed = metaNode.path("completed").asBoolean(false)
 
-        val metadataRespFile: Path = info(
-            prefix = "extract-summary",
-            kind = "metadataResponse",
+        val metadataRespFile: Path = log(
+            prefix = "extract-metadata-summary",
             suffix = "$timestamp.json",
             payload = mapOf(
                 "requestId" to params.requestId,
@@ -248,9 +242,9 @@ class InferenceEngine(
             )
         )
 
-        appendSummaryToFile(
+        logSummary(
             prefix = "extract",
-            entry = mapOf(
+            payload = mapOf(
                 "extractInferenceType" to "metadata",
                 "timestamp" to timestamp,
                 "llmInputFile" to metadataCallFile,
@@ -298,91 +292,33 @@ class InferenceEngine(
         return Strings.compactInline(raw, limit)
     }
 
-    private fun info(prefix: String, kind: String, suffix: String, payload: Any): Path {
-        val path = auxLogDir.resolve(prefix).resolve("${kind}.$suffix")
+    private fun log(prefix: String, suffix: String, payload: Any): Path {
+        val path = auxLogDir.resolve(prefix).resolve(suffix)
         return auxLogger.writeTo(payload, path)
     }
 
-    private fun appendSummaryToFile(prefix: String, entry: Map<String, Any?>) {
-        val summaryDir = auxLogDir.resolve("summary")
-
-        val file = summaryDir.resolve("${prefix}_summary.json")
-
-        val entryNode: JsonNode = pulsarObjectMapper().valueToTree(normalizeSummaryEntry(entry))
-
-        val current = readSummaryArrayOrEmpty(file)
-        current.add(entryNode)
-
-        writeSummaryArrayAtomically(summaryDir, prefix, file, current)
-    }
-
-    /**
-     * Convert values to stable JSON-friendly shapes.
-     *
-     * Currently, we only normalize [Path] -> String. Other types are left as-is.
-     */
-    private fun normalizeSummaryEntry(entry: Map<String, Any?>): Map<String, Any?> {
-        return entry.mapValues { (_, v) ->
-            when (v) {
-                is Path -> v.toString()
-                else -> v
-            }
-        }
-    }
-
-    /**
-     * Read an existing summary file as a JSON array.
-     *
-     * If the file doesn't exist, is empty, isn't an array, or is invalid JSON, an empty array is returned.
-     */
-    private fun readSummaryArrayOrEmpty(file: Path): ArrayNode {
-        if (!Files.exists(file)) {
-            return JsonNodeFactory.instance.arrayNode()
-        }
-
-        val bytes = runCatching { Files.readAllBytes(file) }.getOrNull() ?: return JsonNodeFactory.instance.arrayNode()
-        if (bytes.isEmpty()) {
-            return JsonNodeFactory.instance.arrayNode()
-        }
-
-        return runCatching { pulsarObjectMapper().readTree(bytes) as? ArrayNode }
-            .getOrNull()
-            ?: JsonNodeFactory.instance.arrayNode()
-    }
-
-    private fun writeSummaryArrayAtomically(summaryDir: Path, prefix: String, file: Path, array: ArrayNode) {
-        val tempFile = Files.createTempFile(summaryDir, "${prefix}_summary_", ".json")
-        try {
-            Files.write(
-                tempFile,
-                prettyPulsarObjectMapper().writeValueAsBytes(array),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            )
-
-            try {
-                Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-            } catch (_: AtomicMoveNotSupportedException) {
-                Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING)
-            }
-        } finally {
-            runCatching { Files.deleteIfExists(tempFile) }
-        }
+    private fun logSummary(prefix: String, payload: Map<String, Any?>): Path {
+        val path = auxLogDir.resolve("summary").resolve("${prefix}_summary.jsonl")
+        return auxLogger.writeTo(payload, path)
     }
 
     // ------------------------------ Small utilities --------------------------------
-    private fun info(
-        dirPrefix: String, kind: String, requestId: String, timestamp: String, modelCall: String,
+    private fun log(
+        dirPrefix: String, requestId: String, timestamp: String, modelCall: String,
         messages: List<Any>, enabled: Boolean = true
     ): Path? {
         if (!enabled) return null
 
-        return info(
-            prefix = dirPrefix, kind = kind, suffix = "$timestamp.json", payload = mapOf(
+        return log(
+            prefix = dirPrefix, suffix = "$timestamp.json", payload = mapOf(
                 "requestId" to requestId,
                 "modelCall" to modelCall,
                 "messages" to messages,
             )
         )
+    }
+
+    companion object {
+        private val FILE_LOCKS: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
     }
 }

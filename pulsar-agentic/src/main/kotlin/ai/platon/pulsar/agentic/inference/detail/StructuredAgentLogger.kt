@@ -16,7 +16,7 @@ import java.time.Instant
 class StructuredAgentLogger(
     ownerLogger: Logger,
     private val config: AgentConfig
-): StructuredLogger(ownerLogger = ownerLogger, enableStructuredLogging = config.enableStructuredLogging) {
+) : StructuredLogger(ownerLogger = ownerLogger, enableStructuredLogging = config.enableStructuredLogging) {
     /**
      * Log a structured message with context and additional data.
      *
