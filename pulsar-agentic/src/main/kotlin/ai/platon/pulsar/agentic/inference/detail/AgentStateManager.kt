@@ -321,7 +321,7 @@ class AgentStateManager(
         val trace = if (isComplete) {
             ProcessTrace(
                 step = step,
-                event = event ?: state.event,
+                event = event,
                 isComplete = true,
                 agentState = state.toString(),
                 items = items,
@@ -330,7 +330,7 @@ class AgentStateManager(
         } else {
             ProcessTrace(
                 step = step,
-                event = event ?: state?.event,
+                event = event,
                 method = state?.method,
                 isComplete = false,
                 agentState = state.toString(),
