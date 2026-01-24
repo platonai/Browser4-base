@@ -23,10 +23,8 @@ import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
-import java.nio.file.StandardOpenOption
+import java.nio.channels.FileChannel
+import java.nio.file.*
 import java.time.Instant
 import java.util.*
 
@@ -46,7 +44,7 @@ data class ObserveParams constructor(
      * */
     val userProvidedInstructions: String? = null,
     val returnAction: Boolean = false,
-    val resolve: Boolean = false,
+    val multiStep: Boolean = false,
     val logInferenceToFile: Boolean = false,
     val fromAct: Boolean = false,
 ) {}
@@ -203,8 +201,8 @@ class InferenceEngine(
     }
 
     suspend fun observe(params: ObserveParams, context: ExecutionContext): ActionDescription {
-        val messages = if (params.resolve) {
-            promptBuilder.buildResolveMessageListAll(context)
+        val messages = if (params.multiStep) {
+            promptBuilder.buildMultiStepAgentMessageListAll(context)
         } else {
             promptBuilder.buildObserveMessageListAll(params, context)
         }
@@ -228,7 +226,10 @@ class InferenceEngine(
         val actionDescription = cta.generate(messages, context)
         // Minor typo fix: "Field" instead of "Filed"
         requireNotNull(context.agentState.actionDescription) { "Field should be set: context.agentState.actionDescription" }
-        val modelResponse = actionDescription.modelResponse!!
+
+        val modelResponse = requireNotNull(actionDescription.modelResponse) {
+            "Field should be set: actionDescription.modelResponse"
+        }
 
         val tokenUsage = modelResponse.tokenUsage
         val responseContent = modelResponse.content
@@ -303,44 +304,44 @@ class InferenceEngine(
         val file = summaryDir.resolve("${prefix}_summary.json")
         Files.createDirectories(file.parent)
 
+        // Use OS-level file lock to protect concurrent writers (cross-process + crash-safe).
         val lockFile = summaryDir.resolve("${prefix}_summary.json.lock")
         val tempFile = Files.createTempFile(summaryDir, "${prefix}_summary_", ".json")
 
         // Serialize entry using the same mapper as reading.
-        val entryNode: JsonNode = mapper.valueToTree(entry)
-
-        // Poor-man's cross-OS lock: create a lock file exclusively; retry briefly if contended.
-        var lockAcquired = false
-        repeat(50) {
-            lockAcquired = runCatching {
-                Files.createFile(lockFile)
-                true
-            }.getOrElse { false }
-            if (lockAcquired) return@repeat
-            Thread.sleep(10)
+        // Convert Paths to strings to keep JSON stable.
+        val normalizedEntry = entry.mapValues { (_, v) ->
+            when (v) {
+                is Path -> v.toString()
+                else -> v
+            }
         }
-
-        if (!lockAcquired) {
-            // If we can't acquire the lock, don't fail the caller; just skip summary append.
-            return
-        }
+        val entryNode: JsonNode = mapper.valueToTree(normalizedEntry)
 
         try {
-            val current: ArrayNode = if (Files.exists(file)) {
-                runCatching { mapper.readTree(Files.readAllBytes(file)) as? ArrayNode }.getOrNull()
-                    ?: JsonNodeFactory.instance.arrayNode()
-            } else JsonNodeFactory.instance.arrayNode()
+            FileChannel.open(lockFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use { channel ->
+                channel.lock().use {
+                    val current: ArrayNode = if (Files.exists(file)) {
+                        runCatching { mapper.readTree(Files.readAllBytes(file)) as? ArrayNode }.getOrNull()
+                            ?: JsonNodeFactory.instance.arrayNode()
+                    } else JsonNodeFactory.instance.arrayNode()
 
-            current.add(entryNode)
-            Files.write(
-                tempFile,
-                prettyPulsarObjectMapper().writeValueAsBytes(current),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            )
-            Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+                    current.add(entryNode)
+                    Files.write(
+                        tempFile,
+                        prettyPulsarObjectMapper().writeValueAsBytes(current),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING
+                    )
+
+                    try {
+                        Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+                    } catch (_: AtomicMoveNotSupportedException) {
+                        Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING)
+                    }
+                }
+            }
         } finally {
-            runCatching { Files.deleteIfExists(lockFile) }
             runCatching { Files.deleteIfExists(tempFile) }
         }
     }

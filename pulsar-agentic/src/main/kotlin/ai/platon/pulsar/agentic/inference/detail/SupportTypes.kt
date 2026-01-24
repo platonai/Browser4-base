@@ -128,7 +128,7 @@ data class ExecutionContext constructor(
             returnAction = options.returnAction ?: false,
             logInferenceToFile = config.logInferenceToFile,
             fromAct = fromAct,
-            resolve = resolve
+            multiStep = resolve
         )
     }
 
@@ -137,7 +137,7 @@ data class ExecutionContext constructor(
             context = this,
             fromAct = true,
             returnAction = true,
-            resolve = resolve,
+            multiStep = resolve,
             logInferenceToFile = config.logInferenceToFile,
         )
     }
