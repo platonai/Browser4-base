@@ -36,16 +36,19 @@ class PromptBuilder() {
 
         const val MAX_ACTIONS = 1
 
+        /**
+         * Build the JSON schema for observing results. The schema can be parsed into ObserveResult objects.
+         * */
         fun buildObserveResultSchema(returnAction: Boolean): String {
             // English is better for LLM to understand JSON
             val schema1 = """
 {
   "elements": [
     {
+      "locator": "Web page node locator, composed of two numbers, such as `0,4`",
       "domain": "Tool domain, such as `driver`",
       "method": "Method name, such as `click`",
       "description": "Description of the current locator and tool selection",
-      "locator": "Web page node locator, composed of two numbers, such as `0,4`",
       "arguments": [
         {
           "name": "Parameter name, such as `selector`",

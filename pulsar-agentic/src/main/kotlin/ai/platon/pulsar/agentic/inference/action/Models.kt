@@ -35,6 +35,7 @@ data class ObserveResponseComplete(
     val nextSuggestions: List<String>? = null,
 )
 
+
 data class ObserveResponseElements(
     val elements: List<ObserveResponseElement>? = null
 )

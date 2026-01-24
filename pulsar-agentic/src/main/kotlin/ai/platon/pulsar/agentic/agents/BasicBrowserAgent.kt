@@ -118,6 +118,23 @@ open class BasicBrowserAgent(
     }
 
     /**
+     * Observes the page given an instruction, returning zero or more ObserveResult objects describing
+     * candidate elements and potential actions (if returnAction=true).
+     */
+    override suspend fun observe(instruction: String): List<ObserveResult> {
+        val opts = ObserveOptions(instruction = instruction, returnAction = null)
+        return observe(opts)
+    }
+
+    override suspend fun observe(options: ObserveOptions): List<ObserveResult> {
+        val context = stateManager.getOrCreateActiveContext(options)
+
+        val result = doObserveActObserve(options, context, options.fromResolve)
+
+        return result.observeResults
+    }
+
+    /**
      * Convenience wrapper building ActionOptions from a raw action string.
      */
     override suspend fun act(action: String): ActResult {
@@ -245,23 +262,6 @@ open class BasicBrowserAgent(
     override suspend fun extract(instruction: String, schema: ExtractionSchema): ExtractResult {
         val opts = ExtractOptions(instruction = instruction, schema = schema)
         return extract(opts)
-    }
-
-    /**
-     * Observes the page given an instruction, returning zero or more ObserveResult objects describing
-     * candidate elements and potential actions (if returnAction=true).
-     */
-    override suspend fun observe(instruction: String): List<ObserveResult> {
-        val opts = ObserveOptions(instruction = instruction, returnAction = null)
-        return observe(opts)
-    }
-
-    override suspend fun observe(options: ObserveOptions): List<ObserveResult> {
-        val context = stateManager.getOrCreateActiveContext(options)
-
-        val result = doObserveActObserve(options, context, options.fromResolve)
-
-        return result.observeResults
     }
 
     override suspend fun summarize(instruction: String?, selector: String?): String {
