@@ -46,31 +46,6 @@ object PulsarEventBus {
      */
     private val serverSideEventHandlersTL = ThreadLocal<ServerSideEventHandlers?>()
 
-    private class ServerSideEventHandlersContext(
-        private val handlers: ServerSideEventHandlers?
-    ) : ThreadContextElement<ServerSideEventHandlers?> {
-        companion object Key : CoroutineContext.Key<ServerSideEventHandlersContext>
-
-        override val key: CoroutineContext.Key<ServerSideEventHandlersContext> = Key
-
-        override fun updateThreadContext(context: CoroutineContext): ServerSideEventHandlers? {
-            val previous = serverSideEventHandlersTL.get()
-            serverSideEventHandlersTL.set(handlers)
-            return previous
-        }
-
-        override fun restoreThreadContext(context: CoroutineContext, oldState: ServerSideEventHandlers?) {
-            serverSideEventHandlersTL.set(oldState)
-        }
-    }
-
-    /**
-     * Returns the handlers for the current context (per-coroutine override first, then global fallback).
-     */
-    private fun currentServerSideEventHandlers(): ServerSideEventHandlers? {
-        return serverSideEventHandlersTL.get() ?: serverSideEventHandlers
-    }
-
     /**
      * Runs [block] with [handlers] bound to the current coroutine execution context.
      */
@@ -141,4 +116,31 @@ object PulsarEventBus {
             }
         }
     }
+
+    private class ServerSideEventHandlersContext(
+        private val handlers: ServerSideEventHandlers?
+    ) : ThreadContextElement<ServerSideEventHandlers?> {
+        companion object Key : CoroutineContext.Key<ServerSideEventHandlersContext>
+
+        override val key: CoroutineContext.Key<ServerSideEventHandlersContext> = Key
+
+        override fun updateThreadContext(context: CoroutineContext): ServerSideEventHandlers? {
+            val previous = serverSideEventHandlersTL.get()
+            serverSideEventHandlersTL.set(handlers)
+            return previous
+        }
+
+        override fun restoreThreadContext(context: CoroutineContext, oldState: ServerSideEventHandlers?) {
+            serverSideEventHandlersTL.set(oldState)
+        }
+    }
+
+    /**
+     * Returns the handlers for the current context (per-coroutine override first, then global fallback).
+     */
+    private fun currentServerSideEventHandlers(): ServerSideEventHandlers? {
+        return serverSideEventHandlersTL.get() ?: serverSideEventHandlers
+    }
 }
+
+typealias EventBus = PulsarEventBus

@@ -13,7 +13,7 @@ import ai.platon.pulsar.common.MultiSinkMessageWriter
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import ai.platon.pulsar.external.ModelResponse
-import ai.platon.pulsar.skeleton.crawl.PulsarEventBus
+import ai.platon.pulsar.skeleton.crawl.EventBus
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -122,26 +122,24 @@ class InferenceEngine(
             messages = messages.messages
         )
 
-        PulsarEventBus.emit("InferenceEngine.observe.willGenerate", mapOf(
+        EventBus.emit("InferenceEngine.observe.willGenerate", mapOf(
             "context" to context,
             "messages" to messages
         ))
 
         val actionDescription = cta.generate(messages, context)
+        requireNotNull(context.agentState.actionDescription) {
+            "Field should be set: context.agentState.actionDescription"
+        }
+        val modelResponse = requireNotNull(actionDescription.modelResponse) {
+            "Field should be set: actionDescription.modelResponse"
+        }
 
-        PulsarEventBus.emit("InferenceEngine.observe.didGenerate", mapOf(
+        EventBus.emit("InferenceEngine.observe.didGenerate", mapOf(
             "context" to context,
             "messages" to messages,
             "actionDescription" to actionDescription
         ))
-
-        requireNotNull(context.agentState.actionDescription) {
-            "Field should be set: context.agentState.actionDescription"
-        }
-
-        val modelResponse = requireNotNull(actionDescription.modelResponse) {
-            "Field should be set: actionDescription.modelResponse"
-        }
 
         val tokenUsage = modelResponse.tokenUsage
         val responseContent = modelResponse.content
