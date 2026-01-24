@@ -4,10 +4,10 @@ import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.A11Y_TREE_NOTE
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.EXTRACTION_TOOL_NOTE_CONTENT
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.INTERACTIVE_ELEMENT_LIST_NOTE_CONTENT
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.MAX_ACTIONS
-import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.TASK_COMPLETE_SCHEMA
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.TOOL_CALL_RULE_CONTENT
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.buildObserveResultSchema
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.language
+import ai.platon.pulsar.agentic.inference.action.TASK_COMPLETE_SCHEMA_PROMPT
 import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationRenderer
 
 /**
@@ -222,7 +222,7 @@ ${buildObserveResultSchema(true)}
 2. 任务完成输出
 
 输出格式：
-$TASK_COMPLETE_SCHEMA
+$TASK_COMPLETE_SCHEMA_PROMPT
 
 ---
 

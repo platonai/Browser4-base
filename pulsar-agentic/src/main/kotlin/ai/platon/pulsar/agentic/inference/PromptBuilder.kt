@@ -2,6 +2,8 @@ package ai.platon.pulsar.agentic.inference
 
 import ai.platon.browser4.driver.chrome.dom.DOMSerializer
 import ai.platon.browser4.driver.chrome.dom.model.TabState
+import ai.platon.pulsar.agentic.inference.action.OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT
+import ai.platon.pulsar.agentic.inference.action.TASK_COMPLETE_SCHEMA_PROMPT
 import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
 import ai.platon.pulsar.agentic.model.AgentHistory
 import ai.platon.pulsar.agentic.model.AgentState
@@ -37,34 +39,13 @@ class PromptBuilder() {
         const val MAX_ACTIONS = 1
 
         /**
-         * Build the JSON schema for observing results. The schema can be parsed into ObserveResult objects.
+         * Build the JSON schema for observing results.
+         *
+         * See [ai.platon.pulsar.agentic.inference.action.ObserveResponseElements]
          * */
         fun buildObserveResultSchema(returnAction: Boolean): String {
             // English is better for LLM to understand JSON
-            val schema1 = """
-{
-  "elements": [
-    {
-      "locator": "Web page node locator, composed of two numbers, such as `0,4`",
-      "domain": "Tool domain, such as `driver`",
-      "method": "Method name, such as `click`",
-      "description": "Description of the current locator and tool selection",
-      "arguments": [
-        {
-          "name": "Parameter name, such as `selector`",
-          "value": "Parameter value, such as `0,4`"
-        }
-      ],
-      "screenshotContentSummary": "Summary of the current screenshot content",
-      "currentPageContentSummary": "Summary of the current web page text content, based on the accessibility tree or web content extraction results",
-      "memory": "1–3 specific sentences describing this step and the overall progress. This should include information helpful for future progress tracking, such as the number of pages visited or items found.",
-      "thinking": "A structured <think>-style reasoning block that applies the `## 推理规则`.",
-      "evaluationPreviousGoal": "A concise one-sentence analysis of the previous action, clearly stating success, failure, or uncertainty.",
-      "nextGoal": "A clear one-sentence statement of the next direct goal and action to take."
-    }
-  ]
-}
-"""
+            val schema1 = OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT
 
             val schema2 = """
 {
@@ -79,10 +60,6 @@ class PromptBuilder() {
 
             return if (returnAction) schema1 else schema2
         }
-
-        val TASK_COMPLETE_SCHEMA = """
-            {"taskComplete":bool,"success":bool,"errorCause":string?,"summary":string,"keyFindings":[string],"nextSuggestions":[string]}
-        """.trimIndent()
 
          val TOOL_CALL_RULE_CONTENT = """
  遵循以下规则使用浏览器和浏览网页：
@@ -987,7 +964,7 @@ $history
 
 严格输出 JSON，无多余文字：
 
-$TASK_COMPLETE_SCHEMA
+$TASK_COMPLETE_SCHEMA_PROMPT
 
 ---
 
