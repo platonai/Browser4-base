@@ -162,6 +162,10 @@ open class BrowserPerceptiveAgent(
      * Run an autonomous loop (observe -> act -> ...) attempting to fulfill the user goal described
      * in the ActionOptions. Applies retry and timeout strategies; records structured traces but keeps
      * stateHistory focused on executed tool actions only.
+     * 
+     * @param action The action options containing the user's goal and configuration
+     * @return Agent history with executed actions
+     * @throws CancellationException if the agent is closed or the operation is cancelled
      */
     override suspend fun run(action: ActionOptions): AgentHistory {
         if (isClosed) {
@@ -173,8 +177,10 @@ open class BrowserPerceptiveAgent(
             // We still inherit caller cancellation while switching dispatcher as configured by agentScope.
             val ctx = agentScope.coroutineContext.minusKey(Job)
             withContext(ctx) { resolveInCoroutine(action) }
-        } catch (_: CancellationException) {
-            logger.info("Cancelled due to cancellation")
+        } catch (e: CancellationException) {
+            // Properly propagate cancellation as per Kotlin coroutines best practices
+            logger.info("🛑 run.cancelled reason={}", e.message ?: "user cancellation")
+            throw e // Always re-throw CancellationException
         } finally {
             stateManager.writeProcessTrace()
         }
@@ -186,10 +192,13 @@ open class BrowserPerceptiveAgent(
      * Executes a single observe->act cycle for a supplied ActionOptions. Times out after actTimeoutMs
      * to prevent indefinite hangs. Model may produce multiple candidate tool calls internally; only
      * one successful execution is recorded in stateHistory.
+     * 
+     * @param action The action to execute
+     * @return Result of the action execution
      */
     override suspend fun act(action: ActionOptions): ActResult {
         if (isClosed) {
-            return ActResult(false, "USER interrupted", action = action.action)
+            return ActResult(false, "closed", action = action.action)
         }
 
         return try {
@@ -197,18 +206,22 @@ open class BrowserPerceptiveAgent(
             withContext(ctx) {
                 super.act(action)
             }
-        } catch (_: CancellationException) {
-            ActResult(false, "USER interrupted", action = action.action)
+        } catch (e: CancellationException) {
+            logger.info("🛑 act.cancelled action={}", action.action.take(50))
+            ActResult(false, "USER interrupted: ${e.message}", action = action.action)
         }
     }
 
     /**
      * Executes a tool call derived from a prior observation result. Performs patching (selector/url),
      * validation, and updates AgentState history on success or failure.
+     * 
+     * @param observe The observation result containing the action to execute
+     * @return Result of the action execution
      */
     override suspend fun act(observe: ObserveResult): ActResult {
         if (isClosed) {
-            return ActResult(false, "USER interrupted", action = observe.agentState.instruction)
+            return ActResult(false, "closed", action = observe.agentState.instruction)
         }
 
         return try {
@@ -216,20 +229,24 @@ open class BrowserPerceptiveAgent(
             withContext(ctx) {
                 super.act(observe)
             }
-        } catch (_: CancellationException) {
-            ActResult(false, "USER interrupted", action = observe.agentState.instruction)
+        } catch (e: CancellationException) {
+            logger.info("🛑 act.cancelled instruction={}", observe.agentState.instruction.take(50))
+            ActResult(false, "USER interrupted: ${e.message}", action = observe.agentState.instruction)
         }
     }
 
     /**
      * Structured extraction: builds a rich prompt with DOM snapshot & optional JSON schema; performs
      * two-stage LLM calls (extract + metadata) and merges results with token/time metrics.
+     * 
+     * @param options Extraction options including schema and target elements
+     * @return Extraction result with structured data
      */
     override suspend fun extract(options: ExtractOptions): ExtractResult {
         if (isClosed) {
             return ExtractResult(
                 success = false,
-                message = "USER interrupted",
+                message = "closed",
                 data = JsonNodeFactory.instance.objectNode()
             )
         }
@@ -239,8 +256,11 @@ open class BrowserPerceptiveAgent(
             withContext(ctx) {
                 super.extract(options)
             }
-        } catch (_: CancellationException) {
-            ExtractResult(success = false, message = "USER interrupted", data = JsonNodeFactory.instance.objectNode())
+        } catch (e: CancellationException) {
+            logger.info("🛑 extract.cancelled instruction={}", 
+                options.instruction?.take(50) ?: "")
+            ExtractResult(success = false, message = "USER interrupted: ${e.message}", 
+                data = JsonNodeFactory.instance.objectNode())
         }
     }
 
@@ -525,9 +545,13 @@ open class BrowserPerceptiveAgent(
             val actResult = buildFinalActResult(initContext.instruction, context, startTime)
 
             return ResolveResult(context, actResult)
-        } catch (_: CancellationException) {
-            logger.info("""🛑 [USER interrupted] sid={} steps={}""", context.sid, context.step)
-            val result = ActResult(success = false, message = "USER interrupted", action = initContext.instruction)
+        } catch (e: CancellationException) {
+            // Log cancellation and return gracefully, allowing cleanup to occur
+            logger.info("🛑 doResolve.cancelled sid={} steps={} reason={}", 
+                context.sid, context.step, e.message ?: "user interruption")
+            val result = ActResult(success = false, 
+                message = "USER interrupted: ${e.message}", 
+                action = initContext.instruction)
             return ResolveResult(context, result)
         } catch (e: Exception) {
             throw handleResolutionFailure(e, context, startTime)
@@ -591,6 +615,20 @@ open class BrowserPerceptiveAgent(
         val shouldStop: Boolean
     )
 
+    /**
+     * Execute a single step in the observe-act loop.
+     * 
+     * This method represents one iteration of the autonomous agent cycle:
+     * 1. Observe the current page state
+     * 2. Generate an action based on the observation
+     * 3. Execute the action (tool call)
+     * 4. Update state and metrics
+     * 
+     * @param action The action options containing the overall goal
+     * @param context The current execution context
+     * @param noOpsIn Number of consecutive no-op steps before this one
+     * @return StepProcessingResult containing updated context and whether to stop
+     */
     protected open suspend fun step(
         action: ActionOptions,
         context: ExecutionContext,
