@@ -16,7 +16,10 @@ import ai.platon.pulsar.agentic.skills.tools.SkillToolExecutor
 import ai.platon.pulsar.agentic.skills.tools.SkillToolTarget
 import ai.platon.pulsar.agentic.tools.AgentToolManager
 import ai.platon.pulsar.agentic.tools.CustomToolRegistry
-import ai.platon.pulsar.common.*
+import ai.platon.pulsar.common.AppPaths
+import ai.platon.pulsar.common.DateTimes
+import ai.platon.pulsar.common.alwaysTrue
+import ai.platon.pulsar.common.getLogger
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -99,11 +102,19 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun run(action: ActionOptions): AgentHistory {
-        throw NotSupportedException("Not supported, use stateful agents instead, such as BrowserPerceptiveAgent, TaskScopedBrowserPerceptiveAgent, etc.")
+        var result = act(action)
+
+        var i = 0
+        while (!result.isComplete && i++ < config.maxSteps) {
+            result = act(action)
+        }
+
+        return stateHistory
     }
 
     override suspend fun run(task: String): AgentHistory {
-        throw NotSupportedException("Not supported, use stateful agents instead, such as BrowserPerceptiveAgent, TaskScopedBrowserPerceptiveAgent, etc.")
+        val actionOptions = ActionOptions(action = task, multiAct = true)
+        return run(actionOptions)
     }
 
     /**
@@ -120,7 +131,6 @@ open class BasicBrowserAgent(
      * one successful execution is recorded in stateHistory.
      */
     override suspend fun act(action: ActionOptions): ActResult {
-        // val context = action.getContext() ?: stateManager.buildInitExecutionContext(action, "act")
         val context = stateManager.getOrCreateActiveContext(action, "act")
 
         return try {

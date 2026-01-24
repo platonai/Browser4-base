@@ -176,7 +176,7 @@ open class BrowserPerceptiveAgent(
             // Avoid passing a distinct Job to withContext (structured concurrency violation warning).
             // We still inherit caller cancellation while switching dispatcher as configured by agentScope.
             val ctx = agentScope.coroutineContext.minusKey(Job)
-            withContext(ctx) { resolveInCoroutine(action) }
+            withContext(ctx) { resolveProblemInCoroutine(action) }
         } catch (e: CancellationException) {
             // Properly propagate cancellation as per Kotlin coroutines best practices
             logger.info("🛑 run.cancelled reason={}", e.message ?: "user cancellation")
@@ -341,7 +341,7 @@ open class BrowserPerceptiveAgent(
         val result: ActResult
     )
 
-    private suspend fun resolveInCoroutine(action: ActionOptions): ResolveResult {
+    private suspend fun resolveProblemInCoroutine(action: ActionOptions): ResolveResult {
         val instruction = action.action
         val baseContext = stateManager.buildBaseExecutionContext(action, "resolve-init")
         stateManager.setActiveContext(baseContext)
