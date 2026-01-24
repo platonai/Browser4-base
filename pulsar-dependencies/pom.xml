@@ -311,7 +311,46 @@
                 <version>${metrics.version}</version>
             </dependency>
 
+            <!-- OpenTelemetry for distributed tracing -->
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${opentelemetry.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-otlp</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-semconv</artifactId>
+                <version>${opentelemetry.semconv.version}</version>
+            </dependency>
 
+            <!-- Micrometer for metrics with Prometheus support -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-core</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
 
 
             <dependency>
@@ -446,6 +485,11 @@
         <!--  metrics analyze  -->
         <oshi.version>6.4.13</oshi.version>
         <metrics.version>4.2.12</metrics.version>
+        
+        <!--  Observability: OpenTelemetry & Micrometer  -->
+        <opentelemetry.version>1.44.1</opentelemetry.version>
+        <opentelemetry.semconv.version>1.28.0-alpha</opentelemetry.semconv.version>
+        <micrometer.version>1.15.0</micrometer.version>
 
         <!--  Matchers that can be combined to create flexible expressions of intent  -->
         <hamcrest-all.version>1.3</hamcrest-all.version>
