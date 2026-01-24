@@ -16,6 +16,32 @@ import java.nio.file.Path
 import java.time.Instant
 import java.util.*
 
+/**
+ * Manages agent state, execution contexts, and history tracking.
+ * 
+ * This class is responsible for:
+ * - Creating and managing execution contexts for each step
+ * - Maintaining state history for all executed actions
+ * - Tracking process traces for debugging
+ * - Managing the lifecycle of contexts (creation, activation, cleanup)
+ * 
+ * **Context Management**:
+ * - `_baseContext`: The initial context created when an agent session starts
+ * - `_activeContext`: The currently active context being processed
+ * - `contexts`: List of all contexts created during the session (cleaned periodically)
+ * 
+ * **State History**:
+ * - `_stateHistory`: Contains AgentState objects for successfully executed actions
+ * - Limited to `config.maxHistorySize` entries to prevent unbounded growth
+ * 
+ * **Process Trace**:
+ * - `_processTrace`: Detailed trace of all events including failures
+ * - Limited to 200 entries to prevent memory leaks
+ * - Written to disk for debugging via `writeProcessTrace()`
+ * 
+ * @param agent The agent actor using this state manager
+ * @param pageStateTracker Tracks page state changes for detecting progress
+ */
 class AgentStateManager(
     val agent: BrowserAgentActor,
     val pageStateTracker: PageStateTracker,
@@ -28,16 +54,30 @@ class AgentStateManager(
     private val _processTrace = mutableListOf<ProcessTrace>()
     private val config get() = agent.config
 
-    // should be the first in context list
+    // Context management - see class KDoc for detailed explanation
+    // _baseContext: The initial context (first in contexts list)
     private lateinit var _baseContext: ExecutionContext
-    // should be the last in context list
+    // _activeContext: The currently active context (last in contexts list)
     private var _activeContext: ExecutionContext? = null
+    // contexts: All execution contexts created during this session
+    // Cleaned periodically to max 100 entries to prevent memory leaks
     private val contexts: MutableList<ExecutionContext> = mutableListOf()
 
     val driver get() = agent.activeDriver as PulsarWebDriver
     val stateHistory: AgentHistory get() = _stateHistory
     val processTrace: List<ProcessTrace> get() = _processTrace
 
+    /**
+     * Get the currently active context, or create one if it doesn't exist.
+     * 
+     * This method handles two scenarios:
+     * 1. First call: Creates base context and sets it as active
+     * 2. Multi-act mode: Creates new context based on previous active context
+     * 
+     * @param action The action options
+     * @param event The event name for this context
+     * @return The active execution context
+     */
     suspend fun getOrCreateActiveContext(action: ActionOptions, event: String): ExecutionContext {
         if (_activeContext == null) {
             _baseContext = buildInitExecutionContext(action, event)
@@ -64,12 +104,26 @@ class AgentStateManager(
         return _activeContext!!
     }
 
+    /**
+     * Get the currently active context.
+     * 
+     * Note: This method requires the actor to be initialized (i.e., at least one context created).
+     * Use `getOrCreateActiveContext()` if you want automatic context creation.
+     * 
+     * @return The active execution context
+     * @throws IllegalArgumentException if actor not initialized
+     */
     fun getActiveContext(): ExecutionContext {
         val context = requireNotNull(_activeContext) { "Actor not initialized, call act(action: ActionOptions) first!" }
         require(context == contexts.last()) { "Active context should be the last context in the list. Context list size: ${contexts.size}" }
         return context
     }
 
+    /**
+     * Set the active context and add it to the contexts list.
+     * 
+     * @param context The context to set as active
+     */
     fun setActiveContext(context: ExecutionContext) {
         _activeContext = context
         if (contexts.lastOrNull() == context) {
@@ -304,6 +358,28 @@ class AgentStateManager(
                     history.clear()
                     history.addAll(remaining)
                 }
+            }
+            
+            // Also cleanup contexts list to prevent unbounded growth
+            val maxContextsSize = 100
+            if (contexts.size > maxContextsSize) {
+                val toRemoveContexts = contexts.size - maxContextsSize / 2
+                val remainingContexts = contexts.drop(toRemoveContexts)
+                contexts.clear()
+                contexts.addAll(remainingContexts)
+                // Update active context reference if it was removed
+                if (_activeContext != null && _activeContext !in contexts) {
+                    _activeContext = contexts.lastOrNull()
+                }
+            }
+            
+            // Also cleanup process trace to prevent unbounded growth
+            val maxTraceSize = 200
+            if (_processTrace.size > maxTraceSize) {
+                val toRemoveTrace = _processTrace.size - maxTraceSize / 2
+                val remainingTrace = _processTrace.drop(toRemoveTrace)
+                _processTrace.clear()
+                _processTrace.addAll(remainingTrace)
             }
         }
     }
