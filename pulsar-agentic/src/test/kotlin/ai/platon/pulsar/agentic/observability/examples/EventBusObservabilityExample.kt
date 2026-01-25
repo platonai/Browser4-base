@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.observability.examples
 
+import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.common.event.DangerousEventBus
 import ai.platon.pulsar.common.serialize.json.Pson
 import org.slf4j.LoggerFactory
@@ -54,14 +55,14 @@ class EventBusObservabilityExample {
         println("--- Example 1: Simple Event Monitoring ---")
 
         // Register handlers for agent events
-        DangerousEventBus.register("PerceptiveAgent.act.willExecute") { payload ->
+        DangerousEventBus.register(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val action = map["action"]
             println("🚀 Starting action execution: $action")
             payload
         }
 
-        DangerousEventBus.register("PerceptiveAgent.act.didExecute") { payload ->
+        DangerousEventBus.register(AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val result = map["result"]
             println("✅ Action completed with result: $result")
@@ -70,7 +71,7 @@ class EventBusObservabilityExample {
 
         // Simulate emitting events
         DangerousEventBus.emit(
-            "PerceptiveAgent.act.willExecute", mapOf(
+            AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE, mapOf(
                 "action" to mapOf("action" to "click button"),
                 "uuid" to "example-uuid"
             )
@@ -79,7 +80,7 @@ class EventBusObservabilityExample {
         Thread.sleep(100)
 
         DangerousEventBus.emit(
-            "PerceptiveAgent.act.didExecute", mapOf(
+            AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE, mapOf(
                 "action" to mapOf("action" to "click button"),
                 "uuid" to "example-uuid",
                 "result" to mapOf("success" to true, "message" to "Button clicked")
@@ -99,7 +100,7 @@ class EventBusObservabilityExample {
         val executionTimes = ConcurrentHashMap<String, Long>()
 
         // Track start time
-        DangerousEventBus.register("InferenceEngine.observe.willGenerate") { payload ->
+        DangerousEventBus.register(AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val context = map["context"] as? Map<String, Any?>
             val uuid = context?.get("uuid") as? String
@@ -111,7 +112,7 @@ class EventBusObservabilityExample {
         }
 
         // Calculate duration
-        DangerousEventBus.register("InferenceEngine.observe.didGenerate") { payload ->
+        DangerousEventBus.register(AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val context = map["context"] as? Map<String, Any?>
             val uuid = context?.get("uuid") as? String
@@ -128,7 +129,7 @@ class EventBusObservabilityExample {
         // Simulate inference events
         val testContext = mapOf("uuid" to "inference-123", "step" to 1)
         DangerousEventBus.emit(
-            "InferenceEngine.observe.willGenerate", mapOf(
+            AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE, mapOf(
                 "context" to testContext,
                 "messages" to emptyList<Any>()
             )
@@ -137,7 +138,7 @@ class EventBusObservabilityExample {
         Thread.sleep(150) // Simulate LLM processing
 
         DangerousEventBus.emit(
-            "InferenceEngine.observe.didGenerate", mapOf(
+            AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE, mapOf(
                 "context" to testContext,
                 "messages" to emptyList<Any>(),
                 "actionDescription" to mapOf("method" to "click")
@@ -154,7 +155,7 @@ class EventBusObservabilityExample {
     private fun actionValidation() {
         println("--- Example 3: Action Validation ---")
 
-        DangerousEventBus.register("InferenceEngine.observe.didGenerate") { payload ->
+        DangerousEventBus.register(AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val actionDescription = map["actionDescription"]
 
@@ -183,7 +184,7 @@ class EventBusObservabilityExample {
 
         // Simulate action generation
         DangerousEventBus.emit(
-            "InferenceEngine.observe.didGenerate", mapOf(
+            AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE, mapOf(
                 "context" to mapOf("uuid" to "validation-test"),
                 "messages" to emptyList<Any>(),
                 "actionDescription" to mapOf("method" to "type", "arguments" to mapOf("text" to "hello"))
@@ -204,9 +205,9 @@ class EventBusObservabilityExample {
 
         // Register counters for multiple event types
         listOf(
-            "PerceptiveAgent.observe.willExecute",
-            "PerceptiveAgent.act.willExecute",
-            "PerceptiveAgent.extract.willExecute"
+            AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE
         ).forEach { eventType ->
             DangerousEventBus.register(eventType) { payload ->
                 eventCounts.computeIfAbsent(eventType) { AtomicInteger(0) }.incrementAndGet()
@@ -216,13 +217,13 @@ class EventBusObservabilityExample {
         }
 
         // Simulate various events
-        DangerousEventBus.emit("PerceptiveAgent.observe.willExecute", mapOf("options" to "test"))
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE, mapOf("options" to "test"))
         Thread.sleep(50)
-        DangerousEventBus.emit("PerceptiveAgent.act.willExecute", mapOf("action" to "test"))
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE, mapOf("action" to "test"))
         Thread.sleep(50)
-        DangerousEventBus.emit("PerceptiveAgent.observe.willExecute", mapOf("options" to "test2"))
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE, mapOf("options" to "test2"))
         Thread.sleep(50)
-        DangerousEventBus.emit("PerceptiveAgent.extract.willExecute", mapOf("options" to "test"))
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE, mapOf("options" to "test"))
         Thread.sleep(100)
 
         println("\n📈 Final event counts:")
@@ -238,12 +239,12 @@ class EventBusObservabilityExample {
     private fun cleanup() {
         println("--- Cleanup ---")
         listOf(
-            "PerceptiveAgent.act.willExecute",
-            "PerceptiveAgent.act.didExecute",
-            "PerceptiveAgent.observe.willExecute",
-            "PerceptiveAgent.extract.willExecute",
-            "InferenceEngine.observe.willGenerate",
-            "InferenceEngine.observe.didGenerate"
+            AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE,
+            AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE,
+            AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE
         ).forEach { eventType ->
             DangerousEventBus.unregister(eventType)
         }
@@ -260,16 +261,16 @@ class EventLogger {
     fun startLogging() {
         // Log all agent events
         listOf(
-            "PerceptiveAgent.run.willExecute",
-            "PerceptiveAgent.run.didExecute",
-            "PerceptiveAgent.observe.willExecute",
-            "PerceptiveAgent.observe.didExecute",
-            "PerceptiveAgent.act.willExecute",
-            "PerceptiveAgent.act.didExecute",
-            "PerceptiveAgent.extract.willExecute",
-            "PerceptiveAgent.extract.didExecute",
-            "PerceptiveAgent.summarize.willExecute",
-            "PerceptiveAgent.summarize.didExecute"
+            AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.EXTRACT_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.SUMMARIZE_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.SUMMARIZE_DID_EXECUTE
         ).forEach { eventType ->
             DangerousEventBus.register(eventType) { payload ->
                 logger.info(
@@ -283,16 +284,16 @@ class EventLogger {
 
     fun stopLogging() {
         listOf(
-            "PerceptiveAgent.run.willExecute",
-            "PerceptiveAgent.run.didExecute",
-            "PerceptiveAgent.observe.willExecute",
-            "PerceptiveAgent.observe.didExecute",
-            "PerceptiveAgent.act.willExecute",
-            "PerceptiveAgent.act.didExecute",
-            "PerceptiveAgent.extract.willExecute",
-            "PerceptiveAgent.extract.didExecute",
-            "PerceptiveAgent.summarize.willExecute",
-            "PerceptiveAgent.summarize.didExecute"
+            AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.EXTRACT_DID_EXECUTE,
+            AgenticEvents.PerceptiveAgent.SUMMARIZE_WILL_EXECUTE,
+            AgenticEvents.PerceptiveAgent.SUMMARIZE_DID_EXECUTE
         ).forEach { eventType ->
             DangerousEventBus.unregister(eventType)
         }
@@ -309,7 +310,7 @@ class MetricsCollector {
 
     fun startCollecting() {
         // Track observations
-        DangerousEventBus.register("PerceptiveAgent.observe.willExecute") { payload ->
+        DangerousEventBus.register(AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val uuid = map["uuid"] as? String
             if (uuid != null) {
@@ -319,7 +320,7 @@ class MetricsCollector {
             payload
         }
 
-        DangerousEventBus.register("PerceptiveAgent.observe.didExecute") { payload ->
+        DangerousEventBus.register(AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val uuid = map["uuid"] as? String
             if (uuid != null) {
@@ -333,7 +334,7 @@ class MetricsCollector {
         }
 
         // Track actions
-        DangerousEventBus.register("PerceptiveAgent.act.willExecute") { payload ->
+        DangerousEventBus.register(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val uuid = map["uuid"] as? String
             if (uuid != null) {
@@ -343,7 +344,7 @@ class MetricsCollector {
             payload
         }
 
-        DangerousEventBus.register("PerceptiveAgent.act.didExecute") { payload ->
+        DangerousEventBus.register(AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val uuid = map["uuid"] as? String
             if (uuid != null) {
@@ -372,9 +373,9 @@ class MetricsCollector {
     }
 
     fun stopCollecting() {
-        DangerousEventBus.unregister("PerceptiveAgent.observe.willExecute")
-        DangerousEventBus.unregister("PerceptiveAgent.observe.didExecute")
-        DangerousEventBus.unregister("PerceptiveAgent.act.willExecute")
-        DangerousEventBus.unregister("PerceptiveAgent.act.didExecute")
+        DangerousEventBus.unregister(AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE)
+        DangerousEventBus.unregister(AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE)
+        DangerousEventBus.unregister(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE)
+        DangerousEventBus.unregister(AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE)
     }
 }

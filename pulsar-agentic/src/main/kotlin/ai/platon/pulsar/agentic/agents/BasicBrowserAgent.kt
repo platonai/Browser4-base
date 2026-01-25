@@ -17,6 +17,7 @@ import ai.platon.pulsar.agentic.skills.tools.SkillToolExecutor
 import ai.platon.pulsar.agentic.skills.tools.SkillToolTarget
 import ai.platon.pulsar.agentic.tools.AgentToolManager
 import ai.platon.pulsar.agentic.tools.CustomToolRegistry
+import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.alwaysTrue
@@ -102,7 +103,7 @@ open class BasicBrowserAgent(
 
     init {
         Files.createDirectories(baseDir)
-        var eventType = "InferenceEngine.observe.willExecute"
+        var eventType = AgenticEvents.InferenceEngine.OBSERVE_WILL_EXECUTE
         DangerousEventBus.register(eventType) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val messages = map["messages"] as? AgentMessageList ?: return@register null
@@ -111,7 +112,7 @@ open class BasicBrowserAgent(
             return@register messages
         }
 
-        eventType = "InferenceEngine.observe.didExecute"
+        eventType = AgenticEvents.InferenceEngine.OBSERVE_DID_EXECUTE
         DangerousEventBus.register(eventType) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null
             val actionDescription = map["actionDescription"] as? ActionDescription ?: return@register null
@@ -122,7 +123,7 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun run(action: ActionOptions): AgentHistory {
-        DangerousEventBus.emit("PerceptiveAgent.run.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid
         ))
@@ -134,7 +135,7 @@ open class BasicBrowserAgent(
             result = act(action)
         }
 
-        DangerousEventBus.emit("PerceptiveAgent.run.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid,
             "result" to result,
@@ -159,7 +160,7 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun observe(options: ObserveOptions): List<ObserveResult> {
-        DangerousEventBus.emit("PerceptiveAgent.observe.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid
         ))
@@ -168,7 +169,7 @@ open class BasicBrowserAgent(
 
         val result = doObserveActObserve(options, context, options.fromResolve)
 
-        DangerousEventBus.emit("PerceptiveAgent.observe.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid,
             "observeResults" to result.observeResults,
@@ -192,7 +193,7 @@ open class BasicBrowserAgent(
      * one successful execution is recorded in stateHistory.
      */
     override suspend fun act(action: ActionOptions): ActResult {
-        DangerousEventBus.emit("PerceptiveAgent.act.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid
         ))
@@ -214,7 +215,7 @@ open class BasicBrowserAgent(
             ActResultHelper.failed(msg, action.action)
         }
 
-        DangerousEventBus.emit("PerceptiveAgent.act.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid,
             "result" to result
@@ -280,7 +281,7 @@ open class BasicBrowserAgent(
      * two-stage LLM calls (extract + metadata) and merges results with token/time metrics.
      */
     override suspend fun extract(options: ExtractOptions): ExtractResult {
-        DangerousEventBus.emit("PerceptiveAgent.extract.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid
         ))
@@ -301,7 +302,7 @@ open class BasicBrowserAgent(
             )
         }
 
-        DangerousEventBus.emit("PerceptiveAgent.extract.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_DID_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid,
             "result" to result
@@ -335,7 +336,7 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun summarize(instruction: String?, selector: String?): String {
-        DangerousEventBus.emit("PerceptiveAgent.summarize.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_WILL_EXECUTE, mapOf(
             "instruction" to instruction,
             "selector" to selector,
             "uuid" to uuid
@@ -344,7 +345,7 @@ open class BasicBrowserAgent(
         val textContent = activeDriver.textContent(selector) ?: return "(no text content)"
         val result = inference.summarize(instruction, textContent)
 
-        DangerousEventBus.emit("PerceptiveAgent.summarize.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_DID_EXECUTE, mapOf(
             "instruction" to instruction,
             "selector" to selector,
             "uuid" to uuid,

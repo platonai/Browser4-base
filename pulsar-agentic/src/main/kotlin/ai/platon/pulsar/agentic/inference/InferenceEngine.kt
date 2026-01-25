@@ -2,6 +2,7 @@ package ai.platon.pulsar.agentic.inference
 
 import ai.platon.browser4.driver.chrome.dom.DomService
 import ai.platon.pulsar.agentic.AgenticSession
+import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.inference.action.ContextToAction
 import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
 import ai.platon.pulsar.agentic.model.ActionDescription
@@ -122,7 +123,7 @@ class InferenceEngine(
             messages = messages.messages
         )
 
-        DangerousEventBus.emit("ContextToAction.generate.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE, mapOf(
             "context" to context,
             "messages" to messages
         ))
@@ -135,7 +136,7 @@ class InferenceEngine(
             "Field should be set: actionDescription.modelResponse"
         }
 
-        DangerousEventBus.emit("ContextToAction.generate.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE, mapOf(
             "context" to context,
             "messages" to messages,
             "actionDescription" to actionDescription
@@ -177,7 +178,7 @@ class InferenceEngine(
      *   - inputTokenCount, outputTokenCount, totalTokenCount, inferenceTimeMillis
      */
     suspend fun extract(params: ExtractParams): ObjectNode {
-        DangerousEventBus.emit("InferenceEngine.extract.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.InferenceEngine.EXTRACT_WILL_EXECUTE, mapOf(
             "params" to params
         ))
 
@@ -290,7 +291,7 @@ class InferenceEngine(
             put("inferenceTimeMillis", totalInferenceTimeMillis)
         }
 
-        DangerousEventBus.emit("InferenceEngine.extract.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.InferenceEngine.EXTRACT_DID_EXECUTE, mapOf(
             "params" to params,
             "result" to result,
             "extractedNode" to extractedNode,
@@ -303,7 +304,7 @@ class InferenceEngine(
     suspend fun summarize(instruction: String?, textContent: String): String {
         val messages = InferenceMessageBuilder.buildSummaryPrompt(instruction, textContent)
 
-        DangerousEventBus.emit("InferenceEngine.summarize.willExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.InferenceEngine.SUMMARIZE_WILL_EXECUTE, mapOf(
             "instruction" to instruction,
             "messages" to messages,
             "textContent" to textContent,
@@ -311,7 +312,7 @@ class InferenceEngine(
 
         val response = cta.generateResponseRaw(messages)
 
-        DangerousEventBus.emit("InferenceEngine.summarize.didExecute", mapOf(
+        DangerousEventBus.emit(AgenticEvents.InferenceEngine.SUMMARIZE_DID_EXECUTE, mapOf(
             "instruction" to instruction,
             "textContentLength" to textContent.length,
             "result" to response.content,

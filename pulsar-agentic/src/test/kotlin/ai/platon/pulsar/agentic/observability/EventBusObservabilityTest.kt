@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.observability
 
+import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.common.event.DangerousEventBus
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -18,35 +19,8 @@ class EventBusObservabilityTest {
         @BeforeAll
         @JvmStatic
         fun setupEventHandlers() {
-            // Register event handlers for all PerceptiveAgent events
-            listOf(
-                "PerceptiveAgent.run.willExecute",
-                "PerceptiveAgent.run.didExecute",
-                "PerceptiveAgent.observe.willExecute",
-                "PerceptiveAgent.observe.didExecute",
-                "PerceptiveAgent.act.willExecute",
-                "PerceptiveAgent.act.didExecute",
-                "PerceptiveAgent.extract.willExecute",
-                "PerceptiveAgent.extract.didExecute",
-                "PerceptiveAgent.summarize.willExecute",
-                "PerceptiveAgent.summarize.didExecute"
-            ).forEach { eventType ->
-                DangerousEventBus.register(eventType) { payload ->
-                    val map = payload as? Map<String, Any?> ?: return@register null
-                    capturedEvents.computeIfAbsent(eventType) { mutableListOf() }.add(map)
-                    payload
-                }
-            }
-
-            // Register event handlers for InferenceEngine events
-            listOf(
-                "InferenceEngine.observe.willGenerate",
-                "InferenceEngine.observe.didGenerate",
-                "InferenceEngine.extract.willExecute",
-                "InferenceEngine.extract.didExecute",
-                "InferenceEngine.summarize.willExecute",
-                "InferenceEngine.summarize.didExecute"
-            ).forEach { eventType ->
+            // Register event handlers using centralized event definitions
+            AgenticEvents.getAllEventTypes().forEach { eventType ->
                 DangerousEventBus.register(eventType) { payload ->
                     val map = payload as? Map<String, Any?> ?: return@register null
                     capturedEvents.computeIfAbsent(eventType) { mutableListOf() }.add(map)
@@ -58,25 +32,8 @@ class EventBusObservabilityTest {
         @AfterAll
         @JvmStatic
         fun cleanup() {
-            // Unregister all event handlers
-            listOf(
-                "PerceptiveAgent.run.willExecute",
-                "PerceptiveAgent.run.didExecute",
-                "PerceptiveAgent.observe.willExecute",
-                "PerceptiveAgent.observe.didExecute",
-                "PerceptiveAgent.act.willExecute",
-                "PerceptiveAgent.act.didExecute",
-                "PerceptiveAgent.extract.willExecute",
-                "PerceptiveAgent.extract.didExecute",
-                "PerceptiveAgent.summarize.willExecute",
-                "PerceptiveAgent.summarize.didExecute",
-                "InferenceEngine.observe.willGenerate",
-                "InferenceEngine.observe.didGenerate",
-                "InferenceEngine.extract.willExecute",
-                "InferenceEngine.extract.didExecute",
-                "InferenceEngine.summarize.willExecute",
-                "InferenceEngine.summarize.didExecute"
-            ).forEach { eventType ->
+            // Unregister all event handlers using centralized event definitions
+            AgenticEvents.getAllEventTypes().forEach { eventType ->
                 DangerousEventBus.unregister(eventType)
             }
         }
@@ -115,7 +72,7 @@ class EventBusObservabilityTest {
 
     @Test
     fun testPerceptiveAgentRunEvents() {
-        val eventType = "PerceptiveAgent.run.willExecute"
+        val eventType = AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE
 
         // Simulate emitting the event
         val testPayload = mapOf(
@@ -136,8 +93,8 @@ class EventBusObservabilityTest {
 
     @Test
     fun testPerceptiveAgentObserveEvents() {
-        val willEventType = "PerceptiveAgent.observe.willExecute"
-        val didEventType = "PerceptiveAgent.observe.didExecute"
+        val willEventType = AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE
+        val didEventType = AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE
 
         // Simulate observing
         val options = mapOf("instruction" to "find button")
@@ -165,8 +122,8 @@ class EventBusObservabilityTest {
 
     @Test
     fun testPerceptiveAgentActEvents() {
-        val willEventType = "PerceptiveAgent.act.willExecute"
-        val didEventType = "PerceptiveAgent.act.didExecute"
+        val willEventType = AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE
+        val didEventType = AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE
 
         val action = mapOf("action" to "click button")
         DangerousEventBus.emit(willEventType, mapOf("action" to action, "uuid" to "test-uuid"))
@@ -195,8 +152,8 @@ class EventBusObservabilityTest {
 
     @Test
     fun testPerceptiveAgentExtractEvents() {
-        val willEventType = "PerceptiveAgent.extract.willExecute"
-        val didEventType = "PerceptiveAgent.extract.didExecute"
+        val willEventType = AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE
+        val didEventType = AgenticEvents.PerceptiveAgent.EXTRACT_DID_EXECUTE
 
         val options = mapOf("instruction" to "extract data")
         DangerousEventBus.emit(willEventType, mapOf("options" to options, "uuid" to "test-uuid"))
@@ -223,8 +180,8 @@ class EventBusObservabilityTest {
 
     @Test
     fun testPerceptiveAgentSummarizeEvents() {
-        val willEventType = "PerceptiveAgent.summarize.willExecute"
-        val didEventType = "PerceptiveAgent.summarize.didExecute"
+        val willEventType = AgenticEvents.PerceptiveAgent.SUMMARIZE_WILL_EXECUTE
+        val didEventType = AgenticEvents.PerceptiveAgent.SUMMARIZE_DID_EXECUTE
 
         DangerousEventBus.emit(willEventType, mapOf(
             "instruction" to "summarize page",
@@ -255,8 +212,8 @@ class EventBusObservabilityTest {
 
     @Test
     fun testInferenceEngineObserveEvents() {
-        val willEventType = "InferenceEngine.observe.willGenerate"
-        val didEventType = "InferenceEngine.observe.didGenerate"
+        val willEventType = AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE
+        val didEventType = AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE
 
         val context = mapOf("step" to 1)
         val messages = mapOf("content" to "test message")
@@ -288,8 +245,8 @@ class EventBusObservabilityTest {
 
     @Test
     fun testInferenceEngineExtractEvents() {
-        val willEventType = "InferenceEngine.extract.willExecute"
-        val didEventType = "InferenceEngine.extract.didExecute"
+        val willEventType = AgenticEvents.InferenceEngine.EXTRACT_WILL_EXECUTE
+        val didEventType = AgenticEvents.InferenceEngine.EXTRACT_DID_EXECUTE
 
         val params = mapOf("instruction" to "extract data", "schema" to emptyMap<String, Any>())
         DangerousEventBus.emit(willEventType, mapOf("params" to params))
@@ -315,8 +272,8 @@ class EventBusObservabilityTest {
 
     @Test
     fun testInferenceEngineSummarizeEvents() {
-        val willEventType = "InferenceEngine.summarize.willExecute"
-        val didEventType = "InferenceEngine.summarize.didExecute"
+        val willEventType = AgenticEvents.InferenceEngine.SUMMARIZE_WILL_EXECUTE
+        val didEventType = AgenticEvents.InferenceEngine.SUMMARIZE_DID_EXECUTE
 
         DangerousEventBus.emit(willEventType, mapOf(
             "instruction" to "summarize",
