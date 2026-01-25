@@ -113,8 +113,8 @@
 
 完整分析报告：/ Full analysis reports:
 
-- **中文版 / Chinese**: [docs/mcp-test-coverage-analysis.md](./mcp-test-coverage-analysis.md)
-- **English**: [docs/mcp-test-coverage-analysis-en.md](./mcp-test-coverage-analysis-en.md)
+- **中文版 / Chinese**: [docs/mcp-test-coverage-analysis.md](mcp-test-coverage-analysis.md)
+- **English**: [docs/mcp-test-coverage-analysis-en.md](mcp-test-coverage-analysis-en.md)
 
 ---
 

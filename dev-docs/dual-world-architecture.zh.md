@@ -15,7 +15,7 @@ Browser4 现在实现了**双世界架构**（Dual-World Architecture），将 J
 
 页面世界只允许包含：
 - ✅ 隐形补丁（stealth patches）
-- ✅ 指纹补丁（fingerprint patches）  
+- ✅ 指纹补丁（fingerprint patches）
 - ✅ 最小化钩子（minimal hooks）
 
 ## 架构图
@@ -66,10 +66,10 @@ Browser4 现在实现了**双世界架构**（Dual-World Architecture），将 J
 class IsolatedWorldManager {
     // 创建隔离世界
     suspend fun createIsolatedWorld(frameId: String? = null): Int
-    
+
     // 注入运行时
     suspend fun injectRuntime(runtimeScript: String, contextId: Int)
-    
+
     // 在隔离世界中执行脚本
     suspend fun evaluateInIsolatedWorld(script: String, contextId: Int?): Any?
 }
@@ -172,12 +172,12 @@ val legacyLoader = settings.scriptLoader  // 已弃用
 
 ## 参考资料
 
-- [完整文档](./dual-world-architecture.md)
+- [完整文档](dual-world-architecture.md)
 - [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/)
 - [GitHub Issues](https://github.com/platonai/Browser4/issues)
 
 ---
 
-**版本**: 1.0.0  
-**最后更新**: 2026-01-22  
+**版本**: 1.0.0
+**最后更新**: 2026-01-22
 **状态**: 稳定

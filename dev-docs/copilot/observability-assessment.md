@@ -493,7 +493,7 @@ graphite.pickled.batch.size=100
 
 ## 9. 参考资料
 
-- [日志格式说明](../../docs/log-format.md)
+- [日志格式说明](../../docs/page-load-log-format.md)
 - [配置指南](../../docs/config.md)
 - [Spring Boot Actuator文档](https://docs.spring.io/spring-boot/reference/actuator/)
 - [Dropwizard Metrics文档](https://metrics.dropwizard.io/)

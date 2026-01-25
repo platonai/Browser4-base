@@ -46,14 +46,14 @@ conventions:
     - "PulsarSession -> AgenticSession"
     - "AgenticContexts.createSession()"
     - "LoadOptions (URL CLI-style parameters)"
-  
+
   browser_automation:
     package: "ai.platon.pulsar.browser"
     api: "WebDriver"
-    implementation: 
+    implementation:
       - "PageHandler"
       - "ClickableDOM"
-  
+
   agents:
     interface: "AgenticSession"
     implementation: "BrowserPerceptiveAgent"
@@ -67,7 +67,7 @@ conventions:
       - "docs/rest-api-examples.md"
 
   logging:
-    format: "docs/log-format.md"
+    format: "docs/page-load-log-format.md"
     style: "Use placeholders: logger.info(\"Task {} finished in {} ms\", taskId, cost)"
     avoid: "字符串拼接 (string concatenation)"
 

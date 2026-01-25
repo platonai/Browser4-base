@@ -237,8 +237,8 @@ Prefer using `dualWorldScriptLoader` in new code.
 - [Page.addScriptToEvaluateOnNewDocument](https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-addScriptToEvaluateOnNewDocument)
 
 ### Documentation
-- [Dual-World Architecture (English)](./dual-world-architecture.md)
-- [双世界架构 (中文)](./dual-world-architecture.zh.md)
+- [Dual-World Architecture (English)](dual-world-architecture.md)
+- [双世界架构 (中文)](dual-world-architecture.zh.md)
 
 ### Source Code
 - Core: `IsolatedWorldManager.kt`, `DualWorldScriptLoader.kt`
@@ -261,6 +261,6 @@ The implementation is production-ready, well-tested, documented, and maintains f
 
 ---
 
-**Implementation Date**: 2026-01-22  
-**Version**: 1.0.0  
+**Implementation Date**: 2026-01-22
+**Version**: 1.0.0
 **Status**: ✅ Complete

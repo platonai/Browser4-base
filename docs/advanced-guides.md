@@ -24,7 +24,7 @@ Clone the template project from github.com:
 * [kotlin](https://github.com/platonai/pulsar-kotlin-template)
 * [java-17](https://github.com/platonai/pulsar-java-17-template)
 
-Start your own large-scale web crawling projects based on our commercial-grade open source projects: 
+Start your own large-scale web crawling projects based on our commercial-grade open source projects:
 * [PulsarRPAPro](https://github.com/platonai/PulsarRPAPro)
 * [Exotic-amazon](https://github.com/platonai/exotic-amazon)
 
@@ -114,7 +114,7 @@ Browser4 has carefully designed the logging and metrics subsystem to record ever
 
 By focusing on a concise set of indicators, you can unlock a deeper understanding of the system’s overall condition: 💯 💔 🗙  ?💿 🔃 🤺.
 
-Typical page loading logs are shown below. Check the [log-format](log-format.md) to learn how to read the logs and gain insight into the state of the entire system at a glance.
+Typical page loading logs are shown below. Check the [log-format](page-load-log-format.md) to learn how to read the logs and gain insight into the state of the entire system at a glance.
 
 ```plaintext
 2022-09-24 11:46:26.045  INFO [-worker-14] a.p.p.c.c.L.Task - 3313. 💯  ?U for N got 200 580.92 KiB in 1m14.277s, fc:1 | 75/284/96/277/6554 | 106.32.12.75 | 3xBpaR2 | https://www.walmart.com/ip/Restored-iPhone-7-32GB-Black-T-Mobile-Refurbished/329207863  -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
