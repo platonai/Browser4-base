@@ -119,6 +119,7 @@
 
 - Kotlin：不可变 `data class`、显式返回类型、空安全（`require/check`/`?:`）
 - 公共 API 要有 KDoc：摘要/参数/返回/异常
+- AI 做任务后，任务文档放到 dev-docs 目录，供后续参考
 
 > KDoc 模板示例：
 ```kotlin
@@ -187,5 +188,5 @@ fun load(url: String, options: LoadOptions): PageSnapshot {
 —
 
 附：更多细节请查阅
-- 顶层 `README-AI.md` 与本文件同级 `README-AI.md`
+- 本文件同级 `README-AI.md`
 - `docs/concepts.md`、`advanced-guides.md`、`rest-api-examples.md`
