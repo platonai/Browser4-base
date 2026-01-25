@@ -141,7 +141,8 @@ class PageEventHandlersFactory(val conf: ImmutableConfig = ImmutableConfig()) {
         val clazz = try {
             // Get the value of the `name` property as a `Class`.
             // If the property is not set, or the class is not found, use the default class.
-            kotlin.runCatching { ResourceLoader.loadUserClass<PageEventHandlers>(className) }.getOrNull() ?: defaultClazz
+            kotlin.runCatching { ResourceLoader.loadUserClass<PageEventHandlers>(className) }.getOrNull()
+                ?: defaultClazz
 //             conf.getClass(className, defaultClazz)
         } catch (e: Exception) {
             logger.warn(

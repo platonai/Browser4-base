@@ -11,9 +11,9 @@ import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.MultiSinkMessageWriter
 import ai.platon.pulsar.common.Strings
+import ai.platon.pulsar.common.event.DangerousEventBus
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import ai.platon.pulsar.external.ModelResponse
-import ai.platon.pulsar.skeleton.crawl.EventBus
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -122,7 +122,7 @@ class InferenceEngine(
             messages = messages.messages
         )
 
-        EventBus.emit("InferenceEngine.observe.willGenerate", mapOf(
+        DangerousEventBus.emit("ContextToAction.generate.willExecute", mapOf(
             "context" to context,
             "messages" to messages
         ))
@@ -135,7 +135,7 @@ class InferenceEngine(
             "Field should be set: actionDescription.modelResponse"
         }
 
-        EventBus.emit("InferenceEngine.observe.didGenerate", mapOf(
+        DangerousEventBus.emit("ContextToAction.generate.didExecute", mapOf(
             "context" to context,
             "messages" to messages,
             "actionDescription" to actionDescription
@@ -177,7 +177,7 @@ class InferenceEngine(
      *   - inputTokenCount, outputTokenCount, totalTokenCount, inferenceTimeMillis
      */
     suspend fun extract(params: ExtractParams): ObjectNode {
-        EventBus.emit("InferenceEngine.extract.willExecute", mapOf(
+        DangerousEventBus.emit("InferenceEngine.extract.willExecute", mapOf(
             "params" to params
         ))
 
@@ -290,7 +290,7 @@ class InferenceEngine(
             put("inferenceTimeMillis", totalInferenceTimeMillis)
         }
 
-        EventBus.emit("InferenceEngine.extract.didExecute", mapOf(
+        DangerousEventBus.emit("InferenceEngine.extract.didExecute", mapOf(
             "params" to params,
             "result" to result,
             "extractedNode" to extractedNode,
@@ -301,16 +301,17 @@ class InferenceEngine(
     }
 
     suspend fun summarize(instruction: String?, textContent: String): String {
-        EventBus.emit("InferenceEngine.summarize.willExecute", mapOf(
-            "instruction" to instruction,
-            "textContentLength" to textContent.length
-        ))
-
         val messages = InferenceMessageBuilder.buildSummaryPrompt(instruction, textContent)
+
+        DangerousEventBus.emit("InferenceEngine.summarize.willExecute", mapOf(
+            "instruction" to instruction,
+            "messages" to messages,
+            "textContent" to textContent,
+        ))
 
         val response = cta.generateResponseRaw(messages)
 
-        EventBus.emit("InferenceEngine.summarize.didExecute", mapOf(
+        DangerousEventBus.emit("InferenceEngine.summarize.didExecute", mapOf(
             "instruction" to instruction,
             "textContentLength" to textContent.length,
             "result" to response.content,

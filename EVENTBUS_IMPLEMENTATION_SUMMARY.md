@@ -89,14 +89,14 @@ Fixed a compilation error by removing the deprecated `logInferenceToFile` parame
 import ai.platon.pulsar.skeleton.crawl.EventBus
 
 // Register a handler to monitor action execution
-EventBus.register("PerceptiveAgent.act.willExecute") { payload ->
+DangerousEventBus.register("PerceptiveAgent.act.willExecute") { payload ->
     val map = payload as? Map<String, Any?> ?: return@register null
     val action = map["action"]
     println("Starting action: $action")
     payload
 }
 
-EventBus.register("PerceptiveAgent.act.didExecute") { payload ->
+DangerousEventBus.register("PerceptiveAgent.act.didExecute") { payload ->
     val map = payload as? Map<String, Any?> ?: return@register null
     val result = map["result"]
     println("Action completed: $result")

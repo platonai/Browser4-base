@@ -3,9 +3,7 @@ package ai.platon.pulsar.skeleton.crawl
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.skeleton.crawl.PulsarEventBus.serverSideEventHandlers
 import ai.platon.pulsar.skeleton.crawl.PulsarEventBus.withServerSideEventHandlers
-import ai.platon.pulsar.skeleton.crawl.event.GeneralEventHandler
 import kotlinx.coroutines.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -18,8 +16,6 @@ object PulsarEventBus {
      * Uses Dispatchers.Default for CPU-bound work and SupervisorJob to isolate failures.
      */
     private val eventScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
-    private val generalEventHandlers = ConcurrentHashMap<String, GeneralEventHandler>()
 
     /**
      * The page event handlers.
@@ -53,33 +49,6 @@ object PulsarEventBus {
         return withContext(ServerSideEventHandlersContext(handlers)) {
             block()
         }
-    }
-
-    fun emit(eventType: String, payload: Any) {
-        generalEventHandlers[eventType]?.let { handlers ->
-            eventScope.launch {
-                handlers.invoke(payload)
-            }
-        }
-    }
-
-    fun register(eventType: String, handler: (Any) -> Any?): GeneralEventHandler {
-        val handler = object: GeneralEventHandler(eventType) {
-            override fun invoke(payload: Any): Any? {
-                return handler.invoke(payload)
-            }
-        }
-
-        return register(eventType, handler)
-    }
-
-    fun register(eventType: String, handler: GeneralEventHandler): GeneralEventHandler {
-        generalEventHandlers[eventType] = handler
-        return handler
-    }
-
-    fun unregister(eventType: String) {
-        generalEventHandlers.remove(eventType)
     }
 
     /**
@@ -155,3 +124,4 @@ object PulsarEventBus {
 }
 
 typealias EventBus = PulsarEventBus
+

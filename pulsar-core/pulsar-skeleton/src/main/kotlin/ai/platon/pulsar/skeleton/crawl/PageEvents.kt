@@ -655,6 +655,7 @@ interface PageEventHandlers {
      * @see LoadEventHandlers for detailed documentation
      */
     var loadEventHandlers: LoadEventHandlers
+
     /**
      * Event handlers during the browsing stage.
      *
@@ -663,6 +664,7 @@ interface PageEventHandlers {
      * @see BrowseEventHandlers for detailed documentation
      */
     var browseEventHandlers: BrowseEventHandlers
+
     /**
      * Event handlers during the crawl stage.
      *
@@ -671,6 +673,7 @@ interface PageEventHandlers {
      * @see CrawlEventHandlers for detailed documentation
      */
     var crawlEventHandlers: CrawlEventHandlers
+
     /**
      * Alias for [loadEventHandlers].
      *
@@ -681,10 +684,12 @@ interface PageEventHandlers {
      * handlers.le.onLoaded.addLast { page -> }
      * ```
      */
-    var le get() = loadEventHandlers
+    var le
+        get() = loadEventHandlers
         set(value) {
             loadEventHandlers = value
         }
+
     /**
      * Alias for [browseEventHandlers].
      *
@@ -695,10 +700,12 @@ interface PageEventHandlers {
      * handlers.be.onDocumentSteady.addLast { page, driver -> }
      * ```
      */
-    var be get() = browseEventHandlers
+    var be
+        get() = browseEventHandlers
         set(value) {
             browseEventHandlers = value
         }
+
     /**
      * Alias for [crawlEventHandlers].
      *
@@ -709,7 +716,8 @@ interface PageEventHandlers {
      * handlers.ce.onWillLoad.addLast { url -> url }
      * ```
      */
-    var ce get() = crawlEventHandlers
+    var ce
+        get() = crawlEventHandlers
         set(value) {
             crawlEventHandlers = value
         }
