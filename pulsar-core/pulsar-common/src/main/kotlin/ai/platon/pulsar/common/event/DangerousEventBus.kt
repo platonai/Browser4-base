@@ -22,8 +22,8 @@ object DangerousEventBus {
      */
     private val eventScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    fun emit(eventType: String, payload: Any) {
-        generalEventHandlers[eventType]?.let { handlers ->
+    fun emit(name: String, payload: Any) {
+        generalEventHandlers[name]?.let { handlers ->
             eventScope.launch {
                 handlers.invoke(payload)
             }
