@@ -13,8 +13,8 @@ This document compares two formats for describing Agent Tools in the system prom
 ## Full System Prompt Size
 | Format | Lines | Characters |
 |--------|-------|------------|
-| Kotlin | 437 | 11538 |
-| JSON | 726 | 17082 |
+| Kotlin | 434 | 11550 |
+| JSON | 723 | 17094 |
 
 ## Key Differences
 
