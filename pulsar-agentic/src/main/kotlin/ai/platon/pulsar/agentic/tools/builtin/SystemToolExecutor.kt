@@ -27,27 +27,6 @@ class SystemToolExecutor(
         )
     }
 
-    override fun help(): String {
-        return """
-            System Tools - Utility functions for the agent system
-
-            Available methods:
-            ${toolSpec.values.joinToString("\n") { "- ${it.method}: ${it.description}" }}
-        """.trimIndent()
-    }
-
-    override fun help(method: String): String {
-        val spec = toolSpec[method]
-        return if (spec != null) {
-            """
-                ${spec.description}
-                ${spec.expression}
-            """.trimIndent()
-        } else {
-            "Method '$method' not found in system tools"
-        }
-    }
-
     fun help(domain: String, method: String): String {
         return agentToolManager.help(domain, method)
     }

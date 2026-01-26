@@ -54,17 +54,4 @@ class BrowserToolExecutor : AbstractToolExecutor() {
             else -> throw IllegalArgumentException("Unsupported browser method: $functionName(${args.keys})")
         }
     }
-
-    /**
-     * Build a structured error response for browser operations.
-     * Returns a map with error information and available tabs.
-     */
-    protected fun buildErrorResponse(errorType: String, message: String, browser: Browser): Map<String, Any> {
-        val availableTabs = browser.drivers.keys.toList()
-        return mapOf(
-            "error" to errorType,
-            "message" to message,
-            "availableTabs" to availableTabs
-        )
-    }
 }

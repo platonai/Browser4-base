@@ -1,6 +1,5 @@
 package ai.platon.pulsar.agentic.tools.builtin
 
-import ai.platon.pulsar.agentic.model.ToolCall
 import ai.platon.pulsar.agentic.model.ToolSpec
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
@@ -47,15 +46,6 @@ class WebDriverExToolExecutor: AbstractToolExecutor() {
                 driver.selectTextAll(union)
             }
             else -> throw IllegalArgumentException("Unsupported driverEx method: $functionName(${args.keys})")
-        }
-    }
-
-    companion object {
-
-        fun toExpression(tc: ToolCall): String {
-            val arguments = tc.arguments
-
-            throw IllegalArgumentException("Illegal tool call | $tc")
         }
     }
 }
