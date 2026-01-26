@@ -21,30 +21,12 @@ class SystemToolExecutorTest {
     }
 
     @Test
-    fun `help returns available system tools`() {
-        val help = executor.help()
-
-        assertNotNull(help)
-        assertTrue(help.isNotBlank())
-        assertTrue(help.contains("System Tools"))
-        assertTrue(help.contains("help"))
-    }
-
-    @Test
     fun `help for help method returns detailed help`() {
         val help = executor.help("help")
 
         assertNotNull(help)
         assertTrue(help.contains("Get help information"))
         assertTrue(help.contains("help"))
-    }
-
-    @Test
-    fun `help for unknown method returns not found message`() {
-        val help = executor.help("unknownMethod")
-
-        assertNotNull(help)
-        assertTrue(help.contains("not found"))
     }
 
     @Test

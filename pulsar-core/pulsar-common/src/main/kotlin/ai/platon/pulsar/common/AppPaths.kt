@@ -162,14 +162,16 @@ object AppPaths {
     private val homeDirStr get() = DATA_DIR.toString()
 
     fun createRequiredResources(target: KClass<out Any>) {
+        val targetInstance = target.objectInstance ?: return
+
         target.java.declaredFields
             .filter { it.annotations.any { it is RequiredDirectory } }
-            .mapNotNull { it.get(AppPaths) as? Path }
+            .mapNotNull { it.isAccessible = true; it.get(targetInstance) as? Path }
             .forEach { it.takeUnless { Files.exists(it) }?.let { Files.createDirectories(it) } }
 
         target.java.declaredFields
             .filter { it.annotations.any { it is RequiredFile } }
-            .mapNotNull { it.get(AppPaths) as? Path }
+            .mapNotNull { it.isAccessible = true; it.get(targetInstance) as? Path }
             .forEach {
                 it.parent.takeUnless { Files.exists(it) }?.let { Files.createDirectories(it) }
                 it.takeUnless { Files.exists(it) }?.let { Files.createFile(it) }

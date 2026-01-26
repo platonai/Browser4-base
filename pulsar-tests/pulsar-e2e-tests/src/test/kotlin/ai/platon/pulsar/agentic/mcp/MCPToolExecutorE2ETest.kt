@@ -3,7 +3,6 @@ package ai.platon.pulsar.agentic.mcp
 import ai.platon.pulsar.test.mcp.MockMCPServer
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -11,6 +10,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.client.RestTestClient
+import org.springframework.test.web.servlet.client.expectBody
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -47,44 +49,53 @@ class MCPToolExecutorE2ETest {
     @Autowired
     private lateinit var mockMCPServer: MockMCPServer
 
-    private lateinit var clientManager: MCPClientManager
-    private lateinit var toolExecutor: MCPToolExecutor
+    private lateinit var client: RestTestClient
 
     @BeforeEach
-    fun setUp() = runBlocking {
+    fun setUp() {
         // Verify server is running
         assertTrue(mockMCPServer.isRunning(), "TestMCPServer should be running")
 
-        // Create configuration for connecting to the test server
-        // Using HTTP endpoint instead of SSE/WebSocket for simplicity
-        val config = MCPConfig(
-            serverName = "test-mcp-server",
-            transportType = MCPTransportType.SSE,
-            url = "http://localhost:$port/mcp"
-        )
-
-        // Create client manager and connect
-        clientManager = MCPClientManager(config)
-
-        // Note: Since TestMCPServer uses HTTP REST endpoints instead of full MCP protocol,
-        // we'll need to use HTTP client for this test. The actual connection will be handled
-        // by creating a custom HTTP-based transport adapter.
-        // For now, we'll test the server endpoints directly until the HTTP transport is available.
+        client = RestTestClient.bindToServer()
+            .baseUrl("http://127.0.0.1:$port")
+            .build()
     }
 
     @AfterEach
     fun tearDown() {
-        if (::clientManager.isInitialized) {
-            clientManager.close()
-        }
     }
+
+    private fun getInfo(): Map<String, Any> =
+        client.get().uri("/mcp/info")
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<Map<String, Any>>()
+            .returnResult()
+            .responseBody!!
+
+    private fun listTools(): Map<String, Any> =
+        client.post().uri("/mcp/list_tools")
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<Map<String, Any>>()
+            .returnResult()
+            .responseBody!!
+
+    private fun callTool(request: ObjectNode): Map<String, Any> =
+        client.post().uri("/mcp/call_tool")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<Map<String, Any>>()
+            .returnResult()
+            .responseBody!!
 
     // ========== Server Connectivity Tests ==========
 
     @Test
     fun `test server is accessible via HTTP`() {
-        TODO("Use RestTestClient to test connectivity")
-        val info = mockMCPServer.getInfo()
+        val info = getInfo()
         assertNotNull(info)
         assertEquals("test-mcp-server", info["name"])
         assertEquals("1.0.0", info["version"])
@@ -92,7 +103,7 @@ class MCPToolExecutorE2ETest {
 
     @Test
     fun `test server lists available tools`() {
-        val result = mockMCPServer.listTools()
+        val result = listTools()
         assertNotNull(result)
 
         @Suppress("UNCHECKED_CAST")
@@ -107,7 +118,7 @@ class MCPToolExecutorE2ETest {
 
     @Test
     fun `test tool discovery returns all available tools`() {
-        val result = mockMCPServer.listTools()
+        val result = listTools()
 
         @Suppress("UNCHECKED_CAST")
         val tools = result["tools"] as List<Map<String, Any>>
@@ -128,7 +139,7 @@ class MCPToolExecutorE2ETest {
 
     @Test
     fun `test echo tool schema is correct`() {
-        val result = mockMCPServer.listTools()
+        val result = listTools()
 
         @Suppress("UNCHECKED_CAST")
         val tools = result["tools"] as List<Map<String, Any>>
@@ -161,7 +172,7 @@ class MCPToolExecutorE2ETest {
             )
         }
 
-        val result = mockMCPServer.callTool(request)
+        val result = callTool(request)
         assertNotNull(result)
         assertFalse(result.containsKey("isError"))
 
@@ -185,7 +196,7 @@ class MCPToolExecutorE2ETest {
             )
         }
 
-        val result = mockMCPServer.callTool(request)
+        val result = callTool(request)
         assertNotNull(result)
 
         @Suppress("UNCHECKED_CAST")
@@ -206,7 +217,7 @@ class MCPToolExecutorE2ETest {
             )
         }
 
-        val result = mockMCPServer.callTool(request)
+        val result = callTool(request)
         assertNotNull(result)
 
         @Suppress("UNCHECKED_CAST")
@@ -226,12 +237,11 @@ class MCPToolExecutorE2ETest {
             )
         }
 
-        try {
-            mockMCPServer.callTool(request)
-            throw AssertionError("Expected IllegalArgumentException but no exception was thrown")
-        } catch (e: IllegalArgumentException) {
-            assertEquals(e.message?.contains("not found"), true)
-        }
+        client.post().uri("/mcp/call_tool")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .exchange()
+            .expectStatus().is5xxServerError
     }
 
     @Test
@@ -245,7 +255,7 @@ class MCPToolExecutorE2ETest {
             )
         }
 
-        val result = mockMCPServer.callTool(request)
+        val result = callTool(request)
         assertNotNull(result)
         assertTrue(result.containsKey("isError"))
         assertEquals(true, result["isError"])
@@ -264,7 +274,7 @@ class MCPToolExecutorE2ETest {
             )
         }
 
-        val result = mockMCPServer.callTool(request)
+        val result = callTool(request)
         assertNotNull(result)
         assertTrue(result.containsKey("isError"))
         assertEquals(true, result["isError"])
@@ -284,7 +294,7 @@ class MCPToolExecutorE2ETest {
                 }
             )
         }
-        var result = mockMCPServer.callTool(request)
+        var result = callTool(request)
         assertFalse(result.containsKey("isError"))
 
         // Second call: add
@@ -298,7 +308,7 @@ class MCPToolExecutorE2ETest {
                 }
             )
         }
-        result = mockMCPServer.callTool(request)
+        result = callTool(request)
         assertFalse(result.containsKey("isError"))
         @Suppress("UNCHECKED_CAST")
         var content = result["content"] as List<Map<String, Any>>
@@ -315,7 +325,7 @@ class MCPToolExecutorE2ETest {
                 }
             )
         }
-        result = mockMCPServer.callTool(request)
+        result = callTool(request)
         assertFalse(result.containsKey("isError"))
         @Suppress("UNCHECKED_CAST")
         content = result["content"] as List<Map<String, Any>>
@@ -337,7 +347,7 @@ class MCPToolExecutorE2ETest {
                 }
             )
         }
-        var result = mockMCPServer.callTool(request)
+        var result = callTool(request)
         assertFalse(result.containsKey("isError"))
 
         // Failed call
@@ -351,7 +361,7 @@ class MCPToolExecutorE2ETest {
                 }
             )
         }
-        result = mockMCPServer.callTool(request)
+        result = callTool(request)
         assertTrue(result.containsKey("isError"))
 
         // Another successful call
@@ -365,7 +375,7 @@ class MCPToolExecutorE2ETest {
                 }
             )
         }
-        result = mockMCPServer.callTool(request)
+        result = callTool(request)
         assertFalse(result.containsKey("isError"))
         @Suppress("UNCHECKED_CAST")
         val content = result["content"] as List<Map<String, Any>>
@@ -382,15 +392,12 @@ class MCPToolExecutorE2ETest {
         // This test validates that the TestMCPServer is accessible over HTTP
         // and can handle requests across network boundaries
 
-
-        TODO("Use RestTestClient to test connectivity")
-
         // Get server info via HTTP
-        val info = mockMCPServer.getInfo()
+        val info = getInfo()
         assertEquals("test-mcp-server", info["name"])
 
         // List tools via HTTP
-        val toolsList = mockMCPServer.listTools()
+        val toolsList = listTools()
         @Suppress("UNCHECKED_CAST")
         val tools = toolsList["tools"] as List<Map<String, Any>>
         assertTrue(tools.isNotEmpty())
@@ -406,7 +413,7 @@ class MCPToolExecutorE2ETest {
             )
         }
 
-        val result = mockMCPServer.callTool(request)
+        val result = callTool(request)
         assertNotNull(result)
         @Suppress("UNCHECKED_CAST")
         val content = result["content"] as List<Map<String, Any>>

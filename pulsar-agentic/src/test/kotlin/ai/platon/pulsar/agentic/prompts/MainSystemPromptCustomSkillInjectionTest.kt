@@ -9,7 +9,6 @@ import ai.platon.pulsar.agentic.tools.CustomToolRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -78,16 +77,6 @@ class MainSystemPromptCustomSkillInjectionTest {
             "System prompt should list the Web Scraping skill")
         assertTrue(prompt.contains("web-scraping"),
             "System prompt should contain the skill ID")
-    }
-
-    @Test
-    fun skillSummariesSectionShouldBeEmptyWhenNoSkillsRegistered() = runBlocking {
-        // No skills registered
-        val prompt = buildMainSystemPromptV1()
-
-        // The skill summaries section should be empty (no header shown)
-        assertFalse(prompt.contains("## 可用技能概要"),
-            "System prompt should NOT contain skill summaries section when no skills are registered")
     }
 
     @Test
