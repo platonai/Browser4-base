@@ -164,4 +164,68 @@ object AgenticEvents {
         ContextToAction.GENERATE_WILL_EXECUTE,
         ContextToAction.GENERATE_DID_EXECUTE
     )
+
+    /**
+     * AgentEventBus event type constants for agent lifecycle events.
+     * Used with AgentEventBus.emitAgentEvent().
+     */
+    object AgentEventTypes {
+        const val ON_WILL_RUN = "onWillRun"
+        const val ON_DID_RUN = "onDidRun"
+        const val ON_WILL_OBSERVE = "onWillObserve"
+        const val ON_DID_OBSERVE = "onDidObserve"
+        const val ON_WILL_ACT = "onWillAct"
+        const val ON_DID_ACT = "onDidAct"
+        const val ON_WILL_EXTRACT = "onWillExtract"
+        const val ON_DID_EXTRACT = "onDidExtract"
+        const val ON_WILL_SUMMARIZE = "onWillSummarize"
+        const val ON_DID_SUMMARIZE = "onDidSummarize"
+    }
+
+    /**
+     * AgentEventBus event type constants for inference events.
+     * Used with AgentEventBus.emitInferenceEvent().
+     */
+    object InferenceEventTypes {
+        const val ON_WILL_INFER = "onWillInfer"
+        const val ON_DID_INFER = "onDidInfer"
+        const val ON_WILL_EXTRACT_INFER = "onWillExtractInfer"
+        const val ON_DID_EXTRACT_INFER = "onDidExtractInfer"
+        const val ON_WILL_SUMMARIZE_INFER = "onWillSummarizeInfer"
+        const val ON_DID_SUMMARIZE_INFER = "onDidSummarizeInfer"
+    }
+
+    /**
+     * AgentEventBus event type constants for tool execution events.
+     * Used with AgentEventBus.emitToolEvent().
+     */
+    object ToolEventTypes {
+        const val ON_WILL_EXECUTE_TOOL = "onWillExecuteTool"
+        const val ON_DID_EXECUTE_TOOL = "onDidExecuteTool"
+        const val ON_TOOL_ERROR = "onToolError"
+    }
+
+    /**
+     * AgentEventBus event type constants for MCP (Model Context Protocol) events.
+     * Used with AgentEventBus.emitMCPEvent().
+     */
+    object MCPEventTypes {
+        const val ON_WILL_CALL_MCP = "onWillCallMCP"
+        const val ON_DID_CALL_MCP = "onDidCallMCP"
+        const val ON_MCP_CONNECTED = "onMCPConnected"
+        const val ON_MCP_DISCONNECTED = "onMCPDisconnected"
+        const val ON_MCP_ERROR = "onMCPError"
+    }
+
+    /**
+     * AgentEventBus event type constants for skill execution events.
+     * Used with AgentEventBus.emitSkillEvent().
+     */
+    object SkillEventTypes {
+        const val ON_WILL_RUN_SKILL = "onWillRunSkill"
+        const val ON_DID_RUN_SKILL = "onDidRunSkill"
+        const val ON_SKILL_ACTIVATED = "onSkillActivated"
+        const val ON_SKILLS_LISTED = "onSkillsListed"
+        const val ON_SKILL_ERROR = "onSkillError"
+    }
 }

@@ -1,5 +1,7 @@
 package ai.platon.pulsar.agentic.mcp
 
+import ai.platon.pulsar.agentic.event.AgentEventBus
+import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.model.TcEvaluate
 import ai.platon.pulsar.agentic.model.TcException
 import ai.platon.pulsar.agentic.model.ToolCall
@@ -49,10 +51,24 @@ class MCPToolExecutor(
         val toolName = tc.method
         val args = tc.arguments
         val pseudoExpression = tc.pseudoExpression
+        val serverName = clientManager.getServerName()
 
         if (!clientManager.isConnected()) {
-            val error = "MCP client for server '${clientManager.getServerName()}' is not connected"
+            val error = "MCP client for server '$serverName' is not connected"
             logger.warn(error)
+            
+            // Emit MCP error event
+            AgentEventBus.emitMCPEvent(
+                eventType = AgenticEvents.MCPEventTypes.ON_MCP_ERROR,
+                agentId = null,
+                message = error,
+                metadata = mapOf(
+                    "serverName" to serverName,
+                    "toolName" to toolName,
+                    "error" to "not_connected"
+                )
+            )
+            
             return TcEvaluate(
                 value = null,
                 className = "null",
@@ -60,6 +76,20 @@ class MCPToolExecutor(
                 exception = TcException(pseudoExpression, IllegalStateException(error))
             )
         }
+
+        // Emit MCP will call event
+        AgentEventBus.emitMCPEvent(
+            eventType = AgenticEvents.MCPEventTypes.ON_WILL_CALL_MCP,
+            agentId = null,
+            message = "Calling MCP tool: $serverName.$toolName",
+            metadata = mapOf(
+                "serverName" to serverName,
+                "toolName" to toolName,
+                "argsKeys" to args.keys.toList()
+            )
+        )
+
+        val startTime = System.currentTimeMillis()
 
         return try {
             // Convert arguments to the format expected by MCP
@@ -70,6 +100,21 @@ class MCPToolExecutor(
 
             // Extract text content from the result
             val resultValue = extractResultValue(result)
+            
+            val duration = System.currentTimeMillis() - startTime
+
+            // Emit MCP did call event
+            AgentEventBus.emitMCPEvent(
+                eventType = AgenticEvents.MCPEventTypes.ON_DID_CALL_MCP,
+                agentId = null,
+                message = "MCP tool call completed: $serverName.$toolName",
+                metadata = mapOf(
+                    "serverName" to serverName,
+                    "toolName" to toolName,
+                    "duration" to duration,
+                    "success" to true
+                )
+            )
 
             TcEvaluate(
                 value = resultValue,
@@ -77,7 +122,22 @@ class MCPToolExecutor(
                 expression = pseudoExpression
             )
         } catch (e: Exception) {
+            val duration = System.currentTimeMillis() - startTime
             logger.warn("Error executing MCP tool '{}': {}", toolName, e.brief())
+            
+            // Emit MCP error event
+            AgentEventBus.emitMCPEvent(
+                eventType = AgenticEvents.MCPEventTypes.ON_MCP_ERROR,
+                agentId = null,
+                message = "MCP tool call failed: ${e.message}",
+                metadata = mapOf(
+                    "serverName" to serverName,
+                    "toolName" to toolName,
+                    "duration" to duration,
+                    "error" to e.message
+                )
+            )
+            
             val helpText = help(toolName)
             TcEvaluate(
                 value = null,

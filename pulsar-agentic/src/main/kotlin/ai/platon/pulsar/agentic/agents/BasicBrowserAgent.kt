@@ -2,6 +2,7 @@ package ai.platon.pulsar.agentic.agents
 
 import ai.platon.pulsar.agentic.*
 import ai.platon.pulsar.agentic.common.AgentPaths
+import ai.platon.pulsar.agentic.event.AgentEventBus
 import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.inference.AgentMessageList
 import ai.platon.pulsar.agentic.inference.InferenceEngine
@@ -125,6 +126,17 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun run(action: ActionOptions): AgentHistory {
+        val agentId = this.uuid.toString()
+        
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_RUN,
+            agentId = agentId,
+            message = "Starting run with action: ${action.action.take(100)}",
+            metadata = mapOf("action" to action.action)
+        )
+        
+        // Keep existing EventBus for backward compatibility
         EventBus.emit(AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid
@@ -137,6 +149,18 @@ open class BasicBrowserAgent(
             result = act(action)
         }
 
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_RUN,
+            agentId = agentId,
+            message = "Run completed",
+            metadata = mapOf(
+                "action" to action.action,
+                "isComplete" to result.isComplete,
+                "steps" to i
+            )
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid,
@@ -162,6 +186,16 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun observe(options: ObserveOptions): List<ObserveResult> {
+        val agentId = this.uuid.toString()
+        
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_OBSERVE,
+            agentId = agentId,
+            message = "Starting observation",
+            metadata = mapOf("instruction" to options.instruction?.take(100))
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.OBSERVE_WILL_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid
@@ -171,6 +205,17 @@ open class BasicBrowserAgent(
 
         val result = doObserveActObserve(options, context, options.fromResolve)
 
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_OBSERVE,
+            agentId = agentId,
+            message = "Observation completed",
+            metadata = mapOf(
+                "instruction" to options.instruction?.take(100),
+                "resultCount" to result.observeResults.size
+            )
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid,
@@ -195,6 +240,16 @@ open class BasicBrowserAgent(
      * one successful execution is recorded in stateHistory.
      */
     override suspend fun act(action: ActionOptions): ActResult {
+        val agentId = this.uuid.toString()
+        
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_ACT,
+            agentId = agentId,
+            message = "Starting action: ${action.action.take(100)}",
+            metadata = mapOf("action" to action.action)
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid
@@ -217,6 +272,18 @@ open class BasicBrowserAgent(
             ActResultHelper.failed(msg, action.action)
         }
 
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_ACT,
+            agentId = agentId,
+            message = if (result.success) "Action completed successfully" else "Action failed: ${result.message.take(100)}",
+            metadata = mapOf(
+                "action" to action.action,
+                "success" to result.success,
+                "isComplete" to result.isComplete
+            )
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE, mapOf(
             "action" to action,
             "uuid" to uuid,
@@ -283,6 +350,16 @@ open class BasicBrowserAgent(
      * two-stage LLM calls (extract + metadata) and merges results with token/time metrics.
      */
     override suspend fun extract(options: ExtractOptions): ExtractResult {
+        val agentId = this.uuid.toString()
+        
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_EXTRACT,
+            agentId = agentId,
+            message = "Starting extraction: ${options.instruction.take(100)}",
+            metadata = mapOf("instruction" to options.instruction)
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid
@@ -304,6 +381,17 @@ open class BasicBrowserAgent(
             )
         }
 
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_EXTRACT,
+            agentId = agentId,
+            message = if (result.success) "Extraction completed successfully" else "Extraction failed: ${result.message.take(100)}",
+            metadata = mapOf(
+                "instruction" to options.instruction,
+                "success" to result.success
+            )
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_DID_EXECUTE, mapOf(
             "options" to options,
             "uuid" to uuid,
@@ -338,6 +426,19 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun summarize(instruction: String?, selector: String?): String {
+        val agentId = this.uuid.toString()
+        
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_SUMMARIZE,
+            agentId = agentId,
+            message = "Starting summarization",
+            metadata = mapOf(
+                "instruction" to instruction,
+                "selector" to selector
+            )
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_WILL_EXECUTE, mapOf(
             "instruction" to instruction,
             "selector" to selector,
@@ -347,6 +448,17 @@ open class BasicBrowserAgent(
         val textContent = activeDriver.textContent(selector) ?: return "(no text content)"
         val result = inference.summarize(instruction, textContent)
 
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_SUMMARIZE,
+            agentId = agentId,
+            message = "Summarization completed",
+            metadata = mapOf(
+                "instruction" to instruction,
+                "resultLength" to result.length
+            )
+        )
+        
         EventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_DID_EXECUTE, mapOf(
             "instruction" to instruction,
             "selector" to selector,

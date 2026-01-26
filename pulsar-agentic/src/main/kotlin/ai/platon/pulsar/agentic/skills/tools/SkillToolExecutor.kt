@@ -1,5 +1,7 @@
 package ai.platon.pulsar.agentic.skills.tools
 
+import ai.platon.pulsar.agentic.event.AgentEventBus
+import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.model.ToolSpec
 import ai.platon.pulsar.agentic.skills.Skill
 import ai.platon.pulsar.agentic.skills.SkillRegistry
@@ -78,17 +80,43 @@ class SkillToolExecutor(
     ): Any? {
         require(domain == this.domain) { "Unsupported domain: $domain" }
         require(target is SkillToolTarget) { "Target must be a SkillToolTarget" }
+        
+        // Get agentId from SkillToolTarget context if available
+        val agentId = target.context.sessionId
 
         return when (functionName) {
             "list" -> {
                 val maxChars = (args["maxDescriptionChars"] as? Number)?.toInt() ?: 512
-                registry.listSkillSummaries(maxDescriptionChars = maxChars)
+                val skills = registry.listSkillSummaries(maxDescriptionChars = maxChars)
+                
+                // Emit skill listed event
+                AgentEventBus.emitSkillEvent(
+                    eventType = AgenticEvents.SkillEventTypes.ON_SKILLS_LISTED,
+                    agentId = agentId,
+                    message = "Listed ${skills.size} skills",
+                    metadata = mapOf(
+                        "count" to skills.size,
+                        "maxDescriptionChars" to maxChars
+                    )
+                )
+                
+                skills
             }
 
             "activate" -> {
                 validateArgs(args, allowed = setOf("id"), required = setOf("id"), functionName)
                 val id = paramString(args, "id", functionName)!!
-                registry.activateSkill(id)
+                val activation = registry.activateSkill(id)
+                
+                // Emit skill activated event
+                AgentEventBus.emitSkillEvent(
+                    eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ACTIVATED,
+                    agentId = agentId,
+                    message = "Skill activated: $id",
+                    metadata = mapOf("skillId" to id)
+                )
+                
+                activation
             }
 
             "run" -> {
@@ -110,7 +138,53 @@ class SkillToolExecutor(
                     else -> throw IllegalArgumentException("params must be Map<String, Any?> or JSON string for $functionName | actual='${params::class.qualifiedName}'")
                 }
 
-                target.execute(id, paramsMap)
+                // Emit skill will run event
+                AgentEventBus.emitSkillEvent(
+                    eventType = AgenticEvents.SkillEventTypes.ON_WILL_RUN_SKILL,
+                    agentId = agentId,
+                    message = "Running skill: $id",
+                    metadata = mapOf(
+                        "skillId" to id,
+                        "paramsKeys" to paramsMap.keys.toList()
+                    )
+                )
+
+                val startTime = System.currentTimeMillis()
+
+                return try {
+                    val result = target.execute(id, paramsMap)
+                    val duration = System.currentTimeMillis() - startTime
+
+                    // Emit skill did run event
+                    AgentEventBus.emitSkillEvent(
+                        eventType = AgenticEvents.SkillEventTypes.ON_DID_RUN_SKILL,
+                        agentId = agentId,
+                        message = "Skill completed: $id",
+                        metadata = mapOf(
+                            "skillId" to id,
+                            "duration" to duration,
+                            "success" to (result != null)
+                        )
+                    )
+
+                    result
+                } catch (e: Exception) {
+                    val duration = System.currentTimeMillis() - startTime
+
+                    // Emit skill error event
+                    AgentEventBus.emitSkillEvent(
+                        eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ERROR,
+                        agentId = agentId,
+                        message = "Skill failed: $id - ${e.message}",
+                        metadata = mapOf(
+                            "skillId" to id,
+                            "duration" to duration,
+                            "error" to e.message
+                        )
+                    )
+
+                    throw e
+                }
             }
 
             else -> throw IllegalArgumentException("Unsupported $domain method: $functionName(${args.keys})")
