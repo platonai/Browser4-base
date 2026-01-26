@@ -1,4 +1,4 @@
-# AI Copilot 使用与编写指南（简版） (v2026-01-25)
+# AI Copilot 使用与编写指南 (v2026-01-25)
 
 —
 
@@ -136,15 +136,34 @@ fun load(url: String, options: LoadOptions): PageSnapshot {
 }
 ```
 
-## 7) 测试策略
+## 7) Testing Guidelines
 
-- 位置：各模块 `src/test`，共享在 `pulsar-tests-common`，重型场景在 `pulsar-tests`
-- 速度目标：单测 <100ms；集成 <5s；E2E <30s
-- 覆盖率：CI 配置启用 Jacoco（全局至少约 70% 指令覆盖）
-- 标签：按 `docs/copilot/templates/test-tag-usage.md`
-- 命名规则：测试方法名必须使用驼峰命名法（camelCase），禁止使用 Kotlin 的反引号命名法（如 `` `some test name` ``）
-- suspend 函数：使用 `suspend fun xxxTest() {}` 替代 `runBlocking { }` 包裹调用
-- 默认接受改动：AI 编写的所有测试代码，直接接受，不询问是否接受
+### Test Location
+- Module unit tests: `src/test/kotlin/...`
+- Centralized integration/E2E: `pulsar-tests/`
+- Shared utilities: `pulsar-tests-common/`
+
+### Naming Conventions
+- Unit tests: `<ClassName>Test.kt`
+- Integration tests: `<ClassName>IT.kt`
+- E2E tests: `<ClassName>E2ETest.kt`
+- **Method names: Use camelCase (NOT backtick naming)**
+    - ✅ `testUserLoginWithValidCredentials()` + `@DisplayName("test user login with valid credentials")`
+    - ❌ `` `test user login with valid credentials` ``
+
+### Test Performance Targets
+- Unit tests: <100ms
+- Integration tests: <5s
+- E2E tests: <30s
+
+### Coverage Targets
+- Global: ≥70%
+- Core logic: ≥80%
+- Utilities: ≥90%
+- Controllers: ≥85%
+
+### Test Tags (JUnit 5)
+`IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `TimeConsumingTest`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
 
 ## 8) 常见命令速查（按平台复制即可）
 

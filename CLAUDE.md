@@ -135,7 +135,7 @@ logger.info("Task {} finished in {} ms", taskId, cost)
 - Integration tests: `<ClassName>IT.kt`
 - E2E tests: `<ClassName>E2ETest.kt`
 - **Method names: Use camelCase (NOT backtick naming)**
-  - ✅ `testUserLoginWithValidCredentials()`
+  - ✅ `testUserLoginWithValidCredentials()` + `@DisplayName("test user login with valid credentials")`
   - ❌ `` `test user login with valid credentials` ``
 
 ### Test Performance Targets
