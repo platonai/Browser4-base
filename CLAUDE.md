@@ -101,6 +101,7 @@ Key options:
 - Use explicit return types
 - Apply null-safety patterns (`require`/`check`/`?:`)
 - Public APIs require KDoc documentation
+- Store AI generated task docs in `docs-dev`
 
 **KDoc Template:**
 ```kotlin
