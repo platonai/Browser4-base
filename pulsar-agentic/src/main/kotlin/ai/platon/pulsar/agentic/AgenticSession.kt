@@ -47,7 +47,7 @@ open class BasicAgenticSession(
     id: Long = generateNextInProcessId()
 ) : AbstractAgenticSession(context, sessionConfig, id) {
 
-    override val companionAgent: PerceptiveAgent by lazy { getOrCreateCompanionAgent() }
+    override val companionAgent: PerceptiveAgent by lazy { createCompanionAgent() }
 
     private val executor by lazy { SessionActExecutor(this) }
 
@@ -56,8 +56,8 @@ open class BasicAgenticSession(
     override suspend fun plainActs(actionDescriptions: String) = executor.performActs(actionDescriptions)
 
     @Synchronized
-    private fun getOrCreateCompanionAgent(): ObserveActBrowserAgent {
-        createBoundDriver()
+    private fun createCompanionAgent(): ObserveActBrowserAgent {
+        getOrCreateBoundDriver()
         return ObserveActBrowserAgent(this).also { registerClosable(it) }
     }
 }
@@ -68,7 +68,7 @@ open class AbstractAgenticQLSession(
     config: SessionConfig
 ) : AbstractH2SQLSession(context, sessionDelegate, config), AgenticSession {
 
-    override val companionAgent: PerceptiveAgent by lazy { getOrCreateCompanionAgent() }
+    override val companionAgent: PerceptiveAgent by lazy { createCompanionAgent() }
 
     private val executor by lazy { SessionActExecutor(this) }
 
@@ -77,8 +77,8 @@ open class AbstractAgenticQLSession(
     override suspend fun plainActs(actionDescriptions: String) = executor.performActs(actionDescriptions)
 
     @Synchronized
-    private fun getOrCreateCompanionAgent(): ObserveActBrowserAgent {
-        createBoundDriver()
+    private fun createCompanionAgent(): ObserveActBrowserAgent {
+        getOrCreateBoundDriver()
         return ObserveActBrowserAgent(this).also { registerClosable(it) }
     }
 }
