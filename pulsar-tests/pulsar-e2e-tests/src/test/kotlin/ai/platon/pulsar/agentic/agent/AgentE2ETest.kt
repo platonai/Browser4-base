@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package ai.platon.pulsar.agentic.agent
 
 import ai.platon.pulsar.agentic.context.AgenticContexts
@@ -10,7 +12,8 @@ import ai.platon.pulsar.external.ChatModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -86,7 +89,7 @@ class AgentE2ETest {
             EventBus.register(AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE) { payload ->
                 val map = payload as? Map<String, Any?> ?: return@register null
                 val stateHistory = map["stateHistory"] as? AgentHistory
-                eventLogger.info("✅ Agent run completed - steps: {}, isDone: {}", 
+                eventLogger.info("✅ Agent run completed - steps: {}, isDone: {}",
                     stateHistory?.totalSteps, stateHistory?.isDone)
                 capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE) {
                     mutableListOf()
@@ -107,7 +110,6 @@ class AgentE2ETest {
 
             EventBus.register(AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE) { payload ->
                 val map = payload as? Map<String, Any?> ?: return@register null
-                @Suppress("UNCHECKED_CAST")
                 val observeResults = map["observeResults"] as? List<Any>
                 eventLogger.debug("👀 Observed {} results", observeResults?.size ?: 0)
                 capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.OBSERVE_DID_EXECUTE) {
@@ -143,7 +145,7 @@ class AgentE2ETest {
                 val map = payload as? Map<String, Any?> ?: return@register null
                 runStepCount.incrementAndGet()
                 val actionDescription = map["actionDescription"] as? ActionDescription
-                eventLogger.info("🔧 Step {} - Generated action: {}", 
+                eventLogger.info("🔧 Step {} - Generated action: {}",
                     runStepCount.get(), actionDescription?.pseudoExpression)
 
                 capturedEvents.computeIfAbsent(AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE) {
@@ -212,16 +214,16 @@ class AgentE2ETest {
      */
     private fun parseTestCaseToTask(content: String): String {
         val lines = content.lines()
-        
+
         // Extract metadata from comments for logging
         val metadata = lines.filter { it.startsWith("#") }
             .map { it.removePrefix("#").trim() }
         logger.info("Test case metadata: {}", metadata)
-        
+
         // Extract numbered steps as the task
         val steps = lines.filter { it.isNotBlank() && !it.startsWith("#") }
             .joinToString("\n")
-        
+
         return steps
     }
 
@@ -296,7 +298,7 @@ class AgentE2ETest {
         // - The agent attempted to perform the task
         // - Progress events were captured
         // - The history contains meaningful state information
-        
+
         val finalState = history.finalResult
         assertNotNull(finalState, "Final state should not be null")
         logger.info("Final state: {}", finalState)
