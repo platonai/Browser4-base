@@ -5,6 +5,7 @@ import ai.platon.pulsar.agentic.skills.*
 import ai.platon.pulsar.agentic.skills.tools.SkillToolExecutor
 import ai.platon.pulsar.agentic.tools.builtin.AbstractToolExecutor
 import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationRenderer
+import ai.platon.pulsar.agentic.tools.specs.ToolSpecFormat
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -246,7 +247,186 @@ class ToolCallSpecificationRendererTest {
         assertFalse(rendered.contains("db.query"), "Should NOT contain filtered db.query method")
     }
 
-    // Helper test classes
+    // ==================== JSON Format Tests ====================
+
+    @Test
+    fun testRenderJsonShouldProduceValidJsonStructure() {
+        val rendered = ToolCallSpecificationRenderer.renderJson(includeCustomDomains = false)
+
+        // Should be valid JSON structure
+        assertTrue(rendered.contains(""""tools":"""), "Should contain tools array")
+        assertTrue(rendered.contains(""""domain":"""), "Should contain domain field")
+        assertTrue(rendered.contains(""""method":"""), "Should contain method field")
+        assertTrue(rendered.contains(""""parameters":"""), "Should contain parameters array")
+        assertTrue(rendered.contains(""""returns":"""), "Should contain returns field")
+    }
+
+    @Test
+    fun testRenderJsonShouldIncludeBuiltInTools() {
+        val rendered = ToolCallSpecificationRenderer.renderJson(includeCustomDomains = false)
+
+        // Should include built-in driver tools
+        assertTrue(rendered.contains(""""domain": "driver""""), "Should contain driver domain")
+        assertTrue(rendered.contains(""""method": "navigateTo""""), "Should contain navigateTo method")
+        assertTrue(rendered.contains(""""method": "click""""), "Should contain click method")
+        
+        // Should include built-in browser tools
+        assertTrue(rendered.contains(""""domain": "browser""""), "Should contain browser domain")
+        assertTrue(rendered.contains(""""method": "switchTab""""), "Should contain switchTab method")
+        
+        // Should include built-in fs tools
+        assertTrue(rendered.contains(""""domain": "fs""""), "Should contain fs domain")
+        assertTrue(rendered.contains(""""method": "writeString""""), "Should contain writeString method")
+    }
+
+    @Test
+    fun testRenderJsonShouldIncludeParametersWithTypes() {
+        val rendered = ToolCallSpecificationRenderer.renderJson(includeCustomDomains = false)
+
+        // Should include parameter details
+        assertTrue(rendered.contains(""""name": "url""""), "Should contain url parameter")
+        assertTrue(rendered.contains(""""type": "String""""), "Should contain String type")
+    }
+
+    @Test
+    fun testRenderJsonShouldIncludeParametersWithDefaults() {
+        val rendered = ToolCallSpecificationRenderer.renderJson(includeCustomDomains = false)
+
+        // Should include default values for parameters (e.g., waitForSelector has timeout default)
+        assertTrue(rendered.contains(""""default":"""), "Should contain at least one default value")
+    }
+
+    @Test
+    fun testRenderJsonShouldIncludeCustomTools() {
+        val executor = DbToolExecutor()
+        val specs = listOf(
+            ToolSpec(
+                domain = "db",
+                method = "query",
+                arguments = listOf(ToolSpec.Arg("sql", "String")),
+                returnType = "String",
+                description = "Run a SQL query"
+            )
+        )
+        registry.register(executor, specs)
+
+        val rendered = ToolCallSpecificationRenderer.renderJson(includeCustomDomains = true)
+
+        // Should include custom db tool
+        assertTrue(rendered.contains(""""domain": "db""""), "Should contain db domain")
+        assertTrue(rendered.contains(""""method": "query""""), "Should contain query method")
+        assertTrue(rendered.contains(""""description": "Run a SQL query""""), "Should contain description")
+    }
+
+    @Test
+    fun testRenderWithFormatKotlinShouldMatchOriginalRender() {
+        val kotlinFormat = ToolCallSpecificationRenderer.render(
+            format = ToolSpecFormat.KOTLIN,
+            includeCustomDomains = false
+        )
+        val originalRender = ToolCallSpecificationRenderer.render(includeCustomDomains = false)
+
+        assertEquals(originalRender, kotlinFormat, "KOTLIN format should match original render")
+    }
+
+    @Test
+    fun testRenderWithFormatJsonShouldMatchRenderJson() {
+        val jsonFormat = ToolCallSpecificationRenderer.render(
+            format = ToolSpecFormat.JSON,
+            includeCustomDomains = false
+        )
+        val jsonRender = ToolCallSpecificationRenderer.renderJson(includeCustomDomains = false)
+
+        assertEquals(jsonRender, jsonFormat, "JSON format should match renderJson")
+    }
+
+    @Test
+    fun testParseBuiltInSpecificationsShouldParseAllTools() {
+        val specs = ToolCallSpecificationRenderer.parseBuiltInSpecifications()
+
+        // Should parse multiple tools
+        assertTrue(specs.isNotEmpty(), "Should parse built-in specifications")
+        
+        // Should include driver domain tools
+        val driverTools = specs.filter { it.domain == "driver" }
+        assertTrue(driverTools.isNotEmpty(), "Should include driver tools")
+        
+        // Should include browser domain tools
+        val browserTools = specs.filter { it.domain == "browser" }
+        assertTrue(browserTools.isNotEmpty(), "Should include browser tools")
+        
+        // Should include fs domain tools
+        val fsTools = specs.filter { it.domain == "fs" }
+        assertTrue(fsTools.isNotEmpty(), "Should include fs tools")
+    }
+
+    @Test
+    fun testParseBuiltInSpecificationsShouldParseArgumentsCorrectly() {
+        val specs = ToolCallSpecificationRenderer.parseBuiltInSpecifications()
+
+        // Find navigateTo method which has a url parameter
+        val navigateTo = specs.find { it.domain == "driver" && it.method == "navigateTo" }
+        assertNotNull(navigateTo, "Should find navigateTo method")
+        assertEquals(1, navigateTo!!.arguments.size, "navigateTo should have 1 argument")
+        assertEquals("url", navigateTo.arguments[0].name, "First argument should be url")
+        assertEquals("String", navigateTo.arguments[0].type, "url should be String type")
+    }
+
+    @Test
+    fun testParseBuiltInSpecificationsShouldParseDefaultValues() {
+        val specs = ToolCallSpecificationRenderer.parseBuiltInSpecifications()
+
+        // Find waitForSelector which has a default timeout
+        val waitForSelector = specs.find { it.domain == "driver" && it.method == "waitForSelector" }
+        assertNotNull(waitForSelector, "Should find waitForSelector method")
+        
+        val timeoutArg = waitForSelector!!.arguments.find { it.name == "timeoutMillis" }
+        assertNotNull(timeoutArg, "Should have timeoutMillis argument")
+        assertEquals("3000", timeoutArg!!.defaultValue, "timeoutMillis should have default 3000")
+    }
+
+    @Test
+    fun testParseBuiltInSpecificationsShouldParseReturnTypes() {
+        val specs = ToolCallSpecificationRenderer.parseBuiltInSpecifications()
+
+        // Find exists method which returns Boolean
+        val exists = specs.find { it.domain == "driver" && it.method == "exists" }
+        assertNotNull(exists, "Should find exists method")
+        assertEquals("Boolean", exists!!.returnType, "exists should return Boolean")
+        
+        // Find navigateTo which returns Unit (no return type specified)
+        val navigateTo = specs.find { it.domain == "driver" && it.method == "navigateTo" }
+        assertNotNull(navigateTo, "Should find navigateTo method")
+        assertEquals("Unit", navigateTo!!.returnType, "navigateTo should return Unit")
+    }
+
+    @Test
+    fun testRenderAsJsonShouldFormatSpecsCorrectly() {
+        val specs = listOf(
+            ToolSpec(
+                domain = "test",
+                method = "doSomething",
+                arguments = listOf(
+                    ToolSpec.Arg("param1", "String"),
+                    ToolSpec.Arg("param2", "Int", "42")
+                ),
+                returnType = "Result",
+                description = "Test method"
+            )
+        )
+
+        val json = ToolCallSpecificationRenderer.renderAsJson(specs)
+
+        assertTrue(json.contains(""""domain": "test""""), "Should contain domain")
+        assertTrue(json.contains(""""method": "doSomething""""), "Should contain method")
+        assertTrue(json.contains(""""name": "param1""""), "Should contain param1")
+        assertTrue(json.contains(""""type": "Int""""), "Should contain Int type")
+        assertTrue(json.contains(""""default": "42""""), "Should contain default value")
+        assertTrue(json.contains(""""returns": "Result""""), "Should contain return type")
+        assertTrue(json.contains(""""description": "Test method""""), "Should contain description")
+    }
+
+    // ==================== Helper test classes ====================
 
     private class DbToolExecutor : AbstractToolExecutor() {
         override val domain: String = "db"

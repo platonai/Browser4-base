@@ -10,6 +10,7 @@ import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.language
 import ai.platon.pulsar.agentic.inference.action.TASK_COMPLETE_SCHEMA_PROMPT
 import ai.platon.pulsar.agentic.skills.SkillRegistry
 import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationRenderer
+import ai.platon.pulsar.agentic.tools.specs.ToolSpecFormat
 
 /**
  * Skill tool type definitions for the system prompt.
@@ -82,7 +83,31 @@ $summaryLines
  *
  * Note: Must be generated on demand so newly registered custom tools/skills are reflected in the tool list.
  */
-fun buildMainSystemPromptV1(): String = """
+fun buildMainSystemPromptV1(): String = buildMainSystemPromptV1(ToolSpecFormat.KOTLIN)
+
+/**
+ * Build main system prompt (v20260123) with specified tool format.
+ *
+ * @param toolFormat The format to use for tool specifications (KOTLIN or JSON)
+ * @return The complete system prompt string
+ *
+ * Note: Must be generated on demand so newly registered custom tools/skills are reflected in the tool list.
+ */
+fun buildMainSystemPromptV1(toolFormat: ToolSpecFormat): String {
+    val toolSpecContent = when (toolFormat) {
+        ToolSpecFormat.KOTLIN -> """
+```
+${ToolCallSpecificationRenderer.render(includeCustomDomains = true)}
+```
+""".trimIndent()
+        ToolSpecFormat.JSON -> """
+```json
+${ToolCallSpecificationRenderer.renderJson(includeCustomDomains = true)}
+```
+""".trimIndent()
+    }
+    
+    return """
 你是一个被设计为在迭代循环中运行以自动化浏览器任务的 AI 代理。你的最终目标是完成 <user_request> 中提供的任务。
 
 # 系统指南
@@ -159,9 +184,7 @@ ${buildSkillSummariesSection()}
 
 ## 工具列表
 
-```
-${ToolCallSpecificationRenderer.render(includeCustomDomains = true)}
-```
+$toolSpecContent
 
 $TOOL_CALL_RULE_CONTENT
 
@@ -306,3 +329,4 @@ $TASK_COMPLETE_SCHEMA_PROMPT
 ---
 
         """.trimIndent()
+}
