@@ -138,6 +138,9 @@ object PulsarJackson {
 
     fun toJsonOrString(value: Any) = toJsonOrNull(value) ?: value.toString()
     fun toPrettyJsonOrString(value: Any) = toPrettyJsonOrNull(value) ?: value.toString()
+
+    fun readTree(json: String): JsonNode? = mapper.readTree(json)
+    fun readTreeOrNull(json: String): JsonNode? = runCatching { mapper.readTree(json) }.getOrNull()
 }
 
 /**
