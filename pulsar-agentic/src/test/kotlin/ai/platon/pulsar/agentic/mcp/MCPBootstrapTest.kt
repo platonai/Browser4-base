@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import java.time.Duration
+import kotlin.io.path.writeText
 
 /**
  * Tests for MCPBootstrap functionality.
@@ -16,6 +20,9 @@ import org.junit.jupiter.api.Tag
 @Tag("unit")
 @Tag("mcp")
 class MCPBootstrapTest {
+
+    @TempDir
+    lateinit var tempDir: Path
 
     private val testServerName = "bootstrap-test-server"
     private val testDomain = "mcp.$testServerName"
@@ -204,6 +211,105 @@ class MCPBootstrapTest {
         }
 
         // And close
+        assertDoesNotThrow {
+            MCPBootstrap.close()
+        }
+    }
+
+    // ==================== JSON Configuration Tests ====================
+
+    @Test
+    fun testRegisterFromJsonFileWithDisabledServer() {
+        val configFile = tempDir.resolve("mcp-servers.json")
+        configFile.writeText("""
+            {
+              "mcpServers": {
+                "test-server": {
+                  "command": "echo",
+                  "args": ["test"],
+                  "enabled": false
+                }
+              }
+            }
+        """.trimIndent())
+
+        val errors = MCPBootstrap.registerFromJsonFile(configFile)
+
+        assertTrue(errors.isEmpty())
+        // Server should not be registered because it's disabled
+        assertFalse(MCPPluginRegistry.instance.isRegistered("test-server"))
+    }
+
+    @Test
+    fun testRegisterFromJsonFileNonexistent() {
+        val nonExistentFile = tempDir.resolve("nonexistent.json")
+
+        val errors = MCPBootstrap.registerFromJsonFile(nonExistentFile)
+
+        assertTrue(errors.isEmpty())
+    }
+
+    @Test
+    fun testRegisterFromJsonDirectory() {
+        tempDir.resolve("config1.json").writeText("""
+            {
+              "mcpServers": {
+                "server-a": {
+                  "command": "echo",
+                  "args": ["a"],
+                  "enabled": false
+                }
+              }
+            }
+        """.trimIndent())
+
+        tempDir.resolve("config2.json").writeText("""
+            {
+              "mcpServers": {
+                "server-b": {
+                  "command": "echo",
+                  "args": ["b"],
+                  "enabled": false
+                }
+              }
+            }
+        """.trimIndent())
+
+        val errors = MCPBootstrap.registerFromJsonDirectory(tempDir)
+
+        assertTrue(errors.isEmpty())
+    }
+
+    @Test
+    fun testGetLoadedServersFromJsonInitiallyEmpty() {
+        val loadedServers = MCPBootstrap.getLoadedServersFromJson()
+        assertTrue(loadedServers.isEmpty())
+    }
+
+    @Test
+    fun testStartAndStopPeriodicConfigScan() {
+        assertDoesNotThrow {
+            MCPBootstrap.startPeriodicConfigScan(
+                configDir = tempDir,
+                interval = Duration.ofMinutes(10),
+                initialDelay = Duration.ofMinutes(10)
+            )
+        }
+
+        assertDoesNotThrow {
+            MCPBootstrap.stopPeriodicConfigScan()
+        }
+    }
+
+    @Test
+    fun testCloseStopsPeriodicScan() {
+        MCPBootstrap.startPeriodicConfigScan(
+            configDir = tempDir,
+            interval = Duration.ofMinutes(10),
+            initialDelay = Duration.ofMinutes(10)
+        )
+
+        // Close should stop the periodic scan
         assertDoesNotThrow {
             MCPBootstrap.close()
         }

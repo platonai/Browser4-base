@@ -9,6 +9,8 @@ The MCP plugin support allows Pulsar to:
 - Automatically discover and register tools from MCP servers
 - Execute MCP tools through Pulsar's standard tool execution interface
 - Manage multiple MCP server connections concurrently
+- **Load MCP server configurations from Claude-compatible JSON files**
+- **Automatically scan and reload configuration changes**
 
 ## Features
 
@@ -18,6 +20,8 @@ The MCP plugin support allows Pulsar to:
 - **Concurrent Connections**: Support for connecting to multiple MCP servers simultaneously
 - **Error Handling**: Robust error handling with detailed logging
 - **Resource Management**: Automatic cleanup of connections and resources
+- **JSON Configuration**: Load MCP servers from Claude-compatible JSON config files
+- **Periodic Scanning**: Automatically detect and reload configuration changes
 
 ## Quick Start
 
@@ -33,7 +37,7 @@ The dependencies are already configured in the parent POM:
 </dependency>
 ```
 
-### 2. Configure and Connect
+### 2. Option A: Configure and Connect Programmatically
 
 ```kotlin
 import ai.platon.pulsar.agentic.mcp.*
@@ -48,6 +52,50 @@ val config = MCPConfig(
 
 // Register the server
 MCPPluginRegistry.instance.registerMCPServer(config)
+```
+
+### 2. Option B: Load from JSON Configuration File (Recommended)
+
+Create a JSON config file with Claude-compatible format:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/yourname/Desktop"]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    },
+    "github": {
+      "command": "node",
+      "args": ["github-server.js"],
+      "enabled": false
+    }
+  }
+}
+```
+
+Then load and register the servers:
+
+```kotlin
+import ai.platon.pulsar.agentic.mcp.MCPBootstrap
+import java.nio.file.Paths
+
+// Option 1: Load from a specific file
+MCPBootstrap.registerFromJsonFile(Paths.get("path/to/mcp-servers.json"))
+
+// Option 2: Load from the default config location
+// Default: {APP_DATA_DIR}/config/mcp/mcp-servers.json
+MCPBootstrap.registerFromDefaultConfig()
+
+// Option 3: Load all JSON files from a directory
+MCPBootstrap.registerFromJsonDirectory(Paths.get("path/to/config-dir"))
+
+// Option 4: Start periodic scanning for auto-reload
+MCPBootstrap.startPeriodicConfigScan()
 ```
 
 ### 3. Use MCP Tools
@@ -65,6 +113,34 @@ val toolCall = ToolCall(
 val result = executor?.execute(toolCall)
 ```
 
+## JSON Configuration Format
+
+The JSON configuration follows Claude's `mcpServers` format:
+
+```json
+{
+  "mcpServers": {
+    "server-name": {
+      "command": "command-to-run",
+      "args": ["arg1", "arg2"],
+      "env": {
+        "API_KEY": "optional-env-var"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+### Configuration Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `command` | string | Yes | The command to start the MCP server |
+| `args` | array | No | Arguments for the server command |
+| `env` | object | No | Environment variables (reserved for future use) |
+| `enabled` | boolean | No | Whether the server is enabled (default: true) |
+
 ## Architecture
 
 ### Core Components
@@ -73,6 +149,9 @@ val result = executor?.execute(toolCall)
 - **MCPClientManager**: Manages the lifecycle of an MCP client connection
 - **MCPToolExecutor**: Implements ToolExecutor to execute MCP tools
 - **MCPPluginRegistry**: Central registry for managing multiple MCP servers
+- **MCPServersConfigLoader**: Loads and manages MCP configurations from JSON files
+- **MCPPaths**: Path constants for MCP configuration files
+- **MCPBootstrap**: Bootstrap helpers with JSON config support
 
 ### Integration Points
 
@@ -114,16 +193,37 @@ MCPConfig(
 )
 ```
 
+## Periodic Configuration Scanning
+
+For automatic configuration updates:
+
+```kotlin
+import ai.platon.pulsar.agentic.mcp.MCPBootstrap
+import java.time.Duration
+
+// Start periodic scanning with custom interval
+MCPBootstrap.startPeriodicConfigScan(
+    configDir = MCPPaths.MCP_CONFIG_DIR,
+    interval = Duration.ofSeconds(30),
+    initialDelay = Duration.ofSeconds(5)
+)
+
+// Stop scanning when done
+MCPBootstrap.stopPeriodicConfigScan()
+```
+
 ## Testing
 
 Run the tests with:
 
 ```bash
-./mvnw test -pl pulsar-core/pulsar-agentic -Dtest=MCPConfigTest
+./mvnw test -pl pulsar-agentic -Dtest='*MCP*Test'
 ```
 
 See example usage in:
 - `src/test/kotlin/ai/platon/pulsar/agentic/mcp/MCPConfigTest.kt`
+- `src/test/kotlin/ai/platon/pulsar/agentic/mcp/MCPServersConfigLoaderTest.kt`
+- `src/test/kotlin/ai/platon/pulsar/agentic/mcp/MCPBootstrapTest.kt`
 - `src/test/kotlin/ai/platon/pulsar/agentic/mcp/examples/MCPPluginExample.kt`
 
 ## Documentation
