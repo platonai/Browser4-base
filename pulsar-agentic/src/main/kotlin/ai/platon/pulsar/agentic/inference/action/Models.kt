@@ -50,6 +50,18 @@ data class ToolCallElement(
     val locator: String? = null,
 
     /**
+     * Screenshot summary (if an image was provided).
+     */
+    val screenshotContentSummary: String? = null,
+
+    /**
+     * Current page summary as perceived by the model, if applicable.
+     */
+    val currentPageContentSummary: String? = null,
+
+
+
+    /**
      * Long-term memory that the agent wants to persist.
      */
     val memory: String? = null,
