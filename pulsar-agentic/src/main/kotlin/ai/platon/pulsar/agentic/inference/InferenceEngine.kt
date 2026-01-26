@@ -11,7 +11,6 @@ import ai.platon.pulsar.agentic.model.ExtractionSchema
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.MultiSinkMessageWriter
-import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.event.EventBus
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import ai.platon.pulsar.external.ModelResponse
@@ -21,7 +20,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import java.nio.file.Path
 import java.time.Instant
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 data class ExtractParams(
     val instruction: String,
@@ -115,18 +113,19 @@ class InferenceEngine(
         val prefix = if (params.fromAct) "act" else "observe"
         val timestamp = AppPaths.fromNow()
 
-        val callFile: Path? = log(
-            dirPrefix = "${prefix}-request-summary",
+        val llmInputFile = log(
+            dirPrefix = prefix,
+            pathSuffix = "$timestamp.request.json",
             requestId = context.uuid,
-            timestamp = timestamp,
-            modelCall = prefix,
             messages = messages.messages
         )
 
-        EventBus.emit(AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE, mapOf(
-            "context" to context,
-            "messages" to messages
-        ))
+        EventBus.emit(
+            AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE, mapOf(
+                "context" to context,
+                "messages" to messages
+            )
+        )
 
         val actionDescription = cta.generate(messages, context)
         requireNotNull(context.agentState.actionDescription) {
@@ -136,22 +135,20 @@ class InferenceEngine(
             "Field should be set: actionDescription.modelResponse"
         }
 
-        EventBus.emit(AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE, mapOf(
-            "context" to context,
-            "messages" to messages,
-            "actionDescription" to actionDescription
-        ))
+        EventBus.emit(
+            AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE, mapOf(
+                "context" to context,
+                "messages" to messages,
+                "actionDescription" to actionDescription
+            )
+        )
 
-        val tokenUsage = modelResponse.tokenUsage
-        val responseContent = modelResponse.content
-
-        val respFile = log(
-            prefix = "${prefix}-response-summary",
-            suffix = "$timestamp.json",
+        val llmOutputFile = log(
+            dirPrefix = prefix,
+            pathSuffix = "$timestamp.response.json",
             payload = mapOf(
                 "requestId" to context.uuid,
-                "modelResponse" to prefix,
-                "rawResponse" to safeJsonPreview(responseContent)
+                "modelResponse" to modelResponse
             )
         )
 
@@ -160,11 +157,11 @@ class InferenceEngine(
             payload = mapOf(
                 "${prefix}InferenceType" to prefix,
                 "timestamp" to timestamp,
-                "llmInputFile" to callFile,
-                "llmOutputFile" to respFile,
-                "inputTokenCount" to tokenUsage.inputTokenCount,
-                "outputTokenCount" to tokenUsage.outputTokenCount,
-                "totalTokenCount" to tokenUsage.totalTokenCount,
+                "llmInputFile" to llmInputFile,
+                "llmOutputFile" to llmOutputFile,
+                "inputTokenCount" to modelResponse.tokenUsage.inputTokenCount,
+                "outputTokenCount" to modelResponse.tokenUsage.outputTokenCount,
+                "totalTokenCount" to modelResponse.tokenUsage.totalTokenCount,
                 "inferenceTimeMillis" to DateTimes.elapsedTime(startTime).toMillis()
             )
         )
@@ -178,19 +175,20 @@ class InferenceEngine(
      *   - inputTokenCount, outputTokenCount, totalTokenCount, inferenceTimeMillis
      */
     suspend fun extract(params: ExtractParams): ObjectNode {
-        EventBus.emit(AgenticEvents.InferenceEngine.EXTRACT_WILL_EXECUTE, mapOf(
-            "params" to params
-        ))
+        EventBus.emit(
+            AgenticEvents.InferenceEngine.EXTRACT_WILL_EXECUTE, mapOf(
+                "params" to params
+            )
+        )
 
         val messages = InferenceMessageBuilder.buildExtractPrompt(params)
 
         // 1) Extraction call -----------------------------------------------------------------
         val timestamp = AppPaths.fromNow()
-        val callFile: Path? = log(
-            dirPrefix = "extract-request-summary",
-            timestamp = timestamp,
+        val llmInputFile: Path? = log(
+            dirPrefix = "extract",
+            pathSuffix = "$timestamp.request.json",
             requestId = params.requestId,
-            modelCall = "extract",
             messages = messages.messages
         )
 
@@ -202,13 +200,12 @@ class InferenceEngine(
                 ?: JsonNodeFactory.instance.objectNode()
         }.getOrElse { JsonNodeFactory.instance.objectNode() }
 
-        val extractRespFile: Path = log(
-            prefix = "extract-response-summary",
-            suffix = "$timestamp.json",
+        val extractOutputFile: Path = log(
+            dirPrefix = "extract",
+            pathSuffix = "$timestamp.response.json",
             payload = mapOf(
                 "requestId" to params.requestId,
-                "modelCall" to "extract",
-                "rawResponse" to safeJsonPreview(extractResponse.content),
+                "response" to extractedNode
             )
         )
 
@@ -217,8 +214,8 @@ class InferenceEngine(
             payload = mapOf(
                 "extractInferenceType" to "extract",
                 "timestamp" to timestamp,
-                "llmInputFile" to callFile,
-                "llmOutputFile" to extractRespFile,
+                "llmInputFile" to llmInputFile,
+                "llmOutputFile" to extractOutputFile,
                 "inputTokenCount" to extractResponse.tokenUsage.inputTokenCount,
                 "outputTokenCount" to extractResponse.tokenUsage.outputTokenCount,
                 "totalTokenCount" to extractResponse.tokenUsage.totalTokenCount,
@@ -229,11 +226,10 @@ class InferenceEngine(
         // 2) Metadata call -------------------------------------------------------------------
         val metadataMessages = InferenceMessageBuilder.buildMetadataPrompt(params, extractedNode)
 
-        val metadataCallFile = log(
-            dirPrefix = "extract-summary",
-            timestamp = timestamp,
+        val metadataInputFile = log(
+            dirPrefix = "extract",
+            pathSuffix = "$timestamp.metadata.request.json",
             requestId = params.requestId,
-            modelCall = "metadata",
             messages = metadataMessages.messages
         )
 
@@ -247,12 +243,12 @@ class InferenceEngine(
         val progress = metaNode.path("progress").asText("")
         val completed = metaNode.path("completed").asBoolean(false)
 
-        val metadataRespFile: Path = log(
-            prefix = "extract-metadata-summary",
-            suffix = "$timestamp.json",
+        val metadataOutputFile: Path = log(
+            dirPrefix = "extract",
+            pathSuffix = "$timestamp.metadata.response.json",
             payload = mapOf(
                 "requestId" to params.requestId,
-                "modelResponse" to "metadata",
+                "modelResponse" to pulsarObjectMapper().readTree(metadataResponse.content),
                 "completed" to completed,
                 "progress" to progress,
             )
@@ -263,8 +259,8 @@ class InferenceEngine(
             payload = mapOf(
                 "extractInferenceType" to "metadata",
                 "timestamp" to timestamp,
-                "llmInputFile" to metadataCallFile,
-                "llmOutputFile" to metadataRespFile,
+                "llmInputFile" to metadataInputFile,
+                "llmOutputFile" to metadataOutputFile,
                 "inputTokenCount" to metadataResponse.tokenUsage.inputTokenCount,
                 "outputTokenCount" to metadataResponse.tokenUsage.outputTokenCount,
                 "totalTokenCount" to metadataResponse.tokenUsage.totalTokenCount,
@@ -291,12 +287,14 @@ class InferenceEngine(
             put("inferenceTimeMillis", totalInferenceTimeMillis)
         }
 
-        EventBus.emit(AgenticEvents.InferenceEngine.EXTRACT_DID_EXECUTE, mapOf(
-            "params" to params,
-            "result" to result,
-            "extractedNode" to extractedNode,
-            "metaNode" to metaNode
-        ))
+        EventBus.emit(
+            AgenticEvents.InferenceEngine.EXTRACT_DID_EXECUTE, mapOf(
+                "params" to params,
+                "result" to result,
+                "extractedNode" to extractedNode,
+                "metaNode" to metaNode
+            )
+        )
 
         return result
     }
@@ -304,57 +302,52 @@ class InferenceEngine(
     suspend fun summarize(instruction: String?, textContent: String): String {
         val messages = InferenceMessageBuilder.buildSummaryPrompt(instruction, textContent)
 
-        EventBus.emit(AgenticEvents.InferenceEngine.SUMMARIZE_WILL_EXECUTE, mapOf(
-            "instruction" to instruction,
-            "messages" to messages,
-            "textContent" to textContent,
-        ))
+        EventBus.emit(
+            AgenticEvents.InferenceEngine.SUMMARIZE_WILL_EXECUTE, mapOf(
+                "instruction" to instruction,
+                "messages" to messages,
+                "textContent" to textContent,
+            )
+        )
 
         val response = cta.generateResponseRaw(messages)
 
-        EventBus.emit(AgenticEvents.InferenceEngine.SUMMARIZE_DID_EXECUTE, mapOf(
-            "instruction" to instruction,
-            "textContentLength" to textContent.length,
-            "result" to response.content,
-            "tokenUsage" to response.tokenUsage
-        ))
+        EventBus.emit(
+            AgenticEvents.InferenceEngine.SUMMARIZE_DID_EXECUTE, mapOf(
+                "instruction" to instruction,
+                "textContentLength" to textContent.length,
+                "result" to response.content,
+                "tokenUsage" to response.tokenUsage
+            )
+        )
 
         // TODO: count token usage
 
         return response.content
     }
 
-    private fun safeJsonPreview(raw: String, limit: Int = 2000): String {
-        return Strings.compactInline(raw, limit)
-    }
-
-    private fun log(prefix: String, suffix: String, payload: Any): Path {
-        val path = auxLogDir.resolve(prefix).resolve(suffix)
+    private fun log(dirPrefix: String, pathSuffix: String, payload: Any): Path {
+        val path = auxLogDir.resolve(dirPrefix).resolve(pathSuffix)
         return auxLogger.writeTo(payload, path)
     }
 
     private fun logSummary(prefix: String, payload: Map<String, Any?>): Path {
-        val path = auxLogDir.resolve("summary").resolve("${prefix}_summary.jsonl")
+        val path = auxLogDir.resolve("summary").resolve("${prefix}.jsonl")
         return auxLogger.writeTo(payload, path)
     }
 
     // ------------------------------ Small utilities --------------------------------
     private fun log(
-        dirPrefix: String, requestId: String, timestamp: String, modelCall: String,
+        dirPrefix: String, requestId: String, pathSuffix: String,
         messages: List<Any>, enabled: Boolean = true
     ): Path? {
         if (!enabled) return null
 
         return log(
-            prefix = dirPrefix, suffix = "$timestamp.json", payload = mapOf(
+            dirPrefix = dirPrefix, pathSuffix = pathSuffix, payload = mapOf(
                 "requestId" to requestId,
-                "modelCall" to modelCall,
                 "messages" to messages,
             )
         )
-    }
-
-    companion object {
-        private val FILE_LOCKS: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
     }
 }
