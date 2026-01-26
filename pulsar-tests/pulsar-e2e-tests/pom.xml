@@ -19,7 +19,7 @@
     </parent>
 
     <artifactId>pulsar-e2e-tests</artifactId>
-    <name>Pulsar Tests</name>
+    <name>Pulsar E2E Tests</name>
 
     <build>
         <defaultGoal>package</defaultGoal>

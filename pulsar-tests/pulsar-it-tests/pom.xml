@@ -19,7 +19,7 @@
     </parent>
 
     <artifactId>pulsar-it-tests</artifactId>
-    <name>Pulsar Tests</name>
+    <name>Pulsar IT Tests</name>
 
     <build>
         <defaultGoal>package</defaultGoal>
