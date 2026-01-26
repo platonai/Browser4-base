@@ -11,8 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.test.web.servlet.client.RestTestClient
-import kotlin.test.BeforeTest
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertTrue
 
 @SpringBootTest(
     classes = [Application::class],
@@ -37,10 +37,10 @@ class IntegrationTestBase {
     // Build a RestTestClient bound to the running server on demand
     protected val client get() = RestTestClient.bindToServer().baseUrl(baseUri).build()
 
-    @BeforeTest
+    @BeforeEach
     fun setup() {
-        assertTrue("Session should be BasicAgenticSession, actual ${session.javaClass}") { session is BasicAgenticSession }
+        assertTrue(session is BasicAgenticSession) { "Session should be BasicAgenticSession, actual ${session.javaClass}" }
         BrowserSettings.withBrowserContextMode(BrowserProfileMode.TEMPORARY)
-        assertTrue("Server port should have been injected and > 0, but was $serverPort") { serverPort > 0 }
+        assertTrue(serverPort > 0) { "Server port should have been injected and > 0, but was $serverPort" }
     }
 }

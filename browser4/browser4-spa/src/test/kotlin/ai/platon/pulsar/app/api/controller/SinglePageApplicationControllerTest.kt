@@ -10,9 +10,8 @@ import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
-import kotlin.test.Ignore
 
-@Ignore("Disabled temporarily, Run the tests manually")
+@Disabled("Disabled temporarily, Run the tests manually")
 @Tag("MustManuallyRun")
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class SinglePageApplicationControllerTest : IntegrationTestBase() {
