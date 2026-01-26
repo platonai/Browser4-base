@@ -1,8 +1,8 @@
 package ai.platon.pulsar
 
+import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.boot.autoconfigure.PulsarContextConfiguration
 import ai.platon.pulsar.common.config.ImmutableConfig
-import ai.platon.pulsar.skeleton.session.PulsarSession
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -19,7 +19,7 @@ class E2ETestBase {
     val serverPort: Int = 0
 
     @Autowired
-    lateinit var session: PulsarSession
+    lateinit var session: AgenticSession
 
     @Autowired
     lateinit var configuration: ImmutableConfig
