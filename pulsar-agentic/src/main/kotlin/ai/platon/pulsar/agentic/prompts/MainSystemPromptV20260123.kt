@@ -67,8 +67,6 @@ fun buildSkillSummariesSection(): String {
     }
 
     return """
-## 可用技能概要
-
 以下是当前已注册的技能列表。使用 `skill.list()` 获取完整列表，使用 `skill.activate(id)` 激活特定技能以获取完整文档，使用 `skill.run(id, params)` 执行技能。
 
 $summaryLines
@@ -153,15 +151,13 @@ fun buildMainSystemPromptV1(): String = """
 
 ---
 
----
-
-${buildSkillSummariesSection()}
-
 ## 工具列表
 
 ```
 ${ToolCallSpecificationRenderer.render(includeCustomDomains = true)}
 ```
+
+---
 
 $TOOL_CALL_RULE_CONTENT
 
@@ -170,6 +166,12 @@ $SKILL_TOOL_TYPE_DEFINITIONS
 ### 数据提取工具说明
 
 $EXTRACTION_TOOL_NOTE_CONTENT
+
+---
+
+## 可用技能概要
+
+${buildSkillSummariesSection()}
 
 ---
 

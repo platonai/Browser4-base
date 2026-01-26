@@ -1,6 +1,7 @@
 package ai.platon.pulsar.agentic.agents
 
 import ai.platon.pulsar.agentic.*
+import ai.platon.pulsar.agentic.common.AgentPaths
 import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.inference.AgentMessageList
 import ai.platon.pulsar.agentic.inference.InferenceEngine
@@ -18,7 +19,6 @@ import ai.platon.pulsar.agentic.skills.tools.SkillToolExecutor
 import ai.platon.pulsar.agentic.skills.tools.SkillToolTarget
 import ai.platon.pulsar.agentic.tools.AgentToolManager
 import ai.platon.pulsar.agentic.tools.CustomToolRegistry
-import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.alwaysTrue
 import ai.platon.pulsar.common.event.EventBus
@@ -41,7 +41,7 @@ open class BasicBrowserAgent(
     private val logger = getLogger(BasicBrowserAgent::class)
     private val _startTime: Instant = Instant.now()
     private val _uuid: UUID = UUID.randomUUID()
-    private val _baseDir: Path = AppPaths.get("agent")
+    private val _baseDir: Path = AgentPaths.AGENT_BASE_DIR
         .resolve(DateTimes.PATH_SAFE_FORMATTER_1.format(_startTime))
         .resolve(_uuid.toString())
 
@@ -103,6 +103,8 @@ open class BasicBrowserAgent(
 
     init {
         Files.createDirectories(baseDir)
+
+        // Register event listeners for debugging
         var eventType = AgenticEvents.InferenceEngine.OBSERVE_WILL_EXECUTE
         EventBus.register(eventType) { payload ->
             val map = payload as? Map<String, Any?> ?: return@register null

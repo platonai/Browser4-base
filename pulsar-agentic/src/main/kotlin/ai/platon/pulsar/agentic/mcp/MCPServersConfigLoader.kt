@@ -1,6 +1,7 @@
 package ai.platon.pulsar.agentic.mcp
 
 import ai.platon.pulsar.common.AppPaths
+import ai.platon.pulsar.common.RequiredDirectory
 import ai.platon.pulsar.common.concurrent.GracefulScheduledExecutor
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
@@ -389,27 +390,19 @@ class MCPServersConfigLoader(
  */
 object MCPPaths {
 
-    private val logger = org.slf4j.LoggerFactory.getLogger(MCPPaths::class.java)
-
     /**
      * Directory for MCP server configuration files.
      */
+    @RequiredDirectory
     val MCP_CONFIG_DIR: Path = AppPaths.CONFIG_DIR.resolve("mcp")
 
     /**
      * Default MCP servers configuration file path.
      */
+    @RequiredDirectory
     val MCP_SERVERS_CONFIG_FILE: Path = MCP_CONFIG_DIR.resolve(MCPServersConfigLoader.DEFAULT_CONFIG_FILE_NAME)
 
     init {
-        // Create the MCP config directory if it doesn't exist
-        try {
-            if (!Files.exists(MCP_CONFIG_DIR)) {
-                Files.createDirectories(MCP_CONFIG_DIR)
-                logger.debug("Created MCP config directory: {}", MCP_CONFIG_DIR)
-            }
-        } catch (e: Exception) {
-            logger.warn("Failed to create MCP config directory: {}", MCP_CONFIG_DIR, e)
-        }
+        AppPaths.createRequiredResources(MCPPaths::class)
     }
 }
