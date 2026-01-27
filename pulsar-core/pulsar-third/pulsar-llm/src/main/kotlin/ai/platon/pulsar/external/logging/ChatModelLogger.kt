@@ -1,19 +1,19 @@
 package ai.platon.pulsar.external.logging
 
+import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.MessageWriter
 import ai.platon.pulsar.common.concurrent.ConcurrentExpiringLRUCache
 import ai.platon.pulsar.external.ModelResponse
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.nio.file.Paths
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.createDirectories
+import kotlin.io.path.writeText
 
 class ChatModelLogger : AutoCloseable {
     companion object {
-        const val LOG_BASE_DIR = "logs/agent/chat-model"
+        val LOG_BASE_DIR = AppPaths.detectAuxiliaryLogDir().resolve("agent").resolve("chat")
     }
 
     private val logger = LoggerFactory.getLogger(ChatModelLogger::class.java)
@@ -22,19 +22,16 @@ class ChatModelLogger : AutoCloseable {
         ConcurrentExpiringLRUCache<Int, RequestResponsePair>(ttl = Duration.ofMinutes(10))
 
     private var logBaseDir = LOG_BASE_DIR
-    private var enableSystemMessages = false
-    private val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss.SSS")
+    private val dataTimeStr = AppPaths.fromNow()
+    private val systemMessageFileName = "chat-$dataTimeStr.system.log"
+    private val userMessageFileName = "chat-$dataTimeStr.user.log"
+    private var systemMessagePath = logBaseDir.resolve(systemMessageFileName)
+    private var userMessagePath = logBaseDir.resolve(userMessageFileName)
     private val writer: MessageWriter
 
-    fun configure(logDirectory: String = LOG_BASE_DIR, enableSystemMessages: Boolean = false) {
-        this.logBaseDir = logDirectory
-        this.enableSystemMessages = enableSystemMessages
-    }
-
     init {
-        File(logBaseDir).mkdirs()
-        val dateStr = LocalDateTime.now().format(dateFormat)
-        writer = MessageWriter(Paths.get(logBaseDir).resolve("chat_$dateStr.log"))
+        userMessagePath.parent.createDirectories()
+        writer = MessageWriter(userMessagePath)
     }
 
     fun logRequest(systemMessage: String, userMessage: String) = logRequestSmUm(systemMessage, userMessage)
@@ -69,8 +66,8 @@ class ChatModelLogger : AutoCloseable {
             sb.append(";;REQUEST ID: ${pair.id}\n")
             sb.append(";;TIMESTAMP: ${pair.timestamp}\n")
 
-            if (enableSystemMessages || pair.id <= 2) {
-                sb.append(";;SYSTEM MESSAGE:\n${pair.systemMessage}\n")
+            if (pair.id <= 2) {
+                systemMessagePath.writeText(pair.systemMessage)
             }
 
             sb.append(";;USER MESSAGE:\n${pair.userMessage}\n")

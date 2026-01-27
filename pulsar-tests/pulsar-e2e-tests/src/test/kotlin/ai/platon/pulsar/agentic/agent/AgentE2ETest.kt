@@ -15,8 +15,13 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import java.net.JarURLConnection
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.jar.JarFile
 
 /**
  * End-to-end test for Browser4 Agent using test cases from the use-cases directory.
@@ -64,7 +69,12 @@ class AgentE2ETest {
     private val logger = getLogger(this)
 
     companion object {
-        private const val USE_CASE_RESOURCE_PATH = "e2e/scenarios/happy_path/use-cases/01-ecommerce-product-comparison.txt"
+        private const val USE_CASE_DIR = "e2e/scenarios/happy_path/use-cases/"
+        private const val SYS_PROP_USE_CASE = "pulsar.e2e.useCase"
+        private const val SYS_PROP_SEED = "pulsar.e2e.seed"
+        private const val ENV_USE_CASE = "PULSAR_E2E_USE_CASE"
+        private const val ENV_SEED = "PULSAR_E2E_SEED"
+
         private const val MAX_TEST_STEPS = 5  // Maximum steps before auto-completing for test scenarios
         private const val EVENT_PROCESSING_DELAY_MS = 500L  // Time to allow for async event processing
         private val capturedEvents = ConcurrentHashMap<String, MutableList<Map<String, Any?>>>()
@@ -72,6 +82,92 @@ class AgentE2ETest {
         private val observeCount = AtomicInteger(0)
         private val actCount = AtomicInteger(0)
         private val eventLogger = getLogger("AgentE2ETest.EventLogger")
+
+        private data class UseCaseSpec(
+            val requestedUseCase: String?,
+            val seed: Long,
+            val seedSource: String,
+        )
+
+        private fun readFirstNonBlank(vararg values: String?): String? {
+            return values.firstOrNull { !it.isNullOrBlank() }?.trim()
+        }
+
+        private fun resolveUseCaseSpec(): UseCaseSpec {
+            val requestedUseCase = readFirstNonBlank(
+                System.getProperty(SYS_PROP_USE_CASE),
+                System.getenv(ENV_USE_CASE),
+            )
+
+            val rawSeed = readFirstNonBlank(
+                System.getProperty(SYS_PROP_SEED),
+                System.getenv(ENV_SEED),
+            )
+
+            val (seed, seedSource) = if (!rawSeed.isNullOrBlank()) {
+                rawSeed.toLongOrNull()?.let { it to "${SYS_PROP_SEED}/${ENV_SEED}" }
+                    ?: (System.currentTimeMillis() to "currentTimeMillis(invalidSeed:'$rawSeed')")
+            } else {
+                System.currentTimeMillis() to "currentTimeMillis"
+            }
+
+            return UseCaseSpec(requestedUseCase, seed, seedSource)
+        }
+
+        private fun normalizeRequestedUseCase(requested: String): String {
+            // allow passing either full resource path or just file name
+            return if (requested.contains('/')) requested else USE_CASE_DIR + requested
+        }
+
+        private fun listUseCaseResources(classLoader: ClassLoader): List<String> {
+            val url = classLoader.getResource(USE_CASE_DIR) ?: return emptyList()
+
+            return when (url.protocol) {
+                "file" -> {
+                    val decoded = URLDecoder.decode(url.path, StandardCharsets.UTF_8.name())
+                    val dir = java.io.File(decoded)
+                    if (!dir.isDirectory) return emptyList()
+                    dir.listFiles()
+                        ?.filter { it.isFile && it.name.endsWith(".txt", ignoreCase = true) }
+                        ?.map { USE_CASE_DIR + it.name }
+                        ?.sorted()
+                        ?: emptyList()
+                }
+
+                "jar" -> {
+                    val conn = url.openConnection() as JarURLConnection
+                    val jarFile: JarFile = conn.jarFile
+                    jarFile.entries().asSequence()
+                        .map { it.name }
+                        .filter { it.startsWith(USE_CASE_DIR) && !it.endsWith("/") }
+                        .filter { it.substringAfterLast('/').endsWith(".txt", ignoreCase = true) }
+                        .sorted()
+                        .toList()
+                }
+
+                else -> {
+                    // Best-effort fallback: try to enumerate resources in directory (may not work for all CL impls)
+                    emptyList()
+                }
+            }
+        }
+
+        private fun pickUseCasePath(spec: UseCaseSpec, classLoader: ClassLoader): String {
+            val candidates = listUseCaseResources(classLoader)
+            require(candidates.isNotEmpty()) { "No use-case resources found under '$USE_CASE_DIR'" }
+
+            val requested = spec.requestedUseCase
+            if (!requested.isNullOrBlank()) {
+                val normalized = normalizeRequestedUseCase(requested)
+                require(candidates.contains(normalized)) {
+                    "Requested use-case '$requested' not found. Available: ${candidates.joinToString()}"
+                }
+                return normalized
+            }
+
+            val rnd = Random(spec.seed)
+            return candidates[rnd.nextInt(candidates.size)]
+        }
 
         @BeforeAll
         @JvmStatic
@@ -92,8 +188,6 @@ class AgentE2ETest {
                 }.add(map)
                 payload
             }
-
-            AgentEventBus.agentEventHandlers?.agentFlowHandlers?.onWillObserve?.addLast { payload -> }
 
             // Log when run completes
             EventBus.register(AgenticEvents.PerceptiveAgent.ON_DID_RUN) { payload ->
@@ -249,12 +343,25 @@ class AgentE2ETest {
      * Note: This test requires LLM configuration and will be skipped if not configured.
      */
     @Test
-    @DisplayName("test agent runs e-commerce product comparison use case")
+    @DisplayName("test agent runs a random happy-path use case")
     fun testAgentRunsEcommerceProductComparisonUseCase() = runBlocking {
+        val spec = resolveUseCaseSpec()
+        val classLoader = this@AgentE2ETest::class.java.classLoader
+        val useCasePath = pickUseCasePath(spec, classLoader)
+        logger.info(
+            "Selected use case: {} (seed: {}, seedSource: {}, override: {} via {} / {})",
+            useCasePath,
+            spec.seed,
+            spec.seedSource,
+            spec.requestedUseCase,
+            SYS_PROP_USE_CASE,
+            ENV_USE_CASE,
+        )
+
         // Step 1: Read the test case
-        val testCaseContent = readTestCase(USE_CASE_RESOURCE_PATH)
+        val testCaseContent = readTestCase(useCasePath)
         assertNotNull(testCaseContent, "Test case file should be readable")
-        logger.info("Loaded test case from: {}", USE_CASE_RESOURCE_PATH)
+        logger.info("Loaded test case from: {}", useCasePath)
 
         // Step 2: Parse the test case to extract the task
         val task = parseTestCaseToTask(testCaseContent)
@@ -269,7 +376,6 @@ class AgentE2ETest {
         Assumptions.assumeTrue(isLLMConfigured,
             "Skipping test: LLM not configured. See docs/config/llm/llm-config.md")
 
-        val driver = session.createBoundDriver()
         val agent = session.companionAgent
         assertNotNull(agent, "Agent should be created")
 
@@ -340,12 +446,11 @@ class AgentE2ETest {
         Assumptions.assumeTrue(isLLMConfigured,
             "Skipping test: LLM not configured. See docs/config/llm/llm-config.md")
 
-        val driver = session.createBoundDriver()
         val agent = session.companionAgent
         assertNotNull(agent, "Agent should be created")
 
         // Open a page first (required for agent context)
-        driver.open("https://example.com")
+        session.createBoundDriver().open("https://example.com")
 
         // Run the agent
         logger.info("Running simple task: {}", simpleTask)
