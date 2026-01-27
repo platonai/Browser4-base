@@ -841,7 +841,9 @@ function() {
             if (isolatedWorldJs.isNotBlank()) {
                 val targetFrameId = event.frame.id
                 val contextId = isolatedWorldManager.ensureRuntime(targetFrameId, isolatedWorldJs)
-                logger.info("Ensured Browser4 runtime in isolated world after frame navigation | frame={}", targetFrameId)
+                logger.debug("Ensured Browser4 runtime in isolated world after frame navigation | frame={}", targetFrameId)
+            } else {
+                logger.warn("No isolated world JS found to re-inject after frame navigation")
             }
         } catch (e: Exception) {
             logger.warn("Failed to re-inject Browser4 runtime after frame navigation", e)
