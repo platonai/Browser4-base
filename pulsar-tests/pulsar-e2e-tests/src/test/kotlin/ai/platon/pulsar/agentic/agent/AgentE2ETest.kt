@@ -54,7 +54,10 @@ import java.util.concurrent.atomic.AtomicInteger
  * ```
  */
 @Tag("E2ETest")
+@Tag("TimeConsumingTest")
+@Tag("MustManuallyRun")
 @Tag("agent")
+@Disabled("MustManuallyRun")
 class AgentE2ETest {
 
     private val logger = getLogger(this)
@@ -247,7 +250,7 @@ class AgentE2ETest {
         logger.info("Loaded test case from: {}", USE_CASE_RESOURCE_PATH)
 
         // Step 2: Parse the test case to extract the task
-        val task = parseTestCaseToTask(testCaseContent!!)
+        val task = parseTestCaseToTask(testCaseContent)
         assertFalse(task.isBlank(), "Task should not be blank")
         logger.info("Parsed task:\n{}", task)
 
@@ -278,7 +281,7 @@ class AgentE2ETest {
         // Verify RUN_WILL_EXECUTE event was captured
         val runWillEvents = capturedEvents[AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE]
         assertNotNull(runWillEvents, "RUN_WILL_EXECUTE events should be captured")
-        assertTrue(runWillEvents!!.isNotEmpty(), "At least one RUN_WILL_EXECUTE event should be captured")
+        assertTrue(runWillEvents.isNotEmpty(), "At least one RUN_WILL_EXECUTE event should be captured")
 
         // Verify RUN_DID_EXECUTE event was captured
         val runDidEvents = capturedEvents[AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE]
