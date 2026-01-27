@@ -192,6 +192,8 @@ open class BasicBrowserAgent(
 
         val result = doObserveActObserve(options, context, options.fromResolve)
 
+        onDidObserve(options, result)
+
         return result.observeResults
     }
 
