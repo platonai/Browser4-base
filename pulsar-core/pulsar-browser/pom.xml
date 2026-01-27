@@ -88,6 +88,12 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Kotlin-friendly mocking -->
+        <!-- (intentionally not used in this module; kept minimal) -->
+
+        <!-- Kotlin coroutines test utilities -->
+        <!-- (intentionally not used in this module; kept minimal) -->
     </dependencies>
 
     <properties>

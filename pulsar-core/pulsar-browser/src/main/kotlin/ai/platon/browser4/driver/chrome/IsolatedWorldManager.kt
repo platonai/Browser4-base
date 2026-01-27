@@ -43,7 +43,6 @@ class IsolatedWorldManager(
     }
 
     private val pageAPI get() = devTools.page
-    private val runtimeAPI get() = devTools.runtime
     private val confuser get() = settings.confuser
 
     /**
@@ -60,19 +59,24 @@ class IsolatedWorldManager(
      * @return The execution context ID of the created isolated world
      */
     suspend fun createIsolatedWorld(frameId: String? = null): Int {
-        val resolvedFrameId: String? = frameId ?: runCatching { pageAPI.getFrameTree().frame.id }.getOrNull()
-
         logger.debug(
             "Creating isolated world '{}' for frame: {}",
             RUNTIME_WORLD_NAME,
-            resolvedFrameId ?: "main"
+            frameId ?: "main"
         )
 
         var lastError: Exception? = null
         repeat(DEFAULT_CREATE_WORLD_RETRIES) { attempt ->
+            val resolvedFrameId: String? = frameId ?: resolveMainFrameId()
+
             try {
+                // If we have a frame id, validate it; navigation can detach the old frame between attempts.
+                if (resolvedFrameId != null && !isFramePresent(resolvedFrameId)) {
+                    invalidateFrame(resolvedFrameId)
+                    throw IllegalStateException("Frame not present in frame tree (frameId=$resolvedFrameId)")
+                }
+
                 val executionContextId = run {
-                    // Prefer the typed API if we have a frame id.
                     if (resolvedFrameId != null) {
                         pageAPI.createIsolatedWorld(
                             frameId = resolvedFrameId,
@@ -80,7 +84,6 @@ class IsolatedWorldManager(
                             grantUniveralAccess = true,
                         )
                     } else {
-                        // Fallback to raw invoke (older / partial CDP bindings).
                         val params = mutableMapOf<String, Any?>(
                             "worldName" to RUNTIME_WORLD_NAME,
                             "grantUniversalAccess" to true
@@ -101,11 +104,8 @@ class IsolatedWorldManager(
                     )
                 }
 
-                // Always store mapping for the resolved main frame.
-                // Use empty string as fallback key so callers without a frame id can still resolve it.
                 val key = resolvedFrameId?.ifBlank { null } ?: ""
                 isolatedWorldContexts[key] = executionContextId
-                // Also store a default fallback mapping in case frameId cannot be resolved later.
                 isolatedWorldContexts[""] = executionContextId
 
                 logger.debug("Created isolated world with execution context ID: {}", executionContextId)
@@ -127,7 +127,7 @@ class IsolatedWorldManager(
         }
 
         throw IllegalStateException(
-            "Failed to create isolated world after $DEFAULT_CREATE_WORLD_RETRIES attempts (frameId=$resolvedFrameId)",
+            "Failed to create isolated world after $DEFAULT_CREATE_WORLD_RETRIES attempts (frameId=${frameId ?: "<main>"})",
             lastError
         )
     }
@@ -236,11 +236,40 @@ class IsolatedWorldManager(
     }
 
     /**
+     * Removes cached isolated-world context mapping for a frame.
+     *
+     * Call this when a frame gets detached or swapped so future operations will recreate the world.
+     */
+    fun invalidateFrame(frameId: String?) {
+        val key = frameId?.ifBlank { null } ?: return
+        isolatedWorldContexts.remove(key)
+    }
+
+    /**
      * Clears all isolated world contexts.
      * Called when navigating to a new page or closing the tab.
      */
     fun clearContexts() {
         isolatedWorldContexts.clear()
         logger.debug("Cleared all isolated world contexts")
+    }
+
+    /**
+     * Best-effort resolve main frame id.
+     */
+    private suspend fun resolveMainFrameId(): String? {
+        return runCatching { pageAPI.getFrameTree().frame.id }.getOrNull()
+    }
+
+    private fun containsFrame(frameTree: ai.platon.cdt.kt.protocol.types.page.FrameTree, frameId: String): Boolean {
+        if (frameTree.frame.id == frameId) return true
+        val children = frameTree.childFrames ?: return false
+        return children.any { containsFrame(it, frameId) }
+    }
+
+    private suspend fun isFramePresent(frameId: String): Boolean {
+        // Best-effort: if we can't fetch frame tree (transient during navigation), don't block world creation.
+        val root = runCatching { pageAPI.getFrameTree() }.getOrNull() ?: return true
+        return containsFrame(root, frameId)
     }
 }

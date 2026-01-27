@@ -832,16 +832,23 @@ function() {
 
         chromeNavigateEntry.updateStateAfterFrameNavigated(event)
 
-        // Clear isolated world contexts on navigation
+        // Only recover isolated world on main-frame navigation.
+        // Subframes can navigate/detach frequently; clearing/reinjecting on each one is racy and may use stale frame ids.
+        val isMainFrame = event.frame.parentId == null
+        if (!isMainFrame) {
+            return
+        }
+
+        // Clear isolated world contexts on top-level navigation
         isolatedWorldManager.clearContexts()
 
-        // Recreate isolated world and reinject runtime for the navigated frame (main frame prioritized)
+        // Recreate isolated world and reinject runtime for the main frame
         try {
             val isolatedWorldJs = settings.dualWorldScriptLoader.getIsolatedWorldJs(false)
             if (isolatedWorldJs.isNotBlank()) {
-                val targetFrameId = event.frame.id
+                val targetFrameId = pageAPI?.getFrameTree()?.frame?.id ?: event.frame.id
                 val contextId = isolatedWorldManager.ensureRuntime(targetFrameId, isolatedWorldJs)
-                logger.debug("Ensured Browser4 runtime in isolated world after frame navigation | frame={}", targetFrameId)
+                logger.debug("Ensured Browser4 runtime in isolated world after main-frame navigation | frame={}", targetFrameId)
             } else {
                 logger.warn("No isolated world JS found to re-inject after frame navigation")
             }
