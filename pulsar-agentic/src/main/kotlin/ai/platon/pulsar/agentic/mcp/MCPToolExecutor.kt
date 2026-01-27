@@ -57,17 +57,7 @@ class MCPToolExecutor(
             val error = "MCP client for server '$serverName' is not connected"
             logger.warn(error)
             
-            // Emit MCP error event
-            AgentEventBus.emitMCPEvent(
-                eventType = AgenticEvents.MCPEventTypes.ON_MCP_ERROR,
-                agentId = null,
-                message = error,
-                metadata = mapOf(
-                    "serverName" to serverName,
-                    "toolName" to toolName,
-                    "error" to "not_connected"
-                )
-            )
+            onMCPError(serverName, toolName, 0, error, "not_connected")
             
             return TcEvaluate(
                 value = null,
@@ -77,17 +67,7 @@ class MCPToolExecutor(
             )
         }
 
-        // Emit MCP will call event
-        AgentEventBus.emitMCPEvent(
-            eventType = AgenticEvents.MCPEventTypes.ON_WILL_CALL_MCP,
-            agentId = null,
-            message = "Calling MCP tool: $serverName.$toolName",
-            metadata = mapOf(
-                "serverName" to serverName,
-                "toolName" to toolName,
-                "argsKeys" to args.keys.toList()
-            )
-        )
+        onWillCallMCP(serverName, toolName, args)
 
         val startTime = System.currentTimeMillis()
 
@@ -103,18 +83,7 @@ class MCPToolExecutor(
             
             val duration = System.currentTimeMillis() - startTime
 
-            // Emit MCP did call event
-            AgentEventBus.emitMCPEvent(
-                eventType = AgenticEvents.MCPEventTypes.ON_DID_CALL_MCP,
-                agentId = null,
-                message = "MCP tool call completed: $serverName.$toolName",
-                metadata = mapOf(
-                    "serverName" to serverName,
-                    "toolName" to toolName,
-                    "duration" to duration,
-                    "success" to true
-                )
-            )
+            onDidCallMCP(serverName, toolName, duration)
 
             TcEvaluate(
                 value = resultValue,
@@ -125,18 +94,7 @@ class MCPToolExecutor(
             val duration = System.currentTimeMillis() - startTime
             logger.warn("Error executing MCP tool '{}': {}", toolName, e.brief())
             
-            // Emit MCP error event
-            AgentEventBus.emitMCPEvent(
-                eventType = AgenticEvents.MCPEventTypes.ON_MCP_ERROR,
-                agentId = null,
-                message = "MCP tool call failed: ${e.message}",
-                metadata = mapOf(
-                    "serverName" to serverName,
-                    "toolName" to toolName,
-                    "duration" to duration,
-                    "error" to e.message
-                )
-            )
+            onMCPError(serverName, toolName, duration, "MCP tool call failed: ${e.message}", e.message)
             
             val helpText = help(toolName)
             TcEvaluate(
@@ -146,6 +104,49 @@ class MCPToolExecutor(
                 exception = TcException(pseudoExpression, e, helpText)
             )
         }
+    }
+
+    // ------------------------------ Event Handler Methods --------------------------------
+
+    private fun onWillCallMCP(serverName: String, toolName: String, args: Map<String, Any?>) {
+        AgentEventBus.emitMCPEvent(
+            eventType = AgenticEvents.MCPEventTypes.ON_WILL_CALL_MCP,
+            agentId = null,
+            message = "Calling MCP tool: $serverName.$toolName",
+            metadata = mapOf(
+                "serverName" to serverName,
+                "toolName" to toolName,
+                "argsKeys" to args.keys.toList()
+            )
+        )
+    }
+
+    private fun onDidCallMCP(serverName: String, toolName: String, duration: Long) {
+        AgentEventBus.emitMCPEvent(
+            eventType = AgenticEvents.MCPEventTypes.ON_DID_CALL_MCP,
+            agentId = null,
+            message = "MCP tool call completed: $serverName.$toolName",
+            metadata = mapOf(
+                "serverName" to serverName,
+                "toolName" to toolName,
+                "duration" to duration,
+                "success" to true
+            )
+        )
+    }
+
+    private fun onMCPError(serverName: String, toolName: String, duration: Long, message: String, error: String?) {
+        AgentEventBus.emitMCPEvent(
+            eventType = AgenticEvents.MCPEventTypes.ON_MCP_ERROR,
+            agentId = null,
+            message = message,
+            metadata = mapOf(
+                "serverName" to serverName,
+                "toolName" to toolName,
+                "duration" to duration,
+                "error" to error
+            )
+        )
     }
 
     override fun help(): String {

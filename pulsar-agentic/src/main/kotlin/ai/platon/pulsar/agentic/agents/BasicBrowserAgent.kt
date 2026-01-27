@@ -126,21 +126,7 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun run(action: ActionOptions): AgentHistory {
-        val agentId = this.uuid.toString()
-
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_WILL_RUN,
-            agentId = agentId,
-            message = "Starting run with action: ${action.action.take(100)}",
-            metadata = mapOf("action" to action.action)
-        )
-
-        // Keep existing EventBus for backward compatibility
-        EventBus.emit(AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE, mapOf(
-            "action" to action,
-            "uuid" to uuid
-        ))
+        onWillRun(action)
 
         var result = act(action)
 
@@ -149,24 +135,7 @@ open class BasicBrowserAgent(
             result = act(action)
         }
 
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_DID_RUN,
-            agentId = agentId,
-            message = "Run completed",
-            metadata = mapOf(
-                "action" to action.action,
-                "isComplete" to result.isComplete,
-                "steps" to i
-            )
-        )
-
-        EventBus.emit(AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE, mapOf(
-            "action" to action,
-            "uuid" to uuid,
-            "result" to result,
-            "stateHistory" to stateHistory
-        ))
+        onDidRun(action, result, i)
 
         return stateHistory
     }
@@ -211,20 +180,7 @@ open class BasicBrowserAgent(
      * one successful execution is recorded in stateHistory.
      */
     override suspend fun act(action: ActionOptions): ActResult {
-        val agentId = this.uuid.toString()
-
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_WILL_ACT,
-            agentId = agentId,
-            message = "Starting action: ${action.action.take(100)}",
-            metadata = mapOf("action" to action.action)
-        )
-
-        EventBus.emit(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE, mapOf(
-            "action" to action,
-            "uuid" to uuid
-        ))
+        onWillAct(action)
 
         val context = stateManager.getOrCreateActiveContext(action, "act")
 
@@ -243,23 +199,7 @@ open class BasicBrowserAgent(
             ActResultHelper.failed(msg, action.action)
         }
 
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_DID_ACT,
-            agentId = agentId,
-            message = if (result.success) "Action completed successfully" else "Action failed: ${result.message.take(100)}",
-            metadata = mapOf(
-                "action" to action.action,
-                "success" to result.success,
-                "isComplete" to result.isComplete
-            )
-        )
-
-        EventBus.emit(AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE, mapOf(
-            "action" to action,
-            "uuid" to uuid,
-            "result" to result
-        ))
+        onDidAct(action, result)
 
         return result
     }
@@ -321,20 +261,7 @@ open class BasicBrowserAgent(
      * two-stage LLM calls (extract + metadata) and merges results with token/time metrics.
      */
     override suspend fun extract(options: ExtractOptions): ExtractResult {
-        val agentId = this.uuid.toString()
-
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_WILL_EXTRACT,
-            agentId = agentId,
-            message = "Starting extraction: ${options.instruction.take(100)}",
-            metadata = mapOf("instruction" to options.instruction)
-        )
-
-        EventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE, mapOf(
-            "options" to options,
-            "uuid" to uuid
-        ))
+        onWillExtract(options)
 
         val instruction = promptBuilder.initExtractUserInstruction(options.instruction)
         val context = stateManager.buildIndependentExecutionContext(instruction, 1, "extract")
@@ -352,22 +279,7 @@ open class BasicBrowserAgent(
             )
         }
 
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_DID_EXTRACT,
-            agentId = agentId,
-            message = if (result.success) "Extraction completed successfully" else "Extraction failed: ${result.message.take(100)}",
-            metadata = mapOf(
-                "instruction" to options.instruction,
-                "success" to result.success
-            )
-        )
-
-        EventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_DID_EXECUTE, mapOf(
-            "options" to options,
-            "uuid" to uuid,
-            "result" to result
-        ))
+        onDidExtract(options, result)
 
         return result
     }
@@ -397,45 +309,12 @@ open class BasicBrowserAgent(
     }
 
     override suspend fun summarize(instruction: String?, selector: String?): String {
-        val agentId = this.uuid.toString()
-
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_WILL_SUMMARIZE,
-            agentId = agentId,
-            message = "Starting summarization",
-            metadata = mapOf(
-                "instruction" to instruction,
-                "selector" to selector
-            )
-        )
-
-        EventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_WILL_EXECUTE, mapOf(
-            "instruction" to instruction,
-            "selector" to selector,
-            "uuid" to uuid
-        ))
+        onWillSummarize(instruction, selector)
 
         val textContent = activeDriver.textContent(selector) ?: return "(no text content)"
         val result = inference.summarize(instruction, textContent)
 
-        // Emit AgentEventBus event for SSE streaming
-        AgentEventBus.emitAgentEvent(
-            eventType = AgenticEvents.AgentEventTypes.ON_DID_SUMMARIZE,
-            agentId = agentId,
-            message = "Summarization completed",
-            metadata = mapOf(
-                "instruction" to instruction,
-                "resultLength" to result.length
-            )
-        )
-
-        EventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_DID_EXECUTE, mapOf(
-            "instruction" to instruction,
-            "selector" to selector,
-            "uuid" to uuid,
-            "result" to result
-        ))
+        onDidSummarize(instruction, selector, result)
 
         return result
     }
@@ -482,6 +361,163 @@ open class BasicBrowserAgent(
             "actionDescription" to result.actionDescription
         ))
 
+    }
+
+    protected fun onWillRun(action: ActionOptions) {
+        val agentId = this.uuid.toString()
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_RUN,
+            agentId = agentId,
+            message = "Starting run with action: ${action.action.take(100)}",
+            metadata = mapOf("action" to action.action)
+        )
+
+        // Keep existing EventBus for backward compatibility
+        EventBus.emit(AgenticEvents.PerceptiveAgent.RUN_WILL_EXECUTE, mapOf(
+            "action" to action,
+            "uuid" to uuid
+        ))
+    }
+
+    protected fun onDidRun(action: ActionOptions, result: ActResult, steps: Int) {
+        val agentId = this.uuid.toString()
+
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_RUN,
+            agentId = agentId,
+            message = "Run completed",
+            metadata = mapOf(
+                "action" to action.action,
+                "isComplete" to result.isComplete,
+                "steps" to steps
+            )
+        )
+
+        EventBus.emit(AgenticEvents.PerceptiveAgent.RUN_DID_EXECUTE, mapOf(
+            "action" to action,
+            "uuid" to uuid,
+            "result" to result,
+            "stateHistory" to stateHistory
+        ))
+    }
+
+    protected fun onWillAct(action: ActionOptions) {
+        val agentId = this.uuid.toString()
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_ACT,
+            agentId = agentId,
+            message = "Starting action: ${action.action.take(100)}",
+            metadata = mapOf("action" to action.action)
+        )
+
+        EventBus.emit(AgenticEvents.PerceptiveAgent.ACT_WILL_EXECUTE, mapOf(
+            "action" to action,
+            "uuid" to uuid
+        ))
+    }
+
+    protected fun onDidAct(action: ActionOptions, result: ActResult) {
+        val agentId = this.uuid.toString()
+
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_ACT,
+            agentId = agentId,
+            message = if (result.success) "Action completed successfully" else "Action failed: ${result.message.take(100)}",
+            metadata = mapOf(
+                "action" to action.action,
+                "success" to result.success,
+                "isComplete" to result.isComplete
+            )
+        )
+
+        EventBus.emit(AgenticEvents.PerceptiveAgent.ACT_DID_EXECUTE, mapOf(
+            "action" to action,
+            "uuid" to uuid,
+            "result" to result
+        ))
+    }
+
+    protected fun onWillExtract(options: ExtractOptions) {
+        val agentId = this.uuid.toString()
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_EXTRACT,
+            agentId = agentId,
+            message = "Starting extraction: ${options.instruction.take(100)}",
+            metadata = mapOf("instruction" to options.instruction)
+        )
+
+        EventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_WILL_EXECUTE, mapOf(
+            "options" to options,
+            "uuid" to uuid
+        ))
+    }
+
+    protected fun onDidExtract(options: ExtractOptions, result: ExtractResult) {
+        val agentId = this.uuid.toString()
+
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_EXTRACT,
+            agentId = agentId,
+            message = if (result.success) "Extraction completed successfully" else "Extraction failed: ${result.message.take(100)}",
+            metadata = mapOf(
+                "instruction" to options.instruction,
+                "success" to result.success
+            )
+        )
+
+        EventBus.emit(AgenticEvents.PerceptiveAgent.EXTRACT_DID_EXECUTE, mapOf(
+            "options" to options,
+            "uuid" to uuid,
+            "result" to result
+        ))
+    }
+
+    protected fun onWillSummarize(instruction: String?, selector: String?) {
+        val agentId = this.uuid.toString()
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_WILL_SUMMARIZE,
+            agentId = agentId,
+            message = "Starting summarization",
+            metadata = mapOf(
+                "instruction" to instruction,
+                "selector" to selector
+            )
+        )
+
+        EventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_WILL_EXECUTE, mapOf(
+            "instruction" to instruction,
+            "selector" to selector,
+            "uuid" to uuid
+        ))
+    }
+
+    protected fun onDidSummarize(instruction: String?, selector: String?, result: String) {
+        val agentId = this.uuid.toString()
+
+        // Emit AgentEventBus event for SSE streaming
+        AgentEventBus.emitAgentEvent(
+            eventType = AgenticEvents.AgentEventTypes.ON_DID_SUMMARIZE,
+            agentId = agentId,
+            message = "Summarization completed",
+            metadata = mapOf(
+                "instruction" to instruction,
+                "resultLength" to result.length
+            )
+        )
+
+        EventBus.emit(AgenticEvents.PerceptiveAgent.SUMMARIZE_DID_EXECUTE, mapOf(
+            "instruction" to instruction,
+            "selector" to selector,
+            "uuid" to uuid,
+            "result" to result
+        ))
     }
 
     private suspend fun doObserveAct(options: ActionOptions): ActResult {

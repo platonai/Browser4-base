@@ -68,24 +68,7 @@ class InferenceEngine(
             messages = messages.messages
         )
 
-        // Emit AgentEventBus inference event
-        AgentEventBus.emitInferenceEvent(
-            eventType = AgenticEvents.InferenceEventTypes.ON_WILL_INFER,
-            agentId = context.uuid,
-            message = "Starting LLM inference for $actionType",
-            metadata = mapOf(
-                "context" to context.sid,
-                "step" to context.step,
-                "actionType" to actionType
-            )
-        )
-
-        EventBus.emit(
-            AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE, mapOf(
-                "context" to context,
-                "messages" to messages
-            )
-        )
+        onWillInfer(context, messages, actionType)
 
         val actionDescription = cta.generate(messages, context)
         requireNotNull(context.agentState.actionDescription) {
@@ -97,29 +80,7 @@ class InferenceEngine(
 
         val inferenceTimeMillis = DateTimes.elapsedTime(startTime).toMillis()
 
-        // Emit AgentEventBus inference event
-        AgentEventBus.emitInferenceEvent(
-            eventType = AgenticEvents.InferenceEventTypes.ON_DID_INFER,
-            agentId = context.uuid,
-            message = "LLM inference completed for $actionType",
-            metadata = mapOf(
-                "context" to context.sid,
-                "step" to context.step,
-                "actionType" to actionType,
-                "duration" to inferenceTimeMillis,
-                "inputTokenCount" to modelResponse.tokenUsage.inputTokenCount,
-                "outputTokenCount" to modelResponse.tokenUsage.outputTokenCount,
-                "totalTokenCount" to modelResponse.tokenUsage.totalTokenCount
-            )
-        )
-
-        EventBus.emit(
-            AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE, mapOf(
-                "context" to context,
-                "messages" to messages,
-                "actionDescription" to actionDescription
-            )
-        )
+        onDidInfer(context, messages, actionDescription, actionType, inferenceTimeMillis)
 
         val llmOutputFile = log(
             subdirectory = actionType,
@@ -153,22 +114,7 @@ class InferenceEngine(
      *   - inputTokenCount, outputTokenCount, totalTokenCount, inferenceTimeMillis
      */
     suspend fun extract(params: ExtractParams): ObjectNode {
-        // Emit AgentEventBus inference event
-        AgentEventBus.emitInferenceEvent(
-            eventType = AgenticEvents.InferenceEventTypes.ON_WILL_EXTRACT_INFER,
-            agentId = params.requestId,
-            message = "Starting extraction inference",
-            metadata = mapOf(
-                "instruction" to params.instruction.take(100),
-                "requestId" to params.requestId
-            )
-        )
-        
-        EventBus.emit(
-            AgenticEvents.InferenceEngine.EXTRACT_WILL_EXECUTE, mapOf(
-                "params" to params
-            )
-        )
+        onWillExtractInfer(params)
 
         val messages = InferencePromptBuilder.buildExtractPrompt(params)
 
@@ -275,6 +221,118 @@ class InferenceEngine(
             put("inferenceTimeMillis", totalInferenceTimeMillis)
         }
 
+        onDidExtractInfer(params, result, extractedNode, metaNode, completed, progress, totalInferenceTimeMillis,
+            inputTokenCount, outputTokenCount, totalTokenCount)
+
+        return result
+    }
+
+    suspend fun summarize(instruction: String?, textContent: String): String {
+        val messages = InferencePromptBuilder.buildSummaryPrompt(instruction, textContent)
+        
+        val startTime = Instant.now()
+
+        onWillSummarizeInfer(instruction, messages, textContent)
+
+        val response = cta.generateResponseRaw(messages)
+        
+        val inferenceTimeMillis = DateTimes.elapsedTime(startTime).toMillis()
+
+        onDidSummarizeInfer(instruction, textContent, response, inferenceTimeMillis)
+
+        // TODO: count token usage
+
+        return response.content
+    }
+
+    // ------------------------------ Event Handler Methods --------------------------------
+
+    private fun onWillInfer(context: ExecutionContext, messages: AgentMessageList, actionType: String) {
+        // Emit AgentEventBus inference event
+        AgentEventBus.emitInferenceEvent(
+            eventType = AgenticEvents.InferenceEventTypes.ON_WILL_INFER,
+            agentId = context.uuid,
+            message = "Starting LLM inference for $actionType",
+            metadata = mapOf(
+                "context" to context.sid,
+                "step" to context.step,
+                "actionType" to actionType
+            )
+        )
+
+        EventBus.emit(
+            AgenticEvents.ContextToAction.GENERATE_WILL_EXECUTE, mapOf(
+                "context" to context,
+                "messages" to messages
+            )
+        )
+    }
+
+    private fun onDidInfer(
+        context: ExecutionContext,
+        messages: AgentMessageList,
+        actionDescription: ActionDescription,
+        actionType: String,
+        inferenceTimeMillis: Long
+    ) {
+        val modelResponse = actionDescription.modelResponse!!
+
+        // Emit AgentEventBus inference event
+        AgentEventBus.emitInferenceEvent(
+            eventType = AgenticEvents.InferenceEventTypes.ON_DID_INFER,
+            agentId = context.uuid,
+            message = "LLM inference completed for $actionType",
+            metadata = mapOf(
+                "context" to context.sid,
+                "step" to context.step,
+                "actionType" to actionType,
+                "duration" to inferenceTimeMillis,
+                "inputTokenCount" to modelResponse.tokenUsage.inputTokenCount,
+                "outputTokenCount" to modelResponse.tokenUsage.outputTokenCount,
+                "totalTokenCount" to modelResponse.tokenUsage.totalTokenCount
+            )
+        )
+
+        EventBus.emit(
+            AgenticEvents.ContextToAction.GENERATE_DID_EXECUTE, mapOf(
+                "context" to context,
+                "messages" to messages,
+                "actionDescription" to actionDescription
+            )
+        )
+    }
+
+    private fun onWillExtractInfer(params: ExtractParams) {
+        // Emit AgentEventBus inference event
+        AgentEventBus.emitInferenceEvent(
+            eventType = AgenticEvents.InferenceEventTypes.ON_WILL_EXTRACT_INFER,
+            agentId = params.requestId,
+            message = "Starting extraction inference",
+            metadata = mapOf(
+                "instruction" to params.instruction.take(100),
+                "requestId" to params.requestId
+            )
+        )
+
+        EventBus.emit(
+            AgenticEvents.InferenceEngine.EXTRACT_WILL_EXECUTE, mapOf(
+                "params" to params
+            )
+        )
+    }
+
+    private fun onDidExtractInfer(
+        params: ExtractParams,
+        result: ObjectNode,
+        extractedNode: ObjectNode,
+        metaNode: ObjectNode,
+        completed: Boolean,
+        progress: String,
+        totalInferenceTimeMillis: Long,
+        inputTokenCount: Int,
+        outputTokenCount: Int,
+        totalTokenCount: Int
+    ) {
         // Emit AgentEventBus inference event
         AgentEventBus.emitInferenceEvent(
             eventType = AgenticEvents.InferenceEventTypes.ON_DID_EXTRACT_INFER,
@@ -299,15 +357,9 @@ class InferenceEngine(
                 "metaNode" to metaNode
             )
         )
-
-        return result
     }
 
-    suspend fun summarize(instruction: String?, textContent: String): String {
-        val messages = InferencePromptBuilder.buildSummaryPrompt(instruction, textContent)
-        
-        val startTime = Instant.now()
-
+    private fun onWillSummarizeInfer(instruction: String?, messages: AgentMessageList, textContent: String) {
         // Emit AgentEventBus inference event
         AgentEventBus.emitInferenceEvent(
             eventType = AgenticEvents.InferenceEventTypes.ON_WILL_SUMMARIZE_INFER,
@@ -326,11 +378,9 @@ class InferenceEngine(
                 "textContent" to textContent,
             )
         )
+    }
 
-        val response = cta.generateResponseRaw(messages)
-        
-        val inferenceTimeMillis = DateTimes.elapsedTime(startTime).toMillis()
-
+    private fun onDidSummarizeInfer(instruction: String?, textContent: String, response: ModelResponse, inferenceTimeMillis: Long) {
         // Emit AgentEventBus inference event
         AgentEventBus.emitInferenceEvent(
             eventType = AgenticEvents.InferenceEventTypes.ON_DID_SUMMARIZE_INFER,
@@ -354,10 +404,6 @@ class InferenceEngine(
                 "tokenUsage" to response.tokenUsage
             )
         )
-
-        // TODO: count token usage
-
-        return response.content
     }
 
     // ------------------------------ Small utilities --------------------------------

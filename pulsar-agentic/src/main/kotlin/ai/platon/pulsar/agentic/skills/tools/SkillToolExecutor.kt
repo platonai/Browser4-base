@@ -89,16 +89,7 @@ class SkillToolExecutor(
                 val maxChars = (args["maxDescriptionChars"] as? Number)?.toInt() ?: 512
                 val skills = registry.listSkillSummaries(maxDescriptionChars = maxChars)
                 
-                // Emit skill listed event
-                AgentEventBus.emitSkillEvent(
-                    eventType = AgenticEvents.SkillEventTypes.ON_SKILLS_LISTED,
-                    agentId = agentId,
-                    message = "Listed ${skills.size} skills",
-                    metadata = mapOf(
-                        "count" to skills.size,
-                        "maxDescriptionChars" to maxChars
-                    )
-                )
+                onSkillsListed(agentId, skills.size, maxChars)
                 
                 skills
             }
@@ -108,13 +99,7 @@ class SkillToolExecutor(
                 val id = paramString(args, "id", functionName)!!
                 val activation = registry.activateSkill(id)
                 
-                // Emit skill activated event
-                AgentEventBus.emitSkillEvent(
-                    eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ACTIVATED,
-                    agentId = agentId,
-                    message = "Skill activated: $id",
-                    metadata = mapOf("skillId" to id)
-                )
+                onSkillActivated(agentId, id)
                 
                 activation
             }
@@ -138,16 +123,7 @@ class SkillToolExecutor(
                     else -> throw IllegalArgumentException("params must be Map<String, Any?> or JSON string for $functionName | actual='${params::class.qualifiedName}'")
                 }
 
-                // Emit skill will run event
-                AgentEventBus.emitSkillEvent(
-                    eventType = AgenticEvents.SkillEventTypes.ON_WILL_RUN_SKILL,
-                    agentId = agentId,
-                    message = "Running skill: $id",
-                    metadata = mapOf(
-                        "skillId" to id,
-                        "paramsKeys" to paramsMap.keys.toList()
-                    )
-                )
+                onWillRunSkill(agentId, id, paramsMap)
 
                 val startTime = System.currentTimeMillis()
 
@@ -155,33 +131,13 @@ class SkillToolExecutor(
                     val result = target.execute(id, paramsMap)
                     val duration = System.currentTimeMillis() - startTime
 
-                    // Emit skill did run event
-                    AgentEventBus.emitSkillEvent(
-                        eventType = AgenticEvents.SkillEventTypes.ON_DID_RUN_SKILL,
-                        agentId = agentId,
-                        message = "Skill completed: $id",
-                        metadata = mapOf(
-                            "skillId" to id,
-                            "duration" to duration,
-                            "success" to (result != null)
-                        )
-                    )
+                    onDidRunSkill(agentId, id, duration, result)
 
                     result
                 } catch (e: Exception) {
                     val duration = System.currentTimeMillis() - startTime
 
-                    // Emit skill error event
-                    AgentEventBus.emitSkillEvent(
-                        eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ERROR,
-                        agentId = agentId,
-                        message = "Skill failed: $id - ${e.message}",
-                        metadata = mapOf(
-                            "skillId" to id,
-                            "duration" to duration,
-                            "error" to e.message
-                        )
-                    )
+                    onSkillError(agentId, id, duration, e)
 
                     throw e
                 }
@@ -189,5 +145,66 @@ class SkillToolExecutor(
 
             else -> throw IllegalArgumentException("Unsupported $domain method: $functionName(${args.keys})")
         }
+    }
+
+    // ------------------------------ Event Handler Methods --------------------------------
+
+    private fun onSkillsListed(agentId: String, count: Int, maxDescriptionChars: Int) {
+        AgentEventBus.emitSkillEvent(
+            eventType = AgenticEvents.SkillEventTypes.ON_SKILLS_LISTED,
+            agentId = agentId,
+            message = "Listed $count skills",
+            metadata = mapOf(
+                "count" to count,
+                "maxDescriptionChars" to maxDescriptionChars
+            )
+        )
+    }
+
+    private fun onSkillActivated(agentId: String, skillId: String) {
+        AgentEventBus.emitSkillEvent(
+            eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ACTIVATED,
+            agentId = agentId,
+            message = "Skill activated: $skillId",
+            metadata = mapOf("skillId" to skillId)
+        )
+    }
+
+    private fun onWillRunSkill(agentId: String, skillId: String, paramsMap: Map<String, Any?>) {
+        AgentEventBus.emitSkillEvent(
+            eventType = AgenticEvents.SkillEventTypes.ON_WILL_RUN_SKILL,
+            agentId = agentId,
+            message = "Running skill: $skillId",
+            metadata = mapOf(
+                "skillId" to skillId,
+                "paramsKeys" to paramsMap.keys.toList()
+            )
+        )
+    }
+
+    private fun onDidRunSkill(agentId: String, skillId: String, duration: Long, result: Any?) {
+        AgentEventBus.emitSkillEvent(
+            eventType = AgenticEvents.SkillEventTypes.ON_DID_RUN_SKILL,
+            agentId = agentId,
+            message = "Skill completed: $skillId",
+            metadata = mapOf(
+                "skillId" to skillId,
+                "duration" to duration,
+                "success" to (result != null)
+            )
+        )
+    }
+
+    private fun onSkillError(agentId: String, skillId: String, duration: Long, e: Exception) {
+        AgentEventBus.emitSkillEvent(
+            eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ERROR,
+            agentId = agentId,
+            message = "Skill failed: $skillId - ${e.message}",
+            metadata = mapOf(
+                "skillId" to skillId,
+                "duration" to duration,
+                "error" to e.message
+            )
+        )
     }
 }
