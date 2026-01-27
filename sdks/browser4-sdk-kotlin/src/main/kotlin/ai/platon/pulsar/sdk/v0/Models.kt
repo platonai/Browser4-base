@@ -440,3 +440,225 @@ data class ChatResponse(
         }
     }
 }
+
+/**
+ * Server-side agent event received via SSE.
+ *
+ * This represents events emitted by the server's AgentEventBus, including:
+ * - Agent lifecycle events (onWillRun, onDidRun, onWillObserve, etc.)
+ * - Inference events (onWillInfer, onDidInfer)
+ * - Tool events (onWillExecuteTool, onDidExecuteTool)
+ * - MCP events (onWillCallMCP, onDidCallMCP)
+ * - Skill events (onWillRunSkill, onDidRunSkill)
+ *
+ * @property eventType The type of the event (e.g., "onWillObserve", "onDidAct").
+ * @property eventPhase The phase of the event (e.g., "agent", "inference", "tool", "mcp", "skill").
+ * @property agentId The unique identifier of the agent, if applicable.
+ * @property message Optional message describing the event.
+ * @property timestamp The timestamp when the event was created (epoch millis).
+ * @property metadata Additional metadata associated with the event.
+ */
+data class AgentEvent(
+    val eventType: String,
+    val eventPhase: String,
+    val agentId: String? = null,
+    val message: String? = null,
+    val timestamp: Long = System.currentTimeMillis(),
+    val metadata: Map<String, Any?> = emptyMap()
+) {
+    companion object {
+        /**
+         * Creates an AgentEvent from an OpenApiEvent.
+         */
+        fun fromOpenApiEvent(event: OpenApiEvent): AgentEvent {
+            val data = event.data ?: emptyMap()
+            return AgentEvent(
+                eventType = event.eventType,
+                eventPhase = data["eventPhase"] as? String ?: "agent",
+                agentId = data["agentId"] as? String,
+                message = data["message"] as? String,
+                timestamp = event.timestamp,
+                metadata = data
+            )
+        }
+
+        /**
+         * Creates an AgentEvent from a raw map.
+         */
+        @Suppress("UNCHECKED_CAST")
+        fun fromMap(data: Map<String, Any?>): AgentEvent {
+            return AgentEvent(
+                eventType = data["eventType"] as? String ?: "",
+                eventPhase = data["eventPhase"] as? String ?: "agent",
+                agentId = data["agentId"] as? String,
+                message = data["message"] as? String,
+                timestamp = (data["timestamp"] as? Number)?.toLong() ?: System.currentTimeMillis(),
+                metadata = data["metadata"] as? Map<String, Any?> ?: emptyMap()
+            )
+        }
+    }
+}
+
+/**
+ * SDK-side agent event handlers.
+ *
+ * This is a lightweight, callback-based API for receiving agent lifecycle events
+ * from the server via SSE. Events are dispatched to registered handlers based on
+ * their event phase (agent, inference, tool, mcp, skill).
+ *
+ * Example usage:
+ * ```kotlin
+ * val handlers = AgentEventHandlers()
+ * handlers.agent.on("onWillObserve") { event ->
+ *     println("Agent starting observation: ${event.message}")
+ * }
+ * handlers.inference.on("onDidInfer") { event ->
+ *     println("Inference completed: ${event.metadata}")
+ * }
+ * ```
+ *
+ * @see AgentEvent for the event data structure
+ */
+class AgentEventHandlers {
+    /**
+     * A group of event handlers keyed by `eventType`.
+     */
+    class Group(val phase: String) {
+        private val handlers: MutableMap<String, MutableList<(AgentEvent) -> Unit>> = mutableMapOf()
+
+        /**
+         * Registers a handler for an event type.
+         *
+         * @param eventType The event type emitted by the server, e.g. "onWillObserve".
+         * @param handler Callback invoked with the [AgentEvent].
+         */
+        fun on(eventType: String, handler: (AgentEvent) -> Unit): Group {
+            val key = eventType.trim()
+            require(key.isNotEmpty()) { "eventType must not be blank" }
+            handlers.getOrPut(key) { mutableListOf() }.add(handler)
+            return this
+        }
+
+        /**
+         * Dispatches an event to registered handlers.
+         */
+        internal fun dispatch(event: AgentEvent) {
+            handlers[event.eventType]?.forEach { h ->
+                try {
+                    h(event)
+                } catch (_: Exception) {
+                    // Best-effort: user callback errors must not break SSE processing.
+                }
+            }
+        }
+
+        internal fun isEmpty(): Boolean = handlers.isEmpty()
+        internal fun keys(): Set<String> = handlers.keys
+    }
+
+    /** Agent lifecycle event handlers (run, observe, act, extract, summarize). */
+    val agent = Group("agent")
+
+    /** Inference phase event handlers (LLM calls). */
+    val inference = Group("inference")
+
+    /** Tool execution event handlers. */
+    val tool = Group("tool")
+
+    /** MCP (Model Context Protocol) event handlers. */
+    val mcp = Group("mcp")
+
+    /** Skill execution event handlers. */
+    val skill = Group("skill")
+
+    /**
+     * Registers a handler for all phases.
+     */
+    fun onAny(eventType: String, handler: (AgentEvent) -> Unit): AgentEventHandlers {
+        agent.on(eventType, handler)
+        inference.on(eventType, handler)
+        tool.on(eventType, handler)
+        mcp.on(eventType, handler)
+        skill.on(eventType, handler)
+        return this
+    }
+
+    /**
+     * Dispatches an event to the appropriate phase handler.
+     */
+    internal fun dispatch(event: AgentEvent) {
+        when (event.eventPhase) {
+            "agent" -> agent.dispatch(event)
+            "inference" -> inference.dispatch(event)
+            "tool" -> tool.dispatch(event)
+            "mcp" -> mcp.dispatch(event)
+            "skill" -> skill.dispatch(event)
+            else -> {
+                // Dispatch to all groups for unknown phases
+                agent.dispatch(event)
+                inference.dispatch(event)
+                tool.dispatch(event)
+                mcp.dispatch(event)
+                skill.dispatch(event)
+            }
+        }
+    }
+
+    /**
+     * Dispatches an OpenApiEvent by converting it to an AgentEvent first.
+     */
+    internal fun dispatchFromOpenApi(event: OpenApiEvent) {
+        dispatch(AgentEvent.fromOpenApiEvent(event))
+    }
+
+    /**
+     * Returns the set of event types registered in all groups.
+     */
+    fun registeredEventTypes(): Set<String> {
+        return (agent.keys() + inference.keys() + tool.keys() + mcp.keys() + skill.keys()).toSet()
+    }
+
+    /**
+     * Returns registered event types as a list, or null if none registered.
+     */
+    internal fun subscribedEventTypesOrNull(): List<String>? {
+        val types = registeredEventTypes().toList()
+        return types.ifEmpty { null }
+    }
+
+    /**
+     * Common agent event type constants for convenience.
+     */
+    object EventTypes {
+        // Agent lifecycle events
+        const val ON_WILL_RUN = "onWillRun"
+        const val ON_DID_RUN = "onDidRun"
+        const val ON_WILL_OBSERVE = "onWillObserve"
+        const val ON_DID_OBSERVE = "onDidObserve"
+        const val ON_WILL_ACT = "onWillAct"
+        const val ON_DID_ACT = "onDidAct"
+        const val ON_WILL_EXTRACT = "onWillExtract"
+        const val ON_DID_EXTRACT = "onDidExtract"
+        const val ON_WILL_SUMMARIZE = "onWillSummarize"
+        const val ON_DID_SUMMARIZE = "onDidSummarize"
+
+        // Inference events
+        const val ON_WILL_INFER = "onWillInfer"
+        const val ON_DID_INFER = "onDidInfer"
+
+        // Tool events
+        const val ON_WILL_EXECUTE_TOOL = "onWillExecuteTool"
+        const val ON_DID_EXECUTE_TOOL = "onDidExecuteTool"
+        const val ON_TOOL_ERROR = "onToolError"
+
+        // MCP events
+        const val ON_WILL_CALL_MCP = "onWillCallMCP"
+        const val ON_DID_CALL_MCP = "onDidCallMCP"
+        const val ON_MCP_ERROR = "onMCPError"
+
+        // Skill events
+        const val ON_WILL_RUN_SKILL = "onWillRunSkill"
+        const val ON_DID_RUN_SKILL = "onDidRunSkill"
+        const val ON_SKILL_ERROR = "onSkillError"
+    }
+}

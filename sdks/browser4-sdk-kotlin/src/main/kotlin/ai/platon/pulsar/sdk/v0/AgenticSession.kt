@@ -2,6 +2,9 @@
 package ai.platon.pulsar.sdk.v0
 
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -155,6 +158,21 @@ class AgenticSession(
 
     private val _stateHistory: MutableList<AgentState> = mutableListOf()
     private val _processTrace: MutableList<String> = mutableListOf()
+
+    /**
+     * Agent event handlers for receiving server-side agent events.
+     *
+     * Register handlers to receive agent lifecycle events (run, observe, act),
+     * inference events, tool events, MCP events, and skill events.
+     *
+     * Example:
+     * ```kotlin
+     * session.agentEventHandlers.agent.on("onWillObserve") { event ->
+     *     println("Observation starting: ${event.message}")
+     * }
+     * ```
+     */
+    val agentEventHandlers = AgentEventHandlers()
 
     /**
      * Gets the companion agent (self, for API compatibility).
@@ -504,6 +522,157 @@ class AgenticSession(
         _processTrace.clear()
         _stateHistory.clear()
         return if (value != null) value as? Boolean ?: true else true
+    }
+
+    /**
+     * Runs an agent task with event streaming.
+     *
+     * This method runs the task and simultaneously streams agent events to the
+     * registered [agentEventHandlers]. Events are delivered as they occur during
+     * the agent's observe-act loop.
+     *
+     * Example:
+     * ```kotlin
+     * session.agentEventHandlers.agent.on("onWillObserve") { event ->
+     *     println("Observation starting: ${event.message}")
+     * }
+     * session.agentEventHandlers.agent.on("onDidAct") { event ->
+     *     println("Action completed: ${event.metadata}")
+     * }
+     * val result = session.runWithEvents("search for 'kotlin' and click the first result")
+     * ```
+     *
+     * @param task Natural language description of the task
+     * @param multiAct Whether each act forms a new chained context
+     * @param modelName Optional LLM model name
+     * @param variables Extra variables for prompt/tool
+     * @param domSettleTimeoutMs Timeout for DOM settling
+     * @param timeoutMs Overall timeout
+     * @return [AgentRunResult] with the task result
+     */
+    suspend fun runWithEvents(
+        task: String,
+        multiAct: Boolean = false,
+        modelName: String? = null,
+        variables: Map<String, String>? = null,
+        domSettleTimeoutMs: Long? = null,
+        timeoutMs: Long? = null
+    ): AgentRunResult {
+        return withAgentEventStreaming {
+            agentRun(task, multiAct, modelName, variables, domSettleTimeoutMs, timeoutMs)
+        }
+    }
+
+    /**
+     * Executes an agent action with event streaming.
+     *
+     * @param action Natural language description of the action
+     * @param multiAct Whether each act forms a new chained context
+     * @param modelName Optional LLM model name
+     * @param variables Extra variables for prompt/tool
+     * @param domSettleTimeoutMs Timeout for DOM settling
+     * @param timeoutMs Overall timeout
+     * @return [AgentActResult] with the action result
+     */
+    suspend fun actWithEvents(
+        action: String,
+        multiAct: Boolean = false,
+        modelName: String? = null,
+        variables: Map<String, String>? = null,
+        domSettleTimeoutMs: Long? = null,
+        timeoutMs: Long? = null
+    ): AgentActResult {
+        return withAgentEventStreaming {
+            agentAct(action, multiAct, modelName, variables, domSettleTimeoutMs, timeoutMs)
+        }
+    }
+
+    /**
+     * Observes the page with event streaming.
+     *
+     * @param instruction Optional observation instruction
+     * @param modelName Optional LLM model name
+     * @param domSettleTimeoutMs Timeout for DOM settling
+     * @param returnAction Whether to return actionable tool calls
+     * @param drawOverlay Whether to highlight interactive elements
+     * @return [AgentObservation] with observation results
+     */
+    suspend fun observeWithEvents(
+        instruction: String? = null,
+        modelName: String? = null,
+        domSettleTimeoutMs: Long? = null,
+        returnAction: Boolean? = null,
+        drawOverlay: Boolean = true
+    ): AgentObservation {
+        return withAgentEventStreaming {
+            agentObserve(instruction, modelName, domSettleTimeoutMs, returnAction, drawOverlay)
+        }
+    }
+
+    /**
+     * Executes a block while streaming agent events to [agentEventHandlers].
+     *
+     * This method starts an SSE listener before executing the block and stops it
+     * after the block completes. Events received during the block execution are
+     * dispatched to the registered handlers.
+     *
+     * @param block The suspend function to execute with event streaming
+     * @return The result of the block
+     */
+    private suspend fun <T> withAgentEventStreaming(block: suspend () -> T): T {
+        val stopFlag = java.util.concurrent.atomic.AtomicBoolean(false)
+
+        // Subscribe to agent events
+        val subscription = try {
+            val requestedEventTypes = agentEventHandlers.subscribedEventTypesOrNull()
+                ?: listOf("onWillRun", "onDidRun", "onWillObserve", "onDidObserve",
+                    "onWillAct", "onDidAct", "onWillInfer", "onDidInfer")
+            val value = driver.subscribeEvents(mapOf("eventTypes" to requestedEventTypes))
+
+            val map = value as? Map<String, Any?>
+            val valueObj = map?.get("value")
+            when (valueObj) {
+                is Map<*, *> -> (valueObj as Map<String, Any?>)["subscriptionId"] as? String
+                else -> map?.get("subscriptionId") as? String
+            }
+        } catch (_: Exception) {
+            null
+        }
+
+        // Start SSE listener
+        val listenerJob = CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val base = client.resolvedBaseUrl.trimEnd('/')
+                val sessionId = client.sessionId ?: return@launch
+                val query = if (!subscription.isNullOrBlank()) {
+                    "?subscriptionId=$subscription"
+                } else {
+                    ""
+                }
+                val streamUrl = "$base/session/$sessionId/events/stream$query"
+
+                val sse = ai.platon.pulsar.sdk.v0.detail.SseClient(client.rawHttpClient)
+                sse.connect(
+                    url = streamUrl,
+                    headers = client.resolvedDefaultHeaders.filterKeys { it.lowercase() != "content-type" },
+                    shouldStop = { stopFlag.get() }
+                ) { evt ->
+                    val oe = ai.platon.pulsar.sdk.v0.detail.OpenApiEvent.fromJson(evt.data)
+                    if (oe != null) {
+                        agentEventHandlers.dispatchFromOpenApi(oe)
+                    }
+                }
+            } catch (_: Exception) {
+                // Swallow listener errors
+            }
+        }
+
+        return try {
+            block()
+        } finally {
+            stopFlag.set(true)
+            listenerJob.cancel()
+        }
     }
 
     /**
