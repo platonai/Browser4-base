@@ -34,6 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.apache.commons.lang3.StringUtils
 import java.nio.file.Files
 import java.time.Duration
 import java.time.Instant
@@ -715,6 +716,7 @@ function() {
      * */
     private suspend fun navigateInvaded(entry: NavigateEntry) {
         val url = entry.url
+        navigateUrl = url
 
         addScriptToEvaluateOnNewDocument()
 
@@ -740,7 +742,6 @@ function() {
             credentials?.let { networkManager.authenticate(it) }
         }
 
-        navigateUrl = url
         if (URLUtils.isLocalFile(url)) {
             // serve local file, for example:
             // local file path:
@@ -936,7 +937,7 @@ function() {
         val pageWorldJs = loader.getPageWorldJs(false)
         if (pageWorldJs.isNotBlank()) {
             pageAPI?.addScriptToEvaluateOnNewDocument("\n;;\n$pageWorldJs\n;;\n")
-            logger.info("Injected Page World scripts (stealth patches)")
+            logger.debug("Injected Page World scripts (stealth patches)")
         }
 
         // 2. Create isolated world and inject runtime
@@ -948,7 +949,8 @@ function() {
             val isolatedWorldJs = loader.getIsolatedWorldJs(false)
             if (isolatedWorldJs.isNotBlank()) {
                 isolatedWorldManager.injectRuntime(isolatedWorldJs, contextId)
-                logger.info("Injected Browser4 runtime into Isolated World (context: {})", contextId)
+                logger.info("Injected Browser4 runtime into Isolated World (context: {}) | {}",
+                    contextId, StringUtils.abbreviateMiddle(userTypedUrl, "...", 200))
             }
 
             if (logger.isTraceEnabled) {
