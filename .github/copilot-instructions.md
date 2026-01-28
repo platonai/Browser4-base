@@ -1,45 +1,45 @@
-# AI Copilot 使用与编写指南 (v2026-01-25)
+# AI Copilot Usage and Authoring Guide (v2026-01-25)
 
 —
 
-## 0) 快速开始（最常用的 3 条命令）
+## 0) Quick Start (the 3 most common commands)
 
-> 目标：在**不猜命令、不踩平台坑**的前提下，最快完成构建/测试。
+> Goal: finish build/tests as fast as possible **without guessing commands or hitting platform pitfalls**.
 
-- 首次构建（不跑测试）
-  - Windows (PowerShell)：
-    ```powershell
-    .\mvnw.cmd -q -DskipTests
-    ```
-  - Windows (cmd)：
-    ```bat
-    mvnw.cmd -q -DskipTests
-    ```
-  - Linux/macOS：
-    ```bash
-    chmod +x mvnw
-    ./mvnw -q -DskipTests
-    ```
+- First build (skip tests)
+    - Windows (PowerShell):
+      ```powershell
+      .\mvnw.cmd -q -DskipTests
+      ```
+    - Windows (cmd):
+      ```bat
+      mvnw.cmd -q -DskipTests
+      ```
+    - Linux/macOS:
+      ```bash
+      chmod +x mvnw
+      ./mvnw -q -DskipTests
+      ```
 
-- 仅验证核心模块单测（推荐本地快速回归）
-  - Windows (PowerShell)：
-    ```powershell
-    .\mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"
-    ```
-  - Windows (cmd)：
-    ```bat
-    mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"
-    ```
-  - Linux/macOS：
-    ```bash
-    ./mvnw -pl pulsar-core -am test -Dsurefire.failIfNoSpecifiedTests=false
-    ```
+- Verify only core module unit tests (recommended for fast local regression)
+    - Windows (PowerShell):
+      ```powershell
+      .\mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"
+      ```
+    - Windows (cmd):
+      ```bat
+      mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"
+      ```
+    - Linux/macOS:
+      ```bash
+      ./mvnw -pl pulsar-core -am test -Dsurefire.failIfNoSpecifiedTests=false
+      ```
 
-- 推荐：使用仓库脚本（会自动选择平台/参数习惯）
-  - Windows (PowerShell)：`bin/build.ps1 [-test]`
-  - Linux/macOS：`bin/build.sh [-test]`
+- Recommended: use the repo scripts (auto-select platform and common parameter conventions)
+    - Windows (PowerShell): `bin/build.ps1 [-test]`
+    - Linux/macOS: `bin/build.sh [-test]`
 
-### 跨平台环境探测（可选）
+### Cross-platform environment detection (optional)
 
 - bash/zsh:
   ```bash
@@ -55,72 +55,72 @@
   if ($IsWindows) { .\mvnw.cmd -q -D"skipTests" } else { ./mvnw -q -DskipTests }
   ```
 
-## 1) 概览
+## 1) Overview
 
-- 仓库：多模块 Maven（**统一使用根目录 Maven Wrapper：`./mvnw` / `mvnw.cmd`**）
-- 语言：Kotlin 优先，兼容 Java
-- 原则：最小改动、保持风格、清晰日志、自动校验与测试
+- Repo: multi-module Maven (**always use the root Maven Wrapper: `./mvnw` / `mvnw.cmd`**)
+- Language: Kotlin-first, Java-compatible
+- Principles: minimal changes, preserve style, clear logs, automatic validation and tests
 
-## 2) 环境与构建
+## 2) Environment and Build
 
-- Maven Wrapper（强制约定）
-  - Windows：`mvnw.cmd ...`（PowerShell 下建议写 `./mvnw.cmd ...`）
-  - Linux/macOS：`./mvnw ...`
+- Maven Wrapper (mandatory convention)
+    - Windows: `mvnw.cmd ...` (in PowerShell, prefer `./mvnw.cmd ...`)
+    - Linux/macOS: `./mvnw ...`
 
-- 常用构建命令
-  - Windows（cmd.exe）：
-    - `mvnw.cmd -q -DskipTests`
-    - `mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"`
-  - Windows（PowerShell）：
-    - `.\mvnw.cmd -q -D"skipTests"`
-    - `.\mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"`
-  - Linux/macOS：
-    - `./mvnw -q -DskipTests`
-    - `./mvnw -pl pulsar-core -am test -Dsurefire.failIfNoSpecifiedTests=false`
+- Common build commands
+    - Windows (cmd.exe):
+        - `mvnw.cmd -q -DskipTests`
+        - `mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"`
+    - Windows (PowerShell):
+        - `.\mvnw.cmd -q -D"skipTests"`
+        - `.\mvnw.cmd -pl pulsar-core -am test -D"surefire.failIfNoSpecifiedTests=false"`
+    - Linux/macOS:
+        - `./mvnw -q -DskipTests`
+        - `./mvnw -pl pulsar-core -am test -Dsurefire.failIfNoSpecifiedTests=false`
 
-- 推荐脚本：
-  - Windows：`bin/build.ps1 [-test]`
-  - Linux/macOS：`bin/build.sh [-test]`
+- Recommended scripts:
+    - Windows: `bin/build.ps1 [-test]`
+    - Linux/macOS: `bin/build.sh [-test]`
 
-- 重要提示（Windows 参数转义）
-  - Windows 下 `-D` 参数**建议加引号**，例如：`-D"dot.separated.parameter=quoted"`
+- Important note (Windows parameter escaping)
+    - On Windows, it is **recommended to quote `-D` parameters**, e.g. `-D"dot.separated.parameter=quoted"`
 
-## 3) 项目要点
+## 3) Project Essentials
 
-- 核心 API：`ai/platon/pulsar/core/api/API.kt`，重点：`WebDriver`, `PulsarSession`
-- 智能体：`PulsarSession` -> `AgenticSession` -> `BrowserPerceptiveAgent`
-- 模块：
-  - `pulsar-core`：核心引擎（会话、调度、DOM、浏览器控制）
-  - `pulsar-agentic`：智能体实现，MCP，技能注册
-  - `pulsar-rest`：Spring Boot REST/命令入口
-  - `sdks/*`：客户端 SDK
-  - `browser4/*`：产品聚合（SPA 与打包）
-  - 测试：`pulsar-tests` 与 `pulsar-tests-common`
-- 会话：`AgenticContexts.createSession()`
-- 加载参数：使用 `LoadOptions` 解析 URL 中的 CLI 风格参数
-- 浏览器自动化：查看 `ai.platon.pulsar.browser`，API 看 `WebDriver`；实现细节关注 `PageHandler`、`ClickableDOM`
-- MCP 工具：看 `MCPTool` 接口与 `MCPToolExecutor`
-- SKILL 注册：看 `SkillRegistry`
-- 事件总线：`EventBus`，通用，用于解耦监控与扩展，`PulsarEventBus`，特化，用于网页全生命周期事件通知
-- 异常重试：Chrome CDP RPC 相关使用现有重试工具，避免日志风暴
+- Core API: `ai/platon/pulsar/core/api/API.kt` (key: `WebDriver`, `PulsarSession`)
+- Agents: `PulsarSession` -> `AgenticSession` -> `BrowserPerceptiveAgent`
+- Modules:
+    - `pulsar-core`: core engine (sessions, scheduling, DOM, browser control)
+    - `pulsar-agentic`: agent implementation, MCP, skill registration
+    - `pulsar-rest`: Spring Boot REST / command entry
+    - `sdks/*`: client SDKs
+    - `browser4/*`: product aggregation (SPA & packaging)
+    - Tests: `pulsar-tests` and `pulsar-tests-common`
+- Sessions: `AgenticContexts.createSession()`
+- Load parameters: use `LoadOptions` to parse CLI-style parameters embedded in the URL
+- Browser automation: see `ai.platon.pulsar.browser`; API: `WebDriver`; implementation details: `PageHandler`, `ClickableDOM`
+- MCP tools: see the `MCPTool` interface and `MCPToolExecutor`
+- Skill registration: see `SkillRegistry`
+- Event bus: `EventBus` (general, for decoupling monitoring and extensions) and `PulsarEventBus` (specialized, for full-page lifecycle notifications)
+- Exception retries: for Chrome CDP RPC, reuse existing retry utilities to avoid log storms
 
-## 4) 运行与配置
+## 4) Run and Configuration
 
-- 应用端口：默认 8182
-- 配置覆盖：使用分层 `application*.properties`；避免在代码中硬编码默认值
-- 参考：`docs/config.md` 与 `docs/rest-api-examples.md`
+- Application port: default 8182
+- Config overrides: use layered `application*.properties`; avoid hard-coding defaults in code
+- References: `docs/config.md` and `docs/rest-api-examples.md`
 
-## 5) 日志与性能
+## 5) Logging and Performance
 
-- 日志占位符：`logger.info("Task {} finished in {} ms", taskId, cost)`（避免字符串拼接）
+- Logging placeholders: `logger.info("Task {} finished in {} ms", taskId, cost)` (avoid string concatenation)
 
-## 6) 代码和文档
+## 6) Code and Docs
 
-- Kotlin：不可变 `data class`、显式返回类型、空安全（`require/check`/`?:`）
-- 公共 API 要有 KDoc：摘要/参数/返回/异常
-- AI 做任务后，任务文档放到 docs-dev 目录，供后续参考
+- Kotlin: immutable `data class`, explicit return types, null-safety (`require`/`check`/`?:`)
+- Public APIs must have KDoc: summary / params / returns / exceptions
+- After AI completes tasks, put task docs under `docs-dev` for future reference
 
-> KDoc 模板示例：
+> KDoc template example:
 ```kotlin
 /**
  * Loads a page and returns its parsed snapshot.
@@ -147,7 +147,7 @@ fun load(url: String, options: LoadOptions): PageSnapshot {
 - Unit tests: `<ClassName>Test.kt`
 - Integration tests: `<ClassName>IT.kt`
 - E2E tests: `<ClassName>E2ETest.kt`
-- **Method names: Use camelCase (NOT backtick naming)**
+- **Method names: use camelCase (NOT backtick naming)**
     - ✅ `testUserLoginWithValidCredentials()` + `@DisplayName("test user login with valid credentials")`
     - ❌ `` `test user login with valid credentials` ``
 
@@ -165,46 +165,46 @@ fun load(url: String, options: LoadOptions): PageSnapshot {
 ### Test Tags (JUnit 5)
 `IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `TimeConsumingTest`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
 
-## 8) 常见命令速查（按平台复制即可）
+## 8) Common Commands Cheat Sheet (copy by platform)
 
-- 构建（不跑测）
-  - Windows (PowerShell)：`.\\mvnw.cmd -q -D\"skipTests\"`
-  - Windows (cmd)：`mvnw.cmd -q -DskipTests`
-  - Linux/macOS：`./mvnw -q -DskipTests`
+- Build (skip tests)
+    - Windows (PowerShell): `.\\mvnw.cmd -q -D\"skipTests\"`
+    - Windows (cmd): `mvnw.cmd -q -DskipTests`
+    - Linux/macOS: `./mvnw -q -DskipTests`
 
-- 核心模块单测
-  - Windows (PowerShell)：`.\\mvnw.cmd -pl pulsar-core -am test -D\"surefire.failIfNoSpecifiedTests=false\"`
-  - Windows (cmd)：`mvnw.cmd -pl pulsar-core -am test -D\"surefire.failIfNoSpecifiedTests=false\"`
-  - Linux/macOS：`./mvnw -pl pulsar-core -am test -Dsurefire.failIfNoSpecifiedTests=false`
+- Core module unit tests
+    - Windows (PowerShell): `.\\mvnw.cmd -pl pulsar-core -am test -D\"surefire.failIfNoSpecifiedTests=false\"`
+    - Windows (cmd): `mvnw.cmd -pl pulsar-core -am test -D\"surefire.failIfNoSpecifiedTests=false\"`
+    - Linux/macOS: `./mvnw -pl pulsar-core -am test -Dsurefire.failIfNoSpecifiedTests=false`
 
-- 推荐脚本
-  - Windows：`bin/build.ps1 [-test]`
-  - Linux/macOS：`bin/build.sh [-test]`
+- Recommended scripts
+    - Windows: `bin/build.ps1 [-test]`
+    - Linux/macOS: `bin/build.sh [-test]`
 
-## 9) PR/变更完成定义（DoD）
+## 9) Definition of Done (DoD) for PR/Changes
 
-- 构建与相关测试通过，无新增高噪日志/告警
-- 新/变更逻辑：主路径 + 至少 1 个边界用例
-- 不提交密钥/私有端点；输入已校验
-- 无随意版本漂移（遵守 parent BOM）
-- 公共行为/配置变更同步更新文档
-- 对潜在性能影响（>≈5%）给出评估或基准
+- Build and relevant tests pass; no new noisy logs/warnings
+- New/changed logic: main path + at least 1 boundary case
+- Do not commit secrets/private endpoints; inputs are validated
+- No arbitrary version drift (follow parent BOM)
+- Public behavior/config changes are documented
+- Potential performance impact (>≈5%) is evaluated or benchmarked
 
-## 10) 故障与排查
+## 10) Failures and Troubleshooting
 
-- 浏览器/CDP：优先使用 `pulsar-tests` 重型套件复现
-- 代理与隐私上下文：保持处理程序幂等、线程安全
-- 日志定位：遵循结构化字段，便于筛选
+- Browser/CDP: prefer reproducing with the heavy suite in `pulsar-tests`
+- Agent/privacy context: keep handlers idempotent and thread-safe
+- Log triage: follow structured fields for easier filtering
 
-> 常见问题速查
-- Linux/macOS：`mvnw` 无执行权限 → `chmod +x mvnw`
-- JDK 版本不匹配 → 确保使用仓库要求版本（优先本地 `JAVA_HOME` 指向）
-- Windows 参数转义 → `-D"key.with.dots=value"`（为点分参数加引号）
-- 端口占用（默认 8182）→ 覆盖配置 `server.port` 或使用 `application-local.properties`
-- 日志风暴（CDP 重试）→ 复用现有重试工具并调低日志级别，勿在循环内拼接字符串
+> Common quick fixes
+- Linux/macOS: `mvnw` not executable → `chmod +x mvnw`
+- JDK version mismatch → ensure the required JDK version (prefer local `JAVA_HOME`)
+- Windows parameter escaping → `-D"key.with.dots=value"` (quote dot-separated keys)
+- Port in use (default 8182) → override `server.port` or use `application-local.properties`
+- Log storms (CDP retries) → reuse existing retry utilities and lower log level; don’t build strings inside loops
 
 —
 
-附：更多细节请查阅
-- 本文件同级 `README-AI.md`
-- `docs/concepts.md`、`advanced-guides.md`、`rest-api-examples.md`
+Appendix: see also
+- `README-AI.md` (same directory as this file)
+- `docs/concepts.md`, `advanced-guides.md`, `rest-api-examples.md`
