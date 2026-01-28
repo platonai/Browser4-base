@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * - Agent run/act/observe operations
  * - Event sequence and data integrity
  *
- * Note: When `pulsar.test.mode=true` the server returns lightweight
+ * Note: When `pulsar.stub.mode=true` the server returns lightweight
  * stubbed responses so the suite can run without a real LLM/backend.
  */
 @Tag("IntegrationTest")

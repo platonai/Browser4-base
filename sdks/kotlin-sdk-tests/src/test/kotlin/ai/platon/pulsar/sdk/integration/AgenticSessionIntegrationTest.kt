@@ -27,7 +27,7 @@ import kotlin.test.assertTrue
  *
  * Tests AI-driven browser automation functionality.
  *
- * Note: When `pulsar.test.mode=true` the server returns lightweight
+ * Note: When `pulsar.stub.mode=true` the server returns lightweight
  * stubbed responses so the suite can run without a real LLM/backend.
  */
 @Tag("Slow")

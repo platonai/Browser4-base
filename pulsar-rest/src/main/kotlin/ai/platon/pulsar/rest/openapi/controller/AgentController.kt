@@ -1,14 +1,13 @@
 package ai.platon.pulsar.rest.openapi.controller
 
-import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.rest.openapi.dto.*
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import ai.platon.pulsar.skeleton.context.PulsarContext
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -27,7 +26,7 @@ import org.springframework.web.bind.annotation.*
 class AgentController(
     private val sessionManager: SessionManager,
     private val pulsarContext: PulsarContext,
-    @param:Value($$"${pulsar.test.mode:false}")
+    @param:Value($$"${pulsar.stub.mode:false}")
     private val testMode: Boolean = false
 ) {
     private val logger = LoggerFactory.getLogger(AgentController::class.java)

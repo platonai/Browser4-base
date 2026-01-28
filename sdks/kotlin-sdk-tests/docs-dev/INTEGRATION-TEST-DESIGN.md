@@ -335,7 +335,7 @@ pulsar.common.net.connect.timeout=10000
 pulsar.common.net.read.timeout=30000
 
 # 测试模式
-pulsar.test.mode=true
+pulsar.stub.mode=true
 ```
 
 ---

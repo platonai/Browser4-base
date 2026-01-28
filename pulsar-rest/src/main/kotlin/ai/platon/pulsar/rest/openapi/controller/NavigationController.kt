@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*
 @ConditionalOnBean(SessionManager::class)
 class NavigationController(
     private val sessionManager: SessionManager,
-    @param:Value($$"${pulsar.test.mode:false}")
+    @param:Value($$"${pulsar.stub.mode:false}")
     private val testMode: Boolean = false
 ) {
     private val logger = LoggerFactory.getLogger(NavigationController::class.java)
