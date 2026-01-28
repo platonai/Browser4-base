@@ -54,7 +54,11 @@ class StatefulPageVisitor(
         return visit(request, eventHandlers)
     }
 
-    suspend fun visit(request: PageVisitRequest, status: PageVisitStatus, eventHandlers: PageEventHandlers): PageVisitStatus {
+    suspend fun visit(
+        request: PageVisitRequest,
+        status: PageVisitStatus,
+        eventHandlers: PageEventHandlers
+    ): PageVisitStatus {
         doVisit(request, status, eventHandlers)
         return status
     }
@@ -185,10 +189,16 @@ class StatefulPageVisitor(
         var richText: String? = null
         var textContent: String? = null
         if (pageSummaryPrompt != null || dataExtractionRules != null) {
-            textContent = if (request.richText == true) {
-                DomUtils.selectNthScreenRichText(screenNumber, document).also { richText = it }
-            } else {
-                DomUtils.selectNthScreenText(screenNumber, document)
+            // TODO: DomUtils.selectNthScreenText
+            textContent = when {
+                request.richText == true -> {
+                    DomUtils.selectNthScreenRichText(screenNumber, document).also { richText = it }
+                }
+
+                else -> {
+                    document.text
+                    // DomUtils.selectNthScreenText(screenNumber, document)
+                }
             }
             status.refresh("textContent")
 
@@ -262,7 +272,7 @@ class StatefulPageVisitor(
             if (!inferRegex) {
                 logger.info(
                     "Skip URI regex inference (inferUriExtractionRegex!=true). " +
-                        "Please provide uriExtractionRules as a 'Regex:' pattern."
+                            "Please provide uriExtractionRules as a 'Regex:' pattern."
                 )
                 return null
             }
@@ -318,7 +328,7 @@ class StatefulPageVisitor(
         try {
             val scrapeResponse = scrapeService.executeQuery(scrapeRequest)
             status.statusCode = scrapeResponse.statusCode
-            status.ensureCommandResult().xsqlResultSet = scrapeResponse.resultSet
+            status.ensurePageVisitResult().xsqlResultSet = scrapeResponse.resultSet
         } catch (e: Exception) {
             status.statusCode = ResourceStatus.SC_EXPECTATION_FAILED
         }

@@ -43,8 +43,8 @@ class CommandService(
 
     suspend fun executePageVisitCommandSync(
         request: CommandRequest, eventHandlers: PageEventHandlers
-    ): PageVisitStatus {
-        return statefulPageVisitor.visit(request, eventHandlers)
+    ): CommandStatus {
+        return statefulPageVisitor.visit(request, eventHandlers).toCommandStatus()
     }
 
     fun submitPageVisitCommandAsync(request: CommandRequest, eventHandlers: PageEventHandlers): String {

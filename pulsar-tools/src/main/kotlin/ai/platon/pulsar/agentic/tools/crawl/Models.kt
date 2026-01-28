@@ -260,7 +260,7 @@ data class PageVisitStatus(
     }
 }
 
-fun PageVisitStatus.ensureCommandResult(): PageVisitResult {
+fun PageVisitStatus.ensurePageVisitResult(): PageVisitResult {
     val r = pageVisitResult ?: PageVisitResult()
     pageVisitResult = r
     return r
@@ -300,20 +300,20 @@ fun PageVisitStatus.addInstructResult(result: PGInstructResult) {
     instructResults.add(result)
 
     val name = result.name
-    val commandResult = ensureCommandResult()
+    val visitResult = ensurePageVisitResult()
     when (name) {
         "pageSummary" -> {
-            commandResult.pageSummary = result.result?.toString()
+            visitResult.pageSummary = result.result?.toString()
         }
 
         "fields" -> {
             @Suppress("UNCHECKED_CAST")
-            commandResult.fields = result.result as? Map<String, String>?
+            visitResult.fields = result.result as? Map<String, String>?
         }
 
         "links" -> {
             @Suppress("UNCHECKED_CAST")
-            commandResult.links = result.result as? List<String>?
+            visitResult.links = result.result as? List<String>?
         }
     }
     refresh(result.name)
