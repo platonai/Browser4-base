@@ -1,9 +1,11 @@
 package ai.platon.pulsar.rest.openapi.controller
 
-import ai.platon.pulsar.rest.openapi.dto.*
+import ai.platon.pulsar.rest.openapi.dto.SetUrlRequest
+import ai.platon.pulsar.rest.openapi.dto.WebDriverResponse
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -20,7 +22,9 @@ import org.springframework.web.bind.annotation.*
 )
 @ConditionalOnBean(SessionManager::class)
 class NavigationController(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    @param:Value($$"${pulsar.test.mode:false}")
+    private val testMode: Boolean = false
 ) {
     private val logger = LoggerFactory.getLogger(NavigationController::class.java)
 
@@ -38,6 +42,11 @@ class NavigationController(
 
         val session = sessionManager.getSession(sessionId)
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
+
+        if (testMode) {
+            sessionManager.setSessionUrl(sessionId, request.url)
+            return ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
+        }
 
         try {
             // Get or create bound driver and navigate to URL
