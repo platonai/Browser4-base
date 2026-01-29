@@ -59,7 +59,7 @@ class IsolatedWorldManager(
     suspend fun createIsolatedWorld(frameId: String? = null): Int {
         val resolvedFrameId: String? = frameId ?: runCatching { pageAPI.getFrameTree().frame.id }.getOrNull()
 
-        logger.info(
+        logger.debug(
             "Creating isolated world '{}' for frame: {}",
             RUNTIME_WORLD_NAME,
             resolvedFrameId ?: "main"
@@ -87,7 +87,7 @@ class IsolatedWorldManager(
                 // Also store a default fallback mapping in case frameId cannot be resolved later.
                 isolatedWorldContexts[""] = executionContextId
 
-                logger.info("Created isolated world with execution context ID: {}", executionContextId)
+                logger.debug("Created isolated world with execution context ID: {}", executionContextId)
                 return executionContextId
             } catch (e: Exception) {
                 lastError = e
@@ -182,7 +182,7 @@ class IsolatedWorldManager(
 
         evaluateInIsolatedWorld(versionedScript, contextId)
 
-        logger.info("Browser4 runtime injection completed")
+        logger.debug("Browser4 runtime injection completed")
     }
 
     /**

@@ -959,7 +959,7 @@ function() {
             val isolatedWorldJs = loader.getIsolatedWorldJs(false)
             if (isolatedWorldJs.isNotBlank()) {
                 isolatedWorldManager.injectRuntime(isolatedWorldJs, contextId)
-                logger.info("Injected Browser4 runtime into Isolated World (context: {}) | {}",
+                logger.debug("Injected Browser4 runtime into Isolated World (context: {}) | {}",
                     contextId, StringUtils.abbreviateMiddle(userTypedUrl, "...", 200))
             }
 
