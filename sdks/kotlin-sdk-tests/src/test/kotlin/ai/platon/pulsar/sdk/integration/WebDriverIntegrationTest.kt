@@ -200,6 +200,8 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
         val testText = "Testing type functionality"
         driver.navigateTo(TestUrls.SIMPLE_DOM)
 
+        driver.waitForNavigation()
+
         // Type into input field
         driver.type("input[id=input]", testText)
 

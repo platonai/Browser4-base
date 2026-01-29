@@ -279,6 +279,7 @@ class WebDriver(
      * @return True if navigation completed
      */
     suspend fun waitForNavigation(oldUrl: String = "", timeout: Int = 30000): Boolean {
+        // TODO: Implement proper wait for navigation logic
         client.post("/session/{sessionId}/control/delay", mapOf("ms" to minOf(timeout, 1000)))
         return true
     }

@@ -3,6 +3,7 @@ package ai.platon.pulsar.common.js
 import ai.platon.pulsar.common.js.JsUtils.toCDPCompatibleExpression
 import ai.platon.pulsar.common.js.JsUtils.toIIFEOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNull
 
@@ -101,12 +102,20 @@ class JsUtilsTest {
 
     @Test
     fun `test toCDPCompatibleExpression remove heading return`() {
-        val expected = "document.title"
+        var expected = "document.title"
         assertEquals(expected, toCDPCompatibleExpression("return   document.title  "))
         assertEquals(expected, toCDPCompatibleExpression("return   \ndocument.title  "))
         assertEquals(expected, toCDPCompatibleExpression("   return   document.title  "))
         assertEquals(expected, toCDPCompatibleExpression("\nreturn   document.title  "))
         assertEquals(expected, toCDPCompatibleExpression("\n\nreturn\ndocument.title  "))
+
+        expected = "document.title; return 1;"
+        assertEquals(expected, toCDPCompatibleExpression("document.title; return 1;  "))
+        assertNotEquals(expected, toCDPCompatibleExpression("document.title;\n\nreturn 1;  "))
+        assertEquals(expected, toCDPCompatibleExpression("return   document.title; return 1;  "))
+        assertEquals(expected, toCDPCompatibleExpression("return   \ndocument.title; return 1;  "))
+        assertEquals(expected, toCDPCompatibleExpression("   return   document.title; return 1;  "))
+        assertEquals(expected, toCDPCompatibleExpression("\n\nreturn\ndocument.title; return 1;  "))
     }
 
     @Test
