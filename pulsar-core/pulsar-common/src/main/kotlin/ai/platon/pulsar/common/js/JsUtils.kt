@@ -1,6 +1,32 @@
 package ai.platon.pulsar.common.js
 
+import ai.platon.pulsar.common.js.JsUtils.toIIFEOrNull
+
+
 object JsUtils {
+
+    /**
+     * Convert any given JS snippet to an evaluable expression compatible with Chrome DevTools Protocol.
+     *
+     * Notes:
+     * - Single-line: returns the trimmed line, but normalizes function/arrow/object literals via [toIIFEOrNull] when needed.
+     * - Multi-line: attempts to wrap as IIFE if it looks like a function/arrow/object literal; otherwise returns original.
+     */
+    fun toCDPCompatibleExpression(script: String): String {
+        // remove the heading `\s*return `
+        val script = script.replaceFirst(Regex("^\\s*return\\s+"), "")
+
+        val lines = script.split('\n').map { it.trim() }.filter { it.isNotBlank() }
+        if (lines.isEmpty()) return ""
+
+        return if (lines.size == 1) {
+            val line = lines[0]
+            toIIFEOrNull(line) ?: line
+        } else {
+            toIIFEOrNull(script) ?: script
+        }
+    }
+
     /**
      * Convert any given JS snippet to an evaluable expression.
      * - Single-line: returns as-is (trimmed) for quick eval.

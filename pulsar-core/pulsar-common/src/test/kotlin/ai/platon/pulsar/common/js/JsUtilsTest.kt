@@ -1,5 +1,6 @@
 package ai.platon.pulsar.common.js
 
+import ai.platon.pulsar.common.js.JsUtils.toCDPCompatibleExpression
 import ai.platon.pulsar.common.js.JsUtils.toIIFEOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -96,5 +97,36 @@ class JsUtilsTest {
         val args = "1, 2"
         val expected = "(function(a, b) { return a + b; })(1, 2);"
         assertEquals(expected, toIIFEOrNull(input, args))
+    }
+
+    @Test
+    fun `test toCDPCompatibleExpression remove heading return`() {
+        val expected = "document.title"
+        assertEquals(expected, toCDPCompatibleExpression("return   document.title  "))
+        assertEquals(expected, toCDPCompatibleExpression("return   \ndocument.title  "))
+        assertEquals(expected, toCDPCompatibleExpression("   return   document.title  "))
+        assertEquals(expected, toCDPCompatibleExpression("\nreturn   document.title  "))
+        assertEquals(expected, toCDPCompatibleExpression("\n\nreturn\ndocument.title  "))
+    }
+
+    @Test
+    fun `test toCDPCompatibleExpression wraps single line object literal`() {
+        val input = "{ answer: 42 }"
+        val expected = "({ answer: 42 });"
+        assertEquals(expected, toCDPCompatibleExpression(input))
+    }
+
+    @Test
+    fun `test toCDPCompatibleExpression converts single line function expression`() {
+        val input = "function() { return 1 }"
+        val expected = "(function() { return 1 })();"
+        assertEquals(expected, toCDPCompatibleExpression(input))
+    }
+
+    @Test
+    fun `test toCDPCompatibleExpression keeps normal expression`() {
+        val input = "  document.title  "
+        val expected = "document.title"
+        assertEquals(expected, toCDPCompatibleExpression(input))
     }
 }
