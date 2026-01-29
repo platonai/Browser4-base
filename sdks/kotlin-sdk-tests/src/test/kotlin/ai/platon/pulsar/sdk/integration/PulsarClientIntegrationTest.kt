@@ -83,8 +83,6 @@ class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
             mapOf("url" to url)
         )
 
-        readln()
-
         // Should return successfully
         assertNotNull(result, "POST result should not be null")
     }

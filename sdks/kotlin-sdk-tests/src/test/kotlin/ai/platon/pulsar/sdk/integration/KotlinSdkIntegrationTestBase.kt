@@ -13,6 +13,7 @@
 package ai.platon.pulsar.sdk.integration
 
 import ai.platon.pulsar.boot.autoconfigure.PulsarContextConfiguration
+import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.sdk.integration.server.MockServerConfiguration
 import ai.platon.pulsar.sdk.integration.server.PulsarRestServerApplication
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
@@ -44,6 +45,8 @@ import kotlin.test.assertTrue
 @Tag("RequiresServer")
 @TestPropertySource(locations = ["classpath:application-sdk-integration-test.properties"])
 abstract class KotlinSdkIntegrationTestBase {
+
+    private val logger = getLogger(this)
 
     /**
      * Spring Boot injected server port
@@ -129,6 +132,7 @@ abstract class KotlinSdkIntegrationTestBase {
             isEndpointHealthy("/health") && isEndpointHealthy("/health/ready")
         }
         assertTrue(ready, "Server did not become ready in ${timeoutSeconds}s | baseUrl=$baseUrl")
+        logger.info("Server is ready | baseUrl=$baseUrl")
     }
 
     private fun isEndpointHealthy(path: String): Boolean {
@@ -144,35 +148,5 @@ abstract class KotlinSdkIntegrationTestBase {
         } catch (_: Exception) {
             false
         }
-    }
-
-    /**
-     * Retries a transient operation with simple exponential backoff.
-     */
-    @Suppress("unused")
-    protected suspend fun <T> retry(
-        maxAttempts: Int = 3,
-        initialDelayMillis: Long = 500,
-        factor: Double = 2.0,
-        isRetryable: (Throwable) -> Boolean = { false },
-        block: suspend () -> T
-    ): T {
-        require(maxAttempts >= 1) { "maxAttempts must be >= 1" }
-
-        var delayMillis = initialDelayMillis
-
-        repeat(maxAttempts - 1) {
-            try {
-                return block()
-            } catch (t: Throwable) {
-                if (!isRetryable(t)) {
-                    throw t
-                }
-                kotlinx.coroutines.delay(delayMillis)
-                delayMillis = (delayMillis * factor).toLong().coerceAtMost(5_000)
-            }
-        }
-
-        return block()
     }
 }

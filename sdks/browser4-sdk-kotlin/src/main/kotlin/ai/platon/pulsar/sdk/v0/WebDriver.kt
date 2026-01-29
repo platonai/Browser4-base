@@ -2,6 +2,7 @@
 package ai.platon.pulsar.sdk.v0
 
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
+import java.util.*
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more contributor
@@ -44,7 +45,7 @@ class WebDriver(
     val client: PulsarClient
 ) {
     private var _id: Int = 0
-    private val _navigateHistory: MutableList<String> = mutableListOf()
+    private val _navigateHistory: MutableList<String> = Collections.synchronizedList(ArrayList())
 
     /**
      * Gets the driver ID.

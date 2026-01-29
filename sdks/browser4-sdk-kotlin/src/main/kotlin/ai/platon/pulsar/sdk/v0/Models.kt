@@ -59,9 +59,10 @@ data class WebPage(
 data class NormURL(
     val spec: String,
     val url: String,
-    val args: String? = null,
-    val isNil: Boolean = false
+    val args: String? = null
 ) {
+    val isNil: Boolean get() = spec == "http://internal.platon.ai/nil"
+
     companion object {
         /**
          * Creates a NormURL from an API response map.
@@ -70,8 +71,7 @@ data class NormURL(
             return NormURL(
                 spec = data["spec"] as? String ?: "",
                 url = data["url"] as? String ?: "",
-                args = data["args"] as? String,
-                isNil = data["isNil"] as? Boolean ?: false
+                args = data["args"] as? String?: ""
             )
         }
     }

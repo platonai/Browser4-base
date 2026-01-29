@@ -1,9 +1,9 @@
 package ai.platon.pulsar.boot.autoconfigure
 
 import ai.platon.pulsar.agentic.AgenticSession
+import ai.platon.pulsar.agentic.context.AgenticContext
 import ai.platon.pulsar.agentic.context.AgenticContexts
 import ai.platon.pulsar.agentic.context.QLAgenticContext
-import ai.platon.pulsar.skeleton.context.PulsarContext
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,7 +16,7 @@ class PulsarContextConfiguration(
     val applicationContext: ApplicationContext
 ) {
     @Bean
-    fun pulsarContext(): PulsarContext {
+    fun pulsarContext(): AgenticContext {
         val context = AgenticContexts.create(applicationContext)
         require(context is QLAgenticContext)
         require(context.applicationContext == applicationContext)
@@ -25,7 +25,7 @@ class PulsarContextConfiguration(
 
     @Bean
     @Scope("prototype")
-    fun getPulsarSession(pulsarContext: PulsarContext): AgenticSession {
+    fun getPulsarSession(pulsarContext: AgenticContext): AgenticSession {
         require(pulsarContext is QLAgenticContext)
         return pulsarContext.createSession()
     }

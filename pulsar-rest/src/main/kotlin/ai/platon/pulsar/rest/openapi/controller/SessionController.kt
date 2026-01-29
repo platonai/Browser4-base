@@ -5,6 +5,7 @@ import ai.platon.pulsar.rest.openapi.dto.NewSessionResponse
 import ai.platon.pulsar.rest.openapi.dto.SessionDetails
 import ai.platon.pulsar.rest.openapi.dto.WebDriverResponse
 import ai.platon.pulsar.rest.openapi.service.SessionManager
+import ai.platon.pulsar.rest.openapi.support.SessionLocks
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -87,6 +88,8 @@ class SessionController(
         if (!deleted) {
             return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
         }
+
+        SessionLocks.remove(sessionId)
 
         return ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
     }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import kotlin.test.*
@@ -37,6 +38,7 @@ import kotlin.test.*
  * - Malformed responses
  */
 @Tag("IntegrationTest")
+@Order(Integer.MAX_VALUE)
 class ErrorHandlingAndEdgeCasesTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var session: PulsarSession
@@ -228,10 +230,11 @@ class ErrorHandlingAndEdgeCasesTest : KotlinSdkIntegrationTestBase() {
     @DisplayName("should detect nil pages")
     suspend fun testShouldDetectNilPages() {
         // Try to load an invalid URL that should result in a nil page
-        val page = session.normalizeOrNull("invalid://bad-url")
+        val url = session.normalizeOrNull("invalid://bad-url")
 
         // Should return null for completely invalid URL
-        assertNull(page, "Invalid URL should result in null")
+        assertNull(url, "Invalid URL should result in null")
+        // assertEquals(true, page?.isNil)
     }
 
     @Test
