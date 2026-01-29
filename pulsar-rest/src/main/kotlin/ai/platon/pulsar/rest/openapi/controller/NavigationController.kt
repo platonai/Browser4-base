@@ -147,7 +147,7 @@ class NavigationController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.reload()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -173,7 +173,7 @@ class NavigationController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.goBack()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -199,7 +199,7 @@ class NavigationController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.goForward()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -225,7 +225,7 @@ class NavigationController(
 
         return try {
             val title = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.title()
             }
             ResponseEntity.ok(WebDriverResponse(value = title))
@@ -251,7 +251,7 @@ class NavigationController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.bringToFront()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))

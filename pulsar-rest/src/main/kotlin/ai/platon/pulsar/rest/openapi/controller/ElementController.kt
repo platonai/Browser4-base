@@ -93,7 +93,7 @@ class ElementController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.click(element.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -127,7 +127,7 @@ class ElementController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.fill(element.selector, request.text)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -161,7 +161,7 @@ class ElementController(
 
         return try {
             val value = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.selectFirstAttributeOrNull(element.selector, name)
             }
             ResponseEntity.ok(AttributeResponse(value = value ?: ""))
@@ -194,7 +194,7 @@ class ElementController(
 
         return try {
             val text = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.selectFirstTextOrNull(element.selector) ?: ""
             }
             ResponseEntity.ok(TextResponse(value = text))

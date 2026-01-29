@@ -57,7 +57,7 @@ class SelectorController(
 
         return try {
             val exists = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.exists(request.selector)
             }
             ResponseEntity.ok(ExistsResponse(value = ExistsResponse.ExistsValue(exists = exists)))
@@ -93,7 +93,7 @@ class SelectorController(
 
         return try {
             val remainingMillis = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.waitForSelector(request.selector, timeoutMillis)
             }
 
@@ -178,7 +178,7 @@ class SelectorController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.click(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -208,7 +208,7 @@ class SelectorController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.fill(request.selector, request.value)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -238,7 +238,7 @@ class SelectorController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.press(request.selector, request.key)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -268,7 +268,7 @@ class SelectorController(
 
         return try {
             val html = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.outerHTML(request.selector)
             }
             ResponseEntity.ok(HtmlResponse(value = html))
@@ -298,7 +298,7 @@ class SelectorController(
 
         return try {
             val base64 = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.captureScreenshot(request.selector)
             }
             ResponseEntity.ok(ScreenshotResponse(value = base64))
@@ -328,7 +328,7 @@ class SelectorController(
 
         return try {
             val visible = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.isVisible(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse(value = visible))
@@ -358,7 +358,7 @@ class SelectorController(
 
         return try {
             val checked = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.isChecked(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse(value = checked))
@@ -388,7 +388,7 @@ class SelectorController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.hover(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -418,7 +418,7 @@ class SelectorController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.focus(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -448,7 +448,7 @@ class SelectorController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.check(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -478,7 +478,7 @@ class SelectorController(
 
         return try {
             managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.uncheck(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
@@ -508,7 +508,7 @@ class SelectorController(
 
         return try {
             val text = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.selectFirstTextOrNull(request.selector)
             }
             ResponseEntity.ok(TextResponse(value = text))
@@ -538,7 +538,7 @@ class SelectorController(
 
         return try {
             val texts = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.selectTextAll(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse(value = texts))
@@ -568,7 +568,7 @@ class SelectorController(
 
         return try {
             val value = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.selectFirstAttributeOrNull(request.selector, request.attrName)
             }
             ResponseEntity.ok(AttributeResponse(value = value))
@@ -598,7 +598,7 @@ class SelectorController(
 
         return try {
             val values = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.selectAttributeAll(request.selector, request.attrName)
             }
             ResponseEntity.ok(WebDriverResponse(value = values))

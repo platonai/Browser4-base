@@ -1,6 +1,7 @@
 package ai.platon.pulsar.rest.openapi.controller
 
-import ai.platon.pulsar.rest.openapi.dto.*
+import ai.platon.pulsar.rest.openapi.dto.ScriptRequest
+import ai.platon.pulsar.rest.openapi.dto.ScriptResponse
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriverException
 import jakarta.servlet.http.HttpServletResponse
@@ -43,7 +44,7 @@ class ScriptController(
 
         return try {
             val result = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 driver.evaluate(request.script)
             }
             ResponseEntity.ok(ScriptResponse(value = result))
@@ -73,7 +74,7 @@ class ScriptController(
 
         return try {
             val result = managed.mutex.withLock {
-                val driver = managed.pulsarSession.getOrCreateBoundDriver()
+                val driver = managed.driver
                 // For async scripts, we use the same evaluate method
                 // The caller is responsible for proper async handling in the script
                 driver.evaluate(request.script)
