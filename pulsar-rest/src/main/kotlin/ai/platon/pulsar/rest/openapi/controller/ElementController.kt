@@ -5,7 +5,6 @@ import ai.platon.pulsar.rest.openapi.service.SessionManager
 import ai.platon.pulsar.rest.openapi.store.InMemoryStore
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriverException
 import jakarta.servlet.http.HttpServletResponse
-import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.MediaType
@@ -92,8 +91,8 @@ class ElementController(
             ?: return ControllerUtils.notFound("no such element", "Element with id $elementId not found")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.click(element.selector)
+            managed.withLock {
+                driver.click(element.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -125,8 +124,8 @@ class ElementController(
             ?: return ControllerUtils.notFound("no such element", "Element with id $elementId not found")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.fill(element.selector, request.text)
+            managed.withLock {
+                driver.fill(element.selector, request.text)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -158,8 +157,8 @@ class ElementController(
             ?: return ControllerUtils.notFound("no such element", "Element with id $elementId not found")
 
         return try {
-            val value = managed.mutex.withLock {
-                managed.driver.selectFirstAttributeOrNull(element.selector, name)
+            val value = managed.withLock {
+                driver.selectFirstAttributeOrNull(element.selector, name)
             }
             ResponseEntity.ok(AttributeResponse(value = value ?: ""))
         } catch (e: WebDriverException) {
@@ -203,8 +202,8 @@ class ElementController(
             ?: return ControllerUtils.notFound("no such element", "Element with id $elementId not found")
 
         return try {
-            val text = managed.mutex.withLock {
-                managed.driver.selectFirstTextOrNull(element.selector) ?: ""
+            val text = managed.withLock {
+                driver.selectFirstTextOrNull(element.selector) ?: ""
             }
             ResponseEntity.ok(TextResponse(value = text))
         } catch (e: WebDriverException) {

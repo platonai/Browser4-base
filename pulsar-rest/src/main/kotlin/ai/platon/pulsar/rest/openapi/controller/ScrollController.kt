@@ -4,7 +4,6 @@ import ai.platon.pulsar.rest.openapi.dto.*
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriverException
 import jakarta.servlet.http.HttpServletResponse
-import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.MediaType
@@ -42,8 +41,8 @@ class ScrollController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val scrollY = managed.mutex.withLock {
-                managed.driver.scrollDown(request.count)
+            val scrollY = managed.withLock {
+                driver.scrollDown(request.count)
             }
             ResponseEntity.ok(WebDriverResponse(value = scrollY))
         } catch (e: WebDriverException) {
@@ -71,8 +70,8 @@ class ScrollController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val scrollY = managed.mutex.withLock {
-                managed.driver.scrollUp(request.count)
+            val scrollY = managed.withLock {
+                driver.scrollUp(request.count)
             }
             ResponseEntity.ok(WebDriverResponse(value = scrollY))
         } catch (e: WebDriverException) {
@@ -100,8 +99,8 @@ class ScrollController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val scrollY = managed.mutex.withLock {
-                managed.driver.scrollTo(request.selector)
+            val scrollY = managed.withLock {
+                driver.scrollTo(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse(value = scrollY))
         } catch (e: WebDriverException) {
@@ -128,8 +127,8 @@ class ScrollController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val scrollY = managed.mutex.withLock {
-                managed.driver.scrollToTop()
+            val scrollY = managed.withLock {
+                driver.scrollToTop()
             }
             ResponseEntity.ok(WebDriverResponse(value = scrollY))
         } catch (e: WebDriverException) {
@@ -156,8 +155,8 @@ class ScrollController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val scrollY = managed.mutex.withLock {
-                managed.driver.scrollToBottom()
+            val scrollY = managed.withLock {
+                driver.scrollToBottom()
             }
             ResponseEntity.ok(WebDriverResponse(value = scrollY))
         } catch (e: WebDriverException) {
@@ -185,8 +184,8 @@ class ScrollController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val scrollY = managed.mutex.withLock {
-                managed.driver.scrollToMiddle(request.ratio)
+            val scrollY = managed.withLock {
+                driver.scrollToMiddle(request.ratio)
             }
             ResponseEntity.ok(WebDriverResponse(value = scrollY))
         } catch (e: WebDriverException) {
@@ -214,8 +213,8 @@ class ScrollController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val scrollY = managed.mutex.withLock {
-                managed.driver.scrollBy(request.pixels, request.smooth)
+            val scrollY = managed.withLock {
+                driver.scrollBy(request.pixels, request.smooth)
             }
             ResponseEntity.ok(WebDriverResponse(value = scrollY))
         } catch (e: WebDriverException) {

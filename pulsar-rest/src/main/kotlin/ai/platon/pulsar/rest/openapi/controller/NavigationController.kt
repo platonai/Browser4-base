@@ -4,7 +4,6 @@ import ai.platon.pulsar.rest.openapi.dto.SetUrlRequest
 import ai.platon.pulsar.rest.openapi.dto.WebDriverResponse
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import jakarta.servlet.http.HttpServletResponse
-import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -143,8 +142,8 @@ class NavigationController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.reload()
+            managed.withLock {
+                driver.reload()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: Exception) {
@@ -168,8 +167,8 @@ class NavigationController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.goBack()
+            managed.withLock {
+                driver.goBack()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: Exception) {
@@ -193,8 +192,8 @@ class NavigationController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.goForward()
+            managed.withLock {
+                driver.goForward()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: Exception) {
@@ -218,8 +217,8 @@ class NavigationController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val title = managed.mutex.withLock {
-                managed.driver.title()
+            val title = managed.withLock {
+                driver.title()
             }
             ResponseEntity.ok(WebDriverResponse(value = title))
         } catch (e: Exception) {
@@ -243,8 +242,8 @@ class NavigationController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.bringToFront()
+            managed.withLock {
+                driver.bringToFront()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: Exception) {

@@ -7,7 +7,6 @@ import ai.platon.pulsar.rest.openapi.store.InMemoryStore
 import ai.platon.pulsar.skeleton.context.PulsarContext
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriverException
 import jakarta.servlet.http.HttpServletResponse
-import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -56,8 +55,8 @@ class SelectorController(
         }
 
         return try {
-            val exists = managed.mutex.withLock {
-                managed.driver.exists(request.selector)
+            val exists = managed.withLock {
+                driver.exists(request.selector)
             }
             ResponseEntity.ok(ExistsResponse(value = ExistsResponse.ExistsValue(exists = exists)))
         } catch (e: WebDriverException) {
@@ -91,8 +90,8 @@ class SelectorController(
         }
 
         return try {
-            val remainingMillis = managed.mutex.withLock {
-                managed.driver.waitForSelector(request.selector, timeoutMillis)
+            val remainingMillis = managed.withLock {
+                driver.waitForSelector(request.selector, timeoutMillis)
             }
 
             if (remainingMillis <= 0L) {
@@ -175,8 +174,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.click(request.selector)
+            managed.withLock {
+                driver.click(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -204,8 +203,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.fill(request.selector, request.value)
+            managed.withLock {
+                driver.fill(request.selector, request.value)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -233,8 +232,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.press(request.selector, request.key)
+            managed.withLock {
+                driver.press(request.selector, request.key)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -262,8 +261,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val html = managed.mutex.withLock {
-                managed.driver.outerHTML(request.selector)
+            val html = managed.withLock {
+                driver.outerHTML(request.selector)
             }
             ResponseEntity.ok(HtmlResponse(value = html))
         } catch (e: WebDriverException) {
@@ -291,8 +290,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val base64 = managed.mutex.withLock {
-                managed.driver.captureScreenshot(request.selector)
+            val base64 = managed.withLock {
+                driver.captureScreenshot(request.selector)
             }
             ResponseEntity.ok(ScreenshotResponse(value = base64))
         } catch (e: WebDriverException) {
@@ -320,8 +319,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val visible = managed.mutex.withLock {
-                managed.driver.isVisible(request.selector)
+            val visible = managed.withLock {
+                driver.isVisible(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse(value = visible))
         } catch (e: WebDriverException) {
@@ -349,8 +348,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val checked = managed.mutex.withLock {
-                managed.driver.isChecked(request.selector)
+            val checked = managed.withLock {
+                driver.isChecked(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse(value = checked))
         } catch (e: WebDriverException) {
@@ -378,8 +377,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.hover(request.selector)
+            managed.withLock {
+                driver.hover(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -407,8 +406,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.focus(request.selector)
+            managed.withLock {
+                driver.focus(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -436,8 +435,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.check(request.selector)
+            managed.withLock {
+                driver.check(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -465,8 +464,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            managed.mutex.withLock {
-                managed.driver.uncheck(request.selector)
+            managed.withLock {
+                driver.uncheck(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: WebDriverException) {
@@ -494,8 +493,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val text = managed.mutex.withLock {
-                managed.driver.selectFirstTextOrNull(request.selector)
+            val text = managed.withLock {
+                driver.selectFirstTextOrNull(request.selector)
             }
             ResponseEntity.ok(TextResponse(value = text))
         } catch (e: WebDriverException) {
@@ -523,8 +522,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val texts = managed.mutex.withLock {
-                managed.driver.selectTextAll(request.selector)
+            val texts = managed.withLock {
+                driver.selectTextAll(request.selector)
             }
             ResponseEntity.ok(WebDriverResponse(value = texts))
         } catch (e: WebDriverException) {
@@ -552,8 +551,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val value = managed.mutex.withLock {
-                managed.driver.selectFirstAttributeOrNull(request.selector, request.attrName)
+            val value = managed.withLock {
+                driver.selectFirstAttributeOrNull(request.selector, request.attrName)
             }
             ResponseEntity.ok(AttributeResponse(value = value))
         } catch (e: WebDriverException) {
@@ -581,8 +580,8 @@ class SelectorController(
             ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
 
         return try {
-            val values = managed.mutex.withLock {
-                managed.driver.selectAttributeAll(request.selector, request.attrName)
+            val values = managed.withLock {
+                driver.selectAttributeAll(request.selector, request.attrName)
             }
             ResponseEntity.ok(WebDriverResponse(value = values))
         } catch (e: WebDriverException) {
