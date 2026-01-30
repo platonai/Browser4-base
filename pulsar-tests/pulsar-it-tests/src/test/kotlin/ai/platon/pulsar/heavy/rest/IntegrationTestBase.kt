@@ -1,4 +1,4 @@
-package ai.platon.pulsar.integration.rest
+package ai.platon.pulsar.heavy.rest
 
 import ai.platon.pulsar.agentic.BasicAgenticSession
 import ai.platon.pulsar.agentic.tools.crawl.ScrapeResponse

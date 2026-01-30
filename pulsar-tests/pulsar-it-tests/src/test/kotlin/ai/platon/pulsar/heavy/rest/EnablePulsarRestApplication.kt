@@ -1,4 +1,4 @@
-package ai.platon.pulsar.integration.rest
+package ai.platon.pulsar.heavy.rest
 
 import ai.platon.pulsar.boot.autoconfigure.test.PulsarTestContextInitializer
 import org.springframework.boot.autoconfigure.SpringBootApplication
