@@ -1261,6 +1261,26 @@ bring_to_front() -> Any
 driver.bring_to_front()
 ```
 
+### close()
+
+Close the driver (cleanup).
+
+```python
+close() -> None
+```
+
+**Note:** This is a no-op for the REST-based WebDriver. To properly release server resources, use `client.delete_session()` instead.
+
+**Example:**
+
+```python
+# Driver close (no-op)
+driver.close()
+
+# Proper session cleanup
+client.delete_session()
+```
+
 ## Properties
 
 ### id
@@ -1330,7 +1350,8 @@ try:
         screenshot = driver.capture_screenshot()
         
 finally:
-    driver.close()
+    # Close session to release server resources
+    client.delete_session()
 ```
 
 ## Advanced Examples
@@ -1439,7 +1460,8 @@ try:
 except Exception as e:
     print(f"Error: {e}")
 finally:
-    driver.close()
+    # Close session to release server resources
+    client.delete_session()
 ```
 
 ## Best Practices
