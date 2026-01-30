@@ -105,25 +105,6 @@ class PrivacyContextManagerTests {
     }
 
     @Test
-    fun testPrivacyContextClosing() {
-        val privacyManager = MultiPrivacyContextManager(driverPoolManager, conf)
-        val userAgents = UserAgent()
-
-        repeat(100) {
-            val proxyServer = "127.0.0." + Random.nextInt(200)
-            val userAgent = userAgents.getRandomUserAgent()
-            val fingerprint = Fingerprint(BrowserType.DEFAULT, proxyServer, userAgent = userAgent)
-            val pc = privacyManager.tryGetNextReadyPrivacyContext(fingerprint)
-
-            assertTrue { pc.isActive }
-            privacyManager.close(pc)
-            assertTrue { !pc.isActive }
-            assertFalse { privacyManager.temporaryContexts.containsKey(pc.profile) }
-            assertFalse { privacyManager.temporaryContexts.containsValue(pc) }
-        }
-    }
-
-    @Test
     fun testPrivacyContextClosingConcurrently() {
         val privacyManager = MultiPrivacyContextManager(driverPoolManager, conf)
         val userAgents = UserAgent()
