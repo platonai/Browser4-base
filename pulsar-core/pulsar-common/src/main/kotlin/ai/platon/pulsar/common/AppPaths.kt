@@ -40,6 +40,8 @@ object AppPaths {
     /**
      * The directory for the user's default browser.
      *
+     * NOTE: Chrome DevTools remote debugging requires a non-default data directory. Specify this using --user-data-dir.
+     *
      * The placeholder directory for the user's default browser. This is a placeholder, actually no data dir
      * should be specified, so the browser driver opens a browser just like a normal user opens it.
      * The actual data dir of user's browser are different on different operating systems, for example,

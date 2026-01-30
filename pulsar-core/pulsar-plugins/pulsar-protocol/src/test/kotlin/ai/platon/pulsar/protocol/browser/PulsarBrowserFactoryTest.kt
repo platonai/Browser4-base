@@ -5,6 +5,7 @@ import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
 import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -29,6 +30,7 @@ class PulsarBrowserFactoryTest {
 
     }
 
+    @Disabled("Chrome DevTools remote debugging requires a non-default data directory.")
     @Test
     fun testLaunchSystemDefaultBrowser() {
         val browser = browserFactory.launchSystemDefaultBrowser()

@@ -240,6 +240,7 @@ interface PrivacyContext: AutoCloseable {
         // required to start with the prefix.
         const val CONTEXT_DIR_PREFIX = "cx."
 
+        // NOTE: Chrome DevTools remote debugging requires a non-default data directory. Specify this using --user-data-dir.
         val SYSTEM_DEFAULT_BROWSER_CONTEXT_DIR_PLACEHOLDER: Path = AppPaths.SYSTEM_DEFAULT_BROWSER_CONTEXT_DIR_PLACEHOLDER
 
         // The default context directory, if you need a permanent and isolate context, use this one.

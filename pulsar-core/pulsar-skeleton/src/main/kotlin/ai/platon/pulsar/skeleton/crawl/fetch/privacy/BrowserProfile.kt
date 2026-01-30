@@ -79,6 +79,8 @@ data class BrowserProfile(
 
         fun createSystemDefault(browserType: BrowserType): BrowserProfile {
             throttlingLogger.info("You are creating a SYSTEM_DEFAULT browser context, force set max browser number to be 1")
+            throttlingLogger.info("Chrome DevTools remote debugging requires a non-default data directory. Specify this using --user-data-dir.")
+
             BrowserSettings.withBrowserContextMode(BrowserProfileMode.SYSTEM_DEFAULT, browserType)
             require(System.getProperty(BROWSER_CONTEXT_NUMBER).toIntOrNull() == 1)
             require(System.getProperty(PRIVACY_AGENT_GENERATOR_CLASS).contains("SystemDefaultPrivacyAgentGenerator"))
