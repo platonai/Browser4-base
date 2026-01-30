@@ -42,7 +42,7 @@ implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-SNAPSHOT")
 The SDK now automatically downloads and starts Browser4.jar when no server URL is specified:
 
 ```kotlin
-import ai.platon.pulsar.sdk.*
+import ai.platon.pulsar.sdk.v0.*
 
 fun main() {
     // Automatically downloads and starts Browser4.jar
@@ -83,7 +83,7 @@ fun main() {
 ### Using Local Driver with Custom Configuration
 
 ```kotlin
-import ai.platon.pulsar.sdk.*
+import ai.platon.pulsar.sdk.v0.*
 
 fun main() {
     // Configure local driver options
@@ -113,7 +113,7 @@ fun main() {
 For more control over client configuration:
 
 ```kotlin
-import ai.platon.pulsar.sdk.*
+import ai.platon.pulsar.sdk.v0.*
 
 fun main() {
     // Create client and session
@@ -145,7 +145,7 @@ fun main() {
 Using explicit client creation:
 
 ```kotlin
-import ai.platon.pulsar.sdk.*
+import ai.platon.pulsar.sdk.v0.*
 
 fun main() {
     val client = PulsarClient()
@@ -186,7 +186,7 @@ fun main() {
 ### WebDriver Usage
 
 ```kotlin
-import ai.platon.pulsar.sdk.*
+import ai.platon.pulsar.sdk.v0.*
 
 fun main() {
     val client = PulsarClient()
