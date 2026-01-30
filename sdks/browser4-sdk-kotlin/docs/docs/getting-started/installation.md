@@ -16,8 +16,8 @@ Add the following dependency to your `pom.xml`:
 ```xml
 <dependencies>
     <dependency>
-        <groupId>io.browser4</groupId>
-        <artifactId>browser4-sdk-kotlin</artifactId>
+        <groupId>ai.platon.pulsar</groupId>
+        <artifactId>pulsar-sdk-kotlin</artifactId>
         <version>4.5.0-SNAPSHOT</version>
     </dependency>
 </dependencies>
@@ -43,7 +43,7 @@ If you're using a SNAPSHOT version, you may need to add the Sonatype snapshots r
 
 ```kotlin
 dependencies {
-    implementation("io.browser4:browser4-sdk-kotlin:4.5.0-SNAPSHOT")
+    implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-SNAPSHOT")
 }
 
 repositories {
@@ -59,7 +59,7 @@ repositories {
 
 ```groovy
 dependencies {
-    implementation 'io.browser4:browser4-sdk-kotlin:4.5.0-SNAPSHOT'
+    implementation 'ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-SNAPSHOT'
 }
 
 repositories {
