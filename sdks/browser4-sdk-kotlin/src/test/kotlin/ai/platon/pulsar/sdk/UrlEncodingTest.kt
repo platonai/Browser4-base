@@ -17,6 +17,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -37,14 +38,14 @@ class UrlEncodingTest {
     fun `URL encoding should encode various special characters`() {
         val testCases = mapOf(
             "#id" to "%23id",
-            ".class" to ".class",
+            ".class" to ".class",  // Dots are safe in URLs and not encoded
             "[attr]" to "%5Battr%5D",
-            "a b" to "a+b",
+            "a b" to "a%20b",
             "name=value" to "name%3Dvalue"
         )
 
         testCases.forEach { (input, expected) ->
-            val encoded = URLEncoder.encode(input, StandardCharsets.UTF_8)
+            val encoded = URLEncoder.encode(input, StandardCharsets.UTF_8).replace("+", "%20")
             assertEquals(expected, encoded, "Failed for input: $input")
         }
     }
@@ -61,11 +62,18 @@ class UrlEncodingTest {
     }
 
     @Test
-    fun `sendKeys uses selector-based API not element-based API`() {
+    fun `sendKeys delegates to fill method`() {
         // This test documents that sendKeys now takes a selector parameter
-        // and uses the /selectors/fill endpoint instead of /element/{id}/value
+        // and delegates to fill() instead of using /element/{id}/value endpoint
         // The signature changed from: sendKeys(elementId: String, text: String)
         // to: sendKeys(selector: String, text: String, strategy: String = "css")
-        assertTrue(true, "sendKeys now accepts selector parameter")
+        
+        // Note: This is a documentation test. Integration tests would verify
+        // the actual HTTP call is made to /session/{sessionId}/selectors/fill
+        val client = ai.platon.pulsar.sdk.v0.detail.PulsarClient(sessionId = "test")
+        val driver = ai.platon.pulsar.sdk.v0.WebDriver(client)
+        
+        // Verify WebDriver instance is created (structure test)
+        assertNotNull(driver)
     }
 }

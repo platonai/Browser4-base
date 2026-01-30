@@ -55,7 +55,11 @@ class WebDriver:
 
     @staticmethod
     def _encode_path_segment(value: str) -> str:
-        """URL-encode a string for safe use in URL paths."""
+        """
+        URL-encode a string for safe use in URL paths.
+        
+        Uses quote() with safe='' to encode all special characters for path segments.
+        """
         return quote(value, safe='')
 
     @property
@@ -469,6 +473,10 @@ class WebDriver:
     def send_keys(self, selector: str, text: str, strategy: str = "css") -> Any:
         """
         Send keys to an element.
+        
+        This method now delegates to fill() for consistency with the selector-based API.
+        It provides a familiar WebDriver-compatible method name while using the
+        selector-based endpoint internally.
 
         Args:
             selector: CSS selector or XPath expression.
