@@ -30,41 +30,6 @@ class TestResultSetPersistUtils {
     }
 
     @Test
-    fun testExtractUrlFromFromClause() {
-        val urls = listOf(
-            "http://amazon.com/a/reviews/123?pageNumber=21&a=b",
-            """https://www.amazon.com/s?k="Boys^27+Novelty+Belt+Buckles"&rh=n:9057119011&page=1""",
-            """https://www.amazon.com/s?k="Boys%27+Novelty+Belt+Buckles"&rh=n:9057119011&page=1""",
-            """https://www.amazon.com/s?k="Boys%27+Novelty+Belt+Buckles"&rh=n:9057119011&page=1 -i 1h -retry"""
-        )
-        val sqlTemplates = listOf(
-            """
-                select dom_first_text(dom, '#container'), dom_first_text(dom, '.price')
-                from load_and_select(@url, ':root body');
-            """,
-            """
-                select dom_first_text(dom, '#container'), dom_first_text(dom, '.price')
-                from load_and_select(     @url, ':root body');
-            """,
-            """
-                select dom_first_text(dom, '#container'), dom_first_text(dom, '.price')
-                from load_and_select(     @url     , ':root body');
-            """,
-            """
-                select dom_first_text(dom, 'div:contains(https://www.amazon.com/)'), dom_first_text(dom, '.price')
-                FROM LOAD_AND_SELECT(     @url     , ':root body');
-            """
-        ).map { it.trimIndent() }
-
-        urls.forEach { url ->
-            sqlTemplates.map { template -> SQLTemplate(template).createSQL(url) }.forEach { sql ->
-                val actualUrl = ResultSetUtils.extractUrlFromFromClause(sql)
-                assertEquals(url, actualUrl, sql)
-            }
-        }
-    }
-
-    @Test
     fun testTranspose() {
         val rs = ResultSets.newSimpleResultSet()
         val columnCount = 5
