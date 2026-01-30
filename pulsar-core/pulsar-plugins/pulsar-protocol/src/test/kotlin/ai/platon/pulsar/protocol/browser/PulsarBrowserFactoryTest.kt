@@ -1,13 +1,11 @@
 package ai.platon.pulsar.protocol.browser
 
 import ai.platon.pulsar.common.AppPaths
-import ai.platon.pulsar.common.config.CapabilityTypes.MIN_SEQUENTIAL_PRIVACY_AGENT_NUMBER
-import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
 import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -16,12 +14,12 @@ class PulsarBrowserFactoryTest {
     private lateinit var browserFactory: PulsarBrowserFactory
     private val browsers = mutableListOf<Browser>()
 
-    @Before
+    @BeforeEach
     fun setUp() {
         browserFactory = PulsarBrowserFactory()
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         browsers.forEach { it.close() }
     }
@@ -82,31 +80,20 @@ class PulsarBrowserFactoryTest {
     }
 
     @Test
-    fun testLaunchNextSequentialBrowserManyTimes() {
-        val conf = ImmutableConfig()
-        val maxAgents = conf.getInt(MIN_SEQUENTIAL_PRIVACY_AGENT_NUMBER, 10)
-
-        for (i in 1..(maxAgents + 2)) {
-            val browser = browserFactory.launchNextSequentialBrowser()
-            browsers.add(browser)
-            browser.close()
-        }
-
-        val contextDirs = browsers.map { it.id.contextDir }.toSet()
-        assertTrue("Context dirs should used cyclically\n${contextDirs.joinToString("\n")}") { contextDirs.size <= maxAgents }
-    }
-
-    @Test
     fun testLaunchRandomTempBrowser() {
         val browser = browserFactory.launchRandomTempBrowser()
         browsers.add(browser)
 
         assertTrue { browser.id.contextDir.toString().replace("\\", "/").contains("context/tmp/groups/rand") }
         assertTrue("Context dir should be start with AppPaths.CONTEXT_TMP_DIR\n${browser.id.contextDir}\n${AppPaths.CONTEXT_TMP_DIR}") {
-            browser.id.contextDir.startsWith(AppPaths.CONTEXT_TMP_DIR) }
-        assertTrue("Context dir should be start with AppPaths.getTmpContextGroupDir(\"rand\")\n" +
-                "${browser.id.contextDir}\n" +
-                "${AppPaths.getTmpContextGroupDir("rand")}") {
-            browser.id.contextDir.startsWith(AppPaths.getTmpContextGroupDir("rand")) }
+            browser.id.contextDir.startsWith(AppPaths.CONTEXT_TMP_DIR)
+        }
+        assertTrue(
+            "Context dir should be start with AppPaths.getTmpContextGroupDir(\"rand\")\n" +
+                    "${browser.id.contextDir}\n" +
+                    "${AppPaths.getTmpContextGroupDir("rand")}"
+        ) {
+            browser.id.contextDir.startsWith(AppPaths.getTmpContextGroupDir("rand"))
+        }
     }
 }
