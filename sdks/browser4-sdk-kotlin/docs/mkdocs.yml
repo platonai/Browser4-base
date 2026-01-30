@@ -1,0 +1,104 @@
+site_name: Browser4 Kotlin SDK Documentation
+site_description: Comprehensive documentation for Browser4 Kotlin SDK
+site_author: Platon AI
+site_url: https://browser4.io
+
+repo_name: platonai/Browser4
+repo_url: https://github.com/platonai/Browser4
+edit_uri: edit/main/sdks/browser4-sdk-kotlin/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Introduction: getting-started/introduction.md
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - First Steps: getting-started/first-steps.md
+  - User Guide:
+    - Session Management: guide/session-management.md
+    - Navigation: guide/navigation.md
+    - Element Interaction: guide/element-interaction.md
+    - Data Extraction: guide/data-extraction.md
+    - AI-Powered Automation: guide/ai-automation.md
+    - Screenshots: guide/screenshots.md
+    - Script Execution: guide/script-execution.md
+  - API Reference:
+    - Overview: api/overview.md
+    - PulsarClient: api/pulsar-client.md
+    - PulsarSession: api/pulsar-session.md
+    - AgenticSession: api/agentic-session.md
+    - WebDriver: api/webdriver.md
+    - Models: api/models.md
+  - Examples:
+    - Basic Usage: examples/basic-usage.md
+    - Advanced Usage: examples/advanced-usage.md
+    - AI Automation: examples/ai-automation.md
+    - Complete Workflow: examples/complete-workflow.md
+  - Configuration:
+    - Local Driver: configuration/local-driver.md
+    - Remote Server: configuration/remote-server.md
+    - Environment Variables: configuration/environment-variables.md
+  - FAQ: faq.md
+  - Changelog: changelog.md
+  - 中文文档:
+    - 主页: zh/index.md
+    - 快速开始: zh/quick-start.md
+    - API 参考: zh/api-reference.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/platonai/Browser4
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/galaxyeye88/browser4
+
+copyright: Copyright &copy; 2025 Platon AI
