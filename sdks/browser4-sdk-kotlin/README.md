@@ -439,6 +439,27 @@ val client = PulsarClient(
 )
 ```
 
+## Documentation
+
+📚 **[Complete Documentation Site](docs/)** - Comprehensive guides, API reference, and examples
+
+Quick links:
+- [Getting Started Guide](docs/docs/getting-started/introduction.md)
+- [Quick Start](docs/docs/getting-started/quick-start.md)
+- [API Reference](docs/docs/api/overview.md)
+- [Examples](docs/docs/examples/basic-usage.md)
+- [中文文档](docs/docs/zh/index.md)
+
+To build and view the documentation locally:
+
+```bash
+cd docs
+./build.sh
+./serve.sh
+```
+
+The documentation will be available at http://127.0.0.1:8000
+
 ## License
 
 Apache License, Version 2.0
