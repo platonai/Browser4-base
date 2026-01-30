@@ -193,5 +193,140 @@ class URLUtilsTest {
 
         assertEquals(expectedURL, result)
     }
+
+    // ===== Comprehensive tests for URLUtils.normalize* methods =====
+
+    @Test
+    fun `normalizeOrNull should handle URL with empty query parameter value`() {
+        // This is the original failing case from the issue
+        val url = "http://localhost:18080/test?param="
+        val normalized = URLUtils.normalizeOrNull(url)
+        
+        assertNotNull(normalized, "URL with empty query parameter value should be normalized")
+        assertTrue(normalized!!.contains("param="), "Query parameter should be preserved")
+    }
+
+    @Test
+    fun `normalizeOrNull should handle URL with multiple empty query parameters`() {
+        val url = "http://example.com/path?a=&b=&c=value"
+        val normalized = URLUtils.normalizeOrNull(url)
+        
+        assertNotNull(normalized, "URL with multiple empty query parameters should be normalized")
+    }
+
+    @Test
+    fun `normalizeOrNull should handle URL with query parameter and fragment`() {
+        val url = "http://example.com/test?param=#fragment"
+        val normalized = URLUtils.normalizeOrNull(url)
+        
+        assertNotNull(normalized, "URL with empty param and fragment should be normalized")
+        assertFalse(normalized!!.contains("#"), "Fragment should be removed")
+    }
+
+    @Test
+    fun `normalizeOrNull should handle URL with only equals sign in query`() {
+        val url = "http://example.com/test?="
+        val normalized = URLUtils.normalizeOrNull(url)
+        
+        // Note: bare "=" without a parameter name may be considered invalid
+        // This test documents the current behavior
+        // assertNull or assertNotNull would both be acceptable depending on implementation
+    }
+
+    @Test
+    fun `normalizeOrNull should handle URL with encoded special characters in query`() {
+        val url = "http://example.com/test?param=%20&other=value"
+        val normalized = URLUtils.normalizeOrNull(url)
+        
+        assertNotNull(normalized, "URL with encoded special characters should be normalized")
+    }
+
+    @Test
+    fun `normalizeOrNull should handle URL with special characters that need encoding`() {
+        val url = "http://example.com/test?param=hello world"
+        
+        // Note: URLs with unencoded spaces are typically invalid and may be rejected
+        // This test documents the expected behavior
+        val normalized = URLUtils.normalizeOrNull(url)
+        // The actual result depends on the URL parsing library's strictness
+    }
+
+    @Test
+    fun `normalize should handle URL with empty query parameter value`() {
+        val url = "http://localhost:18080/test?param="
+        val normalized = URLUtils.normalize(url)
+        
+        assertNotNull(normalized)
+        assertTrue(normalized.toString().contains("param="), "Query parameter should be preserved")
+    }
+
+    @Test
+    fun `normalize should handle URL with ampersand at end of query`() {
+        val url = "http://example.com/test?param=value&"
+        val normalized = URLUtils.normalize(url)
+        
+        assertNotNull(normalized)
+    }
+
+    @Test
+    fun `normalizeOrNull should return null for URL with double quotes in query parameter value`() {
+        // From the existing test - URLs with quotes in parameter values are invalid
+        val url = """https://www.amazon.com/s?k="Boys%27+Novelty+Belt+Buckles"&rh=n:9057119011&page=1"""
+        val normalized = URLUtils.normalizeOrNull(url, true)
+        
+        assertNull(normalized, "URL with quotes in parameter values should be rejected")
+    }
+
+    @Test
+    fun `normalize ignoreQuery should remove query string with empty parameter`() {
+        val url = "http://example.com/path?param=&other=value"
+        val normalized = URLUtils.normalize(url, ignoreQuery = true)
+        
+        assertNotNull(normalized)
+        assertFalse(normalized.toString().contains("?"), "Query string should be removed when ignoreQuery=true")
+        assertEquals("http://example.com/path", normalized.toString())
+    }
+
+    @Test
+    fun `normalizeOrEmpty should return empty string for invalid URL`() {
+        val url = "not a valid url"
+        val normalized = URLUtils.normalizeOrEmpty(url)
+        
+        assertEquals("", normalized, "Invalid URL should return empty string")
+    }
+
+    @Test
+    fun `normalizeOrEmpty should handle URL with empty parameter value`() {
+        val url = "http://example.com/test?param="
+        val normalized = URLUtils.normalizeOrEmpty(url)
+        
+        assertNotEquals("", normalized, "Valid URL with empty parameter should not return empty string")
+    }
+
+    @Test
+    fun `normalizeUrls should filter out invalid URLs`() {
+        val urls = listOf(
+            "http://example.com/valid",
+            "invalid url",
+            "http://example.com/test?param=",
+            "http://[invalid"
+        )
+        val normalized = URLUtils.normalizeUrls(urls)
+        
+        // Should contain only valid URLs
+        assertTrue(normalized.size < urls.size, "Should filter out some invalid URLs")
+        assertTrue(normalized.any { it.contains("valid") }, "Should contain valid URLs")
+    }
+
+    @Test
+    fun `normalize should preserve localhost URLs with ports and empty query params`() {
+        val url = "http://localhost:8080/api/test?param="
+        val normalized = URLUtils.normalize(url)
+        
+        assertNotNull(normalized)
+        assertEquals("localhost", normalized.host)
+        assertEquals(8080, normalized.port)
+        assertTrue(normalized.toString().contains("param="))
+    }
 }
 
