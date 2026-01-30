@@ -267,7 +267,6 @@ curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/do
 | `pulsar-core`     | Core engine: sessions, scheduling, DOM, browser control |
 | `pulsar-agentic`  | Agent implementation, MCP, and skill registration       |
 | `pulsar-rest`     | Spring Boot REST layer & command endpoints              |
-| `pulsar-tools`    | CLI tools and operational utilities                     |
 | `browser4-spa`    | Single Page Application for browser agents              |
 | `browser4-agents` | Agent & crawler orchestration with product packaging    |
 | `sdks`            | Kotlin/Python SDKs plus tests and examples              |
@@ -279,3 +278,89 @@ curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/do
 ## 📜 SDK
 
 Kotlin and Python SDKs are available under `sdks/`; Node.js SDK is planned.
+
+---
+
+## ✨ Features
+
+Status: [Available] in repo, [Experimental] in active iteration, [Planned] not in repo, [Indicative] performance target.
+
+### AI & Agents
+- [Available] Problem-solving autonomous browser agents
+- [Available] Parallel agent sessions
+- [Experimental] LLM-assisted page understanding & extraction
+
+### Browser Automation & RPA
+- [Available] Workflow-based browser actions
+- [Available] Precise coroutine-safe control (scroll, click, extract)
+- [Available] Flexible event handlers & lifecycle management
+
+### Data Extraction & Query
+- [Available] One-line data extraction commands
+- [Available] X-SQL extended query language for DOM/content
+- [Experimental] Structured + unstructured hybrid extraction (LLM & ML & selectors)
+
+### Performance & Scalability
+- [Available] High-efficiency parallel page rendering
+- [Available] Block-resistant design & smart retries
+- [Indicative] 100,000+ complex pages/day on modest hardware
+
+### Stealth & Reliability
+- [Experimental] Advanced anti-bot techniques
+- [Available] Proxy rotation via `PROXY_ROTATION_URL`
+- [Available] Resilient scheduling & quality assurance
+
+### Developer Experience
+- [Available] Simple API integration (REST, native, text commands)
+- [Available] Rich configuration layering
+- [Available] Clear structured logging & metrics
+
+### Storage & Monitoring
+- [Available] Local FS & MongoDB support (extensible)
+- [Available] Comprehensive logs & transparency
+
+---
+
+## 🤝 Support & Community
+
+Join our community for support, feedback, and collaboration!
+
+- **GitHub Discussions**: Engage with developers and users.
+- **Issue Tracker**: Report bugs or request features.
+- **Social Media**: Follow us for updates and news.
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+---
+
+## 📜 Documentation
+
+Comprehensive documentation is available in the `docs/` directory and on our [GitHub Pages site](https://platonai.github.io/browser4/).
+
+---
+
+## 🔧 Proxies - Unblock Websites
+
+Browser4 supports proxy rotation and management to access geo-restricted content.
+
+**Quick Start:**
+1. Obtain a list of proxy URLs (e.g., from a proxy provider).
+2. Configure `PROXY_ROTATION_URL` in `application.properties`.
+3. Use the `rotateProxies` command in your agent scripts.
+
+**Example:**
+```kotlin
+agent.run("""
+    1. Go to a blocked website
+    2. If blocked, rotate proxy and retry
+    """)
+```
+
+**Note**: Respect website terms of service and robots.txt rules when scraping.
+
+---
+
+## License
+
+Apache 2.0 License. See [LICENSE](LICENSE) for details.
+
