@@ -28,7 +28,6 @@ class FusedActsStyleExample {
     private val session = AgenticContexts.getOrCreateSession()
 
     suspend fun run() {
-        // Use local mock site instead of external site so actions are deterministic.
         val url = "https://news.ycombinator.com/news"
 
         // Get the companion agent and driver (just like FusedActs)
