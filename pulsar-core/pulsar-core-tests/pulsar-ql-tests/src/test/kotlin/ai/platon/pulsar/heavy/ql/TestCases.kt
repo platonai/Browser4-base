@@ -1,6 +1,6 @@
-package ai.platon.pulsar.ql
+package ai.platon.pulsar.heavy.ql
 
-import ai.platon.pulsar.test.TestResourceUtil
+import ai.platon.pulsar.test.TestUrls
 import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 
@@ -49,7 +49,7 @@ class TestCases: TestBase() {
 
     @Test
     fun testExtractTable() {
-        val url = TestResourceUtil.PRODUCT_DETAIL_URL
+        val url = TestUrls.PRODUCT_DETAIL_URL
         val sql = """
             select
                 dom_all_texts(dom, '#comparison_title, tr.comparison_table_image_row th a[href~=/dp/]') as `Product name`,
