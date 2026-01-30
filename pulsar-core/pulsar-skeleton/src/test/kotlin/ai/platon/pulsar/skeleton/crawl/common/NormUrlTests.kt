@@ -43,9 +43,10 @@ class NormUrlTests {
     private fun assertNormUrl(url: String, args: String, configuredUrl: String, normURL: NormURL) {
         assertEquals(url, normURL.url.toString())
         assertEquals(url, normURL.urlString)
+        assertEquals(configuredUrl, normURL.urlSpec)
         assertEquals(configuredUrl, normURL.configuredUrl)
         assertEquals(configuredUrl, normURL.toString())
 
-        assertEquals(normURL.urlSpec, url)
+        assertEquals(normURL.urlString, url)
     }
 }
