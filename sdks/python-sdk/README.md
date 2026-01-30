@@ -7,6 +7,17 @@ This SDK provides a Python interface to the Browser4 browser automation platform
 - **AI-powered browser automation** with natural language instructions
 - **WebDriver-compatible API** for browser control
 
+## 📚 Documentation
+
+**[View Full Documentation →](https://platonai.github.io/Browser4/sdks/python-sdk/)**
+
+Or build locally:
+```bash
+pip install -r docs-requirements.txt
+mkdocs serve
+# Open http://127.0.0.1:8000
+```
+
 ## Installation
 
 ```bash

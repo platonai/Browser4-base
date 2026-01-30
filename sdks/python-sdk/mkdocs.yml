@@ -1,0 +1,95 @@
+site_name: Browser4 Python SDK Documentation
+site_description: Python SDK for Browser4 - AI-powered browser automation and web scraping
+site_author: Browser4 Team
+site_url: https://github.com/platonai/Browser4
+
+repo_name: platonai/Browser4
+repo_url: https://github.com/platonai/Browser4
+edit_uri: edit/main/sdks/python-sdk/docs/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: quickstart.md
+  - API Reference:
+    - PulsarClient: api-reference/client.md
+    - PulsarSession: api-reference/session.md
+    - AgenticSession: api-reference/agentic-session.md
+    - WebDriver: api-reference/webdriver.md
+    - Data Models: api-reference/models.md
+  - Guides:
+    - Basic Usage: guides/basic-usage.md
+    - AI-Powered Automation: guides/agent-automation.md
+    - Data Extraction: guides/data-extraction.md
+    - Advanced Patterns: guides/advanced.md
+  - Examples:
+    - Simple Web Scraping: examples/simple-scraping.md
+    - AI Automation Tasks: examples/ai-automation.md
+    - Complex Workflows: examples/complex-workflows.md
+  - Reference:
+    - Troubleshooting: troubleshooting.md
+    - Contributing: contributing.md
+    - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/platonai/Browser4

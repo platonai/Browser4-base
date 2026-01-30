@@ -60,3 +60,7 @@ venv.bak/
 
 # MyPy
 .mypy_cache/
+
+# MkDocs
+site/
+.cache/
