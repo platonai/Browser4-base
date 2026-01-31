@@ -29,6 +29,8 @@ data class Credentials(
  * A Playwright-based implementation of the WebDriver interface.
  * This driver provides browser automation capabilities using the Playwright library.
  *
+ * NOTICE: **DO NOT** use this driver (PlaywrightDriver) in production, this driver is used only for test purpose
+ *
  * @property browser The PlaywrightBrowser instance
  * @property page The Playwright Page instance
  * @property settings Browser configuration settings
@@ -804,9 +806,8 @@ class PlaywrightDriver(
     }
 
     @Throws(WebDriverException::class)
-    override suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation? {
-        val result = page.locator(selector).evaluate(functionDeclaration)
-        return JsEvaluation(result)
+    override suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation {
+        return JsEvaluation(evaluateValue(selector, functionDeclaration))
     }
 
     /**
