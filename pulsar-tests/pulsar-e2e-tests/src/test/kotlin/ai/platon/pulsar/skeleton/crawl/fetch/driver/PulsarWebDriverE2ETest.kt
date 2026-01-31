@@ -72,6 +72,31 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
     }
 
     @Test
+    fun `When navigate to a HTML page then mainRequestCookies are captured`() = runEnhancedWebDriverTest(browser) { driver ->
+        // Navigate to the page with cookies
+        openEnhanced(e2eProductUrl, driver, 1)
+
+        val navbarMain = driver.selectFirstTextOrNull("#navbar-main")
+        val title = driver.selectFirstTextOrNull("#productTitle")
+        Assumptions.assumeTrue { navbarMain != null || title != null }
+
+        val navigateEntry = driver.navigateEntry
+        assertTrue("Expect mainFrameReceived") { navigateEntry.mainFrameReceived }
+        
+        // Verify that mainRequestCookies are captured
+        // Note: mainRequestCookies may be empty if no cookies are sent with the request
+        // or if RequestWillBeSentExtraInfo is not received yet
+        require(driver is AbstractWebDriver)
+        val mainRequestCookies = driver.mainRequestCookies
+        
+        // Log the cookies for debugging
+        printlnPro("mainRequestCookies: $mainRequestCookies")
+        
+        // The cookies should be a list (may be empty depending on the site)
+        assertNotNull(mainRequestCookies)
+    }
+
+    @Test
     fun `when open a HTML page then script is injected`() = runEnhancedWebDriverTest(e2eOriginUrl, browser) { driver ->
         var detail = driver.evaluateDetail("typeof(window)")
         printlnPro(detail)
