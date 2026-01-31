@@ -803,6 +803,12 @@ class PlaywrightDriver(
         return page.locator(selector).evaluate(functionDeclaration)
     }
 
+    @Throws(WebDriverException::class)
+    override suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation? {
+        val result = page.locator(selector).evaluate(functionDeclaration)
+        return JsEvaluation(result)
+    }
+
     /**
      * Captures a screenshot of the current page.
      * @return The screenshot as a base64 encoded string

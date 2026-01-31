@@ -85,7 +85,7 @@ class PulsarWebDriver(
     private val isGone get() = closed.get() || isQuit || !AppContext.isActive || !devTools.isOpen
 
     private var userTypedUrl: String? = null
-    private var navigateUrl = chromeTab.url ?: ""
+    private var navigateUrl: String? = chromeTab.url
     private var credentials: Credentials? = null
 
     val isNetworkIdle get() = networkManager.isIdle
@@ -228,7 +228,7 @@ class PulsarWebDriver(
             .onFailure { logger.warn("Failed to retrieve the mainFrameUrl", it) }
             .getOrNull()
         navigateUrl = mainFrameUrl ?: navigateUrl
-        return navigateUrl
+        return navigateUrl ?: userTypedUrl ?: ""
     }
 
     @Throws(WebDriverException::class)
@@ -722,7 +722,6 @@ function() {
      * */
     private suspend fun navigateInvaded(entry: NavigateEntry) {
         val url = entry.url
-        navigateUrl = url
 
         addScriptToEvaluateOnNewDocument()
 
