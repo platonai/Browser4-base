@@ -82,7 +82,18 @@ class NetworkEventManager {
     }
 
     fun addRequestWillBeSentExtraInfoEvent(event: RequestWillBeSentExtraInfo) {
+        val queue = requestWillBeSentExtraInfoEvents.computeIfAbsent(event.requestId) { LinkedList() }
+        queue.add(event)
+    }
 
+    fun getRequestWillBeSentExtraInfoEvent(requestId: String): RequestWillBeSentExtraInfo? {
+        val queue = requestWillBeSentExtraInfoEvents[requestId]
+        return queue?.peek()
+    }
+
+    fun takeFirstRequestWillBeSentExtraInfoEvent(requestId: String): RequestWillBeSentExtraInfo? {
+        val queue = requestWillBeSentExtraInfoEvents[requestId]
+        return queue?.poll()
     }
 
     fun addRequestWillBeSentEvent(networkRequestId: NetworkRequestId, event: RequestWillBeSent) {

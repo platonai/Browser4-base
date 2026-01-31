@@ -427,4 +427,12 @@ internal class NetworkManager(
         forgetRequest(request, true)
         emit(NetworkEvents.RequestFailed, request)
     }
+    
+    /**
+     * Get the RequestWillBeSentExtraInfo event for a given request ID.
+     * This allows access to additional request information including cookies.
+     */
+    fun getRequestWillBeSentExtraInfo(requestId: String): RequestWillBeSentExtraInfo? {
+        return networkEventManager.getRequestWillBeSentExtraInfoEvent(requestId)
+    }
 }

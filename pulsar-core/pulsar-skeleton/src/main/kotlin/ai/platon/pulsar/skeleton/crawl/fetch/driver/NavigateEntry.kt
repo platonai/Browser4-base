@@ -116,6 +116,10 @@ data class NavigateEntry constructor(
         }
     }
 
+    fun updateMainRequestCookies(cookies: List<Map<String, String>>) {
+        mainRequestCookies = cookies
+    }
+
     fun updateMainResponse(status: Int, statusText: String, headers: Map<String, Any>) {
         mainResponseStatus = status
         mainResponseStatusText = statusText

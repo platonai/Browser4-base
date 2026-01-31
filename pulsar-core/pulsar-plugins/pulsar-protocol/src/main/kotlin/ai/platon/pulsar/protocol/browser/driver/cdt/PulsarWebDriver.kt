@@ -448,11 +448,15 @@ class PulsarWebDriver(
             rpc.invokeWithRetry("dragAndDrop") {
                 val clickableDOM = ClickableDOM(p, d, node, offset)
                 val clickableResult = clickableDOM.clickablePoint()
-                val startPoint = clickableResult.value ?: throw WebDriverException(
-                    "Element is not clickable/draggable: $selector | ${clickableResult.message}",
-                    driver = this
-                )
-
+                val startPoint = clickableResult.value
+                
+                if (startPoint == null) {
+                    throw WebDriverException(
+                        "Element is not clickable/draggable: $selector | ${clickableResult.message}",
+                        driver = this
+                    )
+                }
+                
                 // Calculate target point relative to start point
                 val targetPoint = PointD(startPoint.x + deltaX, startPoint.y + deltaY)
 
@@ -814,8 +818,11 @@ function() {
 
         tracer?.trace("onRequestWillBeSent | driver | requestId: {}", event.requestId)
 
+        // Try to get the RequestWillBeSentExtraInfo which contains cookies
+        val extraInfo = networkManager.getRequestWillBeSentExtraInfo(event.requestId)
+        
         val chromeNavigateEntry = ChromeNavigateEntry(navigateEntry)
-        chromeNavigateEntry.updateStateBeforeRequestSent(event)
+        chromeNavigateEntry.updateStateBeforeRequestSent(event, extraInfo)
 
         // simulate blocking logic
         val isMinor = chromeNavigateEntry.isMinorResource(event)
