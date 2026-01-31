@@ -27,7 +27,7 @@ class JsHandler(
     /**
      * Evaluates expression on global object and returns detailed evaluation result.
      *
-     * @param script Javascript expression to evaluate
+     * @param script JavaScript expression to evaluate
      * @return Detailed evaluation result including remote object and exception details, or null if evaluation fails
      * @throws ChromeDriverException if the script fails to execute
      * */
@@ -82,7 +82,7 @@ class JsHandler(
     /**
      * Evaluates expression on global object and returns the result value.
      *
-     * @param script Javascript expression to evaluate
+     * @param script JavaScript expression to evaluate
      * @return Remote object value in case of primitive values or JSON values, or null if evaluation fails
      * @throws RuntimeException if the script execution results in an exception
      * */
@@ -111,7 +111,7 @@ class JsHandler(
      * Evaluates expression on global object with return by value and returns detailed evaluation result.
      * Supports execution in isolated world contexts for better security isolation.
      *
-     * @param script Javascript expression to evaluate
+     * @param script JavaScript expression to evaluate
      * @return Detailed evaluation result with value returned, or null if evaluation fails
      * @throws ChromeDriverException if the script fails to execute
      * */
@@ -142,7 +142,7 @@ class JsHandler(
      * Evaluates expression on global object with return by value.
      * Returns the actual value rather than a remote object reference.
      *
-     * @param script Javascript expression to evaluate
+     * @param script JavaScript expression to evaluate
      * @return The evaluated value, or null if evaluation fails or returns null
      * */
     @Throws(ChromeDriverException::class)

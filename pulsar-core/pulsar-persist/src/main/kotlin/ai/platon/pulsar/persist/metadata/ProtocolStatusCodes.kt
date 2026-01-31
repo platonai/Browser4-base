@@ -107,7 +107,7 @@ object ProtocolStatusCodes {
     const val WEB_DRIVER_TIMEOUT: Int = 1471
 
     /**
-     * Javascript execution timeout.
+     * JavaScript execution timeout.
      */
     const val SCRIPT_TIMEOUT: Int = 1472
 

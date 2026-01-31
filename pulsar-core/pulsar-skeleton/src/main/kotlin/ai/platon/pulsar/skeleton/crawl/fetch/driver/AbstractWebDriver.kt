@@ -278,7 +278,6 @@ abstract class AbstractWebDriver(
 
     override fun jvm(): JvmWebDriver = this
 
-
     val mainRequestHeaders: Map<String, Any> get() = navigateEntry.mainRequestHeaders
 
     val mainRequestCookies: List<Map<String, String>> get() = navigateEntry.mainRequestCookies

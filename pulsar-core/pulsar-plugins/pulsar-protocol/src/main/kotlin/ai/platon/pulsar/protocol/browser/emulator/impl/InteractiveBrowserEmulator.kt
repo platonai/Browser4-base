@@ -651,7 +651,7 @@ open class InteractiveBrowserEmulator(
         }
 
         if (n <= 0) {
-            logger.warn("Javascript is not injected | {}", page.href ?: page.url)
+            logger.warn("JavaScript is not injected | {}", page.href ?: page.url)
         }
 
         return n > 0

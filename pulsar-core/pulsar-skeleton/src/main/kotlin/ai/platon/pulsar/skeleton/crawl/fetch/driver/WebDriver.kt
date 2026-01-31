@@ -203,8 +203,12 @@ interface WebDriver : Closeable {
     /**
      * Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on,
      * the other JVM languages might have difficulty to handle kotlin suspend methods.
+     *
+     * JvmWebDriver is not recommended, use Kotlin native suspend methods instead, or use SDK instead.
+     *
      * @see JvmWebDriver
      * */
+    @ExperimentalApi
     fun jvm(): JvmWebDriver
 
     /**
@@ -219,7 +223,7 @@ interface WebDriver : Closeable {
      * This function should be invoked before a navigation, usually in an onWillNavigate
      * event handler.
      *
-     * @param script Javascript source code to add.
+     * @param script JavaScript source code to add.
      * */
     @Throws(WebDriverException::class)
     suspend fun addInitScript(script: String)
@@ -1375,7 +1379,7 @@ interface WebDriver : Closeable {
     suspend fun selectImages(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<String>
 
     /**
-     * Executes JavaScript in the context of the currently selected frame or window. If the result is not Javascript object,
+     * Executes JavaScript in the context of the currently selected frame or window. If the result is not JavaScript object,
      * it is not returned.
      *
      * If you want to execute a function, convert it to IIFE (Immediately Invoked Function Expression).
@@ -1402,7 +1406,7 @@ interface WebDriver : Closeable {
      * * **Wrap the code in an IIFE (Immediately Invoked Function Expression)** to return a value.
      * * **Escape line breaks** with `\n`.
      *
-     * @param expression Javascript expression to evaluate
+     * @param expression JavaScript expression to evaluate
      * @return Remote object value in case of primitive values or null.
      * */
     @Throws(WebDriverException::class)

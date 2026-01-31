@@ -9,6 +9,8 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 
 /**
+ * [JvmWebDriver] is not recommended, use Kotlin native suspend methods instead, or use SDK instead.
+ *
  * [JvmWebDriver] defines a concise interface to visit and interact with web pages,
  * all actions and behaviors are optimized to mimic real people as closely as possible,
  * such as scrolling, clicking, typing text, dragging and dropping, etc.
@@ -30,10 +32,11 @@ interface JvmWebDriver {
      * its scripts were run. This is useful to amend the JavaScript environment, e.g.
      * to seed [Math.random].
      *
-     * @param script Javascript source code to add.
+     * @param script JavaScript source code to add.
      * */
     @Throws(WebDriverException::class)
     fun addInitScriptAsync(script: String): CompletableFuture<Unit>
+
     /**
      * Blocks URLs from loading.
      *
@@ -42,6 +45,7 @@ interface JvmWebDriver {
      */
     @Throws(WebDriverException::class)
     fun addBlockedURLsAsync(urls: List<String>): CompletableFuture<Unit>
+
     /**
      * Returns the main resource response. In case of multiple redirects, the navigation
      * will resolve with the first non-redirect response.
@@ -72,7 +76,7 @@ interface JvmWebDriver {
 
     /**
      * Returns the source of the last loaded page. If the page has been modified after loading (for
-     * example, by Javascript) there is no guarantee that the returned text is that of the modified
+     * example, by JavaScript) there is no guarantee that the returned text is that of the modified
      * page.
      *
      * @return The source of the current page
@@ -88,72 +92,109 @@ interface JvmWebDriver {
      */
     @Throws(WebDriverException::class)
     fun bringToFrontAsync(): CompletableFuture<Unit>
+
     /**
      * Returns when element specified by selector satisfies {@code state} option.
      * */
     @Throws(WebDriverException::class)
     fun waitForSelectorAsync(selector: String): CompletableFuture<Duration>
+
     /**
      * Returns when element specified by selector satisfies {@code state} option.
      * Returns the time remaining until timeout.
      * */
     @Throws(WebDriverException::class)
     fun waitForSelectorAsync(selector: String, timeoutMillis: Long): CompletableFuture<Long>
+
     @Throws(WebDriverException::class)
     fun waitForSelectorAsync(selector: String, timeout: Duration): CompletableFuture<Duration>
+
     @Throws(WebDriverException::class)
     fun waitForNavigationAsync(oldUrl: String): CompletableFuture<Duration>
+
     @Throws(WebDriverException::class)
     fun waitForNavigationAsync(oldUrl: String, timeoutMillis: Long): CompletableFuture<Long>
+
     @Throws(WebDriverException::class)
     fun waitForNavigationAsync(oldUrl: String, timeout: Duration): CompletableFuture<Duration>
 
     @Throws(WebDriverException::class)
     fun existsAsync(selector: String): CompletableFuture<Boolean>
+
     @Throws(WebDriverException::class)
     fun isHiddenAsync(selector: String): CompletableFuture<Boolean>
+
     @Throws(WebDriverException::class)
     fun isVisibleAsync(selector: String): CompletableFuture<Boolean>
+
     @Throws(WebDriverException::class)
     fun isCheckedAsync(selector: String): CompletableFuture<Boolean>
 
     @Throws(WebDriverException::class)
     fun typeAsync(selector: String, text: String): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
     fun clickAsync(selector: String) = clickAsync(selector, 1)
+
     @Throws(WebDriverException::class)
     fun clickAsync(selector: String, count: Int): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
     fun clickMatchesAsync(selector: String, pattern: String) = clickMatchesAsync(selector, pattern, 1)
+
     @Throws(WebDriverException::class)
     fun clickMatchesAsync(selector: String, pattern: String, count: Int): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
-    fun clickMatchesAsync(selector: String, attrName: String, pattern: String) = clickMatchesAsync(selector, attrName, pattern, 1)
+    fun clickMatchesAsync(selector: String, attrName: String, pattern: String) =
+        clickMatchesAsync(selector, attrName, pattern, 1)
+
     @Throws(WebDriverException::class)
     fun clickMatchesAsync(selector: String, attrName: String, pattern: String, count: Int): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
     fun clickNthAnchorAsync(n: Int, rootSelector: String = "body"): CompletableFuture<String?>
+
     @Throws(WebDriverException::class)
     fun checkAsync(selector: String): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
     fun uncheckAsync(selector: String): CompletableFuture<Unit>
 
     @Throws(WebDriverException::class)
     fun scrollToAsync(selector: String): CompletableFuture<Double>
+
     @Throws(WebDriverException::class)
     fun scrollDownAsync(count: Int = 1): CompletableFuture<Double>
+
     @Throws(WebDriverException::class)
     fun scrollUpAsync(count: Int = 1): CompletableFuture<Double>
+
     @Throws(WebDriverException::class)
     fun scrollToTopAsync(): CompletableFuture<Double>
+
     @Throws(WebDriverException::class)
     fun scrollToBottomAsync(): CompletableFuture<Double>
+
     @Throws(WebDriverException::class)
-    fun mouseWheelDownAsync(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = 150.0, delayMillis: Long = 0): CompletableFuture<Unit>
+    fun mouseWheelDownAsync(
+        count: Int = 1,
+        deltaX: Double = 0.0,
+        deltaY: Double = 150.0,
+        delayMillis: Long = 0
+    ): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
-    fun mouseWheelUpAsync(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = -150.0, delayMillis: Long = 0): CompletableFuture<Unit>
+    fun mouseWheelUpAsync(
+        count: Int = 1,
+        deltaX: Double = 0.0,
+        deltaY: Double = -150.0,
+        delayMillis: Long = 0
+    ): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
     fun moveMouseToAsync(x: Double, y: Double): CompletableFuture<Unit>
+
     @Throws(WebDriverException::class)
     fun dragAndDropAsync(selector: String, deltaX: Int, deltaY: Int = 0): CompletableFuture<Unit>
 
@@ -162,22 +203,27 @@ interface JvmWebDriver {
 
     @Throws(WebDriverException::class)
     fun selectFirstTextOrNullAsync(selector: String): CompletableFuture<String?>
+
     @Throws(WebDriverException::class)
     fun selectFirstTextOptionalAsync(selector: String): CompletableFuture<Optional<String>>
+
     @Throws(WebDriverException::class)
     fun selectTextAllAsync(selector: String): CompletableFuture<List<String>>
 
     @Throws(WebDriverException::class)
     fun selectFirstAttributeOrNullAsync(selector: String, attrName: String): CompletableFuture<String?>
+
     @Throws(WebDriverException::class)
     fun selectFirstAttributeOptionalAsync(selector: String, attrName: String): CompletableFuture<Optional<String>>
+
     @Throws(WebDriverException::class)
     fun selectAttributeAllAsync(selector: String, attrName: String): CompletableFuture<List<String>>
+
     /**
      * Executes JavaScript in the context of the currently selected frame or window. The script
      * fragment provided will be executed as the body of an anonymous function.
      *
-     * @param expression Javascript expression to evaluate
+     * @param expression JavaScript expression to evaluate
      * @return Remote object value in case of primitive values or JSON values (if it was requested).
      * */
     @Throws(WebDriverException::class)
@@ -188,6 +234,7 @@ interface JvmWebDriver {
      */
     @Throws(WebDriverException::class)
     fun captureScreenshotAsync(selector: String): CompletableFuture<String?>
+
     @Throws(WebDriverException::class)
     fun captureScreenshotAsync(rect: RectD): CompletableFuture<String?>
 
@@ -197,24 +244,28 @@ interface JvmWebDriver {
      * */
     @Throws(WebDriverException::class)
     fun clickablePointAsync(selector: String): CompletableFuture<PointD?>
+
     /**
      * Return the bounding box of an element located by [selector].
      * If the element does not exist, returns null.
      * */
     @Throws(WebDriverException::class)
     fun boundingBoxAsync(selector: String): CompletableFuture<RectD?>
+
     /**
      * Create a new Jsoup session with the last page's context, which means, the same
      * headers and cookies.
      * */
     @Throws(WebDriverException::class)
     fun newJsoupSessionAsync(): CompletableFuture<Connection>
+
     /**
      * Load url as a resource without browser rendering, with the last page's context,
      * which means, the same headers and cookies.
      * */
     @Throws(WebDriverException::class)
     fun loadResourceAsync(url: String): CompletableFuture<NetworkResourceResponse>
+
     /**
      * Force the page pauses all navigations and PENDING resource fetches.
      * If the page loading stops, the user can still interact with the page,
@@ -222,6 +273,7 @@ interface JvmWebDriver {
      * */
     @Throws(WebDriverException::class)
     fun pauseAsync(): CompletableFuture<Unit>
+
     /**
      * Force the page stop all navigations and RELEASES all resources. Interaction with the
      * stop page results in undefined behavior and the results should not be trusted.
