@@ -17,7 +17,7 @@ class ChromeNavigateEntry(
     private val logger = getLogger(this)
 
     private val tracer = logger.takeIf { it.isTraceEnabled }
-    
+
     companion object {
         private val cookieMapper = jacksonObjectMapper()
             .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
@@ -70,7 +70,7 @@ class ChromeNavigateEntry(
             val headers = mutableMapOf<String, Any>()
             event.request.headers.forEach { (key, value) -> if (value != null) headers[key] = value }
             navigateEntry.updateMainRequest(event.requestId, headers)
-            
+
             // Extract cookies from extraInfo if available
             extraInfo?.let { info ->
                 val cookies = extractCookies(info)
@@ -80,24 +80,24 @@ class ChromeNavigateEntry(
             }
         }
     }
-    
+
     private fun extractCookies(extraInfo: RequestWillBeSentExtraInfo): List<Map<String, String>> {
         val cookies = mutableListOf<Map<String, String>>()
-        
+
         // RequestWillBeSentExtraInfo contains associatedCookies which includes blocked cookies
         // For now, we extract cookies that were actually sent (not blocked)
-        extraInfo.associatedCookies?.forEach { blockedCookie ->
+        extraInfo.associatedCookies.forEach { blockedCookie ->
             // Only include cookies that were not blocked
-            if (blockedCookie.blockedReasons.isNullOrEmpty()) {
-                blockedCookie.cookie?.let { cookie ->
+            if (blockedCookie.blockedReasons.isEmpty()) {
+                blockedCookie.cookie.let { cookie ->
                     cookies.add(serializeCookie(cookie))
                 }
             }
         }
-        
+
         return cookies
     }
-    
+
     private fun serializeCookie(cookie: ai.platon.cdt.kt.protocol.types.network.Cookie): Map<String, String> {
         return cookieMapper.readValue(cookieMapper.writeValueAsString(cookie))
     }
