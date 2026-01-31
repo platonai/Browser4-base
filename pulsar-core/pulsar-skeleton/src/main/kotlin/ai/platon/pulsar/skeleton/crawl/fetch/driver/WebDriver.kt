@@ -1440,6 +1440,10 @@ interface WebDriver : Closeable {
     @ExperimentalApi
     suspend fun evaluateValue(selector: String, functionDeclaration: String): Any?
 
+    @Throws(WebDriverException::class)
+    @ExperimentalApi
+    suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation?
+
     /**
      * Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout.
      * If the backend supports element-centric capture this may represent the full page; implementation specific.

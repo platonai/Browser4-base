@@ -212,6 +212,11 @@ class PulsarWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun evaluateValue(selector: String, functionDeclaration: String): Any? {
+        return evaluateValueDetail(selector, functionDeclaration)?.value
+    }
+
+    @Throws(WebDriverException::class)
+    override suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation? {
         return driverHelper.invokeOnPage("evaluateValue") {
             val callFunctionOn = jsHandler.callFunctionOn(selector, functionDeclaration)
             driverHelper.createJsEvaluate(callFunctionOn)
