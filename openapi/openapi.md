@@ -152,80 +152,80 @@
 #### 2.10.1 status / timeouts
 
 | Method | Path | operationId | W3C | In openapi.yaml | Next Step (human) |
-|---|---|---|---|---|---|
-| GET | `/status` | `getStatus` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/timeouts` | `getTimeouts` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/timeouts` | `setTimeouts` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/file` | `uploadFile` | ✓ | ✗ | |
+|---|---|---|---|---|-------------------|
+| GET | `/status` | `getStatus` | ✓ | ✗ | 5                 |
+| GET | `/session/{sessionId}/timeouts` | `getTimeouts` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/timeouts` | `setTimeouts` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/file` | `uploadFile` | ✓ | ✗ | 5                 |
 
 #### 2.10.2 navigation extras
 
 | Method | Path | operationId | W3C | In openapi.yaml | Next Step (human) |
-|---|---|---|---|---|---|
-| POST | `/session/{sessionId}/back` | `goBack` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/forward` | `goForward` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/refresh` | `refresh` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/title` | `getTitle` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/source` | `getPageSource` | ✓ | ✗ | |
+|---|---|---|---|---|-------------------|
+| POST | `/session/{sessionId}/back` | `goBack` | ✓ | ✗ | 1                 |
+| POST | `/session/{sessionId}/forward` | `goForward` | ✓ | ✗ | 1                 |
+| POST | `/session/{sessionId}/refresh` | `refresh` | ✓ | ✗ | 1                 |
+| GET | `/session/{sessionId}/title` | `getTitle` | ✓ | ✗ | 1                 |
+| GET | `/session/{sessionId}/source` | `getPageSource` | ✓ | ✗ | 1                 |
 
 #### 2.10.3 window / frame
 
 | Method | Path | operationId | W3C | In openapi.yaml | Next Step (human) |
-|---|---|---|---|---|---|
-| GET | `/session/{sessionId}/window` | `getWindowHandle` | ✓ | ✗ | |
-| DELETE | `/session/{sessionId}/window` | `closeWindow` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/window` | `switchToWindow` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/window/handles` | `getWindowHandles` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/window/new` | `newWindow` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/window/rect` | `getWindowRect` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/window/rect` | `setWindowRect` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/window/maximize` | `maximizeWindow` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/window/minimize` | `minimizeWindow` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/window/fullscreen` | `fullscreenWindow` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/frame` | `switchToFrame` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/frame/parent` | `switchToParentFrame` | ✓ | ✗ | |
+|---|---|---|---|---|-------------------|
+| GET | `/session/{sessionId}/window` | `getWindowHandle` | ✓ | ✗ | 5                 |
+| DELETE | `/session/{sessionId}/window` | `closeWindow` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/window` | `switchToWindow` | ✓ | ✗ | 5                 |
+| GET | `/session/{sessionId}/window/handles` | `getWindowHandles` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/window/new` | `newWindow` | ✓ | ✗ | 5                 |
+| GET | `/session/{sessionId}/window/rect` | `getWindowRect` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/window/rect` | `setWindowRect` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/window/maximize` | `maximizeWindow` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/window/minimize` | `minimizeWindow` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/window/fullscreen` | `fullscreenWindow` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/frame` | `switchToFrame` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/frame/parent` | `switchToParentFrame` | ✓ | ✗ | 5                 |
 
 #### 2.10.4 element extras
 
 | Method | Path | operationId | W3C | In openapi.yaml | Next Step (human) |
-|---|---|---|---|---|---|
-| POST | `/session/{sessionId}/element/active` | `getActiveElement` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/element/{elementId}/element` | `findElementFromElement` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/element/{elementId}/elements` | `findElementsFromElement` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/element/{elementId}/clear` | `clearElement` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/selected` | `isElementSelected` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/enabled` | `isElementEnabled` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/displayed` | `isElementDisplayed` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/name` | `getElementTagName` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/rect` | `getElementRect` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/property/{name}` | `getElementProperty` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/css/{propertyName}` | `getElementCssValue` | ✓ | ✗ | |
+|---|---|---|---|---|-------------------|
+| POST | `/session/{sessionId}/element/active` | `getActiveElement` | ✓ | ✗ | 2                 |
+| POST | `/session/{sessionId}/element/{elementId}/element` | `findElementFromElement` | ✓ | ✗ | 2                 |
+| POST | `/session/{sessionId}/element/{elementId}/elements` | `findElementsFromElement` | ✓ | ✗ | 2                 |
+| POST | `/session/{sessionId}/element/{elementId}/clear` | `clearElement` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/selected` | `isElementSelected` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/enabled` | `isElementEnabled` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/displayed` | `isElementDisplayed` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/name` | `getElementTagName` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/rect` | `getElementRect` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/property/{name}` | `getElementProperty` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/css/{propertyName}` | `getElementCssValue` | ✓ | ✗ | 2                 |
 
 #### 2.10.5 actions / alerts / cookies / screenshots / print
 
 | Method | Path | operationId | W3C | In openapi.yaml | Next Step (human) |
-|---|---|---|---|---|---|
-| POST | `/session/{sessionId}/actions` | `performActions` | ✓ | ✗ | |
-| DELETE | `/session/{sessionId}/actions` | `releaseActions` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/alert/text` | `getAlertText` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/alert/text` | `sendAlertText` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/alert/accept` | `acceptAlert` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/alert/dismiss` | `dismissAlert` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/cookie` | `getAllCookies` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/cookie` | `addCookie` | ✓ | ✗ | |
-| DELETE | `/session/{sessionId}/cookie` | `deleteAllCookies` | ✓ | ✗ | |
-| DELETE | `/session/{sessionId}/cookie/{name}` | `deleteCookie` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/screenshot` | `takeScreenshot` | ✓ | ✗ | |
-| GET | `/session/{sessionId}/element/{elementId}/screenshot` | `takeElementScreenshot` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/print` | `printPage` | ✓ | ✗ | |
+|---|---|---|---|---|-------------------|
+| POST | `/session/{sessionId}/actions` | `performActions` | ✓ | ✗ | 5                 |
+| DELETE | `/session/{sessionId}/actions` | `releaseActions` | ✓ | ✗ | 5                 |
+| GET | `/session/{sessionId}/alert/text` | `getAlertText` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/alert/text` | `sendAlertText` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/alert/accept` | `acceptAlert` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/alert/dismiss` | `dismissAlert` | ✓ | ✗ | 5                 |
+| GET | `/session/{sessionId}/cookie` | `getAllCookies` | ✓ | ✗ | 2                 |
+| POST | `/session/{sessionId}/cookie` | `addCookie` | ✓ | ✗ | 2                 |
+| DELETE | `/session/{sessionId}/cookie` | `deleteAllCookies` | ✓ | ✗ | 2                 |
+| DELETE | `/session/{sessionId}/cookie/{name}` | `deleteCookie` | ✓ | ✗ |                   |
+| GET | `/session/{sessionId}/screenshot` | `takeScreenshot` | ✓ | ✗ | 2                 |
+| GET | `/session/{sessionId}/element/{elementId}/screenshot` | `takeElementScreenshot` | ✓ | ✗ | 2                 |
+| POST | `/session/{sessionId}/print` | `printPage` | ✓ | ✗ | 5                 |
 
 #### 2.10.6 shadow root
 
 | Method | Path | operationId | W3C | In openapi.yaml | Next Step (human) |
-|---|---|---|---|---|---|
-| GET | `/session/{sessionId}/element/{elementId}/shadow` | `getShadowRoot` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/shadow/{shadowId}/element` | `findElementFromShadowRoot` | ✓ | ✗ | |
-| POST | `/session/{sessionId}/shadow/{shadowId}/elements` | `findElementsFromShadowRoot` | ✓ | ✗ | |
+|---|---|---|---|---|-------------------|
+| GET | `/session/{sessionId}/element/{elementId}/shadow` | `getShadowRoot` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/shadow/{shadowId}/element` | `findElementFromShadowRoot` | ✓ | ✗ | 5                 |
+| POST | `/session/{sessionId}/shadow/{shadowId}/elements` | `findElementsFromShadowRoot` | ✓ | ✗ | 5                 |
 
 ---
 
