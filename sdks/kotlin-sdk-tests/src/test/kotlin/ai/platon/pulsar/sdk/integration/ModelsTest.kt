@@ -31,6 +31,7 @@ import kotlin.test.assertTrue
  * Tests parsing and edge cases for SDK model classes.
  */
 @Tag("Fast")
+@Tag("IntegrationTest")
 class ModelsTest {
 
     @Test

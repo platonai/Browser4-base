@@ -45,7 +45,7 @@ class PulsarSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
         val eventHandlers = PageEventHandlers()
         
         var eventReceived = false
-        eventHandlers.page.on("load") { event ->
+        eventHandlers.load.on("load") { event ->
             eventReceived = true
         }
 
@@ -81,7 +81,7 @@ class PulsarSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
         val response = session.chat(prompt)
 
         assertNotNull(response, "Chat response should not be null")
-        assertNotNull(response.message, "Response message should not be null")
+        assertNotNull(response.content, "Response content should not be null")
     }
 
     @Test
@@ -93,6 +93,6 @@ class PulsarSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
         val response = session.chat(userMessage, systemMessage)
 
         assertNotNull(response, "Chat response should not be null")
-        assertNotNull(response.message, "Response message should not be null")
+        assertNotNull(response.content, "Response content should not be null")
     }
 }
