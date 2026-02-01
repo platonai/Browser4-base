@@ -26,6 +26,8 @@ import java.nio.channels.FileLockInterruptionException
 import java.nio.channels.OverlappingFileLockException
 import java.nio.charset.Charset
 import java.nio.file.*
+import java.nio.file.attribute.PosixFileAttributeView
+import java.nio.file.attribute.PosixFilePermission
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -468,6 +470,17 @@ class ChromeLauncher constructor(
         if (scriptPath.notExists()) {
             val content = ResourceLoader.readString(scriptFileName)
             Files.write(scriptPath, content.toByteArray())
+        }
+
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            runCatching {
+                val view = Files.getFileAttributeView(scriptPath, PosixFileAttributeView::class.java)
+                if (view != null) {
+                    val perms = view.readAttributes().permissions().toMutableSet()
+                    perms.addAll(setOf(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE))
+                    view.setPermissions(perms)
+                }
+            }.onFailure { logger.warn("Failed to set execute permission for {} | {}", scriptPath, it.message) }
         }
 
         val message = """
