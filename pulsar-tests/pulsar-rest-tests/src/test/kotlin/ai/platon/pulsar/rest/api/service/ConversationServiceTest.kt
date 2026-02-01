@@ -62,7 +62,7 @@ Once the document is fully loaded:
 - Scroll to the middle of the page
     """
 
-@Tag("TimeConsumingTest")
+@Tag("Slow")
 @SpringBootTest
 @ContextConfiguration(initializers = [PulsarTestContextInitializer::class])
 @Import(MockEcServerConfiguration::class)

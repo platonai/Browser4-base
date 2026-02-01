@@ -109,7 +109,7 @@ Naming conventions:
 
 ## 4. Tags (JUnit 5 @Tag)
 
-- `IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `TimeConsumingTest`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
+- `IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `Slow`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
 
 Usage examples in `docs/copilot/templates/test-tag-usage.md`.
 

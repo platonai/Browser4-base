@@ -89,7 +89,7 @@ class TestCases: TestBase() {
 
     @Test
     @Tag("MustManuallyRun")
-    @Tag("ExternalResourceDependent")
+    @Tag("RequiresServer")
     fun loadAndGetLinksCityflower() {
         val sql = """
 select *

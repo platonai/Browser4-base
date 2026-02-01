@@ -165,7 +165,7 @@ class TestManual : TestBase() {
      * */
     @Test
     @Tag("MustManuallyRun")
-    @Ignore("TimeConsumingTest")
+    @Ignore("Slow")
     fun monitorProductColumn2() {
         execute("SELECT DOM, TOP, LEFT, WIDTH, HEIGHT, IMG, A, SIBLING, DOM_TEXT(DOM), DOM_FIRST_HREF(DOM) " +
                 "FROM LOAD_AND_GET_FEATURES('$productIndexUrl') " +

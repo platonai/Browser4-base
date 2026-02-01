@@ -16,7 +16,7 @@ import java.text.MessageFormat
 import java.util.*
 import kotlin.test.*
 
-@Tag("TimeConsumingTest")
+@Tag("Slow")
 @Tag("E2ETest")
 open class PulsarWebDriverE2ETest : WebDriverTestBase() {
 
@@ -82,16 +82,16 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
 
         val navigateEntry = driver.navigateEntry
         assertTrue("Expect mainFrameReceived") { navigateEntry.mainFrameReceived }
-        
+
         // Verify that mainRequestCookies are captured
         // Note: mainRequestCookies may be empty if no cookies are sent with the request
         // or if RequestWillBeSentExtraInfo is not received yet
         require(driver is AbstractWebDriver)
         val mainRequestCookies = driver.mainRequestCookies
-        
+
         // Log the cookies for debugging
         printlnPro("mainRequestCookies: $mainRequestCookies")
-        
+
         // The cookies should be a list (may be empty depending on the site)
         assertNotNull(mainRequestCookies)
     }

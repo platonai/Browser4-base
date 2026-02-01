@@ -19,8 +19,8 @@ import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 
-@Ignore("TimeConsumingTest, take long time to run, you should run the tests separately")
-@Tag("TimeConsumingTest")
+@Ignore("Slow, take long time to run, you should run the tests separately")
+@Tag("Slow")
 class MassiveScrapeTaskTest : IntegrationTestBase() {
 
     companion object {

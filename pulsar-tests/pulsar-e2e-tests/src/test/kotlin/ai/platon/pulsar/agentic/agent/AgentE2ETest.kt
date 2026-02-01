@@ -60,7 +60,7 @@ import java.util.jar.JarFile
  * ```
  */
 @Tag("E2ETest")
-@Tag("TimeConsumingTest")
+@Tag("Slow")
 @Tag("MustManuallyRun")
 @Tag("agent")
 @Disabled("MustManuallyRun")

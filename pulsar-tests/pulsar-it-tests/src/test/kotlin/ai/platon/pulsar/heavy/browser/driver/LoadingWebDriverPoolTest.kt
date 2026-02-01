@@ -52,7 +52,7 @@ class LoadingWebDriverPoolTest {
         poolManager.close()
     }
 
-    @Tag("TimeConsumingTest")
+    @Tag("Slow")
     @Test
     fun test_pollWebDrivers() {
         runBlocking {
@@ -72,7 +72,7 @@ class LoadingWebDriverPoolTest {
         }
     }
 
-    @Tag("TimeConsumingTest")
+    @Tag("Slow")
     @Test
     fun test_pollAndPutWebDrivers() {
         val drivers = mutableListOf<WebDriver>()

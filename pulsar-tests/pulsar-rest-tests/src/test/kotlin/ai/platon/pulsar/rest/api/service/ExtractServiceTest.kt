@@ -19,7 +19,7 @@ import org.springframework.test.context.ContextConfiguration
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-@Tag("TimeConsumingTest")
+@Tag("Slow")
 @SpringBootTest
 @ContextConfiguration(initializers = [PulsarTestContextInitializer::class])
 @Import(MockEcServerConfiguration::class)

@@ -163,7 +163,7 @@ fun load(url: String, options: LoadOptions): PageSnapshot {
 - Controllers: ≥85%
 
 ### Test Tags (JUnit 5)
-`IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `TimeConsumingTest`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
+`IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `Slow`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
 
 ## 8) Common Commands Cheat Sheet (copy by platform)
 

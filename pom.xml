@@ -673,7 +673,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <surefire.excludedGroups>
-            TimeConsumingTest,ExternalResourceDependent,IntegrationTest,E2ETest,HeavyTest,
+            Slow,RequiresServer,IntegrationTest,E2ETest,HeavyTest,
             SkippableLowerLevelTest,TestInfraCheck,MustManuallyRun,OptionalTest
         </surefire.excludedGroups>
 

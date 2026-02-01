@@ -162,7 +162,7 @@ See `docs-dev/copilot/minimal-test-policy.md` for details and trade-offs.
 - Controllers: ≥85%
 
 ### Test Tags (JUnit 5)
-`IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `TimeConsumingTest`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
+`IntegrationTest`, `E2ETest`, `ExternalServiceTest`, `Slow`, `HeavyTest`, `SmokeTest`, `BenchmarkTest`
 
 ## Configuration
 

@@ -9,7 +9,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.expectBody
 import kotlin.test.assertNotNull
 
-@Tag("TimeConsumingTest")
+@Tag("Slow")
 class CommandControllerSSETest : RestAPITestBase() {
 
     /**
