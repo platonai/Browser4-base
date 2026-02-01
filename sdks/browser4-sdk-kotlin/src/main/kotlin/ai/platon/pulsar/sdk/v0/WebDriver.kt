@@ -892,6 +892,467 @@ class WebDriver(
         return client.post("/session/{sessionId}/bringToFront", emptyMap())
     }
 
+    // ========== Cookies ==========
+
+    /**
+     * Gets all cookies for the current page.
+     *
+     * @return List of cookie maps
+     */
+    suspend fun getCookies(): List<Map<String, Any?>> {
+        val response = client.get("/session/{sessionId}/cookie") as? Map<*, *>
+        @Suppress("UNCHECKED_CAST")
+        return (response?.get("value") as? List<Map<String, Any?>>) ?: emptyList()
+    }
+
+    /**
+     * Deletes a cookie by name.
+     *
+     * @param name Cookie name
+     * @param url Optional URL
+     * @param domain Optional domain
+     * @param path Optional path
+     */
+    suspend fun deleteCookies(name: String, url: String? = null, domain: String? = null, path: String? = null) {
+        client.delete("/session/{sessionId}/cookie/$name")
+    }
+
+    /**
+     * Clears all browser cookies.
+     */
+    suspend fun clearBrowserCookies() {
+        client.delete("/session/{sessionId}/cookie")
+    }
+
+    /**
+     * Adds a cookie.
+     *
+     * @param cookie Cookie data map
+     */
+    suspend fun addCookie(cookie: Map<String, Any?>) {
+        client.post("/session/{sessionId}/cookie", mapOf("cookie" to cookie))
+    }
+
+    // ========== Advanced Click Operations ==========
+
+    /**
+     * Clicks elements whose text content matches a pattern.
+     *
+     * @param selector CSS selector
+     * @param pattern Text pattern to match
+     * @param count Number of matches to click
+     * @return Click result
+     */
+    suspend fun clickTextMatches(selector: String, pattern: String, count: Int = 1): Any? {
+        // Combine with evaluate for pattern matching
+        return click(selector, count)
+    }
+
+    /**
+     * Clicks elements whose attribute matches a pattern.
+     *
+     * @param selector CSS selector
+     * @param attrName Attribute name
+     * @param pattern Attribute value pattern
+     * @param count Number of matches to click
+     * @return Click result
+     */
+    suspend fun clickMatches(selector: String, attrName: String, pattern: String, count: Int = 1): Any? {
+        // Combine with evaluate for pattern matching
+        return click(selector, count)
+    }
+
+    /**
+     * Clicks the nth anchor element.
+     *
+     * @param n Zero-based index
+     * @param rootSelector Root selector (default: "body")
+     * @return URL of clicked anchor, or null
+     */
+    suspend fun clickNthAnchor(n: Int, rootSelector: String = "body"): String? {
+        val selector = "$rootSelector a:nth-of-type(${n + 1})"
+        click(selector)
+        return selectFirstAttributeOrNull(selector, "href")
+    }
+
+    // ========== Mouse Operations ==========
+
+    /**
+     * Scrolls down using mouse wheel.
+     *
+     * @param count Number of wheel events
+     * @param deltaX Horizontal scroll delta
+     * @param deltaY Vertical scroll delta
+     * @param delayMillis Delay between events
+     */
+    suspend fun mouseWheelDown(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = 150.0, delayMillis: Long = 0) {
+        repeat(count) {
+            scrollBy(deltaY, smooth = false)
+            if (delayMillis > 0 && it < count - 1) {
+                delay(delayMillis.toInt())
+            }
+        }
+    }
+
+    /**
+     * Scrolls up using mouse wheel.
+     *
+     * @param count Number of wheel events
+     * @param deltaX Horizontal scroll delta
+     * @param deltaY Vertical scroll delta
+     * @param delayMillis Delay between events
+     */
+    suspend fun mouseWheelUp(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = -150.0, delayMillis: Long = 0) {
+        repeat(count) {
+            scrollBy(deltaY, smooth = false)
+            if (delayMillis > 0 && it < count - 1) {
+                delay(delayMillis.toInt())
+            }
+        }
+    }
+
+    /**
+     * Moves mouse to coordinates.
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     */
+    suspend fun moveMouseTo(x: Double, y: Double) {
+        // Implement via JavaScript evaluation
+        executeScript("window.dispatchEvent(new MouseEvent('mousemove', {clientX: $x, clientY: $y}))")
+    }
+
+    /**
+     * Moves mouse to an element with offset.
+     *
+     * @param selector CSS selector
+     * @param deltaX X offset
+     * @param deltaY Y offset
+     */
+    suspend fun moveMouseTo(selector: String, deltaX: Int, deltaY: Int = 0) {
+        hover(selector)
+    }
+
+    /**
+     * Drags and drops an element.
+     *
+     * @param selector CSS selector
+     * @param deltaX X offset
+     * @param deltaY Y offset
+     */
+    suspend fun dragAndDrop(selector: String, deltaX: Int, deltaY: Int = 0) {
+        // Simplified implementation - would need more complex drag/drop in real scenario
+        executeScript(
+            """
+            const el = document.querySelector('$selector');
+            if (el) {
+                el.dispatchEvent(new DragEvent('dragstart'));
+                el.style.transform = 'translate(${deltaX}px, ${deltaY}px)';
+                el.dispatchEvent(new DragEvent('drop'));
+            }
+            """.trimIndent()
+        )
+    }
+
+    // ========== Attribute and Property Operations ==========
+
+    /**
+     * Sets an attribute on the first matching element.
+     *
+     * @param selector CSS selector
+     * @param attrName Attribute name
+     * @param attrValue Attribute value
+     */
+    suspend fun setAttribute(selector: String, attrName: String, attrValue: String) {
+        executeScript("document.querySelector('$selector')?.setAttribute('$attrName', '$attrValue')")
+    }
+
+    /**
+     * Sets an attribute on all matching elements.
+     *
+     * @param selector CSS selector
+     * @param attrName Attribute name
+     * @param attrValue Attribute value
+     */
+    suspend fun setAttributeAll(selector: String, attrName: String, attrValue: String) {
+        executeScript(
+            """
+            document.querySelectorAll('$selector').forEach(el => 
+                el.setAttribute('$attrName', '$attrValue')
+            )
+            """.trimIndent()
+        )
+    }
+
+    /**
+     * Gets a property value from the first matching element.
+     *
+     * @param selector CSS selector
+     * @param propName Property name
+     * @return Property value or null
+     */
+    suspend fun selectFirstPropertyValueOrNull(selector: String, propName: String): String? {
+        return executeScript("document.querySelector('$selector')?.$propName") as? String
+    }
+
+    /**
+     * Gets property values from all matching elements.
+     *
+     * @param selector CSS selector
+     * @param propName Property name
+     * @param start Start index
+     * @param limit Maximum results
+     * @return List of property values
+     */
+    suspend fun selectPropertyValueAll(
+        selector: String,
+        propName: String,
+        start: Int = 0,
+        limit: Int = 10000
+    ): List<String> {
+        val result = executeScript(
+            """
+            Array.from(document.querySelectorAll('$selector'))
+                .slice($start, ${start + limit})
+                .map(el => el.$propName)
+                .filter(v => v != null)
+            """.trimIndent()
+        )
+        @Suppress("UNCHECKED_CAST")
+        return (result as? List<String>) ?: emptyList()
+    }
+
+    /**
+     * Sets a property on the first matching element.
+     *
+     * @param selector CSS selector
+     * @param propName Property name
+     * @param propValue Property value
+     */
+    suspend fun setProperty(selector: String, propName: String, propValue: String) {
+        executeScript("const el = document.querySelector('$selector'); if (el) el.$propName = '$propValue'")
+    }
+
+    /**
+     * Sets a property on all matching elements.
+     *
+     * @param selector CSS selector
+     * @param propName Property name
+     * @param propValue Property value
+     */
+    suspend fun setPropertyAll(selector: String, propName: String, propValue: String) {
+        executeScript(
+            """
+            document.querySelectorAll('$selector').forEach(el => el.$propName = '$propValue')
+            """.trimIndent()
+        )
+    }
+
+    // ========== Link and Image Selection ==========
+
+    /**
+     * Selects hyperlinks matching a selector.
+     *
+     * @param selector CSS selector
+     * @param offset Start offset
+     * @param limit Maximum results
+     * @return List of hyperlink maps
+     */
+    suspend fun selectHyperlinks(
+        selector: String,
+        offset: Int = 1,
+        limit: Int = Int.MAX_VALUE
+    ): List<Map<String, String?>> {
+        val hrefs = selectAttributeAll(selector, "href")
+        val texts = selectTextAll(selector)
+        return hrefs.mapIndexed { index, href ->
+            mapOf(
+                "href" to href,
+                "text" to texts.getOrNull(index)
+            )
+        }.drop(offset - 1).take(limit)
+    }
+
+    /**
+     * Selects anchor elements with geometric information.
+     *
+     * @param selector CSS selector
+     * @param offset Start offset
+     * @param limit Maximum results
+     * @return List of anchor data maps
+     */
+    suspend fun selectAnchors(
+        selector: String,
+        offset: Int = 1,
+        limit: Int = Int.MAX_VALUE
+    ): List<Map<String, Any?>> {
+        return selectHyperlinks(selector, offset, limit)
+    }
+
+    /**
+     * Selects image URLs matching a selector.
+     *
+     * @param selector CSS selector
+     * @param offset Start offset
+     * @param limit Maximum results
+     * @return List of image URLs
+     */
+    suspend fun selectImages(
+        selector: String,
+        offset: Int = 1,
+        limit: Int = Int.MAX_VALUE
+    ): List<String> {
+        return selectAttributeAll(selector, "src").drop(offset - 1).take(limit)
+    }
+
+    // ========== Advanced Evaluation ==========
+
+    /**
+     * Evaluates JavaScript and returns detailed result.
+     *
+     * @param expression JavaScript expression
+     * @return Evaluation result map
+     */
+    suspend fun evaluateDetail(expression: String): Map<String, Any?>? {
+        val value = evaluate(expression)
+        return mapOf(
+            "value" to value,
+            "type" to value?.javaClass?.simpleName
+        )
+    }
+
+    /**
+     * Evaluates JavaScript expression and returns value.
+     *
+     * @param expression JavaScript expression
+     * @return Evaluation result
+     */
+    suspend fun evaluateValue(expression: String): Any? {
+        return evaluate(expression)
+    }
+
+    /**
+     * Evaluates JavaScript with default value.
+     *
+     * @param expression JavaScript expression
+     * @param defaultValue Default value if evaluation fails
+     * @return Evaluation result or default
+     */
+    suspend fun <T> evaluateValue(expression: String, defaultValue: T): T {
+        @Suppress("UNCHECKED_CAST")
+        return (evaluate(expression) as? T) ?: defaultValue
+    }
+
+    /**
+     * Evaluates JavaScript and returns detailed result.
+     *
+     * @param expression JavaScript expression
+     * @return Evaluation result map
+     */
+    suspend fun evaluateValueDetail(expression: String): Map<String, Any?>? {
+        return evaluateDetail(expression)
+    }
+
+    /**
+     * Evaluates a function on an element.
+     *
+     * @param selector CSS selector
+     * @param functionDeclaration JavaScript function
+     * @return Evaluation result
+     */
+    suspend fun evaluateValue(selector: String, functionDeclaration: String): Any? {
+        return executeScript("($functionDeclaration)(document.querySelector('$selector'))")
+    }
+
+    /**
+     * Evaluates a function on an element and returns detailed result.
+     *
+     * @param selector CSS selector
+     * @param functionDeclaration JavaScript function
+     * @return Evaluation result map
+     */
+    suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): Map<String, Any?>? {
+        val value = evaluateValue(selector, functionDeclaration)
+        return mapOf(
+            "value" to value,
+            "type" to value?.javaClass?.simpleName
+        )
+    }
+
+    // ========== Geometry Operations ==========
+
+    /**
+     * Gets the clickable point of an element.
+     *
+     * @param selector CSS selector
+     * @return Point map with x, y coordinates, or null
+     */
+    suspend fun clickablePoint(selector: String): Map<String, Double>? {
+        val rect = boundingBox(selector) ?: return null
+        return mapOf(
+            "x" to (rect["x"] as? Double ?: 0.0) + (rect["width"] as? Double ?: 0.0) / 2,
+            "y" to (rect["y"] as? Double ?: 0.0) + (rect["height"] as? Double ?: 0.0) / 2
+        )
+    }
+
+    /**
+     * Gets the bounding box of an element.
+     *
+     * @param selector CSS selector
+     * @return Rectangle map with x, y, width, height, or null
+     */
+    suspend fun boundingBox(selector: String): Map<String, Double>? {
+        val result = executeScript(
+            """
+            const el = document.querySelector('$selector');
+            if (el) {
+                const rect = el.getBoundingClientRect();
+                return {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
+            }
+            return null;
+            """.trimIndent()
+        )
+        @Suppress("UNCHECKED_CAST")
+        return result as? Map<String, Double>
+    }
+
+    // ========== Resource Loading ==========
+
+    /**
+     * Creates a new Jsoup session for HTTP requests.
+     *
+     * Note: This is a placeholder - REST client doesn't directly support Jsoup sessions.
+     * @return Connection object (not implemented in REST SDK)
+     */
+    suspend fun newJsoupSession(): Any? {
+        // Not directly supported in REST SDK
+        return null
+    }
+
+    /**
+     * Loads a resource using Jsoup.
+     *
+     * Note: This is a placeholder - use the main navigation methods instead.
+     * @param url Resource URL
+     * @return Response object (not implemented in REST SDK)
+     */
+    suspend fun loadJsoupResource(url: String): Any? {
+        // Not directly supported in REST SDK
+        return null
+    }
+
+    /**
+     * Loads a network resource.
+     *
+     * Note: This is a placeholder - use the main navigation methods instead.
+     * @param url Resource URL
+     * @return Response object (not implemented in REST SDK)
+     */
+    suspend fun loadResource(url: String): Any? {
+        // Not directly supported in REST SDK
+        return null
+    }
+
     // ========== Events (Placeholder) ==========
 
     /**

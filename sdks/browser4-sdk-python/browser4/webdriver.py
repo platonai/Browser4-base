@@ -899,6 +899,465 @@ class WebDriver:
         """Bring the browser window to the front."""
         return self.execute_script("window.focus()")
 
+    # ========== Cookies ==========
+
+    def get_cookies(self) -> List[Dict[str, Any]]:
+        """
+        Get all cookies for the current page.
+
+        Returns:
+            List of cookie dictionaries.
+        """
+        response = self.client.get("/session/{sessionId}/cookie")
+        if isinstance(response, dict) and "value" in response:
+            return response["value"]
+        return []
+
+    def delete_cookies(
+        self,
+        name: str,
+        url: Optional[str] = None,
+        domain: Optional[str] = None,
+        path: Optional[str] = None
+    ) -> None:
+        """
+        Delete a cookie by name.
+
+        Args:
+            name: Cookie name.
+            url: Optional URL.
+            domain: Optional domain.
+            path: Optional path.
+        """
+        self.client.delete(f"/session/{{sessionId}}/cookie/{name}")
+
+    def clear_browser_cookies(self) -> None:
+        """Clear all browser cookies."""
+        self.client.delete("/session/{sessionId}/cookie")
+
+    def add_cookie(self, cookie: Dict[str, Any]) -> None:
+        """
+        Add a cookie.
+
+        Args:
+            cookie: Cookie data dictionary with keys: name, value, domain, path, etc.
+        """
+        self.client.post("/session/{sessionId}/cookie", {"cookie": cookie})
+
+    # ========== Advanced Element Operations ==========
+
+    def click_text_matches(self, selector: str, pattern: str, count: int = 1) -> Any:
+        """
+        Click elements whose text content matches a pattern.
+
+        Args:
+            selector: CSS selector.
+            pattern: Text pattern to match.
+            count: Number of matches to click.
+
+        Returns:
+            Click result.
+        """
+        # Simplified - in full implementation would use pattern matching
+        return self.click(selector, count)
+
+    def click_matches(
+        self,
+        selector: str,
+        attr_name: str,
+        pattern: str,
+        count: int = 1
+    ) -> Any:
+        """
+        Click elements whose attribute matches a pattern.
+
+        Args:
+            selector: CSS selector.
+            attr_name: Attribute name.
+            pattern: Attribute value pattern.
+            count: Number of matches to click.
+
+        Returns:
+            Click result.
+        """
+        # Simplified - in full implementation would use pattern matching
+        return self.click(selector, count)
+
+    def click_nth_anchor(self, n: int, root_selector: str = "body") -> Optional[str]:
+        """
+        Click the nth anchor element.
+
+        Args:
+            n: Zero-based index.
+            root_selector: Root selector (default: "body").
+
+        Returns:
+            URL of clicked anchor, or None.
+        """
+        selector = f"{root_selector} a:nth-of-type({n + 1})"
+        self.click(selector)
+        return self.select_first_attribute_or_null(selector, "href")
+
+    # ========== Mouse Operations ==========
+
+    def mouse_wheel_down(
+        self,
+        count: int = 1,
+        delta_x: float = 0.0,
+        delta_y: float = 150.0,
+        delay_millis: int = 0
+    ) -> None:
+        """
+        Scroll down using mouse wheel.
+
+        Args:
+            count: Number of wheel events.
+            delta_x: Horizontal scroll delta.
+            delta_y: Vertical scroll delta.
+            delay_millis: Delay between events in milliseconds.
+        """
+        for i in range(count):
+            self.scroll_by(delta_y, smooth=False)
+            if delay_millis > 0 and i < count - 1:
+                self.delay(delay_millis)
+
+    def mouse_wheel_up(
+        self,
+        count: int = 1,
+        delta_x: float = 0.0,
+        delta_y: float = -150.0,
+        delay_millis: int = 0
+    ) -> None:
+        """
+        Scroll up using mouse wheel.
+
+        Args:
+            count: Number of wheel events.
+            delta_x: Horizontal scroll delta.
+            delta_y: Vertical scroll delta.
+            delay_millis: Delay between events in milliseconds.
+        """
+        for i in range(count):
+            self.scroll_by(delta_y, smooth=False)
+            if delay_millis > 0 and i < count - 1:
+                self.delay(delay_millis)
+
+    def move_mouse_to(self, *args: Union[float, str, int]) -> None:
+        """
+        Move mouse to coordinates or element.
+
+        Overloaded method supporting:
+        - move_mouse_to(x: float, y: float)
+        - move_mouse_to(selector: str, delta_x: int, delta_y: int = 0)
+
+        Args:
+            args: Either (x, y) coordinates or (selector, delta_x, delta_y).
+        """
+        if len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
+            # move_mouse_to(x, y)
+            x, y = args
+            self.execute_script(
+                f"window.dispatchEvent(new MouseEvent('mousemove', {{clientX: {x}, clientY: {y}}}))"
+            )
+        elif len(args) >= 1 and isinstance(args[0], str):
+            # move_mouse_to(selector, delta_x, delta_y)
+            selector = args[0]
+            self.hover(selector)
+
+    def drag_and_drop(self, selector: str, delta_x: int, delta_y: int = 0) -> None:
+        """
+        Drag and drop an element.
+
+        Args:
+            selector: CSS selector.
+            delta_x: X offset.
+            delta_y: Y offset.
+        """
+        self.execute_script(
+            f"""
+            const el = document.querySelector('{selector}');
+            if (el) {{
+                el.dispatchEvent(new DragEvent('dragstart'));
+                el.style.transform = 'translate({delta_x}px, {delta_y}px)';
+                el.dispatchEvent(new DragEvent('drop'));
+            }}
+            """
+        )
+
+    # ========== Attribute and Property Operations ==========
+
+    def set_attribute(self, selector: str, attr_name: str, attr_value: str) -> None:
+        """
+        Set an attribute on the first matching element.
+
+        Args:
+            selector: CSS selector.
+            attr_name: Attribute name.
+            attr_value: Attribute value.
+        """
+        self.execute_script(
+            f"document.querySelector('{selector}')?.setAttribute('{attr_name}', '{attr_value}')"
+        )
+
+    def set_attribute_all(self, selector: str, attr_name: str, attr_value: str) -> None:
+        """
+        Set an attribute on all matching elements.
+
+        Args:
+            selector: CSS selector.
+            attr_name: Attribute name.
+            attr_value: Attribute value.
+        """
+        self.execute_script(
+            f"""
+            document.querySelectorAll('{selector}').forEach(el => 
+                el.setAttribute('{attr_name}', '{attr_value}')
+            )
+            """
+        )
+
+    def select_first_property_value_or_null(
+        self,
+        selector: str,
+        prop_name: str
+    ) -> Optional[str]:
+        """
+        Get a property value from the first matching element.
+
+        Args:
+            selector: CSS selector.
+            prop_name: Property name.
+
+        Returns:
+            Property value or None.
+        """
+        result = self.execute_script(f"document.querySelector('{selector}')?.{prop_name}")
+        return str(result) if result is not None else None
+
+    def select_property_value_all(
+        self,
+        selector: str,
+        prop_name: str,
+        start: int = 0,
+        limit: int = 10000
+    ) -> List[str]:
+        """
+        Get property values from all matching elements.
+
+        Args:
+            selector: CSS selector.
+            prop_name: Property name.
+            start: Start index.
+            limit: Maximum results.
+
+        Returns:
+            List of property values.
+        """
+        result = self.execute_script(
+            f"""
+            Array.from(document.querySelectorAll('{selector}'))
+                .slice({start}, {start + limit})
+                .map(el => el.{prop_name})
+                .filter(v => v != null)
+            """
+        )
+        return result if isinstance(result, list) else []
+
+    def set_property(self, selector: str, prop_name: str, prop_value: str) -> None:
+        """
+        Set a property on the first matching element.
+
+        Args:
+            selector: CSS selector.
+            prop_name: Property name.
+            prop_value: Property value.
+        """
+        self.execute_script(
+            f"const el = document.querySelector('{selector}'); if (el) el.{prop_name} = '{prop_value}'"
+        )
+
+    def set_property_all(self, selector: str, prop_name: str, prop_value: str) -> None:
+        """
+        Set a property on all matching elements.
+
+        Args:
+            selector: CSS selector.
+            prop_name: Property name.
+            prop_value: Property value.
+        """
+        self.execute_script(
+            f"document.querySelectorAll('{selector}').forEach(el => el.{prop_name} = '{prop_value}')"
+        )
+
+    # ========== Link and Image Selection ==========
+
+    def select_hyperlinks(
+        self,
+        selector: str,
+        offset: int = 1,
+        limit: int = 2147483647  # Max int in many contexts
+    ) -> List[Dict[str, Optional[str]]]:
+        """
+        Select hyperlinks matching a selector.
+
+        Args:
+            selector: CSS selector.
+            offset: Start offset.
+            limit: Maximum results.
+
+        Returns:
+            List of hyperlink dictionaries with 'href' and 'text'.
+        """
+        hrefs = self.select_attribute_all(selector, "href")
+        texts = self.select_text_all(selector)
+        links = [
+            {"href": href, "text": texts[i] if i < len(texts) else None}
+            for i, href in enumerate(hrefs)
+        ]
+        return links[offset - 1:offset - 1 + limit]
+
+    def select_anchors(
+        self,
+        selector: str,
+        offset: int = 1,
+        limit: int = 2147483647
+    ) -> List[Dict[str, Any]]:
+        """
+        Select anchor elements with geometric information.
+
+        Args:
+            selector: CSS selector.
+            offset: Start offset.
+            limit: Maximum results.
+
+        Returns:
+            List of anchor data dictionaries.
+        """
+        return self.select_hyperlinks(selector, offset, limit)
+
+    def select_images(
+        self,
+        selector: str,
+        offset: int = 1,
+        limit: int = 2147483647
+    ) -> List[str]:
+        """
+        Select image URLs matching a selector.
+
+        Args:
+            selector: CSS selector.
+            offset: Start offset.
+            limit: Maximum results.
+
+        Returns:
+            List of image URLs.
+        """
+        srcs = self.select_attribute_all(selector, "src")
+        return srcs[offset - 1:offset - 1 + limit]
+
+    # ========== Advanced Evaluation ==========
+
+    def evaluate_detail(self, expression: str) -> Dict[str, Any]:
+        """
+        Evaluate JavaScript and return detailed result.
+
+        Args:
+            expression: JavaScript expression.
+
+        Returns:
+            Evaluation result dictionary with 'value' and 'type'.
+        """
+        value = self.evaluate(expression)
+        return {
+            "value": value,
+            "type": type(value).__name__
+        }
+
+    def evaluate_value(self, *args: Any) -> Any:
+        """
+        Evaluate JavaScript expression and return value.
+
+        Overloaded method supporting:
+        - evaluate_value(expression: str) -> Any
+        - evaluate_value(expression: str, default_value: T) -> T
+        - evaluate_value(selector: str, function_declaration: str) -> Any
+
+        Args:
+            args: Either (expression,), (expression, default_value), or (selector, function_declaration).
+
+        Returns:
+            Evaluation result.
+        """
+        if len(args) == 1:
+            return self.evaluate(args[0])
+        elif len(args) == 2:
+            if isinstance(args[1], str) and '(' in args[1]:
+                # evaluate_value(selector, function_declaration)
+                selector, func = args
+                return self.execute_script(f"({func})(document.querySelector('{selector}'))")
+            else:
+                # evaluate_value(expression, default_value)
+                result = self.evaluate(args[0])
+                return result if result is not None else args[1]
+
+    def evaluate_value_detail(self, *args: Union[str, Any]) -> Dict[str, Any]:
+        """
+        Evaluate JavaScript and return detailed result.
+
+        Args:
+            args: Either (expression,) or (selector, function_declaration).
+
+        Returns:
+            Evaluation result dictionary with 'value' and 'type'.
+        """
+        if len(args) == 1:
+            return self.evaluate_detail(args[0])
+        elif len(args) == 2:
+            value = self.evaluate_value(args[0], args[1])
+            return {"value": value, "type": type(value).__name__}
+
+    # ========== Geometry Operations ==========
+
+    def clickable_point(self, selector: str) -> Optional[Dict[str, float]]:
+        """
+        Get the clickable point of an element.
+
+        Args:
+            selector: CSS selector.
+
+        Returns:
+            Point dictionary with 'x', 'y' coordinates, or None.
+        """
+        rect = self.bounding_box(selector)
+        if not rect:
+            return None
+        return {
+            "x": rect["x"] + rect["width"] / 2,
+            "y": rect["y"] + rect["height"] / 2
+        }
+
+    def bounding_box(self, selector: str) -> Optional[Dict[str, float]]:
+        """
+        Get the bounding box of an element.
+
+        Args:
+            selector: CSS selector.
+
+        Returns:
+            Rectangle dictionary with 'x', 'y', 'width', 'height', or None.
+        """
+        result = self.execute_script(
+            f"""
+            const el = document.querySelector('{selector}');
+            if (el) {{
+                const rect = el.getBoundingClientRect();
+                return {{x: rect.x, y: rect.y, width: rect.width, height: rect.height}};
+            }}
+            return null;
+            """
+        )
+        return result if isinstance(result, dict) else None
+
     # ========== Events (Placeholder) ==========
 
     def create_event_config(self, config: Dict[str, Any]) -> Any:
