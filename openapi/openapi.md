@@ -28,6 +28,39 @@
 9. **协议定位**：Browser4 SDK 不遵循 W3C WebDriver 规范，也不追求标准兼容性。不采用 BiDi 协议，无需支持所有底层浏览器操作功能。
 10. **多语言支持**：SDK 计划支持 Kotlin、Java、Python 和 JavaScript，提供统一的接口规范。
 
+## 0.1 API 一致性要求（强制）
+
+> 本节用于将“API 一致性”具体化为可验证条目，用于文档/实现/SDK 的同步验收。
+
+### 0.1.1 一致性范围与判定
+
+- **范围**：SDK 接口、REST API（`openapi.yaml`）、服务端实现（Controller/Service）三方一致。
+- **判定维度**：
+  1. **能力覆盖**：SDK 方法必须映射到已定义的 REST 端点；不得公开未实现能力。
+  2. **输入一致**：字段名、类型、默认值、校验规则与错误类型一致。
+  3. **输出一致**：响应结构一致（`{ "value": ... }` / `ErrorResponse`）。
+  4. **行为一致**：时序、幂等性、会话/元素生命周期语义一致。
+  5. **错误一致**：错误码、错误字段与异常映射一致。
+
+### 0.1.2 SDK ↔ REST ↔ 实现映射要求
+
+- 每个 SDK 方法必须在本文档中标注：**SDK 方法名 → REST 端点 → Controller 入口**。
+- 示例 `ai.platon.pulsar.sdk.examples.FusedActsStyleExample` 需提供完整映射：
+  - **调用步骤**、**请求体/响应体**、**错误处理约定**、**对应 Controller**。
+- SDK 若隐藏或包装某些 REST 端点，必须在文档中声明差异与原因。
+
+### 0.1.3 版本与变更一致性
+
+- 明确标注 **OpenAPI 版本**、**SDK 版本**、**服务端版本** 的对应关系。
+- 端点新增/变更必须同步更新：`openapi.yaml`、本文档、SDK 实现与示例。
+- 文档需记录不兼容变更（breaking changes）与迁移建议。
+
+### 0.1.4 响应与错误一致性
+
+- 成功返回必须使用 `{"value": ...}` 包装；SDK 需统一解包。
+- 错误必须返回 `ErrorResponse.value.error` 与 `ErrorResponse.value.message`，SDK 需统一映射为异常类型。
+- 任何 mock-only 端点必须标记并给出 SDK 侧的可见性策略（隐藏/实验/显式错误）。
+
 ## 1. OpenAPI Overview (Extracted from `openapi.yaml`)
 
 This section summarizes spec metadata. Endpoint lists are in Section 2, and implementation mapping is in Section 3.
@@ -68,6 +101,8 @@ This section summarizes spec metadata. Endpoint lists are in Section 2, and impl
 | GET | `/session/{sessionId}` | `getSession` | ✓ | ✓ | - |
 | DELETE | `/session/{sessionId}` | `deleteSession` | ✓ | ✓ | - |
 
+> 一致性补充：SDK `Session` 生命周期必须与 REST `/session` 行为一致（创建/回收/并发访问）。
+
 ### 2.2 navigation
 
 | Method | Path | operationId | W3C | In openapi.yaml | Next Step (human) |
@@ -90,6 +125,7 @@ This section summarizes spec metadata. Endpoint lists are in Section 2, and impl
 | POST | `/session/{sessionId}/selectors/press` | `pressBySelector` | ✗ | ✓ | - |
 | POST | `/session/{sessionId}/selectors/outerHtml` | `getOuterHtmlBySelector` | ✗ | ✓ | - |
 | POST | `/session/{sessionId}/selectors/screenshot` | `screenshotBySelector` | ✗ | ✓ | - |
+| POST | `/session/{sessionId}/selectors/textContent` | `getTextContentBySelector` | ✗ | ✓ | - |
 
 ### 2.4 element (standard WebDriver element)
 
@@ -145,6 +181,7 @@ This section summarizes spec metadata. Endpoint lists are in Section 2, and impl
 | POST | `/session/{sessionId}/open` | `open` | ✗ | ✓ | - |
 | POST | `/session/{sessionId}/load` | `load` | ✗ | ✓ | - |
 | POST | `/session/{sessionId}/submit` | `submit` | ✗ | ✓ | - |
+| POST | `/session/{sessionId}/capture` | `capture` | ✗ | ✓ | - |
 
 ### 2.10 W3C Standard Endpoints Missing From `openapi.yaml`
 
@@ -256,6 +293,67 @@ Key dependencies (used to differentiate real vs mock):
 - entry for real sessions and real capabilities: `pulsar-rest/.../openapi/service/SessionManager.kt` (when present/injected, controllers enable the real branch)
 - mock/demo storage: `pulsar-rest/.../openapi/store/InMemoryStore.kt`
 
+### 3.1 SDK ↔ REST ↔ Controller 映射清单（待补全）
+
+> 这是 API 一致性验收的核心清单。每次接口变更必须更新此表。
+
+| SDK Method | REST Endpoint | Controller | Notes |
+|---|---|---|---|
+| `AgenticContexts.getOrCreateSession()` | `POST /session` | `SessionController.kt` | Session create; ensure SDK does not hide failure responses. |
+| `PulsarSession.open(url)` | `POST /session/{sessionId}/open` | `PulsarSessionController.kt` | Used at steps: open URL, re-open URL. |
+| `PulsarSession.parse(page)` | N/A | N/A | Local parse (Jsoup), no REST call. |
+| `PulsarSession.extract(document, selectors)` | N/A | N/A | Local extraction from Jsoup. |
+| `AgenticSession.companionAgent.act(...)` | `POST /session/{sessionId}/agent/act` | `AgentController.kt` | Used for search/click/go back/open in new tab. |
+| `AgenticSession.companionAgent.run(...)` | `POST /session/{sessionId}/agent/run` | `AgentController.kt` | Used for autonomous tasks (search box, scroll). |
+| `AgenticSession.companionAgent.clearHistory()` | `POST /session/{sessionId}/agent/clearHistory` | `AgentController.kt` | Called before run() for clean context. |
+| `WebDriver.selectFirstTextOrNull(selector)` | `POST /session/{sessionId}/selectors/textContent` | `SelectorController.kt` | Returns textContent for the first match. |
+| `PulsarSession.capture(driver)` | `POST /session/{sessionId}/capture` | `PulsarSessionController.kt` | Capture live DOM snapshot into a WebPageResult-like payload. |
+| `session.context.close()` | `DELETE /session/{sessionId}` | `SessionController.kt` | Triggers server-side `AgenticSession.close()` as part of session deletion. |
+
+### 3.2 Draft: `capture()` REST design (for `PulsarSession.capture`)
+
+> 目标：从当前 WebDriver 的 live DOM 生成 `WebPage` 快照，并与 `WebPageResult` 结构对齐。
+
+**Endpoint (draft)**
+- `POST /session/{sessionId}/capture`
+- Tag: `pulsar`
+
+**Request (draft)**
+```json
+{
+  "url": "https://example.com/optional-label",
+  "args": "-expire 1d",
+  "includeHtml": true,
+  "includeText": false,
+  "includeScreenshot": false,
+  "screenshotSelector": "body",
+  "domSettleTimeoutMs": 2000,
+  "timeoutMs": 10000
+}
+```
+
+**Response (draft)**
+```json
+{
+  "value": {
+    "url": "https://example.com/",
+    "location": "https://example.com/",
+    "contentType": "text/html",
+    "contentLength": 12345,
+    "protocolStatus": "200",
+    "isNil": false,
+    "html": "<html>...",
+    "text": "...",
+    "screenshot": "iVBORw0KGgoAAA..."
+  }
+}
+```
+
+**Notes**
+- `value` 结构基于 `WebPageResult`，扩展字段 `html` / `text` / `screenshot` 为可选。
+- `screenshot` 建议为 base64 PNG，与 `selectors/screenshot` 保持一致。
+- 若实现不支持 `includeHtml/includeText/includeScreenshot`，至少返回 `WebPageResult` 基本字段。
+
 ---
 
 ## 4. Implementation Coverage Matrix (real / mock)
@@ -279,6 +377,8 @@ Key dependencies (used to differentiate real vs mock):
 | agent | `/agent/*` | ✅ | ✅ | real calls `session.agent.*`; mock returns demo responses |
 | pulsar | `/normalize` `/open` `/load` `/submit` | ✅ | ✅ | real calls `pulsarSession.*`; mock returns a demo WebPageResult |
 
+> 一致性要求：SDK 不得对 mock-only 端点做“真实能力”宣传；必须显式标记为实验或隐藏。
+
 ---
 
 ## 5. Known Semantic Differences and Notes (spec vs implementation)
@@ -287,13 +387,17 @@ Key dependencies (used to differentiate real vs mock):
 
 - `POST /url` (real) triggers a load: `pulsarSession.load(request.url)`, and writes the url into `SessionManager`.
 - `GET /url` / `GET /documentUri` / `GET /baseUri` (real) currently mostly uses the **url stored in SessionManager / the session object**.
-    - This is not fully equivalent to the WebDriver semantics of “read the current address/document URI from the real browser”.
+    - This is not fully equivalent to the WebDriver semantics of “read the current address/document URI from the real browser”。
+
+> 一致性要求：SDK 必须明确返回值语义（SessionManager 记录值 vs 浏览器真实值），并保持跨语言一致。
 
 ### 5.2 elementId semantics in selectors / element
 
 - `elementId` currently behaves more like a “server-side session store handle”.
 - In real mode, element click/fill/text/attribute operations map elementId back to a selector, then execute via the driver.
     - That means elementId lifetime/validity is controlled by the store, not a native browser reference.
+
+> 一致性要求：SDK 不得将 elementId 视作原生浏览器引用；失效策略必须一致。
 
 ### 5.3 control / events status
 
@@ -302,6 +406,8 @@ Key dependencies (used to differentiate real vs mock):
     - `/control/pause` and `/control/stop`: update session status in `SessionManager`, but do not yet pause/stop driver-level operations.
 - `events` currently have no real branch: they mainly serve as demos/placeholders (in-memory event system).
 - To fully align with WebDriver / real browser event streams, driver-side capabilities and a clearer state machine/subscription model would be needed.
+
+> 一致性要求：SDK 必须显式区分“状态标记”与“驱动级控制”。
 
 ---
 
@@ -314,10 +420,11 @@ Key dependencies (used to differentiate real vs mock):
     - P1: design real semantics for `events` (browser event stream integration, if publicly promised)
     - P1: further align navigation “current URL/documentUri” retrieval
     - P2: extend `control/pause` and `control/stop` to pause/stop driver-level operations
-4. **Add minimal contract tests (MockMvc/WebTestClient)** covering at least:
-    - `POST /session` → returns sessionId
-    - 404 error body matches `ErrorResponse`
-    - basic success path for `POST /session/{id}/load` or `POST /session/{id}/url`
+4. **补充一致性验收清单**：每次发布前至少验证以下条目：
+    - SDK 调用与 REST 返回结构一致（`value`/`ErrorResponse`）
+    - SDK 示例 `FusedActsStyleExample` 全流程可运行
+    - 关键端点的参数默认值与校验逻辑一致
+    - 文档与 Controller 覆盖一致（无“文档声明但未实现”）
 
 ---
 
@@ -332,6 +439,8 @@ Key dependencies (used to differentiate real vs mock):
 # 2) Run tests for the REST module only (will build dependent modules)
 .\mvnw.cmd -pl pulsar-rest -am test -D"surefire.failIfNoSpecifiedTests=false"
 ```
+
+> 一致性建议：增加一个最小的 SDK ↔ REST 对比验证脚本或测试用例，并记录在 `docs-dev`。
 
 ---
 

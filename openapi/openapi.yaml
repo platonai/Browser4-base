@@ -828,33 +828,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /session/{sessionId}/selectors/textContentAll:
-    post:
-      tags:
-        - selectors
-      summary: Get text content of all matching elements
-      operationId: getTextContentAllBySelector
-      parameters:
-        - $ref: '#/components/parameters/sessionId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelectorRef'
-      responses:
-        '200':
-          description: List of text contents
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StringListResponse'
-        '404':
-          description: Session not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /session/{sessionId}/selectors/attribute:
     post:
@@ -1813,6 +1786,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /session/{sessionId}/capture:
+    post:
+      tags:
+        - pulsar
+      summary: Capture live page snapshot
+      description: |
+        Captures the live DOM from the current WebDriver session and returns a
+        WebPageResult-like payload, optionally including HTML, text, or screenshot.
+      operationId: capture
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaptureRequest'
+      responses:
+        '200':
+          description: Snapshot captured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureResponse'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   parameters:
     sessionId:
@@ -2552,24 +2556,56 @@ components:
           type: boolean
           description: Whether the URL was submitted successfully
 
-    WebPageResult:
+    CaptureRequest:
       type: object
       properties:
         url:
           type: string
-          description: The page URL
-        location:
+          description: Optional URL label for the capture result
+        args:
           type: string
-          description: The final location after redirects
-        contentType:
-          type: string
-          description: Content type of the page
-        contentLength:
-          type: integer
-          description: Content length in bytes
-        protocolStatus:
-          type: string
-          description: HTTP protocol status
-        isNil:
+          description: Optional load arguments (reserved for future use)
+        includeHtml:
           type: boolean
-          description: Whether the page is nil/invalid
+          default: true
+          description: Whether to include raw HTML in the response
+        includeText:
+          type: boolean
+          default: false
+          description: Whether to include extracted text in the response
+        includeScreenshot:
+          type: boolean
+          default: false
+          description: Whether to include a screenshot in the response
+        screenshotSelector:
+          type: string
+          default: body
+          description: CSS selector to scope screenshot capture
+        domSettleTimeoutMs:
+          type: integer
+          format: int64
+          description: Timeout in ms for DOM to settle before capture
+        timeoutMs:
+          type: integer
+          format: int64
+          description: Overall timeout in ms for capture
+
+    CaptureResponse:
+      type: object
+      properties:
+        value:
+          allOf:
+            - $ref: '#/components/schemas/WebPageResult'
+            - type: object
+              properties:
+                html:
+                  type: string
+                  description: Raw HTML content (optional)
+                text:
+                  type: string
+                  description: Extracted text content (optional)
+                screenshot:
+                  type: string
+                  format: byte
+                  description: Base64-encoded PNG screenshot (optional)
+
