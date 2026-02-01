@@ -374,7 +374,6 @@ class PulsarWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun focus(selector: String) {
-        // TODO: handle the minor exception: 0.	[focus] (3/5) | code: -32000, Element is not focusable
         // we can return false if the element is not focusable
         rpc.invokeDeferredSilently("focus") { page.focusOnSelector(selector) }
     }
@@ -449,14 +448,14 @@ class PulsarWebDriver(
                 val clickableDOM = ClickableDOM(p, d, node, offset)
                 val clickableResult = clickableDOM.clickablePoint()
                 val startPoint = clickableResult.value
-                
+
                 if (startPoint == null) {
                     throw WebDriverException(
                         "Element is not clickable/draggable: $selector | ${clickableResult.message}",
                         driver = this
                     )
                 }
-                
+
                 // Calculate target point relative to start point
                 val targetPoint = PointD(startPoint.x + deltaX, startPoint.y + deltaY)
 
@@ -820,7 +819,7 @@ function() {
 
         // Try to get the RequestWillBeSentExtraInfo which contains cookies
         val extraInfo = networkManager.getRequestWillBeSentExtraInfo(event.requestId)
-        
+
         val chromeNavigateEntry = ChromeNavigateEntry(navigateEntry)
         chromeNavigateEntry.updateStateBeforeRequestSent(event, extraInfo)
 
