@@ -39,7 +39,8 @@ abstract class AbstractAgenticSession(
     context: AbstractPulsarContext,
     sessionConfig: VolatileConfig,
     id: Long = nextId()
-) : AbstractPulsarSession(context, sessionConfig, id = id), AgenticSession
+) : AbstractPulsarSession(context, sessionConfig, id = id), AgenticSession {
+}
 
 open class BasicAgenticSession(
     context: AbstractAgenticContext,

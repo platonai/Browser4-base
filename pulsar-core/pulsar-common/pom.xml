@@ -79,6 +79,12 @@
             <artifactId>gson</artifactId>
         </dependency>
 
+        <!-- For URL processing -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+        </dependency>
+
         <!-- Stax2 API is an extension to standard Stax API ("the STandard Api for Xml processing"), pull-parser API of JDK. -->
         <!-- https://mvnrepository.com/artifact/org.codehaus.woodstox/stax2-api/4.2.2 -->
         <dependency>

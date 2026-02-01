@@ -5,6 +5,7 @@ package ai.platon.pulsar.common.urls
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.AppConstants.INTERNAL_URL_PREFIX
 import com.google.common.net.InternetDomainName
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.apache.commons.lang3.StringUtils
 import org.apache.hc.core5.net.URIBuilder
 import java.net.*
@@ -147,6 +148,16 @@ object URLUtils {
         return URLDecoder.decode(encoded, Charsets.UTF_8)
     }
 
+    @Deprecated("Use getURLOrNull2 instead", ReplaceWith("getURLOrNull2(spec)"))
+    @JvmStatic
+    fun getURLOrNull(spec: String?): URL? {
+        if (spec.isNullOrBlank()) {
+            return null
+        }
+
+        return kotlin.runCatching { URI.create(spec).toURL() }.getOrNull()
+    }
+
     /**
      * Creates a {@code URL} object from the {@code String}
      * representation.
@@ -160,12 +171,8 @@ object URLUtils {
      * @see        java.net.URL#URI.create(java.net.URL)
      */
     @JvmStatic
-    fun getURLOrNull(spec: String?): URL? {
-        if (spec.isNullOrBlank()) {
-            return null
-        }
-
-        return kotlin.runCatching { URI.create(spec).toURL() }.getOrNull()
+    fun getURLOrNull2(spec: String?): URL? {
+        return spec?.toHttpUrlOrNull()?.toUrl()
     }
 
     /**

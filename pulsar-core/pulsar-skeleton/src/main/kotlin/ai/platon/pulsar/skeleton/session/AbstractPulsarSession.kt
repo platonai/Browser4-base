@@ -232,6 +232,7 @@ abstract class AbstractPulsarSession(
 
     override fun bindBrowser(browser: Browser) {
         sessionConfig.putBean(browser)
+        closableObjects.add(browser)
     }
 
     override fun unbindDriver(driver: WebDriver) {
@@ -240,6 +241,7 @@ abstract class AbstractPulsarSession(
 
     override fun unbindBrowser(browser: Browser) {
         sessionConfig.removeBean(browser)
+        closableObjects.remove(browser)
     }
 
     override fun load(url: String): WebPage = load(url, options())
@@ -578,7 +580,7 @@ abstract class AbstractPulsarSession(
 
     override fun equals(other: Any?) = other === this || (other is PulsarSession && other.id == id)
 
-    override fun hashCode(): Int = id.hashCode()
+    override fun hashCode(): Int = uuid.hashCode()
 
     override fun toString(): String = "#$id"
 

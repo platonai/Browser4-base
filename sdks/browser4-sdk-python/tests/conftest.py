@@ -31,24 +31,36 @@ def is_port_in_use(port: int) -> bool:
         url = f"http://localhost:{port}"
         with urllib.request.urlopen(url, timeout=1):
             return True
-    except:
+    except urllib.error.HTTPError:
+        # The port is in use even if the endpoint returns a non-2xx response.
+        return True
+    except Exception:
         return False
 
 
 def wait_for_server(base_url: str, timeout_seconds: int = 60) -> bool:
     """Wait for server to become ready."""
-    health_url = f"{base_url}/health"
+    candidates = [
+        f"{base_url}/health",
+        f"{base_url}/actuator/health",
+        f"{base_url}/",
+    ]
     end_time = time.time() + timeout_seconds
-    
+
     while time.time() < end_time:
-        try:
-            with urllib.request.urlopen(health_url, timeout=1) as response:
-                if 200 <= response.status < 300:
+        for url in candidates:
+            try:
+                with urllib.request.urlopen(url, timeout=2) as response:
+                    if 200 <= response.status < 300:
+                        return True
+            except urllib.error.HTTPError as e:
+                # Any HTTP response implies the server is up.
+                if 200 <= e.code < 600:
                     return True
-        except:
-            pass
+            except Exception:
+                pass
         time.sleep(0.5)
-    
+
     return False
 
 
@@ -108,20 +120,18 @@ def mock_server(maven_build):
         str(MAVEN_WRAPPER),
         "-q",
         "-pl", "pulsar-tests/pulsar-tests-common",
-        "spring-boot:run",
+        # Use fully-qualified goal so Maven doesn't need prefix/pluginGroup mapping.
+        "org.springframework.boot:spring-boot-maven-plugin:run",
         f"-Dspring-boot.run.arguments=--server.port={MOCK_SERVER_PORT}",
-        "-Dspring-boot.run.mainClass=ai.platon.pulsar.test.server.MockSiteApplicationKt"
+        "-Dspring-boot.run.mainClass=ai.platon.pulsar.test.server.MockSiteApplicationKt",
     ]
-    
+
     process = None
     try:
-        # Start the process
+        # Do not pipe stdout/stderr: Maven can output a lot and block on full pipes.
         process = subprocess.Popen(
             cmd,
             cwd=PROJECT_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
         )
         
         # Wait for server to start
@@ -166,20 +176,18 @@ def browser4_server(maven_build, mock_server):
         str(MAVEN_WRAPPER),
         "-q",
         "-pl", "pulsar-rest",
-        "spring-boot:run",
+        # Use fully-qualified goal so Maven doesn't need prefix/pluginGroup mapping.
+        "org.springframework.boot:spring-boot-maven-plugin:run",
         f"-Dspring-boot.run.arguments=--server.port={BROWSER4_SERVER_PORT}",
-        "-Dspring-boot.run.profiles=test"
+        "-Dspring-boot.run.profiles=test",
     ]
-    
+
     process = None
     try:
-        # Start the process
+        # Do not pipe stdout/stderr: Maven can output a lot and block on full pipes.
         process = subprocess.Popen(
             cmd,
             cwd=PROJECT_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
         )
         
         # Wait for server to start (longer timeout as it needs to initialize browser)
