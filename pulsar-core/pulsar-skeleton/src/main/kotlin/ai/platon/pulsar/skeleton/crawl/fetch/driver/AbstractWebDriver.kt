@@ -665,10 +665,14 @@ abstract class AbstractWebDriver(
         waitUntil("waitUtil", timeout, predicate)
 
     protected suspend fun waitUntil(type: String, timeout: Duration, predicate: suspend () -> Boolean): Duration {
+        return waitUntil(randomDelayMillis(type), timeout, predicate)
+    }
+
+    protected suspend fun waitUntil(timeMillis: Long, timeout: Duration, predicate: suspend () -> Boolean): Duration {
         val startTime = Instant.now()
         var elapsedTime = Duration.ZERO
         while (elapsedTime < timeout && !predicate()) {
-            gap(type)
+            delay(timeMillis)
             elapsedTime = DateTimes.elapsedTime(startTime)
         }
         return timeout - elapsedTime

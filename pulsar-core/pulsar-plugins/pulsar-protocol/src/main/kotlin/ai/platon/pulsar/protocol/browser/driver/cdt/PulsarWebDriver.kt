@@ -360,9 +360,8 @@ class PulsarWebDriver(
     @Throws(WebDriverException::class)
     override suspend fun click(selector: String, count: Int) {
         driverHelper.invokeOnElement(selector, "click", scrollIntoView = true) { node ->
+            waitForScrollSettled(selector)
             val delayMillis = randomDelayMillis("click")
-            // Need wait for a while to wait for the scroll animation to finish
-            delay(1000)
             emulator.click(node, count, position = "center", modifier = null, delayMillis = delayMillis)
             // debugElementOnPoint(node)
         }
@@ -385,8 +384,7 @@ class PulsarWebDriver(
     override suspend fun click(selector: String, modifier: String) {
         driverHelper.invokeOnElement(selector, "click", scrollIntoView = true) { node ->
             val delayMillis = randomDelayMillis("click")
-            // Need wait for a while to wait for the scroll animation to finish
-            delay(1000)
+            waitForScrollSettled(selector)
             emulator.click(node, 1, position = "center", modifier = modifier, delayMillis = delayMillis)
         }
     }
@@ -1051,4 +1049,35 @@ function() {
     ) {
         networkAPI?.deleteCookies(name, url, domain, path)
     }
+
+    private suspend fun waitForScrollSettled(selector: String, timeout: Duration = Duration.ofMillis(5_000)) {
+        val safeSelector = Strings.escapeJsString(selector)
+        waitUntil(500, timeout) {
+            val settled = evaluateDetail(
+                """
+(() => {
+  const sel = "$safeSelector";
+  const el = document.querySelector(sel);
+  if (!el) return true;
+  const r = el.getBoundingClientRect();
+  const s = document.scrollingElement || document.documentElement;
+  const prev = window.__pulsar_scroll_prev || {t:r.top,l:r.left,st:s.scrollTop,sl:s.scrollLeft};
+  window.__pulsar_scroll_prev = {t:r.top,l:r.left,st:s.scrollTop,sl:s.scrollLeft};
+  return Math.abs(prev.t - r.top) < 1 &&
+         Math.abs(prev.l - r.left) < 1 &&
+         Math.abs(prev.st - s.scrollTop) < 1 &&
+         Math.abs(prev.sl - s.scrollLeft) < 1;
+})()
+                    """.trimIndent()
+            )
+
+            // println(settled)
+
+            settled?.value as? Boolean ?: false
+        }
+
+        // still delay for a while to ensure scroll settled
+        delay(500)
+    }
 }
+
