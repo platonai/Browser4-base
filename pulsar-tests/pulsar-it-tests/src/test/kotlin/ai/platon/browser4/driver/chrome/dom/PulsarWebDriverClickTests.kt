@@ -654,10 +654,11 @@ class PulsarWebDriverClickTests : WebDriverTestBase() {
         
         val startTime = System.currentTimeMillis()
         
-        // Click 5 times rapidly
+        // Click 5 times rapidly on add multiple items (which adds 5 items per click)
+        // This tests rapid button clicking without requiring input field
         driver.bringToFront()
         repeat(5) {
-            driver.click("[data-testid='tta-add-item']", 1)
+            driver.click("[data-testid='tta-add-multiple']", 1)
         }
         
         val elapsed = System.currentTimeMillis() - startTime
@@ -665,10 +666,10 @@ class PulsarWebDriverClickTests : WebDriverTestBase() {
         // Should complete in reasonable time (< 10 seconds for 5 clicks)
         assertTrue(elapsed < 10000, "5 clicks should complete within 10s: actual=${elapsed}ms")
         
-        // Verify items were added
+        // Verify items were added (5 clicks * 5 items each = 25 items, plus initial 2)
         driver.waitUntil(LARGE_TIMEOUT) {
             val count = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-            count >= 5
+            count >= 25
         }
     }
 }
