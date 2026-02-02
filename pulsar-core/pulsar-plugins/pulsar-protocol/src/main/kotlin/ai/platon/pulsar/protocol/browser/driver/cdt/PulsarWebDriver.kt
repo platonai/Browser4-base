@@ -22,6 +22,7 @@ import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.math.geometric.OffsetD
 import ai.platon.pulsar.common.math.geometric.PointD
 import ai.platon.pulsar.common.math.geometric.RectD
+import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import ai.platon.pulsar.common.urls.URLUtils
 import ai.platon.pulsar.protocol.browser.driver.cdt.detail.*
 import ai.platon.pulsar.skeleton.common.message.MiscMessageMessageWriter
@@ -72,7 +73,7 @@ class PulsarWebDriver(
     private val mouse get() = page.mouse.takeIf { isActive }
     private val keyboard get() = page.keyboard.takeIf { isActive }
     private val screenshot = ScreenshotHandler(page, devTools)
-    private val emulator get() = EmulationHandler(pageAPI, domAPI, keyboard, mouse)
+    private val emulator get() = EmulationHandler(pageAPI, domAPI, keyboard, mouse, devTools)
 
     private val rpc = RobustRPC(this)
     private val networkManager by lazy { NetworkManager(this, rpc) }
@@ -360,14 +361,32 @@ class PulsarWebDriver(
     override suspend fun click(selector: String, count: Int) {
         driverHelper.invokeOnElement(selector, "click", scrollIntoView = true) { node ->
             val delayMillis = randomDelayMillis("click")
+            // Need wait for a while to wait for the scroll animation to finish
+            delay(1000)
             emulator.click(node, count, position = "center", modifier = null, delayMillis = delayMillis)
+            // debugElementOnPoint(node)
         }
+    }
+
+    private suspend fun debugElementOnPoint(node: NodeRef) {
+        val point = emulator.getInteractPoint(node, "center", useRandomOffset = true) ?: return
+        val (x, y) = point
+
+        println("Debugging element at point ($x, $y):")
+
+        var result = evaluateValueDetail("__pulsar_utils__.elementFromPointDeep(100, 100)")
+        printlnPro(result?.value)
+
+        result = evaluateDetail("__pulsar_utils__.elementFromPointDeep($x, $y)")
+        printlnPro(result?.value)
     }
 
     @Throws(WebDriverException::class)
     override suspend fun click(selector: String, modifier: String) {
         driverHelper.invokeOnElement(selector, "click", scrollIntoView = true) { node ->
             val delayMillis = randomDelayMillis("click")
+            // Need wait for a while to wait for the scroll animation to finish
+            delay(1000)
             emulator.click(node, 1, position = "center", modifier = modifier, delayMillis = delayMillis)
         }
     }

@@ -723,18 +723,11 @@ class EmulationHandler(
     ) {
         val point = getInteractPoint(node, position, useRandomOffset = true) ?: return
 
-        // debugElementOnPoint(point.x, point.y)
-
         if (modifier != null) {
             clickWithModifiers(point, modifier, count, delayMillis = delayMillis)
         } else {
             mouse?.click(point.x, point.y, count, delayMillis = delayMillis)
         }
-    }
-
-    private suspend fun debugElementOnPoint(x: Double, y: Double) {
-        val result = devTools?.runtime?.evaluate("elementFromPointDeep($x, $y)")
-        printlnPro(prettyPulsarObjectMapper().writeValueAsString(result))
     }
 
     /**
@@ -787,7 +780,7 @@ class EmulationHandler(
         m.moveTo(point, steps = 1, delayMillis = 40)
     }
 
-    private suspend fun getInteractPoint(node: NodeRef, position: String = "center", useRandomOffset: Boolean = true): PointD? {
+    suspend fun getInteractPoint(node: NodeRef, position: String = "center", useRandomOffset: Boolean = true): PointD? {
         val deltaX = if (useRandomOffset) 1.0 + Random.nextInt(2) else 0.0
         val deltaY = if (useRandomOffset) 1.0 + Random.nextInt(2) else 0.0
         val offset = OffsetD(deltaX, deltaY)
