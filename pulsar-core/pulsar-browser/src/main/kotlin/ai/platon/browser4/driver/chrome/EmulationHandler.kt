@@ -718,7 +718,13 @@ class EmulationHandler(
     suspend fun click(
         node: NodeRef, count: Int, position: String = "center", modifier: String? = null, delayMillis: Long = 100
     ) {
-        click0(node, count, position, modifier, delayMillis = delayMillis)
+        val point = getInteractPoint(node, position, useRandomOffset = true) ?: return
+
+        if (modifier != null) {
+            clickWithModifiers(point, modifier, count, delayMillis = delayMillis)
+        } else {
+            mouse?.click(point.x, point.y, count, delayMillis = delayMillis)
+        }
     }
 
     /**
@@ -769,19 +775,6 @@ class EmulationHandler(
         // Move to outside point, then move into the element to trigger hover
         m.moveTo(outsidePoint, steps = steps, delayMillis = 40)
         m.moveTo(point, steps = 1, delayMillis = 40)
-    }
-
-    private suspend fun click0(
-        node: NodeRef, count: Int, position: String = "center", modifier: String? = null,
-        delayMillis: Long = 100
-    ) {
-        val point = getInteractPoint(node, position, useRandomOffset = true) ?: return
-
-        if (modifier != null) {
-            clickWithModifiers(point, modifier, count, delayMillis = delayMillis)
-        } else {
-            mouse?.click(point.x, point.y, count, delayMillis = delayMillis)
-        }
     }
 
     private suspend fun getInteractPoint(node: NodeRef, position: String = "center", useRandomOffset: Boolean = true): PointD? {
