@@ -100,8 +100,8 @@ open class WebDriverService(
     open suspend fun open(url: String, driver: WebDriver, scrollCount: Int = 3) {
         driver.navigateTo(url)
 
-        // Has to wait for a while to let the scripts be injected
-        delay(1000)
+        driver.waitForNavigation()
+        driver.waitForSelector("body")
         val result = driver.evaluateValue("typeof(__pulsar_utils__)")
         assertEquals("function", result?.toString(), "__pulsar_utils__ is not injected properly")
 
@@ -116,14 +116,11 @@ open class WebDriverService(
 
     open suspend fun openEnhanced(url: String, driver: WebDriver, scrollCount: Int = 3) {
         driver.navigateTo(url)
+        driver.waitForNavigation()
+        driver.waitForSelector("body")
 
-        // Has to wait for a while to let the scripts be injected
-        delay(1000)
         val result = driver.evaluateValue("typeof(__pulsar_utils__)")
         assertEquals("function", result?.toString(), "__pulsar_utils__ is not injected properly")
-
-        driver.waitForSelector("body")
-//        driver.waitForSelector("input[id]")
 
         // make sure all metadata are available
         driver.evaluate("__pulsar_utils__.waitForReady()")
@@ -151,8 +148,8 @@ open class FastWebDriverService(
     override suspend fun openEnhanced(url: String, driver: WebDriver, scrollCount: Int) {
         driver.navigateTo(url)
 
-        // Has to wait for a while to let the scripts be injected
-        driver.delay(1000)
+        driver.waitForNavigation()
+        driver.waitForSelector("body")
         val result = driver.evaluateValue("typeof(__pulsar_utils__)")
         assertEquals("function", result?.toString(), "__pulsar_utils__ is not injected properly")
 

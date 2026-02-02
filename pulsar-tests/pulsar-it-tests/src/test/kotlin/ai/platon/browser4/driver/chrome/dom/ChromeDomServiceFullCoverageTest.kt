@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.io.path.createDirectories
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -61,7 +62,9 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
             val nanoTreeSummary = DomDebug.summarize(nanoTree)
             printlnPro(nanoTreeSummary)
 
-            Files.writeString(Paths.get("logs").resolve("nano.tree.json"), domState.microTree.toNanoTreeInRange().lazyJson)
+            val path = Paths.get("logs").resolve("nano.tree.json")
+            path.parent.createDirectories()
+            Files.writeString(path, domState.microTree.toNanoTreeInRange().lazyJson)
 
             // Selector map should include at least node: and possibly xpath: keys for some nodes
             val anySelectorKey = domState.selectorMap.keys.any { it.startsWith("node:") || it.startsWith("xpath:") }

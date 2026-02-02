@@ -426,7 +426,7 @@ class Mouse(private val devTools: ChromeDevTools) {
             moveTo(start, 5, 100)
             down(currentX, currentY)
             moveTo(target, 3, 500)
-            
+
             // Wait a bit for the drag event to be intercepted
             // The event should fire during the moveTo operations, but add a small buffer
             // to account for CDP event delivery latency
@@ -490,7 +490,7 @@ class Mouse(private val devTools: ChromeDevTools) {
             runCatching { up() }
             return
         }
-        
+
         try {
             dragEnter(target, data)
             dragOver(target, data)
@@ -785,8 +785,8 @@ class EmulationHandler(
     }
 
     private suspend fun getInteractPoint(node: NodeRef, position: String = "center", useRandomOffset: Boolean = true): PointD? {
-        val deltaX = if (useRandomOffset) 4.0 + Random.nextInt(4) else 0.0
-        val deltaY = 4.0
+        val deltaX = if (useRandomOffset) 1.0 + Random.nextInt(2) else 0.0
+        val deltaY = 1.0
         val offset = OffsetD(deltaX, deltaY)
         val minDeltaX = 1.0
 

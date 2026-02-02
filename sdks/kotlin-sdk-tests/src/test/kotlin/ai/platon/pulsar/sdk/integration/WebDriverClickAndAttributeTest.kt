@@ -47,7 +47,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should click button element")
     suspend fun testShouldClickButtonElement() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         // Click the button
         driver.click("#clickButton")
@@ -61,7 +61,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should check checkbox element")
     suspend fun testShouldCheckCheckboxElement() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         // Check the remember checkbox
         driver.check("#remember")
@@ -73,7 +73,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should uncheck checkbox element")
     suspend fun testShouldUncheckCheckboxElement() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         // First check, then uncheck
         driver.check("#remember")
@@ -86,7 +86,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should toggle checkbox states")
     suspend fun testShouldToggleCheckboxStates() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         // Multiple check/uncheck operations
         driver.check("#newsletter")
@@ -101,7 +101,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @DisplayName("should handle click on non-existent element gracefully")
     @Tag("Fast")
     suspend fun testShouldHandleClickOnNonExistentElementGracefully() {
-        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+        driver.open(TestUrls.SIMPLE_PAGE)
 
         // Attempt to click non-existent element
         // Should not throw exception but may return null or handle gracefully
@@ -119,7 +119,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should extract href attribute from link")
     suspend fun testShouldExtractHrefAttributeFromLink() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         val href = driver.selectFirstAttributeOrNull("#testLink", "href")
         assertNotNull(href, "href attribute should not be null")
@@ -129,7 +129,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should extract custom data attribute")
     suspend fun testShouldExtractCustomDataAttribute() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         val customValue = driver.selectFirstAttributeOrNull("#attrTest", "data-custom")
         assertNotNull(customValue, "data-custom attribute should not be null")
@@ -139,7 +139,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should extract title attribute")
     suspend fun testShouldExtractTitleAttribute() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         val title = driver.selectFirstAttributeOrNull("#attrTest", "title")
         assertNotNull(title, "title attribute should not be null")
@@ -149,7 +149,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should extract class attribute")
     suspend fun testShouldExtractClassAttribute() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         val className = driver.selectFirstAttributeOrNull("#attrTest", "class")
         assertNotNull(className, "class attribute should not be null")
@@ -159,7 +159,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should return null for non-existent attribute")
     suspend fun testShouldReturnNullForNonExistentAttribute() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         val nonExistent = driver.selectFirstAttributeOrNull("#attrTest", "non-existent-attr")
         // Depending on implementation, might return null or empty string
@@ -170,7 +170,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should extract multiple attributes from same element")
     suspend fun testShouldExtractMultipleAttributesFromSameElement() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         val href = driver.selectFirstAttributeOrNull("#testLink", "href")
         val target = driver.selectFirstAttributeOrNull("#testLink", "target")
@@ -187,7 +187,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should extract data-testid attributes")
     suspend fun testShouldExtractDataTestidAttributes() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         val testId = driver.selectFirstAttributeOrNull("#clickButton", "data-testid")
         assertNotNull(testId, "data-testid should not be null")
@@ -198,7 +198,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @DisplayName("should handle attribute extraction from non-existent element")
     @Tag("Fast")
     suspend fun testShouldHandleAttributeExtractionFromNonExistentElement() {
-        driver.navigateTo(TestUrls.SIMPLE_PAGE)
+        driver.open(TestUrls.SIMPLE_PAGE)
 
         val attr = driver.selectFirstAttributeOrNull("#nonExistentElement", "href")
         assertNull(attr, "Attribute from non-existent element should be null")
@@ -207,7 +207,7 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     @Test
     @DisplayName("should extract attributes from multiple elements using selectAttributeAll")
     suspend fun testShouldExtractAttributesFromMultipleElementsUsingSelectAttributeAll() {
-        driver.navigateTo(TestUrls.FORM_PAGE)
+        driver.open(TestUrls.FORM_PAGE)
 
         // Extract data-testid from all inputs
         val testIds = driver.selectAttributeAll("input[data-testid]", "data-testid")

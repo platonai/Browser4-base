@@ -163,7 +163,7 @@ abstract class ChromeDevToolsImpl(
                     // * -3200L Could not find node with given id
                     if (e.errorCode != -3200L) {
                         // -3200L is expected and handled in higher layer, so no log needed
-                        logger.info("Protocol return error: {}/{} | request: {}", e.errorCode, e.errorMessage, message)
+                        logger.info("Protocol return error. errorCode={}, errorMessage={} | request={}", e.errorCode, e.errorMessage, message)
                     }
                     throw e
                 }
