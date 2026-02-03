@@ -32,7 +32,7 @@ import kotlin.test.assertTrue
  */
 @Tag("IntegrationTest")
 @Tag("RequiresBrowser")
-@Tag("PassedOn20260203")
+
 class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var driver: WebDriver

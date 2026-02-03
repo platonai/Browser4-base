@@ -29,7 +29,6 @@ import kotlin.test.assertTrue
  * Tests WebDriver methods that are not covered in basic tests.
  */
 @Tag("RequiresBrowser")
-@Tag("PassedOn20260203")
 class WebDriverAdvancedTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var driver: WebDriver

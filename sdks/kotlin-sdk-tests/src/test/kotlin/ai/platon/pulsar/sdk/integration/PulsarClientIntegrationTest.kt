@@ -24,7 +24,7 @@ import kotlin.test.*
  * Tests basic client functionality including session management,
  * HTTP operations, and error handling.
  */
-@Tag("PassedOn20260203")
+
 class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
 
     @Test

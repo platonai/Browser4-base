@@ -32,7 +32,7 @@ import kotlin.test.assertTrue
  * stubbed responses so the suite can run without a real LLM/backend.
  */
 @Tag("Slow")
-@Tag("PassedOn20260203")
+
 class AgenticSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var session: AgenticSession

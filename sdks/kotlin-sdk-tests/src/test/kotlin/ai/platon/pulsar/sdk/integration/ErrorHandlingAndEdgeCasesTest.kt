@@ -158,8 +158,8 @@ class ErrorHandlingAndEdgeCasesTest : KotlinSdkIntegrationTestBase() {
         }
     }
 
+    @Tag("Failed")
     @Tag("Fast")
-    @Tag("AlmostPassedOn20260203")
     @Test
     @DisplayName("should handle URL with special characters")
     suspend fun testShouldHandleURLWithSpecialCharacters() {

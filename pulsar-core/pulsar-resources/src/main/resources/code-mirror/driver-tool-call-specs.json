@@ -2,7 +2,7 @@
   "domain" : "driver",
   "method" : "jvm",
   "returnType" : "JvmWebDriver",
-  "description" : "    /**\n     * Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on,\n     * the other JVM languages might have difficulty to handle kotlin suspend methods.\n     * @see JvmWebDriver\n     * */\n"
+  "description" : "    /**\n     * Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on,\n     * the other JVM languages might have difficulty to handle kotlin suspend methods.\n     *\n     * JvmWebDriver is not recommended, use Kotlin native suspend methods instead, or use SDK instead.\n     *\n     * @see JvmWebDriver\n     * */\n"
 }, {
   "domain" : "driver",
   "method" : "addInitScript",
@@ -11,7 +11,7 @@
     "type" : "String"
   } ],
   "returnType" : "Unit",
-  "description" : "    /**\n     * Adds a script which would be evaluated in one of the following scenarios:\n     *\n     * * Whenever the page is navigated.\n     *\n     * The script is evaluated after the document was created but before any of\n     * its scripts were run. This is useful to amend the JavaScript environment, e.g.\n     * to seed [Math.random].\n     *\n     * This function should be invoked before a navigation, usually in an onWillNavigate\n     * event handler.\n     *\n     * @param script Javascript source code to add.\n     * */\n"
+  "description" : "    /**\n     * Adds a script which would be evaluated in one of the following scenarios:\n     *\n     * * Whenever the page is navigated.\n     *\n     * The script is evaluated after the document was created but before any of\n     * its scripts were run. This is useful to amend the JavaScript environment, e.g.\n     * to seed [Math.random].\n     *\n     * This function should be invoked before a navigation, usually in an onWillNavigate\n     * event handler.\n     *\n     * @param script JavaScript source code to add.\n     * */\n"
 }, {
   "domain" : "driver",
   "method" : "addBlockedURLs",
@@ -889,7 +889,7 @@
     "type" : "String"
   } ],
   "returnType" : "Any?",
-  "description" : "    /**\n     * Executes JavaScript in the context of the currently selected frame or window. If the result is not Javascript object,\n     * it is not returned.\n     *\n     * If you want to execute a function, convert it to IIFE (Immediately Invoked Function Expression).\n     *\n     * ```kotlin\n     * val title = driver.evaluate(\"document.title\")\n     * ```\n     *\n     * Multi-line JavaScript code:\n     *\n     * ```kotlin\n     * val code = \"\"\"\n     * () => {\n     *   const a = 10;\n     *   const b = 20;\n     *   return a * b;\n     * }\n     * \"\"\".trimIndent()\n     *\n     * val result = driver.evaluate(code)\n     * ```\n     *\n     * ### 🔍 Notes:\n     * * **Wrap the code in an IIFE (Immediately Invoked Function Expression)** to return a value.\n     * * **Escape line breaks** with `\\n`.\n     *\n     * @param expression Javascript expression to evaluate\n     * @return Remote object value in case of primitive values or null.\n     * */\n"
+  "description" : "    /**\n     * Executes JavaScript in the context of the currently selected frame or window. If the result is not JavaScript object,\n     * it is not returned.\n     *\n     * If you want to execute a function, convert it to IIFE (Immediately Invoked Function Expression).\n     *\n     * ```kotlin\n     * val title = driver.evaluate(\"document.title\")\n     * ```\n     *\n     * Multi-line JavaScript code:\n     *\n     * ```kotlin\n     * val code = \"\"\"\n     * () => {\n     *   const a = 10;\n     *   const b = 20;\n     *   return a * b;\n     * }\n     * \"\"\".trimIndent()\n     *\n     * val result = driver.evaluate(code)\n     * ```\n     *\n     * ### 🔍 Notes:\n     * * **Wrap the code in an IIFE (Immediately Invoked Function Expression)** to return a value.\n     * * **Escape line breaks** with `\\n`.\n     *\n     * @param expression JavaScript expression to evaluate\n     * @return Remote object value in case of primitive values or null.\n     * */\n"
 }, {
   "domain" : "driver",
   "method" : "evaluate",
@@ -931,6 +931,17 @@
     "type" : "String"
   } ],
   "returnType" : "Any?"
+}, {
+  "domain" : "driver",
+  "method" : "evaluateValueDetail",
+  "arguments" : [ {
+    "name" : "selector",
+    "type" : "String"
+  }, {
+    "name" : "functionDeclaration",
+    "type" : "String"
+  } ],
+  "returnType" : "JsEvaluation?"
 }, {
   "domain" : "driver",
   "method" : "captureScreenshot",

@@ -72,6 +72,7 @@ class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
         assertTrue(driver.exists("html"), "HTML element should exist")
     }
 
+    @Tag("Failed")
     @Test
     @DisplayName("should extract text content")
     suspend fun testShouldExtractTextContent() {

@@ -27,6 +27,7 @@ import kotlin.test.assertTrue
  *
  * Tests advanced session functionality that is not covered in basic tests.
  */
+@Tag("Failed")
 @Tag("IntegrationTest")
 class PulsarSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
 
@@ -43,7 +44,7 @@ class PulsarSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
     suspend fun testShouldOpenPageWithEventHandlers() {
         val url = TestUrls.SIMPLE_PAGE
         val eventHandlers = PageEventHandlers()
-        
+
         var eventReceived = false
         eventHandlers.load.on("load") { event ->
             eventReceived = true

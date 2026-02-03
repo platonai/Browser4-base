@@ -149,6 +149,7 @@ class AgenticSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
+    @Tag("Failed")
     @DisplayName("should execute agentExtract with instruction and schema")
     suspend fun testShouldExecuteAgentExtractWithInstructionAndSchema() {
         session.driver.navigateTo(TestUrls.PRODUCT_DETAIL)
