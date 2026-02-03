@@ -6,12 +6,14 @@ import ai.platon.pulsar.rest.openapi.service.SessionManager
 import ai.platon.pulsar.skeleton.context.PulsarContext
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Controller for PerceptiveAgent operations.

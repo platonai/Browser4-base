@@ -84,8 +84,8 @@ class PulsarWebDriver(
 
     private val isGone get() = closed.get() || isQuit || !AppContext.isActive || !devTools.isOpen
 
-    private var userTypedUrl: String? = null
-    private var navigateUrl: String? = chromeTab.url
+    var userTypedUrl: String? = null
+    var navigateUrl: String? = chromeTab.url
     private var credentials: Credentials? = null
 
     val isNetworkIdle get() = networkManager.isIdle
@@ -230,9 +230,11 @@ class PulsarWebDriver(
     }
 
     override suspend fun currentUrl(): String {
-        val mainFrameUrl = runCatching { driverHelper.invokeOnPage("currentUrl") { mainFrameAPI?.url } }
-            .onFailure { logger.warn("Failed to retrieve the mainFrameUrl", it) }
-            .getOrNull()
+        // TODO: find out why mainFrameAPI?.url fails because of timing issue
+//        val mainFrameUrl = runCatching { driverHelper.invokeOnPage("currentUrl") { mainFrameAPI?.url } }
+//            .onFailure { logger.warn("Failed to retrieve the mainFrameUrl", it) }
+//            .getOrNull()
+        val mainFrameUrl = evaluate("document.URL", navigateUrl)
         navigateUrl = mainFrameUrl ?: navigateUrl
         return navigateUrl ?: userTypedUrl ?: ""
     }
