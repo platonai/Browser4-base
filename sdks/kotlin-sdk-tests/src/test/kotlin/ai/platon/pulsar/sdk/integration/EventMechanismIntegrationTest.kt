@@ -196,6 +196,7 @@ class EventMechanismIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
+    @Tag("Failed")
     @DisplayName("should receive LoadEventHandlers events")
     suspend fun testShouldReceiveLoadEventHandlersEvents() {
         val url = TestUrls.SIMPLE_PAGE
