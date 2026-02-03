@@ -14,6 +14,7 @@ package ai.platon.pulsar.sdk.integration
 
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import kotlin.test.*
 
@@ -23,6 +24,7 @@ import kotlin.test.*
  * Tests basic client functionality including session management,
  * HTTP operations, and error handling.
  */
+@Tag("PassedOn20260203")
 class PulsarClientIntegrationTest : KotlinSdkIntegrationTestBase() {
 
     @Test

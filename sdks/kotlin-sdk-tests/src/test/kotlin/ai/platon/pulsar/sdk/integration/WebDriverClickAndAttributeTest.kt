@@ -32,6 +32,7 @@ import kotlin.test.assertTrue
  */
 @Tag("IntegrationTest")
 @Tag("RequiresBrowser")
+@Tag("PassedOn20260203")
 class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var driver: WebDriver
@@ -230,7 +231,6 @@ class WebDriverClickAndAttributeTest : KotlinSdkIntegrationTestBase() {
     suspend fun testShouldExtractAttributesFromMultipleElementsUsingSelectAttributeAll() {
         driver.open(TestUrls.FORM_PAGE)
         driver.waitForSelector("body")
-
 
         // Extract data-testid from all inputs
         val testIds = driver.selectAttributeAll("input[data-testid]", "data-testid")

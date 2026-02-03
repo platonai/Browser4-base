@@ -28,7 +28,7 @@ import kotlin.test.assertTrue
  * Tests agent functionality variants and event handlers.
  */
 @Tag("Slow")
-@Tag("TestedOn20260203")
+@Tag("AlmostPassedOn20260203")
 class AgenticSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var session: AgenticSession

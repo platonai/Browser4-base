@@ -30,6 +30,7 @@ import kotlin.test.assertTrue
  * element interaction, content extraction, and more.
  */
 @Tag("RequiresBrowser")
+@Tag("AlmostPassedOn20260203")
 class WebDriverIntegrationTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var driver: WebDriver
