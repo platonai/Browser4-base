@@ -8,6 +8,7 @@ import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions.assertNull
 import kotlin.test.*
 
 /**
@@ -60,15 +61,18 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test __pulsar_NodeExt`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+    fun `test __pulsar_NodeExt can not be seen`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         var result = driver.evaluateValue("__pulsar_NodeExt")
-        printlnPro(result)
+        // printlnPro(result)
+        assertNull(result)
 
         result = driver.evaluateValue("__pulsar_NodeExt.prototype")
-        printlnPro(result)
+        // printlnPro(result)
+        assertNull(result)
 
         result = driver.evaluateValue("document.body.nodeExt")
-        printlnPro(result)
+        // printlnPro(result)
+        assertNull(result)
     }
 
     @Test
@@ -253,7 +257,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
         val expression = """new __pulsar_NodeTraversor(new __pulsar_NodeFeatureCalculator()).traverse(document.body);"""
 
         val result = driver.evaluateValue(expression)
-        printlnPro(result)
+        // printlnPro(result)
+        assertNull(result) { "__pulsar_NodeTraversor should not be seen since Browser4-4.5+" }
     }
 }
 
