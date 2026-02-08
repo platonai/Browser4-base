@@ -1,108 +1,87 @@
-package ai.platon.pulsar.common.browser
+package ai.platon.pulsar.plugins.fingerprint.pro
 
+import ai.platon.pulsar.common.browser.*
 import kotlin.random.Random
 
 /**
- * Generates realistic and consistent browser fingerprints with full parameter coverage.
+ * Professional fingerprint generator plugin that provides comprehensive, realistic
+ * browser fingerprints with full anti-detection parameter coverage.
  *
- * The generator ensures that all parameters are logically coherent (e.g., userAgent matches
- * platform, screen resolution is reasonable for the device type, etc.) and uses common
- * device configurations to avoid detection.
+ * This generator produces fingerprints with all parameter groups populated:
+ * screen, viewport, geo-time, hardware, WebGL, canvas, media devices, and miscellaneous.
+ * All parameters are internally consistent and validated.
  *
- * This class also implements [FingerprintGeneratorProvider] so it can be used as a
- * professional fingerprint generator when loaded as a plugin via ServiceLoader.
+ * This plugin is loaded dynamically via Java ServiceLoader when professional fingerprinting
+ * is enabled.
  */
-class FingerprintGenerator : FingerprintGeneratorProvider {
-    
+class ProFingerprintGenerator : FingerprintGeneratorProvider {
+
     override val name: String = "pro"
-    
+
     private val validator = FingerprintValidator()
-    
-    /**
-     * Generate a realistic fingerprint for the given browser type.
-     *
-     * @param browserType The target browser type
-     * @param preset Optional device preset to use (Desktop, Laptop, MacBook, etc.)
-     * @return A fully configured, validated fingerprint
-     * @throws IllegalStateException if generated fingerprint fails validation
-     */
+
     override fun generate(
         browserType: BrowserType,
-        preset: DevicePreset
+        preset: FingerprintGenerator.DevicePreset
     ): Fingerprint {
         val fingerprint = when (preset) {
-            DevicePreset.DESKTOP_WINDOWS -> generateDesktopWindows(browserType)
-            DevicePreset.LAPTOP_WINDOWS -> generateLaptopWindows(browserType)
-            DevicePreset.MACBOOK_PRO_13 -> generateMacBookPro13(browserType)
-            DevicePreset.MACBOOK_AIR -> generateMacBookAir(browserType)
-            DevicePreset.DESKTOP_LINUX -> generateDesktopLinux(browserType)
-            DevicePreset.LAPTOP_LINUX -> generateLaptopLinux(browserType)
+            FingerprintGenerator.DevicePreset.DESKTOP_WINDOWS -> generateDesktopWindows(browserType)
+            FingerprintGenerator.DevicePreset.LAPTOP_WINDOWS -> generateLaptopWindows(browserType)
+            FingerprintGenerator.DevicePreset.MACBOOK_PRO_13 -> generateMacBookPro13(browserType)
+            FingerprintGenerator.DevicePreset.MACBOOK_AIR -> generateMacBookAir(browserType)
+            FingerprintGenerator.DevicePreset.DESKTOP_LINUX -> generateDesktopLinux(browserType)
+            FingerprintGenerator.DevicePreset.LAPTOP_LINUX -> generateLaptopLinux(browserType)
         }
-        
-        // Validate the generated fingerprint
+
         val result = validator.validate(fingerprint)
         if (!result.isValid) {
             throw IllegalStateException("Generated fingerprint failed validation: $result")
         }
-        
+
         return fingerprint
     }
-    
-    /**
-     * Generate a fingerprint with randomized but reasonable parameters.
-     *
-     * @param browserType The target browser type
-     * @param platform Target platform (Windows, Mac, Linux)
-     * @return A fully configured, validated fingerprint
-     */
+
     override fun generateRandom(
         browserType: BrowserType,
-        platform: Platform
+        platform: FingerprintGenerator.Platform
     ): Fingerprint {
         val preset = when (platform) {
-            Platform.WINDOWS -> listOf(
-                DevicePreset.DESKTOP_WINDOWS,
-                DevicePreset.LAPTOP_WINDOWS
+            FingerprintGenerator.Platform.WINDOWS -> listOf(
+                FingerprintGenerator.DevicePreset.DESKTOP_WINDOWS,
+                FingerprintGenerator.DevicePreset.LAPTOP_WINDOWS
             ).random()
-            Platform.MAC -> listOf(
-                DevicePreset.MACBOOK_PRO_13,
-                DevicePreset.MACBOOK_AIR
+            FingerprintGenerator.Platform.MAC -> listOf(
+                FingerprintGenerator.DevicePreset.MACBOOK_PRO_13,
+                FingerprintGenerator.DevicePreset.MACBOOK_AIR
             ).random()
-            Platform.LINUX -> listOf(
-                DevicePreset.DESKTOP_LINUX,
-                DevicePreset.LAPTOP_LINUX
+            FingerprintGenerator.Platform.LINUX -> listOf(
+                FingerprintGenerator.DevicePreset.DESKTOP_LINUX,
+                FingerprintGenerator.DevicePreset.LAPTOP_LINUX
             ).random()
         }
-        
         return generate(browserType, preset)
     }
-    
+
     private fun generateDesktopWindows(browserType: BrowserType): Fingerprint {
-        val userAgent = generateUserAgent(browserType, Platform.WINDOWS, "10.0")
-        
         return Fingerprint(
             browserType = browserType,
-            userAgent = userAgent,
+            userAgent = generateUserAgent(FingerprintGenerator.Platform.WINDOWS, "10.0"),
             screenParameters = ScreenParameters.DESKTOP_1920X1080,
             viewportParameters = ViewportParameters.DESKTOP,
             geoTimeParameters = GeoTimeParameters.US_EAST,
             hardwareParameters = HardwareParameters.WINDOWS_DESKTOP,
             webGLParameters = WebGLParameters.INTEL_INTEGRATED,
-            canvasParameters = CanvasParameters(
-                fingerprintSeed = generateCanvasSeed()
-            ),
+            canvasParameters = CanvasParameters(fingerprintSeed = generateCanvasSeed()),
             mediaParameters = MediaParameters.DESKTOP,
             miscParameters = MiscParameters.DEFAULT,
             version = 1
         )
     }
-    
+
     private fun generateLaptopWindows(browserType: BrowserType): Fingerprint {
-        val userAgent = generateUserAgent(browserType, Platform.WINDOWS, "10.0")
-        
         return Fingerprint(
             browserType = browserType,
-            userAgent = userAgent,
+            userAgent = generateUserAgent(FingerprintGenerator.Platform.WINDOWS, "10.0"),
             screenParameters = ScreenParameters.LAPTOP_1366X768,
             viewportParameters = ViewportParameters.LAPTOP,
             geoTimeParameters = GeoTimeParameters.US_EAST,
@@ -114,21 +93,17 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
                 vendor = "Google Inc."
             ),
             webGLParameters = WebGLParameters.INTEL_INTEGRATED,
-            canvasParameters = CanvasParameters(
-                fingerprintSeed = generateCanvasSeed()
-            ),
+            canvasParameters = CanvasParameters(fingerprintSeed = generateCanvasSeed()),
             mediaParameters = MediaParameters.DESKTOP,
             miscParameters = MiscParameters.DEFAULT,
             version = 1
         )
     }
-    
+
     private fun generateMacBookPro13(browserType: BrowserType): Fingerprint {
-        val userAgent = generateUserAgent(browserType, Platform.MAC, "10_15_7")
-        
         return Fingerprint(
             browserType = browserType,
-            userAgent = userAgent,
+            userAgent = generateUserAgent(FingerprintGenerator.Platform.MAC, "10_15_7"),
             screenParameters = ScreenParameters.MACBOOK_PRO_13,
             viewportParameters = ViewportParameters(
                 width = 1280,
@@ -141,9 +116,7 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
             geoTimeParameters = GeoTimeParameters.US_EAST,
             hardwareParameters = HardwareParameters.MAC_LAPTOP,
             webGLParameters = WebGLParameters.APPLE_M1,
-            canvasParameters = CanvasParameters(
-                fingerprintSeed = generateCanvasSeed()
-            ),
+            canvasParameters = CanvasParameters(fingerprintSeed = generateCanvasSeed()),
             mediaParameters = MediaParameters(
                 audioInputDevices = listOf(
                     MediaDevice("default", "Built-in Microphone", "audioinput")
@@ -159,13 +132,11 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
             version = 1
         )
     }
-    
+
     private fun generateMacBookAir(browserType: BrowserType): Fingerprint {
-        val userAgent = generateUserAgent(browserType, Platform.MAC, "10_15_7")
-        
         return Fingerprint(
             browserType = browserType,
-            userAgent = userAgent,
+            userAgent = generateUserAgent(FingerprintGenerator.Platform.MAC, "10_15_7"),
             screenParameters = ScreenParameters(
                 width = 2560,
                 height = 1600,
@@ -193,9 +164,7 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
                 vendor = "Apple Computer, Inc."
             ),
             webGLParameters = WebGLParameters.APPLE_M1,
-            canvasParameters = CanvasParameters(
-                fingerprintSeed = generateCanvasSeed()
-            ),
+            canvasParameters = CanvasParameters(fingerprintSeed = generateCanvasSeed()),
             mediaParameters = MediaParameters(
                 audioInputDevices = listOf(
                     MediaDevice("default", "Built-in Microphone", "audioinput")
@@ -211,33 +180,27 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
             version = 1
         )
     }
-    
+
     private fun generateDesktopLinux(browserType: BrowserType): Fingerprint {
-        val userAgent = generateUserAgent(browserType, Platform.LINUX, "x86_64")
-        
         return Fingerprint(
             browserType = browserType,
-            userAgent = userAgent,
+            userAgent = generateUserAgent(FingerprintGenerator.Platform.LINUX, "x86_64"),
             screenParameters = ScreenParameters.DESKTOP_1920X1080,
             viewportParameters = ViewportParameters.DESKTOP,
             geoTimeParameters = GeoTimeParameters.US_EAST,
             hardwareParameters = HardwareParameters.LINUX_DESKTOP,
             webGLParameters = WebGLParameters.INTEL_INTEGRATED,
-            canvasParameters = CanvasParameters(
-                fingerprintSeed = generateCanvasSeed()
-            ),
+            canvasParameters = CanvasParameters(fingerprintSeed = generateCanvasSeed()),
             mediaParameters = MediaParameters.DESKTOP,
             miscParameters = MiscParameters.DEFAULT,
             version = 1
         )
     }
-    
+
     private fun generateLaptopLinux(browserType: BrowserType): Fingerprint {
-        val userAgent = generateUserAgent(browserType, Platform.LINUX, "x86_64")
-        
         return Fingerprint(
             browserType = browserType,
-            userAgent = userAgent,
+            userAgent = generateUserAgent(FingerprintGenerator.Platform.LINUX, "x86_64"),
             screenParameters = ScreenParameters.LAPTOP_1366X768,
             viewportParameters = ViewportParameters.LAPTOP,
             geoTimeParameters = GeoTimeParameters.US_EAST,
@@ -249,61 +212,28 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
                 vendor = "Google Inc."
             ),
             webGLParameters = WebGLParameters.INTEL_INTEGRATED,
-            canvasParameters = CanvasParameters(
-                fingerprintSeed = generateCanvasSeed()
-            ),
+            canvasParameters = CanvasParameters(fingerprintSeed = generateCanvasSeed()),
             mediaParameters = MediaParameters.DESKTOP,
             miscParameters = MiscParameters.DEFAULT,
             version = 1
         )
     }
-    
-    private fun generateUserAgent(
-        browserType: BrowserType,
-        platform: Platform,
-        platformVersion: String
-    ): String {
-        // Use a recent Chrome version (120.x)
+
+    private fun generateUserAgent(platform: FingerprintGenerator.Platform, platformVersion: String): String {
         val chromeVersion = "120.0.0.0"
-        
         return when (platform) {
-            Platform.WINDOWS -> {
+            FingerprintGenerator.Platform.WINDOWS ->
                 "Mozilla/5.0 (Windows NT $platformVersion; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36"
-            }
-            Platform.MAC -> {
+            FingerprintGenerator.Platform.MAC ->
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X $platformVersion) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36"
-            }
-            Platform.LINUX -> {
+            FingerprintGenerator.Platform.LINUX ->
                 "Mozilla/5.0 (X11; Linux $platformVersion) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36"
-            }
         }
     }
-    
+
     private fun generateCanvasSeed(): String {
-        // Generate a deterministic seed based on timestamp and random
         val timestamp = System.currentTimeMillis()
         val random = Random.nextInt(100000, 999999)
         return "canvas-seed-$timestamp-$random"
-    }
-    
-    /**
-     * Device preset types for fingerprint generation.
-     */
-    enum class DevicePreset {
-        DESKTOP_WINDOWS,
-        LAPTOP_WINDOWS,
-        MACBOOK_PRO_13,
-        MACBOOK_AIR,
-        DESKTOP_LINUX,
-        LAPTOP_LINUX
-    }
-    
-    /**
-     * Platform types.
-     */
-    enum class Platform {
-        WINDOWS,
-        MAC,
-        LINUX
     }
 }

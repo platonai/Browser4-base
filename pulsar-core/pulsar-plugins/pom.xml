@@ -28,6 +28,7 @@
         <module>pulsar-parse</module>
         <module>pulsar-protocol</module>
         <module>pulsar-protocol-playwright</module>
+        <module>pulsar-fingerprint-pro</module>
     </modules>
 
     <dependencyManagement>
@@ -62,6 +63,11 @@
             <dependency>
                 <groupId>ai.platon.pulsar</groupId>
                 <artifactId>pulsar-parse</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ai.platon.pulsar</groupId>
+                <artifactId>pulsar-fingerprint-pro</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

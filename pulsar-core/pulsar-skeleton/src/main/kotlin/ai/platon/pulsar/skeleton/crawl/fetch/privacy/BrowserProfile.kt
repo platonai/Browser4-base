@@ -4,6 +4,7 @@ import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.common.browser.BrowserProfileMode
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.browser.Fingerprint
+import ai.platon.pulsar.common.browser.FingerprintGeneratorProvider
 import ai.platon.pulsar.common.config.CapabilityTypes.BROWSER_CONTEXT_NUMBER
 import ai.platon.pulsar.common.config.CapabilityTypes.PRIVACY_AGENT_GENERATOR_CLASS
 import ai.platon.pulsar.common.getLogger
@@ -55,9 +56,9 @@ data class BrowserProfile(
         private val logger = getLogger(this)
         private val throttlingLogger = ThrottlingLogger(logger)
         
-        // Lazy initialization of fingerprint generator
-        private val fingerprintGenerator by lazy { 
-            ai.platon.pulsar.common.browser.FingerprintGenerator() 
+        // Lazy initialization of fingerprint generator via the loader
+        private val fingerprintGenerator: FingerprintGeneratorProvider by lazy { 
+            ai.platon.pulsar.common.browser.FingerprintGeneratorLoader.getProvider()
         }
         
         // Fingerprint validator for loaded fingerprints
