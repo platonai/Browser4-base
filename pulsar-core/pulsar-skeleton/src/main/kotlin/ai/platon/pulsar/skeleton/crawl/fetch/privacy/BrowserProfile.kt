@@ -55,12 +55,12 @@ data class BrowserProfile(
     companion object {
         private val logger = getLogger(this)
         private val throttlingLogger = ThrottlingLogger(logger)
-        
+
         // Lazy initialization of fingerprint generator via the loader
-        private val fingerprintGenerator: FingerprintGeneratorProvider by lazy { 
+        private val fingerprintGenerator: FingerprintGeneratorProvider by lazy {
             ai.platon.pulsar.common.browser.FingerprintGeneratorLoader.getProvider()
         }
-        
+
         // Fingerprint validator for loaded fingerprints
         private val fingerprintValidator by lazy {
             ai.platon.pulsar.common.browser.FingerprintValidator()
@@ -71,16 +71,16 @@ data class BrowserProfile(
          * */
         val RANDOM_TEMP get() = createRandomTemp()
 
-        private fun create(contextDir: Path) = create(BrowserType.PULSAR_CHROME, contextDir)
+        fun create(contextDir: Path) = create(BrowserType.PULSAR_CHROME, contextDir)
 
-        private fun create(browserType: BrowserType, contextDir: Path): BrowserProfile {
+        fun create(browserType: BrowserType, contextDir: Path): BrowserProfile {
             val path = contextDir.resolve("fingerprint.json")
             val fingerprint: Fingerprint = if (Files.exists(path)) {
                 // Load existing fingerprint
                 try {
                     val loaded = pulsarObjectMapper().readValue<Fingerprint>(path.toFile())
                         .also { it.source = path.toString() }
-                    
+
                     // Validate loaded fingerprint
                     val validationResult = fingerprintValidator.validate(loaded)
                     if (!validationResult.isValid) {
@@ -89,7 +89,7 @@ data class BrowserProfile(
                     } else if (validationResult.hasWarnings) {
                         logger.debug("Loaded fingerprint has warnings: ${validationResult.warnings.joinToString(", ")}")
                     }
-                    
+
                     loaded
                 } catch (e: Exception) {
                     logger.warn("Failed to load fingerprint from $path, generating new one", e)
@@ -99,14 +99,14 @@ data class BrowserProfile(
                 // Generate new complete fingerprint
                 generateAndSaveFingerprint(browserType, contextDir)
             }
-            
+
             fingerprint.browserType = browserType
             return BrowserProfile(contextDir, fingerprint)
         }
-        
+
         /**
          * Generate a complete fingerprint and save it to the context directory.
-         * 
+         *
          * This method generates a realistic fingerprint with all parameters populated
          * and saves it to fingerprint.json for future use.
          */
@@ -116,11 +116,11 @@ data class BrowserProfile(
                 // For temporary contexts, use random generation
                 contextDir.toString().contains("/tmp/") || contextDir.toString().contains("\\temp\\") -> {
                     val platform = when {
-                        System.getProperty("os.name").contains("Windows", ignoreCase = true) -> 
+                        System.getProperty("os.name").contains("Windows", ignoreCase = true) ->
                             ai.platon.pulsar.common.browser.FingerprintGenerator.Platform.WINDOWS
-                        System.getProperty("os.name").contains("Mac", ignoreCase = true) -> 
+                        System.getProperty("os.name").contains("Mac", ignoreCase = true) ->
                             ai.platon.pulsar.common.browser.FingerprintGenerator.Platform.MAC
-                        else -> 
+                        else ->
                             ai.platon.pulsar.common.browser.FingerprintGenerator.Platform.LINUX
                     }
                     return fingerprintGenerator.generateRandom(browserType, platform).also { fingerprint ->
@@ -130,12 +130,12 @@ data class BrowserProfile(
                 // For permanent contexts, use desktop preset
                 else -> ai.platon.pulsar.common.browser.FingerprintGenerator.DevicePreset.DESKTOP_WINDOWS
             }
-            
+
             val fingerprint = fingerprintGenerator.generate(browserType, preset)
             saveFingerprintToFile(fingerprint, contextDir)
             return fingerprint
         }
-        
+
         /**
          * Save fingerprint to fingerprint.json file.
          */
