@@ -185,5 +185,53 @@ class FingerprintTest {
             // path.toFile().writeText(json)
         }
     }
+    
+    @Test
+    fun testExtendedFingerprintSerialization() {
+        val fingerprint = Fingerprint(
+            browserType = BrowserType.PULSAR_CHROME,
+            userAgent = ua,
+            screenParameters = ScreenParameters.DESKTOP_1920X1080,
+            viewportParameters = ViewportParameters.DESKTOP,
+            geoTimeParameters = GeoTimeParameters.US_EAST,
+            hardwareParameters = HardwareParameters.WINDOWS_DESKTOP,
+            webGLParameters = WebGLParameters.INTEL_INTEGRATED,
+            canvasParameters = CanvasParameters.DEFAULT,
+            mediaParameters = MediaParameters.DESKTOP,
+            miscParameters = MiscParameters.DEFAULT,
+            version = 1
+        )
+        
+        val json = prettyPulsarObjectMapper().writeValueAsString(fingerprint)
+        val deserialized = prettyPulsarObjectMapper().readValue(json, Fingerprint::class.java)
+        
+        assertEquals(fingerprint.browserType, deserialized.browserType)
+        assertEquals(fingerprint.userAgent, deserialized.userAgent)
+        assertEquals(fingerprint.screenParameters, deserialized.screenParameters)
+        assertEquals(fingerprint.viewportParameters, deserialized.viewportParameters)
+        assertEquals(fingerprint.geoTimeParameters, deserialized.geoTimeParameters)
+        assertEquals(fingerprint.hardwareParameters, deserialized.hardwareParameters)
+        assertEquals(fingerprint.webGLParameters, deserialized.webGLParameters)
+        assertEquals(fingerprint.version, deserialized.version)
+    }
+    
+    @Test
+    fun testExtendedFingerprintWithNullParameters() {
+        val fingerprint = Fingerprint(
+            browserType = BrowserType.PULSAR_CHROME,
+            userAgent = ua
+        )
+        
+        assertNull(fingerprint.screenParameters)
+        assertNull(fingerprint.viewportParameters)
+        assertNull(fingerprint.geoTimeParameters)
+        assertEquals(1, fingerprint.version)
+        
+        val json = prettyPulsarObjectMapper().writeValueAsString(fingerprint)
+        val deserialized = prettyPulsarObjectMapper().readValue(json, Fingerprint::class.java)
+        
+        assertEquals(fingerprint.browserType, deserialized.browserType)
+        assertNull(deserialized.screenParameters)
+    }
 }
 

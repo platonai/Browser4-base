@@ -40,10 +40,24 @@ data class WebsiteAccount(
 /**
  * The browser fingerprint.
  *
+ * A comprehensive fingerprint that defines a unique browser identity. All parameters
+ * should be logically consistent (e.g., userAgent matches platform, screen size matches
+ * viewport, etc.) to avoid detection.
+ *
  * @property browserType the browser type.
  * @property proxyURI the proxy server URI.
  * @property userAgent the user agent of the browser.
+ * @property websiteAccounts accounts for various websites.
  * @property source the full path of the source file of the fingerprint.
+ * @property screenParameters screen-related parameters (resolution, color depth, etc.)
+ * @property viewportParameters viewport dimensions and device metrics
+ * @property geoTimeParameters timezone, language, and location settings
+ * @property hardwareParameters CPU, memory, and platform information
+ * @property webGLParameters WebGL capabilities and GPU information
+ * @property canvasParameters canvas fingerprinting configuration
+ * @property mediaParameters media device enumeration
+ * @property miscParameters miscellaneous browser settings
+ * @property version fingerprint schema version for migration compatibility
  * */
 data class Fingerprint(
     var browserType: BrowserType,
@@ -51,6 +65,19 @@ data class Fingerprint(
     var userAgent: String? = null,
     val websiteAccounts: MutableMap<String, WebsiteAccount> = mutableMapOf(),
     var source: String? = null,
+    
+    // Extended fingerprint parameters
+    var screenParameters: ScreenParameters? = null,
+    var viewportParameters: ViewportParameters? = null,
+    var geoTimeParameters: GeoTimeParameters? = null,
+    var hardwareParameters: HardwareParameters? = null,
+    var webGLParameters: WebGLParameters? = null,
+    var canvasParameters: CanvasParameters? = null,
+    var mediaParameters: MediaParameters? = null,
+    var miscParameters: MiscParameters? = null,
+    
+    // Version for schema evolution
+    var version: Int = 1
 ) : Comparable<Fingerprint> {
     private val comp = ComparatorUtils.nullLowComparator { o1: String, o2: String ->
         o1.compareTo(o2)
