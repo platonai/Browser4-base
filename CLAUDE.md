@@ -1,6 +1,26 @@
 # Browser4 Project Guide for Claude
 
+> **Note**: This guide is specifically for Claude AI. For GitHub Copilot, see [.github/copilot-instructions.md](.github/copilot-instructions.md).
+
 This guide provides project-specific context for Claude to assist with Browser4 development.
+
+<!-- TOC -->
+**Table of Contents**
+- [Project Overview](#project-overview)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Key APIs and Concepts](#key-apis-and-concepts)
+- [Code Style Guidelines](#code-style-guidelines)
+- [Testing Guidelines](#testing-guidelines)
+- [Configuration](#configuration)
+- [Development Principles](#development-principles)
+- [Definition of Done](#definition-of-done-pr-checklist)
+- [Common Issues & Troubleshooting](#common-issues--troubleshooting)
+- [Documentation References](#documentation-references)
+- [Claude-Specific Guidance](#claude-specific-guidance)
+<!-- /TOC -->
+
+---
 
 ## Project Overview
 
@@ -223,13 +243,181 @@ browser.display.mode=GUI  # GUI | HEADLESS | SUPERVISED
 - [X-SQL](docs/x-sql.md)
 - [AI Products Guidance](docs/ai-products-guidance.md)
 
-## Related AI Assistant Files
+## Claude-Specific Guidance
 
-- GitHub Copilot: `.github/copilot-instructions.md`
-- Cursor: `.cursorrules`
-- Windsurf: `.windsurfrules`
-- Aider: `.aider.conf.yml`
+### Understanding Browser4 Architecture
+
+Browser4 is built around three core concepts:
+
+1. **Sessions** - Manage page loading and state
+2. **Agents** - Autonomous browser agents with reasoning capabilities  
+3. **Drivers** - Low-level browser control with human-like behaviors
+
+### Task Planning and Execution
+
+When given a task, Claude should:
+
+1. **Analyze Requirements** - Break down the task into minimal changes
+2. **Explore First** - Use grep/glob or explore agent to understand relevant code
+3. **Make Minimal Changes** - Preserve existing style and patterns
+4. **Test Incrementally** - Run targeted tests after each change
+5. **Document Changes** - Update relevant documentation
+
+### Common Task Patterns
+
+#### Adding a New Feature
+
+1. Identify the relevant module (pulsar-core, pulsar-agentic, pulsar-rest)
+2. Check existing similar features for patterns
+3. Add interface/API in appropriate package
+4. Implement with proper error handling and logging
+5. Add tests (unit + integration if needed)
+6. Update documentation
+
+#### Fixing a Bug
+
+1. Reproduce the issue with a test
+2. Use grep to find related code
+3. Make minimal fix
+4. Verify test passes
+5. Check for similar patterns elsewhere
+
+#### Refactoring Code
+
+1. Ensure tests exist for current behavior
+2. Make incremental changes
+3. Run tests after each step
+4. Preserve public API contracts
+5. Update KDoc if API changes
+
+### Browser Automation Specifics
+
+**Key Classes to Know:**
+- `WebDriver` - Main browser control interface
+- `PageHandler` - Page lifecycle management
+- `ClickableDOM` - DOM interaction utilities
+- `LoadOptions` - Page loading parameters
+
+**Common Patterns:**
+```kotlin
+// Loading a page
+val page = session.load(url, "-expires 1d -refresh")
+
+// Browser interaction
+val driver = session.driver()
+driver.click("button.submit")
+driver.type("#search", "query")
+driver.waitFor(".results")
+
+// Extraction
+val elements = driver.selectAll(".product")
+val data = elements.map { it.attr("data-price") }
+```
+
+### MCP (Model Context Protocol) Integration
+
+Browser4 integrates with MCP for tool calling:
+
+```kotlin
+// Define a tool
+class CustomTool : MCPTool {
+    override val name = "custom_action"
+    override val description = "Performs a custom action"
+    
+    override fun execute(params: Map<String, Any>): ToolResult {
+        // Implementation
+    }
+}
+
+// Register the tool
+skillRegistry.register(CustomTool())
+```
+
+### Performance Considerations
+
+- **Coroutine Safety** - All operations must be coroutine-safe
+- **Resource Cleanup** - Always close sessions/drivers in finally blocks
+- **Batch Operations** - Use parallel processing for multiple pages
+- **Caching** - Respect page expiration settings
+
+### Security Best Practices
+
+- **Input Validation** - Always validate URLs and user inputs
+- **API Keys** - Never hardcode, use configuration
+- **XSS Prevention** - Sanitize extracted content
+- **CDP Security** - Handle Chrome DevTools Protocol errors gracefully
+
+### Debugging with Claude
+
+**For Build Issues:**
+```bash
+# Check Maven output
+./mvnw clean compile -X
+
+# Verify dependencies
+./mvnw dependency:tree
+```
+
+**For Test Failures:**
+```bash
+# Run specific test
+./mvnw -pl pulsar-core test -Dtest=SpecificTest
+
+# With debug output
+./mvnw -pl pulsar-core test -Dtest=SpecificTest -X
+```
+
+**For Runtime Issues:**
+- Check logs in `logs/` directory
+- Enable trace logging for specific packages
+- Use `-diagnose` LoadOption for page loading issues
+
+### Working with Agents
+
+Browser4's agentic capabilities allow autonomous task execution:
+
+```kotlin
+val agent = AgenticContexts.getOrCreateAgent()
+
+// Simple task
+val result = agent.run("Go to example.com and find the latest news")
+
+// Complex multi-step task
+val result = agent.run("""
+    1. Navigate to shopping site
+    2. Search for 'laptops under $1000'
+    3. Filter by rating > 4 stars
+    4. Extract top 5 products with specs
+    5. Return as JSON
+""")
+```
+
+**Agent Best Practices:**
+- Provide clear, step-by-step instructions
+- Use structured output formats (JSON, tables)
+- Handle errors gracefully
+- Set appropriate timeouts
+
+### Code Review Checklist
+
+Before submitting changes, verify:
+
+- [ ] Code follows Kotlin conventions (immutable, explicit types)
+- [ ] Public APIs have KDoc documentation
+- [ ] Logging uses placeholders, not concatenation
+- [ ] Tests cover main path and at least one edge case
+- [ ] No hardcoded values (use configuration)
+- [ ] Changes are minimal and focused
+- [ ] Existing tests still pass
+- [ ] No new warnings or deprecations
+
+### Getting Help
+
+- Check `docs/` for detailed guides
+- Review `examples/` for usage patterns
+- Look in `pulsar-tests/` for test examples
+- See `docs-dev/copilot/` for development notes
 
 ---
 
-*Last updated: 2026-01-25*
+*Last updated: 2026-02-08*
