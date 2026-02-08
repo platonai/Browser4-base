@@ -11,6 +11,7 @@ import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.logging.ThrottlingLogger
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.apache.commons.lang3.SystemUtils
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -116,9 +117,9 @@ data class BrowserProfile(
                 // For temporary contexts, use random generation
                 contextDir.toString().contains("/tmp/") || contextDir.toString().contains("\\temp\\") -> {
                     val platform = when {
-                        System.getProperty("os.name").contains("Windows", ignoreCase = true) ->
+                        SystemUtils.IS_OS_WINDOWS ->
                             ai.platon.pulsar.common.browser.FingerprintGenerator.Platform.WINDOWS
-                        System.getProperty("os.name").contains("Mac", ignoreCase = true) ->
+                        SystemUtils.IS_OS_MAC ->
                             ai.platon.pulsar.common.browser.FingerprintGenerator.Platform.MAC
                         else ->
                             ai.platon.pulsar.common.browser.FingerprintGenerator.Platform.LINUX
