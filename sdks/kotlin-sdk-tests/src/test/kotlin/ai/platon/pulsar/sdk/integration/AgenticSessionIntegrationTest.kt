@@ -32,7 +32,6 @@ import kotlin.test.assertTrue
  * stubbed responses so the suite can run without a real LLM/backend.
  */
 @Tag("Slow")
-
 class AgenticSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
 
     private lateinit var session: AgenticSession
@@ -66,6 +65,9 @@ class AgenticSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
+    @Tag("Slow")
+    @Tag("MustRunExplicitly")
+    @Disabled("MustRunExplicitly")
     @DisplayName("should run autonomous task")
     suspend fun testShouldRunAutonomousTask() {
         val result = session.run("visit ${TestUrls.PRODUCT_DETAIL} and summarize the product")
@@ -75,7 +77,9 @@ class AgenticSessionIntegrationTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    @Disabled("MustManuallyRun")
+    @Tag("Slow")
+    @Tag("MustRunExplicitly")
+    @Disabled("MustRunExplicitly")
     @DisplayName("should run task with multiple steps")
     suspend fun testShouldRunTaskWithMultipleSteps() {
         val task = """

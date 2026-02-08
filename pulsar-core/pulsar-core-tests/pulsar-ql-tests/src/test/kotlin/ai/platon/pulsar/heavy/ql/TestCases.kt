@@ -67,7 +67,7 @@ class TestCases: TestBase() {
     }
 
     @Test
-    @Tag("MustManuallyRun")
+    @Tag("MustRunExplicitly")
     fun loadAndSelectNeeq() {
         val url = "http://www.neeq.com.cn/nq/listedcompany.html"
         // execute("select dom, dom_css_selector(dom), dom_text(dom), dom_text_length(dom) from dom_load_and_select('$url', 'tbody > tr');", remote = true)
@@ -88,7 +88,7 @@ class TestCases: TestBase() {
     }
 
     @Test
-    @Tag("MustManuallyRun")
+    @Tag("MustRunExplicitly")
     @Tag("RequiresServer")
     fun loadAndGetLinksCityflower() {
         val sql = """

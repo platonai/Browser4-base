@@ -309,7 +309,7 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
     }
 
     @Test
-    @Tag("MustManuallyRun")
+    @Tag("MustRunExplicitly")
     fun testTypeText() = runEnhancedWebDriverTest(browser) { driver ->
         driver.navigateTo(e2eProductUrl)
         driver.waitForSelector("#productTitle")

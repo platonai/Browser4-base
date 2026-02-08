@@ -722,7 +722,7 @@
 
         <surefire.excludedGroups>
             Slow,RequiresServer,IntegrationTest,E2ETest,HeavyTest,
-            SkippableLowerLevelTest,TestInfraCheck,MustManuallyRun,OptionalTest
+            SkippableLowerLevelTest,TestInfraCheck,MustRunExplicitly,OptionalTest
         </surefire.excludedGroups>
 
         <pulsar.modules.version>4.5.0-SNAPSHOT</pulsar.modules.version>

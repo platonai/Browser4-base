@@ -103,7 +103,9 @@ class AgenticSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    @Disabled("MustManuallyRun")
+    @Tag("Slow")
+    @Tag("MustRunExplicitly")
+    @Disabled("MustRunExplicitly")
     @DisplayName("should execute run with default parameters")
     suspend fun testShouldExecuteRunWithDefaultParameters() {
         val result = session.run("visit ${TestUrls.SIMPLE_PAGE} and check if it loads")
@@ -113,7 +115,8 @@ class AgenticSessionAdvancedTest : KotlinSdkIntegrationTestBase() {
     }
 
     @Test
-    @Disabled("MustManuallyRun")
+    @Tag("Slow")
+    @Disabled("MustRunExplicitly")
     @DisplayName("should execute run with custom timeout")
     suspend fun testShouldExecuteRunWithCustomTimeout() {
         val result = session.run(

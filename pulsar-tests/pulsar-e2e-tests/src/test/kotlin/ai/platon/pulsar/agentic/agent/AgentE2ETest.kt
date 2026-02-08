@@ -61,9 +61,9 @@ import java.util.jar.JarFile
  */
 @Tag("E2ETest")
 @Tag("Slow")
-@Tag("MustManuallyRun")
+@Tag("MustRunExplicitly")
 @Tag("agent")
-@Disabled("MustManuallyRun")
+@Disabled("MustRunExplicitly")
 class AgentE2ETest {
 
     private val logger = getLogger(this)
