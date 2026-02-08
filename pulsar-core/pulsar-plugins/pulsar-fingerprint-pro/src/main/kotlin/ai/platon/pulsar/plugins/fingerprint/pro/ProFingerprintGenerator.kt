@@ -220,7 +220,7 @@ class ProFingerprintGenerator : FingerprintGeneratorProvider {
     }
 
     private fun generateUserAgent(platform: FingerprintGenerator.Platform, platformVersion: String): String {
-        val chromeVersion = "120.0.0.0"
+        val chromeVersion = FingerprintGenerator.DEFAULT_CHROME_VERSION
         return when (platform) {
             FingerprintGenerator.Platform.WINDOWS ->
                 "Mozilla/5.0 (Windows NT $platformVersion; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36"

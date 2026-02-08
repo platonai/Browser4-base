@@ -3,14 +3,20 @@ package ai.platon.pulsar.common.browser
 import kotlin.random.Random
 
 /**
- * Generates realistic and consistent browser fingerprints with full parameter coverage.
+ * Professional fingerprint generator that produces realistic and consistent browser
+ * fingerprints with full anti-detection parameter coverage.
  *
  * The generator ensures that all parameters are logically coherent (e.g., userAgent matches
  * platform, screen resolution is reasonable for the device type, etc.) and uses common
  * device configurations to avoid detection.
  *
- * This class also implements [FingerprintGeneratorProvider] so it can be used as a
- * professional fingerprint generator when loaded as a plugin via ServiceLoader.
+ * This class implements [FingerprintGeneratorProvider] and serves as the built-in
+ * professional fingerprint generator. When the professional fingerprinting plugin is
+ * enabled, this generator (or one loaded from an external JAR) provides full-coverage
+ * fingerprints including WebGL, canvas, media devices, hardware, and geo-time parameters.
+ *
+ * @see BasicFingerprintGenerator for the default basic generator
+ * @see FingerprintGeneratorLoader for the loading mechanism
  */
 class FingerprintGenerator : FingerprintGeneratorProvider {
     
@@ -263,8 +269,7 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
         platform: Platform,
         platformVersion: String
     ): String {
-        // Use a recent Chrome version (120.x)
-        val chromeVersion = "120.0.0.0"
+        val chromeVersion = DEFAULT_CHROME_VERSION
         
         return when (platform) {
             Platform.WINDOWS -> {
@@ -305,5 +310,13 @@ class FingerprintGenerator : FingerprintGeneratorProvider {
         WINDOWS,
         MAC,
         LINUX
+    }
+
+    companion object {
+        /**
+         * Default Chrome version used for user agent generation.
+         * Shared across all fingerprint generator implementations.
+         */
+        const val DEFAULT_CHROME_VERSION = "120.0.0.0"
     }
 }
