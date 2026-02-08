@@ -2,6 +2,7 @@ package ai.platon.browser4.driver.chrome
 
 import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.common.getLogger
+import org.apache.commons.lang3.StringUtils
 
 /**
  * Manages isolated worlds for Browser4 runtime injection.
@@ -23,8 +24,6 @@ class IsolatedWorldManager(
     val settings: BrowserSettings
 ) {
     companion object {
-        private val logger = getLogger(this)
-
         /**
          * Isolated world name for Browser4 runtime.
          * This name is used to identify and access the isolated world via CDP.
@@ -40,6 +39,7 @@ class IsolatedWorldManager(
         private const val DEFAULT_CREATE_WORLD_RETRIES = 3
     }
 
+    private val logger = getLogger(this)
     private val pageAPI get() = devTools.page
     private val confuser get() = settings.confuser
 
@@ -134,7 +134,8 @@ class IsolatedWorldManager(
 
         val exception = result?.get("exceptionDetails")
         if (exception != null) {
-            logger.warn("Exception during isolated world evaluation: {} \n>>>$script<<<", exception)
+            val abbreviation = StringUtils.abbreviateMiddle(script, "...", 200)
+            logger.warn("Exception during isolated world evaluation: {} \n>>>$abbreviation<<<", exception)
         }
 
         return result?.get("result")
