@@ -454,7 +454,17 @@ class AgenticSession(
         domSettleTimeoutMs: Long? = null
     ): ExtractionResult {
         val payload = mutableMapOf<String, Any?>("instruction" to instruction)
-        if (schema != null) payload["schema"] = schema
+        
+        // Convert schema format: Map<String, Any?> -> ExtractionSchemaDto
+        if (schema != null) {
+            val schemaDto = mapOf(
+                "type" to "object",
+                "properties" to schema,
+                "required" to schema.keys.toList()
+            )
+            payload["schema"] = schemaDto
+        }
+        
         if (selector != null) payload["selector"] = selector
         if (modelName != null) payload["modelName"] = modelName
         if (domSettleTimeoutMs != null) payload["domSettleTimeoutMs"] = domSettleTimeoutMs

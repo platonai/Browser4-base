@@ -556,6 +556,29 @@ data class SubmitResponse(
 )
 
 /**
+ * Request for chat with a single prompt.
+ */
+data class ChatRequest(
+    @param:JsonProperty("prompt") val prompt: String? = null,
+    @param:JsonProperty("userMessage") val userMessage: String? = null,
+    @param:JsonProperty("systemMessage") val systemMessage: String? = null
+)
+
+/**
+ * Response from chat endpoint.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class ChatResponse(
+    @param:JsonProperty("value") val value: ChatResponseValue
+) {
+    data class ChatResponseValue(
+        @param:JsonProperty("content") val content: String,
+        @param:JsonProperty("role") val role: String = "assistant",
+        @param:JsonProperty("model") val model: String? = null
+    )
+}
+
+/**
  * Cookie data structure.
  */
 data class Cookie(

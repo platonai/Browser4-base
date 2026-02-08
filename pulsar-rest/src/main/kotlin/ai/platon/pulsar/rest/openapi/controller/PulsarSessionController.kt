@@ -1,10 +1,13 @@
 package ai.platon.pulsar.rest.openapi.controller
 
+import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.rest.openapi.dto.*
 import ai.platon.pulsar.rest.openapi.service.SessionManager
+import ai.platon.pulsar.skeleton.context.PulsarContext
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -22,9 +25,14 @@ import org.springframework.web.bind.annotation.*
 )
 @ConditionalOnBean(SessionManager::class)
 class PulsarSessionController(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val pulsarContext: PulsarContext,
+    @param:Value("\${pulsar.stub.mode:false}")
+    private val stubMode: Boolean = false
 ) {
     private val logger = LoggerFactory.getLogger(PulsarSessionController::class.java)
+
+    private fun shouldStub(): Boolean = stubMode || !ChatModelFactory.isModelConfigured(pulsarContext.configuration)
 
     /**
      * Normalizes a URL with optional load arguments.
@@ -154,5 +162,69 @@ class PulsarSessionController(
         }
 
         return ResponseEntity.ok(SubmitResponse(value = true))
+    }
+
+    /**
+     * Chat with LLM using a simple prompt or user/system messages.
+     * Supports two modes:
+     * 1. Single prompt: { "prompt": "What is 2 + 2?" }
+     * 2. User + system messages: { "userMessage": "...", "systemMessage": "..." }
+     */
+    @PostMapping("/chat", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    suspend fun chat(
+        @PathVariable sessionId: String,
+        @RequestBody request: ChatRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<Any> {
+        logger.debug("Session {} chat request", sessionId)
+        ControllerUtils.addRequestId(response)
+
+        val session = sessionManager.getSession(sessionId)
+            ?: return ControllerUtils.notFound("session not found", "No active session with id $sessionId")
+
+        if (shouldStub()) {
+            val result = ChatResponse.ChatResponseValue(
+                content = "Test mode response",
+                role = "assistant",
+                model = "stub"
+            )
+            return ResponseEntity.ok(ChatResponse(value = result))
+        }
+
+        val result = try {
+            session.mutex.withLock {
+                val chatModel = ChatModelFactory.getOrCreate(pulsarContext.configuration)
+
+                val content = when {
+                    request.prompt != null -> {
+                        chatModel.call(request.prompt).content
+                    }
+                    request.userMessage != null -> {
+                        val systemMsg = request.systemMessage ?: ""
+                        chatModel.call(systemMsg, request.userMessage).content
+                    }
+                    else -> {
+                        return@withLock ChatResponse.ChatResponseValue(
+                            content = "Error: Either 'prompt' or 'userMessage' must be provided",
+                            role = "assistant"
+                        )
+                    }
+                }
+
+                ChatResponse.ChatResponseValue(
+                    content = content,
+                    role = "assistant",
+                    model = chatModel.javaClass.simpleName
+                )
+            }
+        } catch (e: Exception) {
+            logger.error("Error in chat: {}", e.message, e)
+            ChatResponse.ChatResponseValue(
+                content = "Error: ${e.message}",
+                role = "assistant"
+            )
+        }
+
+        return ResponseEntity.ok(ChatResponse(value = result))
     }
 }
