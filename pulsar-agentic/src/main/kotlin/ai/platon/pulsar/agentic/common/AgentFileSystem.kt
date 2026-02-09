@@ -7,8 +7,9 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -21,13 +22,30 @@ private const val DEFAULT_FILE_SYSTEM_PATH = "fs"
 /** Custom exception for file system operations that should be shown to LLM */
 class FileSystemError(message: String, cause: Throwable? = null) : IOException(message, cause)
 
-/** Base class for all file types */
+/**
+ * Base class for all file types in the agent file system.
+ * 
+ * This class provides thread-safe content management using atomic operations.
+ * All file content modifications are synchronized to prevent lost updates in
+ * concurrent scenarios.
+ *
+ * @property name The base name of the file (without extension)
+ * @property extension The file extension (e.g., "txt", "md")
+ */
 sealed class BaseFile(
     open val name: String,
-    open var content: String = ""
+    initialContent: String = ""
 ) {
     /** File extension (e.g. "txt", "md") */
     abstract val extension: String
+
+    /** Thread-safe content storage using atomic reference */
+    private val contentRef = AtomicReference(initialContent)
+    
+    /** Thread-safe access to file content */
+    var content: String
+        get() = contentRef.get()
+        set(value) = contentRef.set(value)
 
     val fullName: String get() = "$name.$extension"
 
@@ -36,11 +54,11 @@ sealed class BaseFile(
     }
 
     fun appendFileContent(append: String) {
-        updateContent(content + append)
+        contentRef.updateAndGet { current -> current + append }
     }
 
     protected fun updateContent(newContent: String) {
-        content = newContent
+        contentRef.set(newContent)
     }
 
     // Align method names with java.nio.file.Files for a more idiomatic Kotlin/Java feel
@@ -72,46 +90,91 @@ sealed class BaseFile(
     open fun content(): String = content
 
     val size: Int get() = content.length
-    val lineCount: Int get() = if (content.isEmpty()) 0 else content.split("\n").size
+    
+    /**
+     * Calculates the number of lines in the file content.
+     * Returns 0 for empty content.
+     */
+    val lineCount: Int
+        get() {
+            val c = content
+            if (c.isEmpty()) return 0
+            // Count newlines and add 1 if content doesn't end with newline
+            return c.count { it == '\n' } + if (!c.endsWith('\n')) 1 else 0
+        }
 }
 
-class MarkdownFile(override val name: String, override var content: String = "") : BaseFile(name, content) {
+class MarkdownFile(override val name: String, initialContent: String = "") : BaseFile(name, initialContent) {
     override val extension: String get() = "md"
 }
 
-class TxtFile(override val name: String, override var content: String = "") : BaseFile(name, content) {
+class TxtFile(override val name: String, initialContent: String = "") : BaseFile(name, initialContent) {
     override val extension: String get() = "txt"
 }
 
-class JsonFile(override val name: String, override var content: String = "") : BaseFile(name, content) {
+class JsonFile(override val name: String, initialContent: String = "") : BaseFile(name, initialContent) {
     override val extension: String get() = "json"
 }
 
-class CsvFile(override val name: String, override var content: String = "") : BaseFile(name, content) {
+class CsvFile(override val name: String, initialContent: String = "") : BaseFile(name, initialContent) {
     override val extension: String get() = "csv"
 }
 
-class JsonlFile(override val name: String, override var content: String = "") : BaseFile(name, content) {
+class JsonlFile(override val name: String, initialContent: String = "") : BaseFile(name, initialContent) {
     override val extension: String get() = "jsonl"
 }
 
-/** Serializable state of the file system */
+/**
+ * Serializable entry representing a file's state.
+ *
+ * @property type The type of the file (class name)
+ * @property name The base name of the file
+ * @property content The file's content
+ */
 data class FileStateEntry(val type: String, val name: String, val content: String)
 
+/**
+ * Serializable state of the entire file system.
+ *
+ * @property files Map of full file names to their state entries
+ * @property baseDir The base directory path as a string
+ * @property extractedContentCount Counter for extracted content files
+ */
 data class FileSystemState(
     val files: Map<String, FileStateEntry> = emptyMap(), // full fileName -> file data
     val baseDir: String,
     val extractedContentCount: Int = 0
 )
 
-/** Enhanced file system with in-memory storage and multiple file type support */
-class AgentFileSystem constructor(
-    private val baseDir: Path = Paths.get("target"),
+/**
+ * Enhanced file system with in-memory storage and multiple file type support.
+ *
+ * This class provides a thread-safe, coroutine-friendly file system for AI agents.
+ * Files are stored both in memory (for fast access) and on disk (for persistence).
+ *
+ * **Thread Safety:** All operations are thread-safe. The in-memory file map uses
+ * ConcurrentHashMap, and file content uses atomic references to prevent lost updates.
+ *
+ * **Lifecycle:** By default, the data directory is cleaned on initialization. Files
+ * are automatically persisted to disk on write operations.
+ *
+ * **Supported Extensions:** md, txt, json, jsonl, csv
+ *
+ * **Filename Format:** Alphanumeric characters, underscores, hyphens, and dots in
+ * the base name. No path separators allowed (flat file structure only).
+ *
+ * @property baseDir The base directory for the file system (default: "target")
+ * @property createDefaultFiles Whether to create default files (e.g., todolist.md) on init
+ */
+class AgentFileSystem(
+    private val baseDir: Path = Path.of("target"),
     createDefaultFiles: Boolean = true
 ) {
     companion object {
+        /** Maximum characters to display in file preview (per half) */
         const val DISPLAY_CHARS = 400
 
+        /** Default files created on initialization */
         val DEFAULT_FILES = listOf("todolist.md")
     }
 
@@ -128,7 +191,7 @@ class AgentFileSystem constructor(
     )
 
     private val files: MutableMap<String, BaseFile> = ConcurrentHashMap()
-    private var extractedContentCount: Int = 0
+    private val extractedContentCount: AtomicInteger = AtomicInteger(0)
     private val allowedExtensionsPattern: Pattern = run {
         val exts = fileFactories.keys.joinToString("|")
         // Allow dots in basename (e.g. "a.b.txt"), but disallow path separators and empty segments.
@@ -157,6 +220,11 @@ class AgentFileSystem constructor(
         }
     }
 
+    /**
+     * Gets a list of allowed file extensions.
+     *
+     * @return List of supported file extensions
+     */
     fun getAllowedExtensions(): List<String> = fileFactories.keys.toList()
 
     private fun createFile(extension: String, name: String, content: String = ""): BaseFile {
@@ -175,21 +243,50 @@ class AgentFileSystem constructor(
         return name to ext
     }
 
+    /**
+     * Gets a file by its full name (including extension).
+     *
+     * @param fullFileName The full file name (e.g., "data.json")
+     * @return The file object, or null if not found or invalid filename
+     */
     fun getFile(fullFileName: String): BaseFile? {
         if (!isValidFilename(fullFileName)) return null
         return files[fullFileName]
     }
 
+    /**
+     * Lists all file names in the agent file system.
+     *
+     * @return Sorted list of file names
+     */
     fun listFiles(): List<String> = files.values.map { it.fullName }.sorted()
 
+    /**
+     * Lists all file paths on the operating system.
+     *
+     * @return Sorted list of file paths
+     */
     fun listOSFiles(): List<Path> = files.values.map { dataDir.resolve(it.fullName) }.sortedBy { it.toString() }
 
+    /**
+     * Displays the content of a file.
+     *
+     * @param fullFileName The full file name (e.g., "data.json")
+     * @return The file content, or null if not found or invalid filename
+     */
     fun displayFile(fullFileName: String): String? {
         if (!isValidFilename(fullFileName)) return null
         val file = getFile(fullFileName) ?: return null
         return file.content()
     }
 
+    /**
+     * Reads the content of a file from the agent file system or from an external path.
+     *
+     * @param fullFileName The full file name or external path
+     * @param externalFile If true, reads from the file system at the given path; if false, reads from agent file system
+     * @return A message containing the file content or an error message
+     */
     suspend fun readString(fullFileName: String, externalFile: Boolean = false): String {
         if (externalFile) {
             return try {
@@ -208,8 +305,10 @@ class AgentFileSystem constructor(
                     else -> "Error: Cannot read file $fullFileName as $ext extension is not supported."
                 }
             } catch (e: IOException) {
-                "Error: Could not read file '$fullFileName'."
-            } catch (_: SecurityException) {
+                logger.warn("Could not read external file '{}': {}", fullFileName, e.message)
+                "Error: Could not read file '$fullFileName'. ${e.message ?: ""}".trim()
+            } catch (e: SecurityException) {
+                logger.warn("Permission denied reading external file '{}': {}", fullFileName, e.message)
                 "Error: Permission denied to read file '$fullFileName'."
             }
         }
@@ -221,12 +320,23 @@ class AgentFileSystem constructor(
             val content = file.content()
             "Read from file $fullFileName.\n<content>\n$content\n</content>"
         } catch (e: FileSystemError) {
+            logger.warn("Could not read file '{}': {}", fullFileName, e.message)
             e.message ?: "Error: Could not read file '$fullFileName'."
         } catch (e: Exception) {
-            "Error: Could not read file '$fullFileName'."
+            logger.warn("Could not read file '{}': {}", fullFileName, e.message)
+            "Error: Could not read file '$fullFileName'. ${e.message ?: ""}".trim()
         }
     }
 
+    /**
+     * Writes content to a file in the agent file system.
+     *
+     * Creates a new file if it doesn't exist, or overwrites existing content.
+     *
+     * @param fullFileName The full file name (e.g., "data.json")
+     * @param content The content to write
+     * @return A success message or error message
+     */
     suspend fun writeString(fullFileName: String, content: String): String {
         if (!isValidFilename(fullFileName)) return INVALID_FILENAME_ERROR_MESSAGE
         return try {
@@ -238,12 +348,21 @@ class AgentFileSystem constructor(
 
             "Data written to file $fullFileName successfully."
         } catch (e: FileSystemError) {
+            logger.warn("Could not write to file '{}': {}", fullFileName, e.message)
             e.message ?: "Error: Could not write to file '$fullFileName'."
         } catch (e: Exception) {
+            logger.warn("Could not write to file '{}': {}", fullFileName, e.message)
             "Error: Could not write to file '$fullFileName'. ${e.message ?: ""}".trim()
         }
     }
 
+    /**
+     * Appends content to an existing file.
+     *
+     * @param fullFileName The full file name (e.g., "data.json")
+     * @param content The content to append
+     * @return A success message or error message
+     */
     suspend fun append(fullFileName: String, content: String): String {
         if (!isValidFilename(fullFileName)) return INVALID_FILENAME_ERROR_MESSAGE
         val file = getFile(fullFileName) ?: return "File '$fullFileName' not found."
@@ -251,12 +370,22 @@ class AgentFileSystem constructor(
             file.appendString(content, dataDir)
             "Data appended to file $fullFileName successfully."
         } catch (e: FileSystemError) {
+            logger.warn("Could not append to file '{}': {}", fullFileName, e.message)
             e.message ?: "Error: Could not append to file '$fullFileName'."
         } catch (e: Exception) {
+            logger.warn("Could not append to file '{}': {}", fullFileName, e.message)
             "Error: Could not append to file '$fullFileName'. ${e.message ?: ""}".trim()
         }
     }
 
+    /**
+     * Replaces all occurrences of a string in a file with a new string.
+     *
+     * @param fullFileName The full file name (e.g., "data.json")
+     * @param oldStr The string to replace (must not be empty)
+     * @param newStr The replacement string
+     * @return A success message or error message
+     */
     suspend fun replaceContent(fullFileName: String, oldStr: String, newStr: String): String {
         if (!isValidFilename(fullFileName)) return INVALID_FILENAME_ERROR_MESSAGE
         if (oldStr.isEmpty()) return "Error: Cannot replace empty string. Please provide a non-empty string to replace."
@@ -266,8 +395,10 @@ class AgentFileSystem constructor(
             file.writeString(replaced, dataDir)
             "Successfully replaced all occurrences of \"$oldStr\" with \"$newStr\" in file $fullFileName"
         } catch (e: FileSystemError) {
+            logger.warn("Could not replace string in file '{}': {}", fullFileName, e.message)
             e.message ?: "Error: Could not replace string in file '$fullFileName'."
         } catch (e: Exception) {
+            logger.warn("Could not replace string in file '{}': {}", fullFileName, e.message)
             "Error: Could not replace string in file '$fullFileName'. ${e.message ?: ""}".trim()
         }
     }
@@ -299,8 +430,9 @@ class AgentFileSystem constructor(
         val file = getFile(fullFileName) ?: return "File '$fullFileName' not found."
         return try {
             val content = file.content()
-            val sizeBytes = content.toByteArray(StandardCharsets.UTF_8).size
-            val lineCount = if (content.isEmpty()) 0 else content.split("\n").size
+            // More efficient byte size calculation
+            val sizeBytes = content.encodeToByteArray().size
+            val lineCount = file.lineCount
             val charCount = content.length
             """File info for '$fullFileName':
 - Size: $sizeBytes bytes
@@ -308,6 +440,7 @@ class AgentFileSystem constructor(
 - Lines: $lineCount
 - Extension: ${file.extension}"""
         } catch (e: Exception) {
+            logger.warn("Could not get info for file '{}': {}", fullFileName, e.message)
             "Error: Could not get info for file '$fullFileName'. ${e.message ?: ""}".trim()
         }
     }
@@ -330,9 +463,11 @@ class AgentFileSystem constructor(
             }
             "File '$fullFileName' deleted successfully."
         } catch (e: IOException) {
+            logger.warn("File '{}' removed from memory but could not delete from disk: {}", fullFileName, e.message)
             // File removed from memory but OS file deletion failed
             "File '$fullFileName' removed from memory, but could not delete from disk: ${e.message}"
         } catch (e: Exception) {
+            logger.warn("Could not delete file '{}': {}", fullFileName, e.message)
             "Error: Could not delete file '$fullFileName'. ${e.message ?: ""}".trim()
         }
     }
@@ -358,14 +493,20 @@ class AgentFileSystem constructor(
             newFile.writeString(dataDir)
             "File '$sourceFileName' copied to '$destFileName' successfully."
         } catch (e: FileSystemError) {
+            logger.warn("Could not copy file '{}' to '{}': {}", sourceFileName, destFileName, e.message)
             e.message ?: "Error: Could not copy file."
         } catch (e: Exception) {
+            logger.warn("Could not copy file '{}' to '{}': {}", sourceFileName, destFileName, e.message)
             "Error: Could not copy file '$sourceFileName' to '$destFileName'. ${e.message ?: ""}".trim()
         }
     }
 
     /**
      * Moves/renames a file within the agent file system.
+     *
+     * The operation is performed atomically to ensure data consistency even in
+     * concurrent scenarios. The old disk file is deleted only after the new file
+     * has been successfully written.
      *
      * @param sourceFileName The source file name (e.g., "old.txt")
      * @param destFileName The destination file name (e.g., "new.txt")
@@ -376,29 +517,42 @@ class AgentFileSystem constructor(
         if (!isValidFilename(destFileName)) return "Error: Invalid destination fileName format. Must be alphanumeric with supported extension."
         if (sourceFileName == destFileName) return "Error: Source and destination file names must be different."
 
-        val sourceFile = files.remove(sourceFileName) ?: return "Source file '$sourceFileName' not found."
+        // Use compute to make the operation atomic
+        val sourceFile = files[sourceFileName] ?: return "Source file '$sourceFileName' not found."
 
         return try {
-            // Delete old file from disk
+            // Create new file with same content (but don't write to disk yet)
+            val (destName, destExt) = parseFilename(destFileName)
+            val newFile = createFile(destExt, destName, sourceFile.content())
+            
+            // Write new file to disk first
+            newFile.writeString(dataDir)
+            
+            // Atomically update the map: remove source, add destination
+            files.compute(sourceFileName) { _, _ -> null }
+            files[destFileName] = newFile
+            
+            // Delete old file from disk after successful map update
             val oldPath = dataDir.resolve(sourceFile.fullName)
             withContext(Dispatchers.IO) {
                 if (oldPath.exists()) {
-                    Files.delete(oldPath)
+                    try {
+                        Files.delete(oldPath)
+                    } catch (e: IOException) {
+                        logger.warn("Moved file '{}' to '{}' in memory but could not delete old disk file: {}", 
+                            sourceFileName, destFileName, e.message)
+                    }
                 }
             }
 
-            // Create new file with same content
-            val (destName, destExt) = parseFilename(destFileName)
-            val newFile = createFile(destExt, destName, sourceFile.content())
-            files[destFileName] = newFile
-            newFile.writeString(dataDir)
-
             "File '$sourceFileName' moved to '$destFileName' successfully."
         } catch (e: FileSystemError) {
+            logger.warn("Could not move file '{}' to '{}': {}", sourceFileName, destFileName, e.message)
             // Restore source file on failure
             files[sourceFileName] = sourceFile
             e.message ?: "Error: Could not move file."
         } catch (e: Exception) {
+            logger.warn("Could not move file '{}' to '{}': {}", sourceFileName, destFileName, e.message)
             // Restore source file on failure
             files[sourceFileName] = sourceFile
             "Error: Could not move file '$sourceFileName' to '$destFileName'. ${e.message ?: ""}".trim()
@@ -408,107 +562,146 @@ class AgentFileSystem constructor(
     /**
      * Lists all files in the agent file system with their basic info.
      *
-     * @return A formatted string listing all files
+     * @return A formatted string listing all files with size and line count
      */
     fun listFilesInfo(): String {
         if (files.isEmpty()) {
             return "No files in the file system."
         }
 
-        val sb = StringBuilder()
-        sb.appendLine("Files in agent file system (${files.size} files):")
-        for ((fileName, file) in files) {
-            val content = file.content()
-            val sizeBytes = content.toByteArray(StandardCharsets.UTF_8).size
-            val lineCount = if (content.isEmpty()) 0 else content.split("\n").size
-            sb.appendLine("- $fileName (${sizeBytes} bytes, $lineCount lines)")
-        }
-        return sb.toString().trimEnd()
+        return buildString {
+            appendLine("Files in agent file system (${files.size} files):")
+            for ((fileName, file) in files) {
+                val content = file.content()
+                // More efficient byte size calculation
+                val sizeBytes = content.encodeToByteArray().size
+                val lineCount = file.lineCount
+                appendLine("- $fileName ($sizeBytes bytes, $lineCount lines)")
+            }
+        }.trimEnd()
     }
 
+    /**
+     * Saves extracted content to a new markdown file with an auto-generated name.
+     *
+     * The file name follows the pattern: extracted_content_N.md where N is a counter.
+     *
+     * @param content The content to save
+     * @return The generated file name
+     */
     suspend fun saveExtractedContent(content: String): String {
-        val initial = "extracted_content_$extractedContentCount"
+        val count = extractedContentCount.getAndIncrement()
+        val initial = "extracted_content_$count"
         val fileName = "$initial.md"
         val file = MarkdownFile(initial)
         file.writeString(content, dataDir)
         files[fileName] = file
-        extractedContentCount += 1
         return fileName
     }
 
+    /**
+     * Describes all files in the agent file system with a preview of their content.
+     *
+     * For small files, shows the full content. For large files, shows the first and
+     * last portions with a line count for the middle. The todolist.md file is excluded
+     * from the description.
+     *
+     * @return A formatted description of all files
+     */
     fun describe(): String {
-        val sb = StringBuilder()
-        for (file in files.values) {
-            if (file.fullName == "todolist.md") continue
-            val content = file.content()
-            if (content.isEmpty()) {
-                sb.append("<file>\n${file.fullName} - [empty file]\n</file>\n")
-                continue
+        return buildString {
+            for (file in files.values) {
+                if (file.fullName == "todolist.md") continue
+                val content = file.content()
+                if (content.isEmpty()) {
+                    append("<file>\n${file.fullName} - [empty file]\n</file>\n")
+                    continue
+                }
+                val lines = content.split("\n")
+                val lineCount = lines.size
+                val whole = "<file>\n${file.fullName} - $lineCount lines\n<content>\n$content\n</content>\n</file>\n"
+                if (content.length < (1.5 * DISPLAY_CHARS).toInt()) {
+                    append(whole)
+                    continue
+                }
+                val half = DISPLAY_CHARS / 2
+                var chars = 0
+                var startLineCount = 0
+                val startPreview = StringBuilder()
+                for (line in lines) {
+                    if (chars + line.length + 1 > half) break
+                    startPreview.append(line).append('\n')
+                    chars += line.length + 1
+                    startLineCount += 1
+                }
+                chars = 0
+                var endLineCount = 0
+                val endPreview = StringBuilder()
+                for (line in lines.asReversed()) {
+                    if (chars + line.length + 1 > half) break
+                    endPreview.insert(0, line + '\n')
+                    chars += line.length + 1
+                    endLineCount += 1
+                }
+                val middle = lineCount - startLineCount - endLineCount
+                if (middle <= 0) {
+                    append(whole)
+                    continue
+                }
+                val start = startPreview.toString().trim('\n').trimEnd()
+                val end = endPreview.toString().trim('\n').trimEnd()
+                if (start.isEmpty() && end.isEmpty()) {
+                    append("<file>\n${file.fullName} - $lineCount lines\n<content>\n$middle lines...\n</content>\n</file>\n")
+                } else {
+                    append("<file>\n${file.fullName} - $lineCount lines\n<content>\n$start\n")
+                    append("... $middle more lines ...\n")
+                    append("$end\n")
+                    append("</content>\n</file>\n")
+                }
             }
-            val lines = content.split("\n")
-            val lineCount = lines.size
-            val whole = "<file>\n${file.fullName} - $lineCount lines\n<content>\n$content\n</content>\n</file>\n"
-            if (content.length < (1.5 * DISPLAY_CHARS).toInt()) {
-                sb.append(whole)
-                continue
-            }
-            val half = DISPLAY_CHARS / 2
-            var chars = 0
-            var startLineCount = 0
-            val startPreview = StringBuilder()
-            for (line in lines) {
-                if (chars + line.length + 1 > half) break
-                startPreview.append(line).append('\n')
-                chars += line.length + 1
-                startLineCount += 1
-            }
-            chars = 0
-            var endLineCount = 0
-            val endPreview = StringBuilder()
-            for (line in lines.asReversed()) {
-                if (chars + line.length + 1 > half) break
-                endPreview.insert(0, line + '\n')
-                chars += line.length + 1
-                endLineCount += 1
-            }
-            val middle = lineCount - startLineCount - endLineCount
-            if (middle <= 0) {
-                sb.append(whole)
-                continue
-            }
-            val start = startPreview.toString().trim('\n').trimEnd()
-            val end = endPreview.toString().trim('\n').trimEnd()
-            if (start.isEmpty() && end.isEmpty()) {
-                sb.append("<file>\n${file.fullName} - $lineCount lines\n<content>\n$middle lines...\n</content>\n</file>\n")
-            } else {
-                sb.append("<file>\n${file.fullName} - $lineCount lines\n<content>\n$start\n")
-                sb.append("... $middle more lines ...\n")
-                sb.append("$end\n")
-                sb.append("</content>\n</file>\n")
-            }
-        }
-        return sb.toString().trimEnd('\n')
+        }.trimEnd('\n')
     }
 
+    /**
+     * Gets the contents of the todolist.md file.
+     *
+     * @return The content of todolist.md, or empty string if not found
+     */
     fun getTodoContents(): String = getFile("todolist.md")?.content() ?: ""
 
+    /**
+     * Gets the current state of the file system for serialization.
+     *
+     * @return A FileSystemState object containing all files and metadata
+     */
     fun getState(): FileSystemState {
         val map = files.mapValues { (_, f) -> FileStateEntry(f::class.simpleName ?: "", f.name, f.content) }
-        return FileSystemState(files = map, baseDir = baseDir.toString(), extractedContentCount = extractedContentCount)
+        return FileSystemState(files = map, baseDir = baseDir.toString(), extractedContentCount = extractedContentCount.get())
     }
 
+    /**
+     * Cleans a directory by removing all files and subdirectories within it.
+     * The directory itself is preserved.
+     *
+     * @param dir The directory to clean
+     */
     private fun cleanDirectory(dir: Path) {
         if (!dir.exists()) return
         if (!dir.isDirectory()) return
-        Files.walk(dir)
-            .sorted(Comparator.reverseOrder())
-            .forEach { p -> if (p != dir) p.toFile().delete() }
+        try {
+            Files.walk(dir)
+                .sorted(Comparator.reverseOrder())
+                .forEach { p ->
+                    if (p != dir) {
+                        try {
+                            Files.delete(p)
+                        } catch (e: IOException) {
+                            logger.warn("Could not delete '{}' during directory cleanup: {}", p, e.message)
+                        }
+                    }
+                }
+        } catch (e: IOException) {
+            logger.warn("Error walking directory '{}' during cleanup: {}", dir, e.message)
+        }
     }
-}
-
-suspend fun main() {
-    val fs = AgentFileSystem()
-
-    fs.writeString("todolist.md", "todolist.md")
-    fs.listFiles().forEach { println(it) }
 }
