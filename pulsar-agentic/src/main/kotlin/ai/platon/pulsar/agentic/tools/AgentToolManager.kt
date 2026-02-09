@@ -3,6 +3,7 @@ package ai.platon.pulsar.agentic.tools
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
 import ai.platon.pulsar.agentic.common.AgentFileSystem
+import ai.platon.pulsar.agentic.common.AgentShell
 import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.TcEvaluate
 import ai.platon.pulsar.agentic.model.ToolCall
@@ -23,6 +24,7 @@ class AgentToolManager constructor(
     private val logger = getLogger(AgentToolManager::class)
 
     val fs: AgentFileSystem = AgentFileSystem(baseDir)
+    val shell: AgentShell = AgentShell(baseDir)
     val system: SystemToolExecutor = SystemToolExecutor(this)
 
     val session: AgenticSession get() = agent.session
@@ -32,6 +34,7 @@ class AgentToolManager constructor(
         WebDriverToolExecutor(),
         BrowserToolExecutor(),
         FileSystemToolExecutor(),
+        ShellToolExecutor(),
         AgentToolExecutor(),
         system
     )
@@ -105,6 +108,7 @@ class AgentToolManager constructor(
                 "driver" -> executor.callFunctionOn(tc, driver)
                 "browser" -> executor.callFunctionOn(tc, driver.browser)
                 "fs" -> executor.callFunctionOn(tc, fs)
+                "shell" -> executor.callFunctionOn(tc, shell)
                 "agent" -> executor.callFunctionOn(tc, agent)
                 "system" -> executor.callFunctionOn(tc, system)
                 else -> {
