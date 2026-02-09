@@ -121,9 +121,6 @@ class ChromeImplLauncherTest {
         val cdpUrl1 = Files.readString(cdpUrlPath).trim()
         println("First launch CDP URL: $cdpUrl1")
 
-        // Get the port from first instance
-        val port1 = chrome1.version.toString().hashCode() // just a marker
-
         // Second launcher with same userDataDir (should reuse)
         val launcher2 = ChromeLauncher(userDataDir, options = LauncherOptions())
         val chrome2 = launcher2.launch(launchOptions)

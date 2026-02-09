@@ -137,7 +137,6 @@ class ChromeLauncher constructor(
             // Verify that the port is actually in use and the process is alive
             if (isPortInUse(port) && isProcessAlive()) {
                 logger.info("Found valid existing Chrome process on port: {}", port)
-                
                 // Read and log CDP URL if available
                 val cdpUrl = readCdpUrl()
                 if (cdpUrl != null) {
@@ -434,7 +433,7 @@ class ChromeLauncher constructor(
                         // 2025-09-16 23:16:03.247  INFO [Thread-2] a.p.p.b.d.c.ChromeLauncher - [output] - DevTools listening on ws://127.0.0.1:50658/devtools/browser/ab3ec7cd-f800-4cc7-9ea1-7d3563e30d7c
                         logger.info("[output] - $line")
                         val matcher = DEVTOOLS_LISTENING_LINE_PATTERN.matcher(line)
-                        if (matcher.find()) {
+                        if (matcher.find() && matcher.groupCount() >= 2) {
                             cdpUrl = matcher.group(1) // Full WebSocket URL
                             port = matcher.group(2).toInt() // Port number
                             
