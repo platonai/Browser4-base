@@ -7,6 +7,7 @@ import ai.platon.browser4.driver.chrome.util.ChromeLaunchException
 import ai.platon.browser4.driver.chrome.util.ChromeLaunchTimeoutException
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.browser.BrowserFiles
+import ai.platon.pulsar.common.browser.BrowserFiles.CDP_URL_FILE_NAME
 import ai.platon.pulsar.common.browser.BrowserFiles.PID_FILE_NAME
 import ai.platon.pulsar.common.browser.BrowserFiles.PORT_FILE_NAME
 import ai.platon.pulsar.common.browser.Browsers
@@ -49,12 +50,13 @@ class ChromeLauncher constructor(
     companion object {
         private val logger = LoggerFactory.getLogger(ChromeLauncher::class.java)
 
-        private val DEVTOOLS_LISTENING_LINE_PATTERN = Pattern.compile("^DevTools listening on ws://.+:(\\d+)/")
+        private val DEVTOOLS_LISTENING_LINE_PATTERN = Pattern.compile("^DevTools listening on (ws://.+:(\\d+)/.+)$")
     }
 
     private val closed = AtomicBoolean()
     private val pidPath get() = userDataDir.resolveSibling(PID_FILE_NAME)
     private val portPath get() = userDataDir.resolveSibling(PORT_FILE_NAME)
+    private val cdpUrlPath get() = userDataDir.resolveSibling(CDP_URL_FILE_NAME)
     private val temporaryUddExpiry = BrowserFiles.TEMPORARY_UDD_EXPIRY
     // The number of recent temporary user data directories to keep, the browser has to be closed
     private val recentNToKeep = 10
@@ -135,6 +137,14 @@ class ChromeLauncher constructor(
             // Verify that the port is actually in use and the process is alive
             if (isPortInUse(port) && isProcessAlive()) {
                 logger.info("Found valid existing Chrome process on port: {}", port)
+                // Read and log CDP URL if available
+                val cdpUrl = readCdpUrl()
+                if (cdpUrl != null) {
+                    logger.info("Reusing existing Chrome process, CDP URL: {}", cdpUrl)
+                } else {
+                    logger.info("Reusing existing Chrome process, CDP URL file not found (port: {})", port)
+                }
+                
                 port
             } else {
                 logger.warn("Found port file but process is not alive, cleaning up invalid state")
@@ -143,6 +153,24 @@ class ChromeLauncher constructor(
         } catch (e: Exception) {
             logger.warn("Failed to read existing port file: {}, cleaning up", e.message)
             cleanupInvalidPortFile()
+        }
+    }
+
+    /**
+     * Reads the CDP WebSocket URL from the CDP URL file.
+     *
+     * @return The CDP URL if the file exists and is readable, null otherwise.
+     */
+    private fun readCdpUrl(): String? {
+        return try {
+            if (cdpUrlPath.exists()) {
+                Files.readString(cdpUrlPath).trim().takeIf { it.isNotBlank() }
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            logger.debug("Failed to read CDP URL file: {}", e.message)
+            null
         }
     }
 
@@ -185,7 +213,7 @@ class ChromeLauncher constructor(
     }
 
     /**
-     * Cleans up invalid port and PID files when the associated process is no longer alive.
+     * Cleans up invalid port, PID, and CDP URL files when the associated process is no longer alive.
      *
      * @return Always returns 0 to indicate no valid port was found.
      */
@@ -193,7 +221,8 @@ class ChromeLauncher constructor(
         try {
             portPath.deleteIfExists()
             pidPath.deleteIfExists()
-            logger.debug("Cleaned up invalid port and PID files for userDataDir: {}", userDataDir)
+            cdpUrlPath.deleteIfExists()
+            logger.debug("Cleaned up invalid port, PID, and CDP URL files for userDataDir: {}", userDataDir)
         } catch (e: Exception) {
             logger.warn("Failed to cleanup invalid files: {}", e.message)
         }
@@ -382,6 +411,7 @@ class ChromeLauncher constructor(
 
     /**
      * Waits for DevTools server is upon chrome process.
+     * Captures the full CDP WebSocket URL and saves it to file.
      *
      * @param process Chrome process.
      * @return DevTools listening port.
@@ -390,11 +420,12 @@ class ChromeLauncher constructor(
     @Throws(ChromeLaunchTimeoutException::class)
     private fun waitForDevToolsServer(process: Process): Int {
         var port = 0
+        var cdpUrl: String? = null
         val processOutput = StringBuilder()
         val charset = if (SystemUtils.IS_OS_WINDOWS) Charset.forName("GBK") else Charsets.UTF_8
         val readLineThread = Thread {
             BufferedReader(InputStreamReader(process.inputStream, charset)).use { reader ->
-                // Wait for DevTools listening line and extract port number.
+                // Wait for DevTools listening line and extract port number and CDP URL.
                 var line: String? = reader.readLine()
                 while (line != null) {
                     if (line.isNotBlank()) {
@@ -402,8 +433,18 @@ class ChromeLauncher constructor(
                         // 2025-09-16 23:16:03.247  INFO [Thread-2] a.p.p.b.d.c.ChromeLauncher - [output] - DevTools listening on ws://127.0.0.1:50658/devtools/browser/ab3ec7cd-f800-4cc7-9ea1-7d3563e30d7c
                         logger.info("[output] - $line")
                         val matcher = DEVTOOLS_LISTENING_LINE_PATTERN.matcher(line)
-                        if (matcher.find()) {
-                            port = matcher.group(1).toInt()
+                        if (matcher.find() && matcher.groupCount() >= 2) {
+                            cdpUrl = matcher.group(1) // Full WebSocket URL
+                            port = matcher.group(2).toInt() // Port number
+                            
+                            // Save CDP URL to file
+                            try {
+                                Files.writeString(cdpUrlPath, cdpUrl, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+                                logger.info("CDP WebSocket URL saved: {}", cdpUrl)
+                            } catch (e: Exception) {
+                                logger.warn("Failed to write CDP URL to file: {}", e.message)
+                            }
+                            
                             break
                         }
                         processOutput.appendLine(line)

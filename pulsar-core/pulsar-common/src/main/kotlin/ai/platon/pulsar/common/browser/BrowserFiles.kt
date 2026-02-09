@@ -57,6 +57,8 @@ object BrowserFiles {
 
     const val PORT_FILE_NAME = "port"
 
+    const val CDP_URL_FILE_NAME = "cdp-url"
+
     const val CONTEXT_LOCK_NAME = "context.lock"
 
     val TEMPORARY_UDD_EXPIRY = Duration.ofHours(12)
@@ -117,6 +119,7 @@ object BrowserFiles {
     fun clearProcessMarkers(userDataDir: Path) {
         val pidPath = userDataDir.resolveSibling(PID_FILE_NAME)
         val portPath = userDataDir.resolveSibling(PORT_FILE_NAME)
+        val cdpUrlPath = userDataDir.resolveSibling(CDP_URL_FILE_NAME)
 
         fun backupIfExists(path: Path) {
             if (Files.exists(path)) {
@@ -128,9 +131,11 @@ object BrowserFiles {
         runCatching {
             backupIfExists(portPath)
             backupIfExists(pidPath)
+            backupIfExists(cdpUrlPath)
 
             Files.deleteIfExists(portPath)
             Files.deleteIfExists(pidPath)
+            Files.deleteIfExists(cdpUrlPath)
         }.onFailure { logger.warn("Failed to delete process marker files | {}", it.message) }
     }
 
