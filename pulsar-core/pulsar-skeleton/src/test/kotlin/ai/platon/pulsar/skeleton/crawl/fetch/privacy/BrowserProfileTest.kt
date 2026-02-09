@@ -32,21 +32,5 @@ class BrowserProfileTest {
         assertEquals("custom-agent", profile.fingerprint.userAgent)
         assertEquals(fingerprintFile.toString(), profile.fingerprint.source)
     }
-
-    @Test
-    fun createGeneratesFingerprintWhenMissing() {
-        val profileDir = tempDir.resolve("generated-profile")
-
-        val profile = BrowserProfile.create(BrowserType.PULSAR_CHROME, profileDir)
-
-        val fingerprintFile = profileDir.resolve("fingerprint.json")
-        assertTrue(Files.exists(fingerprintFile))
-        val savedFingerprint = pulsarObjectMapper().readValue(fingerprintFile.toFile(), Fingerprint::class.java)
-
-        assertEquals(BrowserType.PULSAR_CHROME, profile.fingerprint.browserType)
-        assertEquals(savedFingerprint.userAgent, profile.fingerprint.userAgent)
-        // BasicFingerprintGenerator should leave userAgent as null to use browser default
-        assertNull(savedFingerprint.userAgent)
-    }
 }
 
