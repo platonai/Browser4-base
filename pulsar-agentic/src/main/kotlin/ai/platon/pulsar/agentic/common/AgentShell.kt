@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -108,7 +109,16 @@ class AgentShell constructor(
 
         val effectiveTimeout = timeoutSeconds.coerceIn(1, MAX_TIMEOUT_SECONDS)
         val sessionId = "shell-${sessionCounter.incrementAndGet()}"
-        val dir = if (workingDir != null) baseDir.resolve(workingDir).toFile() else baseDir.toFile()
+        val dir = if (workingDir != null) {
+            val resolved = baseDir.resolve(workingDir).normalize()
+            // Prevent path traversal outside baseDir
+            if (!resolved.startsWith(baseDir.normalize())) {
+                return "Error: Working directory must be within the base directory."
+            }
+            resolved.toFile()
+        } else {
+            baseDir.toFile()
+        }
 
         if (!dir.exists()) {
             dir.mkdirs()
@@ -198,14 +208,21 @@ class AgentShell constructor(
 
         val process = processBuilder.start()
 
-        val stdout = process.inputStream.bufferedReader().use { it.readText() }
-        val stderr = process.errorStream.bufferedReader().use { it.readText() }
+        // Read streams in separate threads to avoid deadlock when output buffers fill up
+        val stdoutFuture = java.util.concurrent.CompletableFuture.supplyAsync {
+            process.inputStream.bufferedReader().use { it.readText() }
+        }
+        val stderrFuture = java.util.concurrent.CompletableFuture.supplyAsync {
+            process.errorStream.bufferedReader().use { it.readText() }
+        }
 
         val completed = process.waitFor(timeoutSeconds, TimeUnit.SECONDS)
         val durationMs = System.currentTimeMillis() - startTime
 
         if (!completed) {
             process.destroyForcibly()
+            val stdout = stdoutFuture.getNow("")
+            val stderr = stderrFuture.getNow("")
             return ShellResult(
                 sessionId = sessionId,
                 command = command,
@@ -216,6 +233,9 @@ class AgentShell constructor(
                 timedOut = true,
             )
         }
+
+        val stdout = stdoutFuture.get()
+        val stderr = stderrFuture.get()
 
         return ShellResult(
             sessionId = sessionId,
