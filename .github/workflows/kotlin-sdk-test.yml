@@ -35,6 +35,7 @@ jobs:
       - name: Run unit tests
         run: |
           cd sdks/kotlin-sdk
+          # Run fast unit tests only (test-strategy.md)
           mvn test
 
       - name: Upload test results
@@ -72,7 +73,8 @@ jobs:
       - name: Run integration tests
         run: |
           cd sdks/kotlin-sdk
-          mvn test -Pintegration-test
+          # Run SDK integration tests (test-strategy.md: SDK tag)
+          mvn test -DrunSDKTests=true -Pintegration-test
         env:
           DISPLAY: :99
 

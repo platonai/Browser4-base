@@ -96,6 +96,77 @@
     </modules>
 
     <profiles>
+        <!-- Test execution profiles based on test-strategy.md -->
+        <profile>
+            <id>integration-tests</id>
+            <activation>
+                <property>
+                    <name>runITs</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <!-- Integration tests can be Slow/Heavy - this is expected behavior
+                     Integration tests CAN require Browser/AI/Docker for service collaboration
+                     Only exclude E2E, SDK, and MustRunExplicitly tests -->
+                <surefire.excludedGroups>E2E,SDK,MustRunExplicitly,E2ETest</surefire.excludedGroups>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>e2e-tests</id>
+            <activation>
+                <property>
+                    <name>runE2ETests</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <!-- E2E tests can be Heavy, RequiresBrowser, RequiresAI
+                     Only exclude MustRunExplicitly tests -->
+                <surefire.excludedGroups>MustRunExplicitly</surefire.excludedGroups>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>sdk-tests</id>
+            <activation>
+                <property>
+                    <name>runSDKTests</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <surefire.excludedGroups>MustRunExplicitly</surefire.excludedGroups>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>core-tests</id>
+            <activation>
+                <property>
+                    <name>runCoreTests</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <surefire.excludedGroups>MustRunExplicitly</surefire.excludedGroups>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>rest-tests</id>
+            <activation>
+                <property>
+                    <name>runRestTests</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <surefire.excludedGroups>MustRunExplicitly</surefire.excludedGroups>
+            </properties>
+        </profile>
+
         <profile>
             <id>all-modules</id>
             <modules>
@@ -720,9 +791,22 @@
         <maven.compiler.release>${javaVersion}</maven.compiler.release>
         <kotlin.compiler.jvmTarget>${javaVersion}</kotlin.compiler.jvmTarget>
 
+        <!-- Test execution control properties -->
+        <runITs>false</runITs>
+        <runE2ETests>false</runE2ETests>
+        <runSDKTests>false</runSDKTests>
+        <runCoreTests>false</runCoreTests>
+        <runRestTests>false</runRestTests>
+
+        <!-- Default excludedGroups: exclude all non-Fast tests
+             Includes both new taxonomy tags and legacy tags for backward compatibility:
+             - New tags: Slow, Heavy, Integration, E2E, SDK, RequiresXYZ, MustRunExplicitly
+             - Legacy tags: IntegrationTest, E2ETest, HeavyTest, SkippableLowerLevelTest, TestInfraCheck, OptionalTest
+             Migration: Gradually migrate tests from legacy tags to new taxonomy -->
         <surefire.excludedGroups>
-            Slow,RequiresServer,IntegrationTest,E2ETest,HeavyTest,
-            SkippableLowerLevelTest,TestInfraCheck,MustRunExplicitly,OptionalTest
+            Slow,Heavy,RequiresServer,RequiresBrowser,RequiresAI,RequiresDocker,
+            Integration,E2E,SDK,MustRunExplicitly,
+            IntegrationTest,E2ETest,HeavyTest,SkippableLowerLevelTest,TestInfraCheck,OptionalTest
         </surefire.excludedGroups>
 
         <pulsar.modules.version>4.5.0-rc.1</pulsar.modules.version>

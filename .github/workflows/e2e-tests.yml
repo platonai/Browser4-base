@@ -1,18 +1,19 @@
-name: Nightly Build
+name: E2E Tests
 
 on:
-  schedule:
-    # Runs at 00:00 UTC every day
-    # This is a full nightly build including Docker image building and E2E tests
-    # For lighter-weight integration-only tests, see integration-tests.yml
-    - cron: '0 0 * * *'
-  # Allow manual workflow runs
+  # Allow manual workflow runs only (test-strategy.md: MustRunExplicitly)
   workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: 'Enable debug mode'
+        required: false
+        default: false
+        type: boolean
 
 env:
   IMAGE_NAME: browser4
   NETWORK_NAME: 'browser4_backend'
-  CONTAINER_NAME: 'browser4-test'
+  CONTAINER_NAME: 'browser4-e2e-test'
   DOCKER_COMPOSE_FILE: './docker-compose.yml'
   DEPENDENCY_SERVICES: 'mongodb'
   MONGODB_CONTAINER: 'mongodb'
@@ -21,7 +22,7 @@ env:
   MAVEN_OPTS: '-Xmx3g -XX:+UseG1GC'
 
 jobs:
-  nightly-build:
+  e2e-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,14 +31,12 @@ jobs:
 
       - name: Setup Environment
         id: setup
-        if: success()
         uses: ./.github/actions/setup-environment
         with:
           java_version: ${{ env.JAVA_VERSION }}
 
       - name: Verify Dependencies
         id: deps
-        if: success()
         uses: ./.github/actions/verify-dependencies
         with:
           network_name: ${{ env.NETWORK_NAME }}
@@ -50,45 +49,42 @@ jobs:
 
       - name: Maven Build
         id: build-maven
-        if: success()
         uses: ./.github/actions/maven-build
         with:
-          skip_tests: ${{ inputs.skip_tests || 'true' }}
+          skip_tests: 'true'
           timeout_minutes: '15'
 
-      - name: Run Tests
-        id: run-tests
-        if: inputs.skip_tests != true
+      - name: Run E2E Tests
+        id: run-e2e-tests
         uses: ./.github/actions/run-tests
         with:
-          # Run integration tests in nightly build using new test strategy
-          maven_profiles: 'all-modules,pulsar-tests,integration-tests'
-          # Allow Integration tests but exclude E2E and SDK (includes legacy tags)
-          excluded_groups: 'E2E,SDK,MustRunExplicitly,E2ETest'
+          maven_profiles: 'all-modules,pulsar-tests,e2e-tests'
+          # Run E2E tests only (test-strategy.md: Heavy, RequiresBrowser, RequiresAI)
+          excluded_groups: 'MustRunExplicitly'
           run_pulsar_tests: 'true'
-          timeout_minutes: '60'
+          timeout_minutes: '90'
 
       - name: Check Test Status
         if: always()
         run: |
-          if [ "${{ steps.run-tests.outputs.test_status }}" != "success" ]; then
-            echo "❌ Tests failed with status: ${{ steps.run-tests.outputs.test_status }}"
+          if [ "${{ steps.run-e2e-tests.outputs.test_status }}" != "success" ]; then
+            echo "❌ E2E tests failed with status: ${{ steps.run-e2e-tests.outputs.test_status }}"
             echo "📊 Test Results:"
-            echo "  - Total Tests: ${{ steps.run-tests.outputs.test_count }}"
-            echo "  - Failed Tests: ${{ steps.run-tests.outputs.failed_count }}"
-            echo "  - Passed Tests: ${{ steps.run-tests.outputs.passed_count }}"
-            echo "  - Skipped Tests: ${{ steps.run-tests.outputs.skipped_count }}"
+            echo "  - Total Tests: ${{ steps.run-e2e-tests.outputs.test_count }}"
+            echo "  - Failed Tests: ${{ steps.run-e2e-tests.outputs.failed_count }}"
+            echo "  - Passed Tests: ${{ steps.run-e2e-tests.outputs.passed_count }}"
+            echo "  - Skipped Tests: ${{ steps.run-e2e-tests.outputs.skipped_count }}"
             exit 1
           else
-            echo "✅ All tests passed successfully"
-            echo "📊 Test Results: ${{ steps.run-tests.outputs.passed_count }} tests passed"
+            echo "✅ All E2E tests passed successfully"
+            echo "📊 Test Results: ${{ steps.run-e2e-tests.outputs.passed_count }} tests passed"
           fi
 
       - name: Cleanup Docker system to free space
+        if: always()
         run: |
           docker system prune -af
           docker volume prune -f
-          rm -rf ~/.m2/repository  # If you no longer need Maven cache
           sudo apt-get clean
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
           sudo df -h
@@ -123,15 +119,9 @@ jobs:
           timeout_minutes: '5'
           container_name: ${{ env.CONTAINER_NAME }}
 
-      - name: Run Python SDK Tests
-        id: python-sdk-tests
-        if: success() && inputs.skip_tests != true
-        uses: ./.github/actions/run-python-sdk-tests
-        with:
-          network_name: ${{ env.NETWORK_NAME }}
-
       - name: Run End to End Tests
         id: end-to-end-tests
+        if: success()
         shell: bash
         run: |
           echo "::group::🧪 End to End Tests"
@@ -148,7 +138,7 @@ jobs:
 
             if timeout 1200 ./bin/tests/run-e2e-tests.sh; then
               echo "✅ E2E tests passed"
-              echo "E2E_status=success" >> $GITHUB_OUTPUT
+              echo "e2e_status=success" >> $GITHUB_OUTPUT
             else
               echo "❌ E2E tests failed"
               echo "e2e_status=failed" >> $GITHUB_OUTPUT
@@ -157,10 +147,21 @@ jobs:
           else
             echo "⚠️ E2E test script not found: ./bin/tests/run-e2e-tests.sh"
             echo "Skipping E2E tests..."
-            echo "E2E_status=skipped" >> $GITHUB_OUTPUT
+            echo "e2e_status=skipped" >> $GITHUB_OUTPUT
           fi
 
           echo "::endgroup::"
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-reports-${{ github.run_id }}
+          path: |
+            **/target/surefire-reports/**
+            ~/.browser4/logs/
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Pipeline Summary
         if: always()
@@ -172,11 +173,11 @@ jobs:
           echo "  - Setup: ${{ steps.setup.outcome }}"
           echo "  - Dependencies: ${{ steps.deps.outcome }}"
           echo "  - Maven Build: ${{ steps.build-maven.outcome }}"
-          echo "  - Unit Tests: ${{ steps.run-tests.outcome || 'skipped' }}"
+          echo "  - E2E Tests: ${{ steps.run-e2e-tests.outcome }}"
           echo "  - Docker Build: ${{ steps.build.outcome }}"
           echo "  - Application: ${{ steps.app.outcome }}"
           echo "  - Health Check: ${{ steps.health.outcome }}"
-          echo "  - E2E Tests: ${{ steps.end-to-end-tests.outcome || 'skipped' }}"
+          echo "  - End-to-End Tests: ${{ steps.end-to-end-tests.outcome || 'skipped' }}"
 
           echo ""
           echo "🌐 Infrastructure:"
@@ -184,7 +185,6 @@ jobs:
           echo "  - Container: ${{ env.CONTAINER_NAME }}"
           echo "  - Image: ${{ env.IMAGE_NAME }}:${{ github.sha }}"
           echo "  - MongoDB: ${{ steps.deps.outputs.mongodb_status }}"
-          echo "  - Redis: ${{ steps.deps.outputs.redis_status }}"
 
           echo ""
           echo "📅 Completed at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

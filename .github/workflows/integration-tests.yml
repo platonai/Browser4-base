@@ -1,0 +1,99 @@
+name: Integration Tests
+
+on:
+  # Allow manual workflow runs
+  workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: 'Enable debug mode'
+        required: false
+        default: false
+        type: boolean
+  # Run on schedule (nightly at 02:00 UTC)
+  # Note: This is a lighter-weight alternative to nightly.yml that only runs tests
+  # without building Docker images. Use this for quick integration test validation.
+  # For full nightly builds with Docker and E2E tests, see nightly.yml.
+  # Scheduled 2 hours after nightly.yml to distribute CI resource usage.
+  schedule:
+    # Runs at 02:00 UTC every day (2 hours after nightly.yml)
+    - cron: '0 2 * * *'
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_OPTS: '-Xmx3g -XX:+UseG1GC'
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        id: setup
+        uses: ./.github/actions/setup-environment
+        with:
+          java_version: ${{ env.JAVA_VERSION }}
+
+      - name: Maven Build
+        id: build-maven
+        uses: ./.github/actions/maven-build
+        with:
+          skip_tests: 'true'
+          timeout_minutes: '15'
+
+      - name: Run Integration Tests
+        id: run-integration-tests
+        uses: ./.github/actions/run-tests
+        with:
+          maven_profiles: 'all-modules,pulsar-tests,integration-tests'
+          # Run Integration tests only (test-strategy.md)
+          # Includes legacy tags for backward compatibility
+          excluded_groups: 'E2E,SDK,MustRunExplicitly,E2ETest'
+          run_pulsar_tests: 'true'
+          timeout_minutes: '60'
+
+      - name: Check Test Status
+        if: always()
+        run: |
+          if [ "${{ steps.run-integration-tests.outputs.test_status }}" != "success" ]; then
+            echo "❌ Integration tests failed with status: ${{ steps.run-integration-tests.outputs.test_status }}"
+            echo "📊 Test Results:"
+            echo "  - Total Tests: ${{ steps.run-integration-tests.outputs.test_count }}"
+            echo "  - Failed Tests: ${{ steps.run-integration-tests.outputs.failed_count }}"
+            echo "  - Passed Tests: ${{ steps.run-integration-tests.outputs.passed_count }}"
+            echo "  - Skipped Tests: ${{ steps.run-integration-tests.outputs.skipped_count }}"
+            exit 1
+          else
+            echo "✅ All integration tests passed successfully"
+            echo "📊 Test Results: ${{ steps.run-integration-tests.outputs.passed_count }} tests passed"
+          fi
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports-${{ github.run_id }}
+          path: |
+            **/target/surefire-reports/**
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Pipeline Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "::group::📊 Pipeline Summary"
+
+          echo "🎯 Pipeline Results:"
+          echo "  - Setup: ${{ steps.setup.outcome }}"
+          echo "  - Maven Build: ${{ steps.build-maven.outcome }}"
+          echo "  - Integration Tests: ${{ steps.run-integration-tests.outcome }}"
+
+          echo ""
+          echo "📅 Completed at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "👤 Triggered by: ${{ github.actor }}"
+          echo "🌟 Commit: ${{ github.sha }}"
+
+          echo "::endgroup::"
