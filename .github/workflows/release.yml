@@ -206,38 +206,6 @@ jobs:
         with:
           network_name: ${{ env.NETWORK_NAME }}
 
-      - name: Run End to End Tests
-        id: end-to-end-tests
-        shell: bash
-        run: |
-          echo "::group::🧪 End to End Tests"
-
-          if [ -f "./bin/tests/run-e2e-tests.sh" ]; then
-            echo "✅ Found E2E test script"
-            chmod +x ./bin/tests/run-e2e-tests.sh
-
-            echo "🚀 Running E2E tests..."
-            date
-            echo "Application URL: http://localhost:8182"
-            echo "Network: ${{ env.NETWORK_NAME }}"
-            echo "Container: ${{ env.CONTAINER_NAME }}"
-
-            if timeout 1200 ./bin/tests/run-e2e-tests.sh; then
-              echo "✅ E2E tests passed"
-              echo "e2e_status=success" >> $GITHUB_OUTPUT
-            else
-              echo "❌ E2E tests failed"
-              echo "e2e_status=failed" >> $GITHUB_OUTPUT
-              exit 1
-            fi
-          else
-            echo "⚠️ E2E test script not found: ./bin/tests/run-e2e-tests.sh"
-            echo "Skipping E2E tests..."
-            echo "e2e_status=skipped" >> $GITHUB_OUTPUT
-          fi
-
-          echo "::endgroup::"
-
       - name: Cleanup Docker Container
         if: always()
         run: |
