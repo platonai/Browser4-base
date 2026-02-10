@@ -107,6 +107,15 @@ case $TestType in
       exit 1
     fi
     
+    cd "$PythonSdkDir"
+    echo "Working directory: $(pwd)"
+    
+    # Check if venv exists and activate it
+    if [[ -d "$PythonSdkDir/venv" ]]; then
+      echo "Activating virtual environment..."
+      source "$PythonSdkDir/venv/bin/activate"
+    fi
+    
     # Check if pytest is available
     if ! python3 -m pytest --version &> /dev/null; then
       echo "Error: pytest is not installed. Install it with: pip install pytest"
@@ -114,8 +123,6 @@ case $TestType in
       exit 1
     fi
     
-    cd "$PythonSdkDir"
-    echo "Working directory: $(pwd)"
     python3 -m pytest "${AdditionalMvnArgs[@]}"
     ExitCode=$?
     cd "$APP_HOME"
