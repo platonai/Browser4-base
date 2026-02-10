@@ -12,10 +12,13 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 
 @Tag("OptionalTest")
+@Tag("MustRunExplicitly")
+@Disabled("MustRunExplicitly")
 class PlaywrightBrowserTest {
 
     private val browserId = BrowserId.createRandomTemp(BrowserType.PLAYWRIGHT_CHROME)

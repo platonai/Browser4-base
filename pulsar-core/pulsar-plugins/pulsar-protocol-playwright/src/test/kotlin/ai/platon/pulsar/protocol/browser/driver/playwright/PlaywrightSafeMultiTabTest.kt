@@ -7,6 +7,7 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.options.LoadState
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicInteger
@@ -22,6 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * own thread.
  * */
 @Tag("OptionalTest")
+@Tag("MustRunExplicitly")
+@Disabled("MustRunExplicitly")
 class PlaywrightSafeMultiTabTest {
 
     private val originURL = "https://www.amazon.com/"

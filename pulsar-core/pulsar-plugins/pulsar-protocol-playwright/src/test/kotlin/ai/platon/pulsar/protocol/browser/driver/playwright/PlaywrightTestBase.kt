@@ -7,6 +7,8 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
 
 @Tag("OptionalTest")
+@Tag("MustRunExplicitly")
+@Disabled("MustRunExplicitly")
 open class PlaywrightTestBase {
 
     companion object {
