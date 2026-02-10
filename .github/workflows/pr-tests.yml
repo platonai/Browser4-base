@@ -1,0 +1,229 @@
+name: Pull Request Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - '**/*.java'
+      - '**/*.kt'
+      - '**/pom.xml'
+      - '.github/workflows/pr-tests.yml'
+      - '.github/actions/run-tests/**'
+
+# Minimal permissions for security
+permissions:
+  contents: read
+  actions: read
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_OPTS: '-Xmx3g -XX:+UseG1GC'
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        id: setup
+        uses: ./.github/actions/setup-environment
+        with:
+          java_version: ${{ env.JAVA_VERSION }}
+
+      - name: Run Unit Tests
+        id: unit-tests
+        uses: ./.github/actions/run-tests
+        with:
+          excluded_groups: 'IntegrationTest,E2ETest,TimeConsumingTest,ExternalServiceTest'
+          timeout_minutes: '15'
+          test_reports: 'true'
+
+      - name: Check Unit Test Status
+        run: |
+          if [ "${{ steps.unit-tests.outputs.test_status }}" != "success" ]; then
+            echo "❌ Unit tests failed"
+            echo "📊 Results: ${{ steps.unit-tests.outputs.failed_count }} failed out of ${{ steps.unit-tests.outputs.test_count }} tests"
+            exit 1
+          else
+            echo "✅ All ${{ steps.unit-tests.outputs.passed_count }} unit tests passed"
+          fi
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    permissions:
+      contents: read
+      actions: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        id: setup
+        uses: ./.github/actions/setup-environment
+        with:
+          java_version: ${{ env.JAVA_VERSION }}
+
+      - name: Verify Dependencies
+        id: deps
+        uses: ./.github/actions/verify-dependencies
+        with:
+          network_name: 'browser4_backend'
+          compose_file: './docker-compose.yml'
+          services_to_start: 'mongodb'
+          mongodb_container: 'mongodb'
+          mongodb_port: '27017'
+          startup_timeout: '120'
+          verify_network_connectivity: 'true'
+
+      - name: Run Integration Tests
+        id: integration-tests
+        uses: ./.github/actions/run-tests
+        with:
+          # Include integration tests, exclude E2E and time-consuming
+          excluded_groups: 'E2ETest,TimeConsumingTest'
+          timeout_minutes: '30'
+          test_reports: 'true'
+
+      - name: Check Integration Test Status
+        run: |
+          if [ "${{ steps.integration-tests.outputs.test_status }}" != "success" ]; then
+            echo "❌ Integration tests failed"
+            echo "📊 Results: ${{ steps.integration-tests.outputs.failed_count }} failed out of ${{ steps.integration-tests.outputs.test_count }} tests"
+            exit 1
+          else
+            echo "✅ All ${{ steps.integration-tests.outputs.passed_count }} integration tests passed"
+          fi
+
+      - name: Cleanup Resources
+        if: always()
+        uses: ./.github/actions/cleanup-resources
+        with:
+          container_name: 'browser4-test'
+          cleanup_compose: 'true'
+          cleanup_volumes: 'true'
+          network_name: 'browser4_backend'
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: always()
+    permissions:
+      contents: read
+      actions: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          java_version: ${{ env.JAVA_VERSION }}
+
+      - name: Download Test Reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-reports-*
+          path: test-reports
+          merge-multiple: true
+
+      - name: Generate Coverage Report
+        run: |
+          echo "Generating aggregate coverage report..."
+          ./mvnw -B verify -Pci -DskipTests || true
+          
+          # Check if coverage report was generated
+          if [ -f "target/site/jacoco-aggregate/index.html" ]; then
+            echo "✅ Coverage report generated"
+          else
+            echo "⚠️ Coverage report not found"
+          fi
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.run_id }}
+          path: |
+            **/target/site/jacoco/**
+            **/target/site/jacoco-aggregate/**
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Coverage Summary
+        if: always()
+        run: |
+          echo "::group::📊 Coverage Summary"
+          
+          # Try to extract coverage metrics from JaCoCo report
+          if [ -f "target/site/jacoco-aggregate/index.html" ]; then
+            echo "Coverage report location: target/site/jacoco-aggregate/index.html"
+            
+            # Extract coverage percentage (this is a simple approach)
+            if command -v xmllint &> /dev/null && [ -f "target/site/jacoco-aggregate/jacoco.xml" ]; then
+              covered=$(xmllint --xpath "sum(//counter[@type='INSTRUCTION']/@covered)" target/site/jacoco-aggregate/jacoco.xml 2>/dev/null || echo "0")
+              missed=$(xmllint --xpath "sum(//counter[@type='INSTRUCTION']/@missed)" target/site/jacoco-aggregate/jacoco.xml 2>/dev/null || echo "0")
+              
+              if [ "$covered" != "0" ] || [ "$missed" != "0" ]; then
+                total=$((covered + missed))
+                if [ "$total" -gt 0 ]; then
+                  percentage=$(awk "BEGIN {printf \"%.2f\", ($covered / $total) * 100}")
+                  echo "📈 Instruction Coverage: $percentage% ($covered / $total instructions)"
+                  
+                  # Check if coverage meets minimum threshold (using awk for portability)
+                  if (( $(awk "BEGIN {print ($percentage < 70)}") )); then
+                    echo "⚠️ Coverage is below 70% threshold"
+                  else
+                    echo "✅ Coverage meets 70% threshold"
+                  fi
+                fi
+              fi
+            fi
+          else
+            echo "⚠️ Coverage report not found at expected location"
+          fi
+          
+          echo "::endgroup::"
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, coverage-report]
+    if: always()
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "## Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ needs.unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration Tests | ${{ needs.integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage Report | ${{ needs.coverage-report.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [ "${{ needs.unit-tests.result }}" == "success" ] && [ "${{ needs.integration-tests.result }}" == "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **All tests passed successfully!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Some tests failed. Please review the logs.**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi

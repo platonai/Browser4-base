@@ -246,6 +246,37 @@ under the License.
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${version.maven-surefire}</version>
+                    <configuration>
+                        <!-- Include integration tests with IT suffix -->
+                        <includes>
+                            <include>**/*IT.java</include>
+                            <include>**/*IT.kt</include>
+                        </includes>
+                        <!-- Use JUnit 5 Platform -->
+                        <statelessTestsetReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+                            <usePhrasedTestSuiteClassName>true</usePhrasedTestSuiteClassName>
+                            <usePhrasedTestCaseClassName>true</usePhrasedTestCaseClassName>
+                            <usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+                        </statelessTestsetReporter>
+                        <!-- Enable test result reporting -->
+                        <printSummary>true</printSummary>
+                        <reportFormat>plain</reportFormat>
+                        <!-- Support for forking -->
+                        <forkCount>1</forkCount>
+                        <reuseForks>true</reuseForks>
+                        <!-- Longer timeout for integration tests (60 minutes) -->
+                        <forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
+                        <!-- JVM arguments for tests -->
+                        <argLine>-Xmx2048m -XX:+UseG1GC</argLine>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -376,6 +407,34 @@ under the License.
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${version.maven-surefire}</version>
+                    <configuration>
+                        <!-- Exclude time-consuming and external service tests by default -->
+                        <excludedGroups>TimeConsumingTest,ExternalServiceTest</excludedGroups>
+                        <!-- Use JUnit 5 Platform -->
+                        <statelessTestsetReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+                            <usePhrasedTestSuiteClassName>true</usePhrasedTestSuiteClassName>
+                            <usePhrasedTestCaseClassName>true</usePhrasedTestCaseClassName>
+                            <usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+                        </statelessTestsetReporter>
+                        <consoleOutputReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5ConsoleOutputReporter"/>
+                        <!-- Enable test result reporting -->
+                        <printSummary>true</printSummary>
+                        <reportFormat>plain</reportFormat>
+                        <!-- Ensure tests fail build on error -->
+                        <testFailureIgnore>false</testFailureIgnore>
+                        <!-- Support for forking -->
+                        <forkCount>1</forkCount>
+                        <reuseForks>true</reuseForks>
+                        <!-- Timeout per test (30 minutes) -->
+                        <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
+                        <!-- JVM arguments for tests -->
+                        <argLine>-Xmx2048m -XX:+UseG1GC</argLine>
+                        <!-- System properties -->
+                        <systemPropertyVariables>
+                            <java.awt.headless>true</java.awt.headless>
+                            <junit.jupiter.execution.parallel.enabled>false</junit.jupiter.execution.parallel.enabled>
+                        </systemPropertyVariables>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
