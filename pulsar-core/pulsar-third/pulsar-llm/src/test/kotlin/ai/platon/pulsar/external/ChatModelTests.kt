@@ -35,11 +35,6 @@ class ChatModelTests {
     }
 
     @BeforeTest
-    fun checkIfModelConfigured() {
-        Assumptions.assumeTrue(isModelConfigured, "Model is not configured")
-    }
-
-    @BeforeTest
     fun checkResource() {
         assertTrue { productHtml.isNotBlank() }
         assertTrue { productText.isNotBlank() }
