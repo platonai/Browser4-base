@@ -4,16 +4,19 @@
 
 set -e
 
+# Find the first parent directory that contains a VERSION file
+APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit 1; pwd)
+while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
+  APP_HOME=$(dirname "$APP_HOME")
+done
+[[ -f "$APP_HOME/VERSION" ]] && cd "$APP_HOME" || exit 1
+
 # Color output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Kotlin SDK Adaptive Test Runner${NC}"
@@ -81,9 +84,9 @@ echo "  Parallel Mode: methods"
 echo ""
 
 # Build Maven command
-MVN_CMD="./mvnw"
-if [ ! -x "$PROJECT_ROOT/mvnw" ]; then
-    MVN_CMD="mvn"
+MvnCmd="$APP_HOME/mvnw"
+if [ ! -x "$APP_HOME/mvnw" ]; then
+    MvnCmd="mvn"
 fi
 
 # Shift to remove first argument (test type)
@@ -93,9 +96,10 @@ shift 2>/dev/null || true
 echo -e "${BLUE}Running tests...${NC}"
 echo ""
 
-cd "$PROJECT_ROOT/sdks/kotlin-sdk-tests"
+# Run from kotlin-sdk-tests directory
+cd "$APP_HOME/sdks/kotlin-sdk-tests"
 
-$MVN_CMD clean test \
+$MvnCmd clean test \
     -Dtest.thread.multiplier=$MULTIPLIER \
     "$@"
 
