@@ -13,7 +13,9 @@ on:
         default: false
         type: boolean
 
-permissions: write-all
+permissions:
+  contents: write
+  packages: write
 
 env:
   IMAGE_NAME: browser4
@@ -161,16 +163,16 @@ jobs:
 
             if timeout 1200 ./bin/tests/run-e2e-tests.sh; then
               echo "✅ E2E tests passed"
-              echo "E2E_status=success" >> $GITHUB_OUTPUT
+              echo "e2e_status=success" >> $GITHUB_OUTPUT
             else
               echo "❌ E2E tests failed"
-              echo "E2E_status=failed" >> $GITHUB_OUTPUT
+              echo "e2e_status=failed" >> $GITHUB_OUTPUT
               exit 1
             fi
           else
             echo "⚠️ E2E test script not found: ./bin/tests/run-e2e-tests.sh"
             echo "Skipping E2E tests..."
-            echo "E2E_status=skipped" >> $GITHUB_OUTPUT
+            echo "e2e_status=skipped" >> $GITHUB_OUTPUT
           fi
 
           echo "::endgroup::"

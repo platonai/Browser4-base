@@ -13,7 +13,9 @@ on:
         default: true
         type: boolean
 
-permissions: write-all
+permissions:
+  contents: read
+  packages: write
 
 env:
   IMAGE_NAME: browser4
@@ -62,10 +64,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
           server-id: 'central'                        # Matches <id> in your pom.xml for maven
-          server-username: ${{ secrets.CENTRAL_USERNAME }}
-          server-password: ${{ secrets.CENTRAL_PASSWORD }}
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase:  ${{ secrets.GPG_PASSPHRASE }}
+          gpg-passphrase:  GPG_PASSPHRASE
 
       - name: Debug Maven settings
         run: |
