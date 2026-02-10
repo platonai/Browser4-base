@@ -36,8 +36,9 @@ jobs:
 
       - name: Run unit tests
         run: |
+          cd sdks/browser4-sdk-kotlin
           # Run fast unit tests only (test-strategy.md)
-          ./mvnw -pl sdks/browser4-sdk-kotlin test
+          mvn test
 
       - name: Upload test results
         if: always()
@@ -83,16 +84,13 @@ jobs:
           exit 1
 
       - name: Build project
-        run: ./mvnw install -DskipTests -pl pulsar-bom,pulsar-dependencies,pulsar-core,pulsar-rest,pulsar-tests/pulsar-tests-common -am
-
-      - name: Build SDKs
-        run: ./mvnw install -DskipTests -pl sdks -am
+        run: ./mvnw install -DskipTests -Pall-modules
 
       - name: Run integration tests
         run: |
           # Run SDK integration tests (test-strategy.md: SDK tag)
           # ./mvnw -pl sdks/kotlin-sdk-tests test -DrunSDKTests=true -Pintegration-test
-          ./mvnw -pl sdks/kotlin-sdk-tests test -DrunSDKTests=true -Pintegration-test -Dtest=ai.platon.pulsar.sdk.integration.WebDriverKeyboardAndFocusTest
+          ./mvnw -pl sdks/kotlin-sdk-tests test -DrunSDKTests=true -Psdk -Pintegration-test -D"test=ai.platon.pulsar.sdk.integration.WebDriverKeyboardAndFocusTest"
 
       - name: Upload test results
         if: always()
