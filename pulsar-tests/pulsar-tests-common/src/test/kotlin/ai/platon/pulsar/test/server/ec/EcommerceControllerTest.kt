@@ -29,6 +29,13 @@ class EcommerceControllerTest {
             .returnResult()
             .let { result -> ResponseEntity(result.responseBody!!, result.responseHeaders, result.status) }
 
+    private fun getHtmlAnyStatus(path: String): ResponseEntity<String> =
+        rest.get().uri(path)
+            .exchange()
+            .expectBody<String>()
+            .returnResult()
+            .let { result -> ResponseEntity(result.responseBody ?: "", result.responseHeaders, result.status) }
+
     private fun assertHtml(resp: ResponseEntity<String>, expected: HttpStatus) {
         assertThat(resp.statusCode).isEqualTo(expected)
         assertThat(resp.headers.contentType?.includes(MediaType.TEXT_HTML)).isTrue()
@@ -71,21 +78,21 @@ class EcommerceControllerTest {
 
     @Test
     fun missingCategoryParam() {
-        val resp = getHtml("/ec/b")
+        val resp = getHtmlAnyStatus("/ec/b")
         assertHtml(resp, HttpStatus.BAD_REQUEST)
         assertThat(resp.body).contains("Error 400")
     }
 
     @Test
     fun invalidCategory() {
-        val resp = getHtml("/ec/b?node=DOES_NOT_EXIST")
+        val resp = getHtmlAnyStatus("/ec/b?node=DOES_NOT_EXIST")
         assertHtml(resp, HttpStatus.NOT_FOUND)
         assertThat(resp.body).contains("Error 404")
     }
 
     @Test
     fun invalidProduct() {
-        val resp = getHtml("/ec/dp/DOES_NOT_EXIST")
+        val resp = getHtmlAnyStatus("/ec/dp/DOES_NOT_EXIST")
         assertHtml(resp, HttpStatus.NOT_FOUND)
         assertThat(resp.body).contains("Error 404")
     }

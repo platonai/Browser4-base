@@ -56,6 +56,11 @@ if [[ $# -gt 0 ]]; then
     -h|-help|--help)
       print_usage
       ;;
+    *)
+      echo "Error: Invalid argument '$1'"
+      echo ""
+      print_usage
+      ;;
   esac
 fi
 
