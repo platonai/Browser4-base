@@ -38,18 +38,34 @@ data class ShellResult(
  * Secure shell command execution subsystem for AI agents.
  *
  * Provides controlled execution of shell commands with:
+ * - **Command whitelist** - Only allows execution of safe, read-only commands
  * - Configurable timeout to prevent runaway processes
  * - Working directory management
  * - Output capture (stdout and stderr)
  * - Session-based result tracking for reading past outputs
  * - Command validation and security controls
  *
+ * ## Security Model
+ *
+ * Commands are validated against a whitelist before execution. Only the following commands are allowed:
+ * - Basic navigation: `ls`, `pwd`, `tree`
+ * - File viewing: `cat`, `less`, `head`, `tail`
+ * - Text processing: `grep`, `awk`, `sed`
+ * - Counting: `wc`
+ * - System info: `uname`, `hostname`, `uptime`, `whoami`, `id`
+ * - Resource monitoring: `free`, `df`, `du`
+ * - Process info: `ps`, `top`, `pgrep`
+ * - Network info: `ip`, `ss`
+ * - Environment: `env`, `printenv`, `which`, `type`
+ *
+ * All other commands (including `rm`, `mv`, `cp`, `chmod`, `curl`, `wget`, etc.) are blocked.
+ *
  * ## Usage Example:
  *
  * ```kotlin
  * val shell = AgentShell(baseDir = Paths.get("/tmp/agent-work"))
- * val result = shell.execute("echo hello")
- * println(result) // stdout: hello
+ * val result = shell.execute("ls -la")  // Allowed
+ * val blocked = shell.execute("rm file.txt")  // Blocked: not in whitelist
  * ```
  *
  * @param baseDir The base working directory for command execution.
