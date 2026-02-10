@@ -70,7 +70,7 @@ class StatefulAgentRunner(
             val eventCollectorJob = CoroutineScope(Dispatchers.Default + SupervisorJob()).launch {
                 try {
                     serverSideAgentEventHandlers.eventFlow.collect { event ->
-                        status.refresh(event.eventType)
+                        status.emitEvent(event.eventType)
                         logger.info("Collected event {} for agent task {}", event.eventType, status.id)
                     }
                 } catch (e: CancellationException) {
