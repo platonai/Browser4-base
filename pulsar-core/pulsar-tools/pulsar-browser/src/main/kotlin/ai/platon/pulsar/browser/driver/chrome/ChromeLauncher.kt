@@ -242,10 +242,19 @@ class ChromeLauncher constructor(
                 logger.warn("Destroy chrome launcher forcibly, pid: {} | {}", pid, userDataDir)
                 Runtimes.destroyProcessForcibly(pid)
                 
-                // Verify the process was actually killed
-                sleepSeconds(1)
+                // Poll for process termination with shorter intervals
+                var attempts = 0
+                val maxAttempts = 5
+                val pollInterval = 200L // milliseconds
+                
+                while (attempts < maxAttempts && Runtimes.isProcessAlive(pid)) {
+                    Thread.sleep(pollInterval)
+                    attempts++
+                }
+                
                 if (Runtimes.isProcessAlive(pid)) {
-                    logger.error("Failed to kill chrome process, pid: {} is still alive | {}", pid, userDataDir)
+                    logger.error("Failed to kill chrome process, pid: {} is still alive after {} attempts | {}", 
+                        pid, attempts, userDataDir)
                 } else {
                     logger.info("Chrome process killed successfully, pid: {} | {}", pid, userDataDir)
                 }
@@ -281,10 +290,19 @@ class ChromeLauncher constructor(
                         logger.warn("Chrome process still alive after graceful shutdown, force killing | {}", userDataDir)
                         destroyForcibly()
                         
-                        // Final verification
-                        sleepSeconds(1)
+                        // Poll for final verification with shorter intervals
+                        var attempts = 0
+                        val maxAttempts = 5
+                        val pollInterval = 200L // milliseconds
+                        
+                        while (attempts < maxAttempts && p.isAlive) {
+                            Thread.sleep(pollInterval)
+                            attempts++
+                        }
+                        
                         if (p.isAlive) {
-                            logger.error("Chrome process could not be killed, pid: {} | {}", p.pid(), userDataDir)
+                            logger.error("Chrome process could not be killed, pid: {} still alive after {} attempts | {}", 
+                                p.pid(), attempts, userDataDir)
                         }
                     } else {
                         logger.info("Chrome process closed successfully | {}", userDataDir)

@@ -139,13 +139,13 @@ object Runtimes {
         val info = formatProcessInfo(process.toHandle())
         val pid = process.pid()
 
-        // Count and log child processes
+        // Collect child processes once for both logging and iteration
         val children = process.children().toList()
         if (children.isNotEmpty()) {
             logger.info("Chrome process {} has {} child process(es), terminating them first", pid, children.size)
         }
         
-        process.children().forEach { destroyChildProcess(it) }
+        children.forEach { destroyChildProcess(it) }
 
         process.destroy()
         try {

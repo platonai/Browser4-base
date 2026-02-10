@@ -267,8 +267,9 @@ abstract class ChromeDevToolsImpl(
 
     @Throws(Exception::class)
     private fun doClose() {
-        // Use shorter timeout if transports are already closed/inactive
-        val idleTimeout = if (pageTransport.isOpen && browserTransport.isOpen) {
+        // Use shorter timeout if both transports are already closed/inactive
+        // If either transport is still open, use full timeout for graceful shutdown
+        val idleTimeout = if (pageTransport.isOpen || browserTransport.isOpen) {
             Duration.ofSeconds(10)
         } else {
             Duration.ofSeconds(3)
