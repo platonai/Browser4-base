@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 
 # Merge the current branch into develop
-$CurrentBranch = git rev-parse --abrev-ref HEAD
+$CurrentBranch = git rev-parse --abbrev-ref HEAD
 if ($CurrentBranch -eq "develop") {
     Write-Host "Already on develop branch. No merge needed."
     exit 0
