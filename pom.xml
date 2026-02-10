@@ -106,6 +106,8 @@
                 </property>
             </activation>
             <properties>
+                <!-- Integration tests can be Slow/Heavy - this is expected behavior
+                     Only exclude E2E, SDK, and MustRunExplicitly tests -->
                 <surefire.excludedGroups>E2E,SDK,MustRunExplicitly,E2ETest</surefire.excludedGroups>
             </properties>
         </profile>
@@ -119,6 +121,8 @@
                 </property>
             </activation>
             <properties>
+                <!-- E2E tests can be Heavy, RequiresBrowser, RequiresAI
+                     Only exclude MustRunExplicitly tests -->
                 <surefire.excludedGroups>MustRunExplicitly</surefire.excludedGroups>
             </properties>
         </profile>

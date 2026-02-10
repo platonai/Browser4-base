@@ -3,6 +3,8 @@ name: Nightly Build
 on:
   schedule:
     # Runs at 00:00 UTC every day
+    # This is a full nightly build including Docker image building and E2E tests
+    # For lighter-weight integration-only tests, see integration-tests.yml
     - cron: '0 0 * * *'
   # Allow manual workflow runs
   workflow_dispatch:

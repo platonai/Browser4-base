@@ -9,7 +9,10 @@ on:
         required: false
         default: false
         type: boolean
-  # Run on schedule (nightly)
+  # Run on schedule (nightly at 02:00 UTC)
+  # Note: This is a lighter-weight alternative to nightly.yml that only runs tests
+  # without building Docker images. Use this for quick integration test validation.
+  # For full nightly builds with Docker and E2E tests, see nightly.yml.
   schedule:
     # Runs at 02:00 UTC every day
     - cron: '0 2 * * *'
