@@ -75,7 +75,8 @@ jobs:
           # Run only Fast unit tests by default (test-strategy.md)
           # Exclude: Slow, Heavy, Integration, E2E, SDK, and all environment-dependent tests
           # Includes legacy tags for backward compatibility
-          excluded_groups: 'Slow,Heavy,RequiresServer,RequiresBrowser,RequiresAI,RequiresDocker,Integration,E2E,SDK,MustRunExplicitly,IntegrationTest,E2ETest,HeavyTest,SkippableLowerLevelTest,TestInfraCheck,OptionalTest'
+#          excluded_groups: 'Slow,Heavy,RequiresServer,RequiresBrowser,RequiresAI,RequiresDocker,Integration,E2E,SDK,MustRunExplicitly,IntegrationTest,E2ETest,HeavyTest,SkippableLowerLevelTest,TestInfraCheck,OptionalTest'
+          excluded_groups: 'Slow,Heavy,RequiresServer,RequiresDocker,Integration,E2E,SDK,MustRunExplicitly,IntegrationTest,E2ETest,HeavyTest,SkippableLowerLevelTest,TestInfraCheck,OptionalTest'
           timeout_minutes: '35'
 
       - name: Check Test Status
