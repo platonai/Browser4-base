@@ -1212,7 +1212,7 @@ jobs:
           sudo apt-get install -y google-chrome-stable
 
       - name: Build project
-        run: mvn install -DskipTests -pl pulsar-core,pulsar-rest,pulsar-tests-common -am
+        run: mvn install -DskipTests -pl pulsar-core,pulsar-rest,pulsar-tests/pulsar-tests-common -am
 
       - name: Run integration tests
         run: |
