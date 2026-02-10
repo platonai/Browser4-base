@@ -72,6 +72,14 @@ data class AgentTaskStatus(
     @get:JsonIgnore
     var serverSideEventHandlers: ServerSideEventHandlers? = null
 
+    /**
+     * The server-side agent event handlers reference for tracking agent events during agent execution.
+     * This is set when executing agent commands and provides access to the agent event flow.
+     * It is excluded from JSON serialization as it's only used for internal event streaming.
+     */
+    @get:JsonIgnore
+    var serverSideAgentEventHandlers: ai.platon.pulsar.agentic.event.ServerSideAgentEventHandlers? = null
+
     companion object {
         fun notFound(id: String) = AgentTaskStatus(id, ResourceStatus.SC_NOT_FOUND, processState = "done")
 
