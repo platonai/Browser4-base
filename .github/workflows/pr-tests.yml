@@ -170,8 +170,8 @@ jobs:
                   percentage=$(awk "BEGIN {printf \"%.2f\", ($covered / $total) * 100}")
                   echo "📈 Instruction Coverage: $percentage% ($covered / $total instructions)"
                   
-                  # Check if coverage meets minimum threshold
-                  if (( $(echo "$percentage < 70" | bc -l) )); then
+                  # Check if coverage meets minimum threshold (using awk for portability)
+                  if (( $(awk "BEGIN {print ($percentage < 70)}") )); then
                     echo "⚠️ Coverage is below 70% threshold"
                   else
                     echo "✅ Coverage meets 70% threshold"
