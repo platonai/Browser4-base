@@ -234,14 +234,28 @@ class AgentShellTest {
     @DisplayName("test sed in-place editing is blocked")
     fun testSedInPlaceEditingIsBlocked() = runBlocking {
         val result = shell.execute("sed -i 's/foo/bar/g' file.txt")
-        assertTrue(result.contains("sed in-place editing") || result.contains("not allowed"), "sed -i should be blocked")
+        assertTrue(result.contains("sed in-place editing"), "sed -i should be blocked")
     }
 
     @Test
     @DisplayName("test sed with -i flag is blocked")
     fun testSedWithInlineFlagIsBlocked() = runBlocking {
         val result = shell.execute("sed -ie 's/foo/bar/g' file.txt")
-        assertTrue(result.contains("sed in-place editing") || result.contains("not allowed"), "sed with -i flag should be blocked")
+        assertTrue(result.contains("sed in-place editing"), "sed with -i flag should be blocked")
+    }
+
+    @Test
+    @DisplayName("test sed with --in-place is blocked")
+    fun testSedWithLongFormInPlaceIsBlocked() = runBlocking {
+        val result = shell.execute("sed --in-place 's/foo/bar/g' file.txt")
+        assertTrue(result.contains("sed in-place editing"), "sed --in-place should be blocked")
+    }
+
+    @Test
+    @DisplayName("test sed with -n and -i is blocked")
+    fun testSedWithNAndIIsBlocked() = runBlocking {
+        val result = shell.execute("sed -n -i '1p' file.txt")
+        assertTrue(result.contains("sed in-place editing"), "sed -n -i should be blocked")
     }
 
     @Test
@@ -386,8 +400,10 @@ class AgentShellTest {
     @Test
     @DisplayName("test less command is in whitelist")
     fun testLessCommandInWhitelist() = runBlocking {
-        // less is interactive, so it might timeout, but should not be blocked by whitelist
-        val result = shell.execute("less /etc/hosts", timeoutSeconds = 1)
+        // less is interactive and would block/timeout, but we just verify it's not blocked by whitelist
+        // The test should not see "not in the whitelist" error
+        val result = shell.execute("less", timeoutSeconds = 1)
         assertFalse(result.contains("not in the whitelist"), "less should be in whitelist")
+        // It may timeout (which is OK) or fail to run, but shouldn't be blocked by whitelist
     }
 }

@@ -301,9 +301,10 @@ class AgentShell constructor(
         
         // Additional validation for specific commands
         if (baseCommand == "sed") {
-            // Prevent in-place editing with sed -i flag
-            if (Regex("sed\\s+.*-[^\\s]*i").containsMatchIn(command)) {
-                return "sed in-place editing (-i flag) is not allowed. Use read-only mode with -n flag"
+            // Prevent in-place editing with sed -i flag (various forms)
+            // Matches: sed -i, sed -ie, sed --in-place, sed -n -i, etc.
+            if (Regex("sed\\s+.*(-i|--in-place)").containsMatchIn(command)) {
+                return "sed in-place editing is not allowed"
             }
         }
         
@@ -356,7 +357,7 @@ class AgentShell constructor(
         }
         
         // For multi-word commands, check if the base command is allowed
-        val firstWord = command.split(Regex("\\s+"))[0]
+        val firstWord = command.split(Regex("\\s+")).firstOrNull() ?: return false
         return ALLOWED_COMMANDS.contains(firstWord)
     }
 
