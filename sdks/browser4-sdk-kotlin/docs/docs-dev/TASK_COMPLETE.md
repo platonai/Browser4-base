@@ -158,7 +158,7 @@ The Browser4 Kotlin SDK now has comprehensive, professional documentation that w
 
 **Documentation Generation Complete** ✓
 **Date**: 2024-01-30
-**SDK Version**: 4.5.0-rc.1
+**SDK Version**: 4.5.0
 **Total Files**: 27
 **Total Words**: ~18,000
 **Code Examples**: 100+

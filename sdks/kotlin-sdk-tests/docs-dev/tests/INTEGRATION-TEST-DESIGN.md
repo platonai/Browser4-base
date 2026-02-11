@@ -934,7 +934,7 @@ mvn test -pl sdks/kotlin-sdk-tests -Dgroups="IntegrationTest,!Slow"
     <parent>
         <groupId>ai.platon.pulsar</groupId>
         <artifactId>sdks</artifactId>
-        <version>4.5.0-rc.1</version>
+        <version>4.5.0</version>
     </parent>
 
     <artifactId>kotlin-sdk-tests</artifactId>
@@ -942,8 +942,8 @@ mvn test -pl sdks/kotlin-sdk-tests -Dgroups="IntegrationTest,!Slow"
 
     <properties>
         <kotlin.version>2.2.21</kotlin.version>
-        <pulsar.version>4.5.0-rc.1</pulsar.version>
-        <browser4.sdk.version>4.5.0-rc.1</browser4.sdk.version>
+        <pulsar.version>4.5.0</pulsar.version>
+        <browser4.sdk.version>4.5.0</browser4.sdk.version>
         <surefire.excludedGroups>MustRunExplicitly,PassedOn20260203</surefire.excludedGroups>
     </properties>
 

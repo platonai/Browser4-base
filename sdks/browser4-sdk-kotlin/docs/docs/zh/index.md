@@ -1,6 +1,6 @@
 # Browser4 Kotlin SDK 中文文档
 
-**版本:** 4.5.0-rc.1
+**版本:** 4.5.0
 
 欢迎使用 Browser4 Kotlin SDK 中文文档！本 SDK 为浏览器自动化、网页抓取和 AI 驱动的网页交互提供了强大而直观的接口。
 
@@ -108,7 +108,7 @@ PulsarClient (底层 HTTP 通信)
 <dependency>
     <groupId>io.browser4</groupId>
     <artifactId>browser4-sdk-kotlin</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>4.5.0</version>
 </dependency>
 ```
 
@@ -116,7 +116,7 @@ PulsarClient (底层 HTTP 通信)
 
 ```kotlin
 dependencies {
-    implementation("io.browser4:browser4-sdk-kotlin:4.5.0-rc.1")
+    implementation("io.browser4:browser4-sdk-kotlin:4.5.0")
 }
 ```
 
@@ -124,7 +124,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.browser4:browser4-sdk-kotlin:4.5.0-rc.1'
+    implementation 'io.browser4:browser4-sdk-kotlin:4.5.0'
 }
 ```
 

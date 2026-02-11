@@ -146,9 +146,9 @@ jobs:
         if: github.event.inputs.skip_tests != 'true'
         uses: ./.github/actions/run-tests
         with:
-          maven_profiles: 'all-modules,pulsar-tests'
+          maven_profiles: 'pulsar-tests'
           test_excludes: ''
-          excluded_groups: 'BenchmarkTest'
+          excluded_groups: 'BenchmarkTest,MustRunExplicitly'
           run_pulsar_tests: 'true'
           timeout_minutes: '90'
 

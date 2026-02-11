@@ -14,7 +14,7 @@
 
     <groupId>ai.platon.pulsar</groupId>
     <artifactId>browser4-spa</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>4.5.0</version>
 
     <name>Browser4 SPA</name>
     <description>
@@ -159,6 +159,6 @@
         <kotlin.version>2.2.21</kotlin.version>
         <spring-boot.version>4.0.1</spring-boot.version>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
-        <pulsar.version>4.5.0-rc.1</pulsar.version>
+        <pulsar.version>4.5.0</pulsar.version>
     </properties>
 </project>

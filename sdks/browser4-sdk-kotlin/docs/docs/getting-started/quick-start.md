@@ -18,7 +18,7 @@ Add the Browser4 SDK dependency to your project:
 <dependency>
     <groupId>ai.platon.pulsar</groupId>
     <artifactId>pulsar-sdk-kotlin</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>4.5.0</version>
 </dependency>
 ```
 
@@ -26,7 +26,7 @@ Add the Browser4 SDK dependency to your project:
 
 ```kotlin
 dependencies {
-    implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-rc.1")
+    implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0")
 }
 ```
 
@@ -34,7 +34,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-rc.1'
+    implementation 'ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0'
 }
 ```
 

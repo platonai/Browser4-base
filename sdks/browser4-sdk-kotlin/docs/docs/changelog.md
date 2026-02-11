@@ -2,7 +2,7 @@
 
 All notable changes to Browser4 Kotlin SDK.
 
-## [4.5.0-rc.1] - 2024-01-30
+## [4.5.0] - 2024-01-30
 
 ### Added
 - Local driver mode with automatic Browser4.jar download
@@ -102,7 +102,7 @@ For issues or questions:
 
 ## Version History
 
-- **4.5.0-rc.1** (2024-01-30) - Initial release
+- **4.5.0** (2024-01-30) - Initial release
 
 ---
 

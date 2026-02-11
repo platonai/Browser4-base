@@ -115,7 +115,7 @@ mkdocs serve  # View at http://localhost:8000
 ## Documentation Generated
 
 - **Date**: 2024-01-30
-- **SDK Version**: 4.5.0-rc.1
+- **SDK Version**: 4.5.0
 - **Total Files**: 27 markdown files
 - **Total Words**: ~18,000
 - **Code Examples**: 100+

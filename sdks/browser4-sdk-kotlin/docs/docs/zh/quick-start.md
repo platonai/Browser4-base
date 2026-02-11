@@ -16,14 +16,14 @@
 <dependency>
     <groupId>io.browser4</groupId>
     <artifactId>browser4-sdk-kotlin</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>4.5.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("io.browser4:browser4-sdk-kotlin:4.5.0-rc.1")
+implementation("io.browser4:browser4-sdk-kotlin:4.5.0")
 ```
 
 ## 第一个示例

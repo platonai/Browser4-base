@@ -18,7 +18,7 @@ Add the following dependency to your `pom.xml`:
     <dependency>
         <groupId>ai.platon.pulsar</groupId>
         <artifactId>pulsar-sdk-kotlin</artifactId>
-        <version>4.5.0-rc.1</version>
+        <version>4.5.0</version>
     </dependency>
 </dependencies>
 ```
@@ -43,7 +43,7 @@ If you're using a SNAPSHOT version, you may need to add the Sonatype snapshots r
 
 ```kotlin
 dependencies {
-    implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-rc.1")
+    implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0")
 }
 
 repositories {
@@ -59,7 +59,7 @@ repositories {
 
 ```groovy
 dependencies {
-    implementation 'ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-rc.1'
+    implementation 'ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0'
 }
 
 repositories {

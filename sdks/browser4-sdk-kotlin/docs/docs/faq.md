@@ -19,7 +19,7 @@ A: Add to your `pom.xml`:
 <dependency>
     <groupId>ai.platon.pulsar</groupId>
     <artifactId>pulsar-sdk-kotlin</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>4.5.0</version>
 </dependency>
 ```
 

@@ -15,7 +15,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>kotlin-sdk-examples</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>4.5.0</version>
 
     <name>Browser4 Kotlin SDK Examples</name>
     <description>Examples for Kotlin SDK with real server</description>
@@ -28,7 +28,7 @@
         <!--  Kotlin  -->
         <kotlin.version>2.2.21</kotlin.version>
 
-        <browser4.sdk.version>4.5.0-rc.1</browser4.sdk.version>
+        <browser4.sdk.version>4.5.0</browser4.sdk.version>
     </properties>
 
     <dependencies>
