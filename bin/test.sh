@@ -95,34 +95,34 @@ case $TestType in
   python-sdk)
     echo "Running Python SDK tests..."
     PythonSdkDir="$APP_HOME/sdks/browser4-sdk-python"
-    
+
     if [[ ! -d "$PythonSdkDir" ]]; then
       echo "Error: Python SDK directory not found at $PythonSdkDir"
       exit 1
     fi
-    
+
     # Check if Python is available
     if ! command -v python3 &> /dev/null; then
       echo "Error: python3 is not installed or not in PATH"
       exit 1
     fi
-    
+
     cd "$PythonSdkDir"
     echo "Working directory: $(pwd)"
-    
+
     # Check if venv exists and activate it
     if [[ -d "$PythonSdkDir/venv" ]]; then
       echo "Activating virtual environment..."
       source "$PythonSdkDir/venv/bin/activate"
     fi
-    
+
     # Check if pytest is available
     if ! python3 -m pytest --version &> /dev/null; then
       echo "Error: pytest is not installed. Install it with: pip install pytest"
       echo "Or install all dev dependencies with: pip install -e \".[dev]\" in $PythonSdkDir"
       exit 1
     fi
-    
+
     python3 -m pytest "${AdditionalMvnArgs[@]}"
     ExitCode=$?
     cd "$APP_HOME"
@@ -138,7 +138,7 @@ case $TestType in
     ;;
   all)
     echo "Running all tests (integration, e2e, sdk)..."
-    $MvnCmd test -DrunITs=true -DrunE2ETests=true -DrunSDKTests=true "${AdditionalMvnArgs[@]}"
+    $MvnCmd test -Pall-modules -DrunITs=true -DrunE2ETests=true -DrunSDKTests=true "${AdditionalMvnArgs[@]}"
     ;;
   *)
     echo "Error: Unknown test type '$TestType'"

@@ -96,12 +96,12 @@ try {
     "python-sdk" {
       Write-Host "Running Python SDK tests..."
       $PythonSdkDir = Join-Path $AppHome "sdks\browser4-sdk-python"
-      
+
       if (!(Test-Path $PythonSdkDir)) {
         Write-Error "Python SDK directory not found at $PythonSdkDir"
         exit 1
       }
-      
+
       # Check if Python is available
       $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
       if (!$pythonCmd) {
@@ -111,7 +111,7 @@ try {
         Write-Error "Python is not installed or not in PATH"
         exit 1
       }
-      
+
       # Check if pytest is available
       $pytestCheck = & $pythonCmd.Source -m pytest --version 2>&1
       if ($LASTEXITCODE -ne 0) {
@@ -119,7 +119,7 @@ try {
         Write-Host "Or install all dev dependencies with: pip install -e `".[dev]`" in $PythonSdkDir"
         exit 1
       }
-      
+
       Push-Location $PythonSdkDir
       Write-Host "Working directory: $(Get-Location)"
       & $pythonCmd.Source -m pytest $AdditionalMvnArgs
@@ -137,7 +137,7 @@ try {
     }
     "all" {
       Write-Host "Running all tests (integration, e2e, sdk)..."
-      & $MvnCmd @MvnArgs "-DrunITs=true" "-DrunE2ETests=true" "-DrunSDKTests=true"
+      & $MvnCmd @MvnArgs "-Pall-modules" "-DrunITs=true" "-DrunE2ETests=true" "-DrunSDKTests=true"
     }
     Default {
       Write-Error "Unknown test type '$TestType'"
