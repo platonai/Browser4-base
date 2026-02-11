@@ -102,7 +102,7 @@ class AgentShell constructor(
          * Whitelist of allowed commands and command patterns.
          * Only commands starting with these patterns are permitted.
          */
-        private val ALLOWED_COMMANDS = setOf(
+        val ALLOWED_COMMANDS = setOf(
             // Basic navigation and listing
             "ls", "pwd", "tree",
             // File viewing

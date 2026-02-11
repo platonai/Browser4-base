@@ -111,26 +111,24 @@ class ChromeLauncher constructor(
         var lastException: Exception? = null
 
         // Retry if the profile is locked, it happens when the previous process is exiting
-        for (i in 1..3) {
+        for (i in 1..5) {
             try {
                 port = launchChromeProcess(chromeBinaryPath, userDataDir, options)
                 break
             } catch (e: ChromeLaunchException) {
                 lastException = e
-                logger.warn("Caught ChromeLaunchException: {} | Class: {}", e.message, e.javaClass.name)
                 // If the profile is locked, wait for the previous process to exit
-                if (e.message?.contains("Profile locked") == true) {
-                    if (i < 3) {
+                if (e.message?.contains("profile is locked", ignoreCase = true) == true) {
+                    if (i < 5) {
                         logger.warn("Chrome profile locked, retrying... ($i) | {}", e.message)
                         try {
-                            Thread.sleep(2000)
+                            Thread.sleep(3000)
                         } catch (interrupted: InterruptedException) {
                             Thread.currentThread().interrupt()
                             throw e
                         }
                     }
                 } else {
-                    logger.warn("Exception does not match 'Profile locked'")
                     throw e
                 }
             }
@@ -305,36 +303,43 @@ class ChromeLauncher constructor(
     }
 
     /**
+     * Stop the chrome process but keep the launcher active.
+     * */
+    fun stop() {
+        shutdownHookRegistry.remove(shutdownHookThread)
+
+        val p = process
+        this.process = null
+        try {
+            if (p != null && p.isAlive) {
+                Runtimes.destroyProcess(p, options.shutdownWaitTime)
+                if (p.isAlive) {
+                    destroyForcibly()
+                }
+            }
+        } catch (t: Throwable) {
+            warnForClose(this, t)
+        } finally {
+            clearProcessMarkers()
+        }
+
+        try {
+            BrowserFiles.runCatching {
+                cleanUpContextTmpDir(temporaryUddExpiry)
+                cleanOldestContextTmpDirs(Duration.ofMinutes(2), recentNToKeep)
+            }.onFailure { warnForClose(this, it) }
+        } catch (t: Throwable) {
+            // ignored
+        }
+    }
+
+    /**
      * Close the chrome process.
      * The method throws nothing by design.
      * */
     override fun close() {
         if (closed.compareAndSet(false, true)) {
-            shutdownHookRegistry.remove(shutdownHookThread)
-
-            val p = process
-            this.process = null
-            try {
-                if (p != null && p.isAlive) {
-                    Runtimes.destroyProcess(p, options.shutdownWaitTime)
-                    if (p.isAlive) {
-                        destroyForcibly()
-                    }
-                }
-            } catch (t: Throwable) {
-                warnForClose(this, t)
-            } finally {
-                clearProcessMarkers()
-            }
-
-            try {
-                BrowserFiles.runCatching {
-                    cleanUpContextTmpDir(temporaryUddExpiry)
-                    cleanOldestContextTmpDirs(Duration.ofMinutes(2), recentNToKeep)
-                }.onFailure { warnForClose(this, it) }
-            } catch (t: Throwable) {
-                // ignored
-            }
+            stop()
         }
     }
 
@@ -432,14 +437,14 @@ class ChromeLauncher constructor(
 
             port
         } catch (e: IllegalStateException) {
-            close()
+            stop()
             throw ChromeLaunchException("IllegalStateException while trying to launch chrome", e)
         } catch (e: IOException) {
-            close()
+            stop()
             throw ChromeLaunchException("IOException while trying to start chrome", e)
         } catch (e: Exception) {
             // Close the process if failed to start, it throws nothing by design.
-            close()
+            stop()
             throw e
         }
     }

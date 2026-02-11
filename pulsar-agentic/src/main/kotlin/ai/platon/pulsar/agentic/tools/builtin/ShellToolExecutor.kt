@@ -47,7 +47,8 @@ class ShellToolExecutor : AbstractToolExecutor() {
                 ToolSpec.Arg("workingDir", "String", "null"),
             ),
             returnType = "String",
-            description = "Execute a shell command (bash on Linux/macOS, cmd on Windows) with optional timeout and working directory"
+            description = "Execute a shell command (bash on Linux/macOS, cmd on Windows) with optional timeout and " +
+                    "working directory. Allowed commands: " + AgentShell.ALLOWED_COMMANDS
         )
 
         toolSpec["readOutput"] = ToolSpec(
