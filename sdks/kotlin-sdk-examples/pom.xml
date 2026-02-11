@@ -15,7 +15,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>kotlin-sdk-examples</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>$NEXT_SNAPSHOT_VERSION</version>
 
     <name>Browser4 Kotlin SDK Examples</name>
     <description>Examples for Kotlin SDK with real server</description>

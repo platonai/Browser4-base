@@ -239,7 +239,7 @@ Automatic, large-scale, high-precision field discovery and extraction powered by
 **Quick Commands (PulsarRPAPro):**
 ```bash
 # NOTE: MongoDB required
-curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/download/v4.5.0/PulsarRPAPro.jar
+curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/download/v4.6.0/PulsarRPAPro.jar
 ```
 
 **Integration Status:**
@@ -363,4 +363,5 @@ agent.run("""
 ## License
 
 Apache 2.0 License. See [LICENSE](LICENSE) for details.
+
 
