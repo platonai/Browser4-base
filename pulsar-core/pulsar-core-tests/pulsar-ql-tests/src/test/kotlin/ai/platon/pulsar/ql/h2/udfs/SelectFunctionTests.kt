@@ -1,7 +1,7 @@
 package ai.platon.pulsar.ql.h2.udfs
 
 import ai.platon.pulsar.common.printlnPro
-import ai.platon.pulsar.ql.TestBase
+import ai.platon.pulsar.heavy.ql.TestBase
 import kotlin.test.*
 import kotlin.test.assertTrue
 
