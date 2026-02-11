@@ -16,6 +16,7 @@ function Print-Usage {
   Write-Host "  e2e         Run end-to-end tests"
   Write-Host "  sdk         Run SDK tests"
   Write-Host "  python-sdk  Run Python SDK tests"
+  Write-Host "  nodejs-sdk  Run NodeJS SDK tests"
   Write-Host "  core        Run core module supplementary tests"
   Write-Host "  rest        Run REST module tests"
   Write-Host "  all         Run all tests (integration, e2e, sdk)"
@@ -27,6 +28,8 @@ function Print-Usage {
   Write-Host "  test.ps1 sdk                        # Run SDK tests"
   Write-Host "  test.ps1 python-sdk                 # Run Python SDK tests"
   Write-Host "  test.ps1 python-sdk -m integration  # Run Python SDK integration tests only"
+  Write-Host "  test.ps1 nodejs-sdk                 # Run NodeJS SDK tests"
+  Write-Host "  test.ps1 nodejs-sdk --coverage      # Run NodeJS SDK tests with coverage"
   Write-Host "  test.ps1 all                        # Run all tests"
   Write-Host '  test.ps1 it -pl pulsar-core         # Run integration tests for pulsar-core only'
   exit 1
@@ -53,7 +56,7 @@ if ($args.Count -eq 0) {
 if ($args.Count -gt 0) {
   $FirstArg = $args[0]
   switch ($FirstArg) {
-    { $_ -in "fast", "it", "e2e", "sdk", "python-sdk", "core", "rest", "all" } {
+    { $_ -in "fast", "it", "e2e", "sdk", "python-sdk", "nodejs-sdk", "core", "rest", "all" } {
       $TestType = $FirstArg
       if ($args.Count -gt 1) {
         $AdditionalMvnArgs = $args[1..($args.Count - 1)]
@@ -123,6 +126,48 @@ try {
       Push-Location $PythonSdkDir
       Write-Host "Working directory: $(Get-Location)"
       & $pythonCmd.Source -m pytest $AdditionalMvnArgs
+      $ExitCode = $LASTEXITCODE
+      Pop-Location
+      exit $ExitCode
+    }
+    "nodejs-sdk" {
+      Write-Host "Running NodeJS SDK tests..."
+      $NodejsSdkDir = Join-Path $AppHome "sdks\browser4-sdk-nodejs"
+
+      if (!(Test-Path $NodejsSdkDir)) {
+        Write-Error "NodeJS SDK directory not found at $NodejsSdkDir"
+        exit 1
+      }
+
+      # Check if Node.js is available
+      $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
+      if (!$nodeCmd) {
+        Write-Error "Node.js is not installed or not in PATH"
+        exit 1
+      }
+
+      Push-Location $NodejsSdkDir
+      Write-Host "Working directory: $(Get-Location)"
+
+      # Check if node_modules exists
+      if (!(Test-Path "$NodejsSdkDir\node_modules")) {
+        Write-Host "Installing dependencies..."
+        & npm install
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Failed to install dependencies"
+          Pop-Location
+          exit 1
+        }
+      }
+
+      # Check if jest is available
+      if (!(Test-Path "$NodejsSdkDir\node_modules\.bin\jest.cmd")) {
+        Write-Error "jest is not installed. Install it with: npm install"
+        Pop-Location
+        exit 1
+      }
+
+      & npm test -- $AdditionalMvnArgs
       $ExitCode = $LASTEXITCODE
       Pop-Location
       exit $ExitCode

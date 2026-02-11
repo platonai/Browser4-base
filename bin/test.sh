@@ -16,6 +16,7 @@ function print_usage {
   echo "  e2e         Run end-to-end tests"
   echo "  sdk         Run SDK tests"
   echo "  python-sdk  Run Python SDK tests"
+  echo "  nodejs-sdk  Run NodeJS SDK tests"
   echo "  core        Run core module supplementary tests"
   echo "  rest        Run REST module tests"
   echo "  all         Run all tests (integration, e2e, sdk)"
@@ -27,6 +28,8 @@ function print_usage {
   echo "  test.sh sdk                        # Run SDK tests"
   echo "  test.sh python-sdk                 # Run Python SDK tests"
   echo "  test.sh python-sdk -m integration  # Run Python SDK integration tests only"
+  echo "  test.sh nodejs-sdk                 # Run NodeJS SDK tests"
+  echo "  test.sh nodejs-sdk --coverage      # Run NodeJS SDK tests with coverage"
   echo "  test.sh all                        # Run all tests"
   echo "  test.sh it -pl pulsar-core         # Run integration tests for pulsar-core only"
   exit 1
@@ -52,7 +55,7 @@ fi
 
 if [[ $# -gt 0 ]]; then
   case $1 in
-    fast|it|e2e|sdk|python-sdk|core|rest|all)
+    fast|it|e2e|sdk|python-sdk|nodejs-sdk|core|rest|all)
       TestType=$1
       shift
       ;;
@@ -124,6 +127,47 @@ case $TestType in
     fi
 
     python3 -m pytest "${AdditionalMvnArgs[@]}"
+    ExitCode=$?
+    cd "$APP_HOME"
+    exit $ExitCode
+    ;;
+  nodejs-sdk)
+    echo "Running NodeJS SDK tests..."
+    NodejsSdkDir="$APP_HOME/sdks/browser4-sdk-nodejs"
+
+    if [[ ! -d "$NodejsSdkDir" ]]; then
+      echo "Error: NodeJS SDK directory not found at $NodejsSdkDir"
+      exit 1
+    fi
+
+    # Check if Node.js is available
+    if ! command -v node &> /dev/null; then
+      echo "Error: node is not installed or not in PATH"
+      exit 1
+    fi
+
+    cd "$NodejsSdkDir"
+    echo "Working directory: $(pwd)"
+
+    # Check if node_modules exists
+    if [[ ! -d "$NodejsSdkDir/node_modules" ]]; then
+      echo "Installing dependencies..."
+      npm install
+      if [[ $? -ne 0 ]]; then
+        echo "Error: Failed to install dependencies"
+        cd "$APP_HOME"
+        exit 1
+      fi
+    fi
+
+    # Check if jest is available
+    if [[ ! -f "$NodejsSdkDir/node_modules/.bin/jest" ]]; then
+      echo "Error: jest is not installed. Install it with: npm install"
+      cd "$APP_HOME"
+      exit 1
+    fi
+
+    npm test -- "${AdditionalMvnArgs[@]}"
     ExitCode=$?
     cd "$APP_HOME"
     exit $ExitCode
