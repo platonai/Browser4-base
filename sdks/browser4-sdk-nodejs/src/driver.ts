@@ -8,6 +8,7 @@ import { spawn, ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
+import * as os from 'os';
 import axios from 'axios';
 
 export interface Browser4DriverConfig {
@@ -58,7 +59,7 @@ export class Browser4Driver {
   private isRunning: boolean = false;
 
   constructor(config: Browser4DriverConfig = {}) {
-    this.homeDir = config.homeDir || path.join(require('os').homedir(), '.browser4');
+    this.homeDir = config.homeDir || path.join(os.homedir(), '.browser4');
     this.port = config.port || 8182;
     this.startupTimeout = config.startupTimeout || 60000;
     this.downloadUrl = config.downloadUrl || 
