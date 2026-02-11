@@ -141,6 +141,7 @@ jobs:
           excluded_groups: ''
           run_pulsar_tests: 'false'
           timeout_minutes: '45'
+          report_name: 'unit-test-reports'
 
       - name: Run Integration Tests (Release)
         if: github.event.inputs.skip_tests != 'true'
@@ -151,6 +152,7 @@ jobs:
           excluded_groups: ''
           run_pulsar_tests: 'true'
           timeout_minutes: '90'
+          report_name: 'integration-test-reports'
 
       - name: Cleanup Docker system to free space
         run: |
