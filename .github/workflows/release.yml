@@ -17,9 +17,15 @@ on:
         default: false
         type: boolean
 
+# Prevent concurrent releases
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   packages: write
+  id-token: write  # For artifact attestation
 
 env:
   IMAGE_NAME: browser4
@@ -79,17 +85,12 @@ jobs:
             echo "✅ Prerelease can be created from any branch"
           fi
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }} For Deployment
-        uses: actions/setup-java@v4
+      - name: Setup Environment
+        id: setup
+        uses: ./.github/actions/setup-environment
         with:
-          distribution: 'temurin'
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: maven
-
-      - name: Correct Permissions
-        run: |
-          find bin/ -name "*.sh" | xargs chmod +x
-          chmod +x ./mvnw
+          java_version: ${{ env.JAVA_VERSION }}
+          enable_cache: 'true'
 
       - name: Extract version from tag
         id: tag
@@ -121,16 +122,15 @@ jobs:
         run: |
           bin/release/update-versions.sh
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
       - name: Maven Build
-        run: |
-          ./mvnw clean install -Pall-modules -DskipTests --batch-mode --show-version
+        id: maven-build
+        uses: ./.github/actions/maven-build
+        with:
+          maven_profiles: 'all-modules'
+          skip_tests: 'true'
+          parallel_builds: 'true'
+          timeout_minutes: '20'
+          maven_args: '-B -V'
 
       - name: Run Unit Tests (Release)
         if: github.event.inputs.skip_tests != 'true'
@@ -162,14 +162,43 @@ jobs:
           sudo df -h
 
       - name: Build Docker image
+        id: docker-build
+        uses: ./.github/actions/docker-build
+        with:
+          image_name: '${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}'
+          version: ${{ env.VERSION }}
+          dockerfile: 'Dockerfile'
+          timeout_minutes: '25'
+          build_args: |
+            VERSION=${{ env.VERSION }}
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            VCS_REF=${{ github.sha }}
+
+      - name: Security Scan Docker Image
+        if: success()
+        continue-on-error: true
         run: |
-          docker build \
-            --build-arg VERSION=${{ env.VERSION }} \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg VCS_REF=${{ github.sha }} \
-            -t ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} \
-            -t ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
-            -f Dockerfile .
+          echo "::group::Security Scanning"
+
+          image="${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}"
+
+          # Try Docker Scout if available
+          if command -v docker scout &> /dev/null; then
+            echo "🔍 Running Docker Scout security scan..."
+            docker scout cves "$image" --only-severity critical,high || echo "⚠️ Docker Scout scan completed with warnings"
+          fi
+
+          # Try Trivy if available
+          if command -v trivy &> /dev/null; then
+            echo "🔍 Running Trivy security scan..."
+            trivy image --severity HIGH,CRITICAL "$image" || echo "⚠️ Trivy scan completed with warnings"
+          fi
+
+          if ! command -v docker scout &> /dev/null && ! command -v trivy &> /dev/null; then
+            echo "ℹ️ No security scanning tools available (install docker scout or trivy for scanning)"
+          fi
+
+          echo "::endgroup::"
 
       - name: Start Docker container for testing
         if: success() && github.event.inputs.skip_tests != 'true'
@@ -208,13 +237,12 @@ jobs:
 
       - name: Cleanup Docker Container
         if: always()
-        run: |
-          echo "🧹 Cleaning up Docker container..."
-          docker stop ${{ env.CONTAINER_NAME }} 2>/dev/null || echo "Container already stopped"
-          docker network rm ${{ env.NETWORK_NAME }} 2>/dev/null || echo "Network already removed"
-          # Preserve built images for later steps; prune only stopped containers and unused volumes
-          docker container prune -f
-          docker volume prune -f
+        uses: ./.github/actions/cleanup-resources
+        with:
+          container_name: ${{ env.CONTAINER_NAME }}
+          network_name: ${{ env.NETWORK_NAME }}
+          cleanup_compose: 'false'
+          cleanup_volumes: 'true'
 
       - name: Check if already on master
         id: check_master
@@ -331,6 +359,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate Artifact Attestation
+        if: success()
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: ${{ steps.get_uberjar.outputs.uberjar_path }}
+
       - name: Verify Release
         run: |
           echo "::group::✅ Release Verification"
@@ -352,12 +386,67 @@ jobs:
 
           echo "::endgroup::"
 
+      - name: Release Summary
+        if: success()
+        run: |
+          echo "::group::📊 Release Summary"
+
+          echo "## 🚀 Release ${{ env.VERSION }} Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### ✅ Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: ${{ env.TAG }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Prerelease**: ${{ env.IS_PRERELEASE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- **JAR**: ${{ steps.get_uberjar.outputs.uberjar_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Image**: ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GHCR Image**: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [Release Page](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [Docker Hub](https://hub.docker.com/r/${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [GitHub Container Registry](https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/pkgs/container/${{ env.IMAGE_NAME }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 📊 Build Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Maven Build**: ${{ steps.maven-build.outputs.build_time }}s" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Image Size**: ${{ steps.docker-build.outputs.image_size_mb }}MB" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "✅ Release pipeline completed successfully!" >> $GITHUB_STEP_SUMMARY
+
+          echo "::endgroup::"
+
       - name: Push Docker Images to Docker Hub
         if: success()
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+          # Tag images
+          docker tag ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+          # Push with retry logic
+          max_retries=3
+          for i in $(seq 1 $max_retries); do
+            if docker push ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} && \
+               docker push ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest; then
+              echo "✅ Successfully pushed images to Docker Hub"
+              break
+            else
+              if [ $i -lt $max_retries ]; then
+                echo "⚠️ Push failed, retrying ($i/$max_retries)..."
+                sleep 5
+              else
+                echo "❌ Failed to push after $max_retries attempts"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Push Docker Images to GitHub Container Registry
         if: success()
@@ -368,9 +457,23 @@ jobs:
           docker tag ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           docker tag ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
 
-          # Push images
-          docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-          docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+          # Push with retry logic
+          max_retries=3
+          for i in $(seq 1 $max_retries); do
+            if docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} && \
+               docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest; then
+              echo "✅ Successfully pushed images to GHCR"
+              break
+            else
+              if [ $i -lt $max_retries ]; then
+                echo "⚠️ Push failed, retrying ($i/$max_retries)..."
+                sleep 5
+              else
+                echo "❌ Failed to push after $max_retries attempts"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Cleanup on Failure
         if: failure() && github.event_name == 'push'
