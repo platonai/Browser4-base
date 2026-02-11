@@ -111,13 +111,6 @@ class AgentShell constructor(
             "grep", "awk", "sed",
             // Counting
             "wc",
-        )
-
-        /**
-         * Additional allowed commands that are not simple single-word commands.
-         * These commands can leak system information but do not allow modification. They are allowed at a more permissive level (L2).
-         * */
-        private val ALLOWED_COMMANDS_L2 = setOf(
             // System info
             "uname", "hostname", "uptime", "whoami", "id",
             // Resource monitoring
@@ -129,8 +122,6 @@ class AgentShell constructor(
             // Environment
             "env", "printenv", "which", "type"
         )
-
-        private val ALLOWED_COMMANDS_L3 = setOf("*")
     }
 
     private val logger = getLogger(this)

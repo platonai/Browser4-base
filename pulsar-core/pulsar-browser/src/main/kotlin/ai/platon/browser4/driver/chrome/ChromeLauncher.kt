@@ -117,6 +117,7 @@ class ChromeLauncher constructor(
                 break
             } catch (e: ChromeLaunchException) {
                 lastException = e
+                logger.warn("Caught ChromeLaunchException: {} | Class: {}", e.message, e.javaClass.name)
                 // If the profile is locked, wait for the previous process to exit
                 if (e.message?.contains("Profile locked") == true) {
                     if (i < 3) {
@@ -129,6 +130,7 @@ class ChromeLauncher constructor(
                         }
                     }
                 } else {
+                    logger.warn("Exception does not match 'Profile locked'")
                     throw e
                 }
             }
