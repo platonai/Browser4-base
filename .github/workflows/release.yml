@@ -136,9 +136,9 @@ jobs:
         if: github.event.inputs.skip_tests != 'true'
         uses: ./.github/actions/run-tests
         with:
-          maven_profiles: 'all-modules'
-          test_excludes: '**integration**,**e2e**'
-          excluded_groups: 'Slow,Heavy,HeavyTest,E2E,E2ETest,Integration,IntegrationTest,RequiresServer,BenchmarkTest'
+          maven_profiles: ''
+          test_excludes: ''
+          excluded_groups: ''
           run_pulsar_tests: 'false'
           timeout_minutes: '45'
 
@@ -146,9 +146,9 @@ jobs:
         if: github.event.inputs.skip_tests != 'true'
         uses: ./.github/actions/run-tests
         with:
-          maven_profiles: 'pulsar-tests'
+          maven_profiles: ''
           test_excludes: ''
-          excluded_groups: 'BenchmarkTest,MustRunExplicitly'
+          excluded_groups: ''
           run_pulsar_tests: 'true'
           timeout_minutes: '90'
 
