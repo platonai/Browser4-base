@@ -42,6 +42,10 @@ inputs:
     description: 'Run pulsar-tests module tests (default: true for CI)'
     required: false
     default: 'true'
+  report_name:
+    description: 'Name suffix for test reports artifact (default: test-reports)'
+    required: false
+    default: 'test-reports'
 
 outputs:
   test_status:
@@ -300,7 +304,7 @@ runs:
       if: always() && inputs.test_reports == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: test-reports-${{ github.run_id }}
+        name: ${{ inputs.report_name }}-${{ github.run_id }}
         path: |
           **/target/surefire-reports/**
           **/target/site/jacoco/**
