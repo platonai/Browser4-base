@@ -38,18 +38,34 @@ data class ShellResult(
  * Secure shell command execution subsystem for AI agents.
  *
  * Provides controlled execution of shell commands with:
+ * - **Command whitelist** - Only allows execution of safe, read-only commands
  * - Configurable timeout to prevent runaway processes
  * - Working directory management
  * - Output capture (stdout and stderr)
  * - Session-based result tracking for reading past outputs
  * - Command validation and security controls
  *
+ * ## Security Model
+ *
+ * Commands are validated against a whitelist before execution. Only the following commands are allowed:
+ * - Basic navigation: `ls`, `pwd`, `tree`
+ * - File viewing: `cat`, `less`, `head`, `tail`
+ * - Text processing: `grep`, `awk`, `sed`
+ * - Counting: `wc`
+ * - System info: `uname`, `hostname`, `uptime`, `whoami`, `id`
+ * - Resource monitoring: `free`, `df`, `du`
+ * - Process info: `ps`, `top`, `pgrep`
+ * - Network info: `ip`, `ss`
+ * - Environment: `env`, `printenv`, `which`, `type`
+ *
+ * All other commands (including `rm`, `mv`, `cp`, `chmod`, `curl`, `wget`, etc.) are blocked.
+ *
  * ## Usage Example:
  *
  * ```kotlin
  * val shell = AgentShell(baseDir = Paths.get("/tmp/agent-work"))
- * val result = shell.execute("echo hello")
- * println(result) // stdout: hello
+ * val result = shell.execute("ls -la")  // Allowed
+ * val blocked = shell.execute("rm file.txt")  // Blocked: not in whitelist
  * ```
  *
  * @param baseDir The base working directory for command execution.
@@ -79,6 +95,31 @@ class AgentShell constructor(
             // Prevent fork bombs
             ":\\(\\)\\{",
         ).map { Regex(it) }
+
+        /**
+         * Whitelist of allowed commands and command patterns.
+         * Only commands starting with these patterns are permitted.
+         */
+        private val ALLOWED_COMMANDS = setOf(
+            // Basic navigation and listing
+            "ls", "pwd", "tree",
+            // File viewing
+            "cat", "less", "head", "tail",
+            // Text processing (sed is allowed but with restricted usage - see validation)
+            "grep", "awk", "sed",
+            // Counting
+            "wc",
+            // System info
+            "uname", "hostname", "uptime", "whoami", "id",
+            // Resource monitoring
+            "free", "df", "du",
+            // Process info
+            "ps", "top", "pgrep",
+            // Network commands (only specific subcommands allowed)
+            "ip addr", "ip route", "ss",
+            // Environment
+            "env", "printenv", "which", "type"
+        )
     }
 
     private val logger = getLogger(this)
@@ -248,12 +289,70 @@ class AgentShell constructor(
     }
 
     private fun validateCommand(command: String): String? {
+        // First check if command is in whitelist
+        val baseCommand = extractBaseCommand(command)
+        if (baseCommand.isEmpty()) {
+            return "empty or invalid command"
+        }
+        
+        if (!isCommandAllowed(baseCommand)) {
+            return "command '$baseCommand' is not in the whitelist. Allowed commands: ${ALLOWED_COMMANDS.sorted().joinToString(", ")}"
+        }
+        
+        // Additional validation for specific commands
+        if (baseCommand == "sed") {
+            // Prevent in-place editing with sed -i flag (various forms)
+            // Matches: sed -i, sed -ie, sed --in-place, sed -n -i, etc.
+            if (Regex("sed\\s+.*(-i|--in-place)").containsMatchIn(command)) {
+                return "sed in-place editing is not allowed"
+            }
+        }
+        
+        // Then check blocked patterns for additional safety
         for (pattern in BLOCKED_PATTERNS) {
             if (pattern.containsMatchIn(command)) {
                 return "matches blocked pattern: ${pattern.pattern}"
             }
         }
         return null
+    }
+
+    /**
+     * Extract the base command from a command string.
+     * Handles simple commands, multi-word commands (like "ip addr"), and commands with arguments.
+     */
+    private fun extractBaseCommand(command: String): String {
+        val trimmed = command.trim()
+        if (trimmed.isEmpty()) return ""
+        
+        // Split by whitespace and get the first token
+        val tokens = trimmed.split(Regex("\\s+"))
+        if (tokens.isEmpty()) return ""
+        
+        val firstToken = tokens[0]
+        
+        // Handle multi-word commands like "ip addr" or "ip route"
+        // Only these specific ip subcommands are allowed, not all ip commands
+        if (firstToken == "ip" && tokens.size > 1) {
+            val secondToken = tokens[1]
+            if (secondToken == "addr" || secondToken == "route") {
+                return "ip $secondToken"
+            }
+            // For other ip subcommands, return the full "ip <subcommand>" 
+            // which will fail whitelist validation
+            return "ip $secondToken"
+        }
+        
+        return firstToken
+    }
+
+    /**
+     * Check if a command is allowed based on the whitelist.
+     * The command parameter should be the base command extracted by extractBaseCommand().
+     */
+    private fun isCommandAllowed(command: String): Boolean {
+        // Direct whitelist check - extractBaseCommand() already handles multi-word commands
+        return ALLOWED_COMMANDS.contains(command)
     }
 
     private fun truncateOutput(output: String): String {
