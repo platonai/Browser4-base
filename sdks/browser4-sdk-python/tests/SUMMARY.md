@@ -130,7 +130,7 @@ Cleanup (automatic)
 ### ✅ 单元测试仍然工作 (Unit Tests Still Work)
 ```bash
 $ pytest -m "not integration" -v
-# 37 tests pass in 0.07s
+# All unit tests pass
 ```
 
 ### ✅ 测试基础设施验证通过 (Infrastructure Verified)
@@ -155,7 +155,7 @@ $ python tests/smoke_test.py
 
 - **新增文件**: 10 files
 - **总代码行数**: ~1,226 lines
-- **测试用例**: 19 integration tests (+ 37 existing unit tests)
+- **测试用例**: 19 integration tests (+ existing unit tests)
 - **文档**: 3 comprehensive documentation files
 
 ## 优势 (Advantages)

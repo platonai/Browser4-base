@@ -150,7 +150,7 @@ The Python SDK implements the same interfaces as the Kotlin SDK, with naming ada
 
 **Kotlin:**
 ```kotlin
-val session = AgenticSession.getOrCreate()
+val session = AgenticContexts.getOrCreateSession()
 // or
 val client = PulsarClient()
 client.createSession()
@@ -226,20 +226,20 @@ text = driver.select_first_text_or_null("h1")
 - ✅ 100% API coverage of Kotlin SDK
 - ✅ All data models implemented
 - ✅ All methods available
-- ✅ 37 unit tests passing
+- ✅ Unit tests passing
 - ✅ Example scripts for all major use cases
 
 ## Testing
 
 Both SDKs have comprehensive test suites:
 
-**Kotlin:** Located in `src/test/kotlin/ai/platon/pulsar/sdk/`
-**Python:** Located in `tests/test_client.py` (37 tests)
+**Kotlin:** Located in `sdks/kotlin-sdk-tests/src/test/kotlin/ai/platon/pulsar/sdk/integration/`
+**Python:** Located in `tests/` directory
 
 ## Examples
 
-**Kotlin:** `src/test/kotlin/ai/platon/pulsar/sdk/examples/`
-**Python:** `examples/` directory with 3 comprehensive examples
+**Kotlin:** `sdks/kotlin-sdk-examples/src/main/kotlin/ai/platon/pulsar/sdk/examples/`
+**Python:** `examples/` directory with 5 example scripts
 
 ## Conclusion
 

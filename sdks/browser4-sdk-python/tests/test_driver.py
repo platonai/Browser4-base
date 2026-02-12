@@ -114,7 +114,7 @@ class TestBrowser4Driver:
         """Test parsing download URL from GitHub API response."""
         json_response = """
         {
-            "tag_name": "v4.4.0",
+            "tag_name": "v4.5.0",
             "assets": [
                 {
                     "name": "Browser4.jar",

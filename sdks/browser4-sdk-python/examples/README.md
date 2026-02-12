@@ -74,6 +74,33 @@ Demonstrates low-level browser control:
 python examples/webdriver_example.py
 ```
 
+### 4. driver_usage.py
+
+Demonstrates Browser4Driver lifecycle management:
+- Automatic download and startup using context manager
+- Manual control with custom configuration
+- Custom port and Java options
+
+**Run:**
+```bash
+python examples/driver_usage.py
+```
+
+### 5. fused_acts_style_example.py
+
+Mirrors the Kotlin FusedActsStyleExample to demonstrate API consistency across languages:
+- Three-layer architecture: PulsarSession, WebDriver, Agent
+- Page loading, parsing, and extraction
+- AI-powered actions and multi-step tasks
+- Process trace tracking
+
+**Run:**
+```bash
+python examples/fused_acts_style_example.py
+```
+
+**Note:** Requires a running Browser4 server and `OPENROUTER_API_KEY` environment variable.
+
 ## Example Output
 
 Each example includes detailed console output showing:
@@ -110,7 +137,7 @@ uv run python examples/basic_usage.py
 ## Further Reading
 
 - [Python SDK README](../README.md) - Full API documentation
-- [Kotlin SDK Examples](../../kotlin-sdk/src/test/kotlin/ai/platon/pulsar/sdk/examples/) - Kotlin equivalents
+- [Kotlin SDK Examples](../../kotlin-sdk-examples/src/main/kotlin/ai/platon/pulsar/sdk/examples/) - Kotlin equivalents
 - [Browser4 Documentation](../../../docs/) - Complete platform documentation
 
 ## Contributing

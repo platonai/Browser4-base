@@ -12,13 +12,6 @@ This SDK provides a Python interface to the Browser4 browser automation platform
 
 **[View Full Documentation →](https://platonai.github.io/Browser4/sdks/python-sdk/)**
 
-Or build locally:
-```bash
-pip install -r docs-requirements.txt
-mkdocs serve
-# Open http://127.0.0.1:8000
-```
-
 ## Installation
 
 ```bash
@@ -56,7 +49,7 @@ with Browser4Driver() as driver:
     web_driver.fill("input[name='search']", "browser automation")
     web_driver.press("input[name='search']", "Enter")
 
-    # Extract data using CSS selectors (parse first, then extract)
+    # Extract data using CSS selectors (load returns WebPage with HTML)
     document = session.parse(page)
     fields = session.extract(document, {
         "title": "h1",
@@ -123,7 +116,7 @@ driver = Browser4Driver(
     jar_path="/custom/path/Browser4.jar",  # Custom jar location
     download_url="https://custom-url/Browser4.jar",  # Custom download URL
     port=8182,  # Server port
-    java_options={"spring.profiles.active": "rest,private"}  # Java options
+    java_options={"spring.profiles.active": "rest,private,advanced"}  # Java options
 )
 ```
 

@@ -179,7 +179,7 @@ Possible improvements:
 All unit tests continue to work:
 ```bash
 $ pytest -m "not integration" -v
-# ... 37 tests pass ...
+# ... all unit tests pass ...
 ```
 
 Integration test infrastructure validates correctly:

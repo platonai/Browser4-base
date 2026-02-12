@@ -61,7 +61,7 @@ class Browser4Driver:
         jar_path: Path where Browser4.jar should be stored
                   (default: ~/.browser4/lib/Browser4.jar)
         download_url: URL to download Browser4.jar from
-                      (default: GitHub release v4.4.0)
+                      (default: GitHub release v4.5.0)
         port: Port for the Browser4 server (default: 8182)
         java_options: Additional Java options for the process
     """
