@@ -103,7 +103,7 @@ driver = Browser4Driver(jar_path=jar_path)
 
 URL to download Browser4.jar from.
 
-**Default**: `https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar`
+**Default**: `https://github.com/platonai/Browser4/releases/download/v4.5.0/Browser4.jar`
 
 **Example**:
 ```bash
@@ -387,7 +387,7 @@ services:
       - "8182:8182"
     environment:
       - JAVA_OPTS=-Xmx4g -Xms2g
-  
+
   scraper:
     build: .
     depends_on:
@@ -416,24 +416,24 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     env:
       BROWSER4_PORT: 8183
       BROWSER4_TIMEOUT: 60.0
       BROWSER4_LOG_LEVEL: DEBUG
-    
+
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-      
+
       - name: Run tests
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -446,15 +446,15 @@ jobs:
 ```yaml
 test:
   image: python:3.11
-  
+
   variables:
     BROWSER4_PORT: "8183"
     BROWSER4_TIMEOUT: "60.0"
     BROWSER4_LOG_LEVEL: "DEBUG"
-  
+
   before_script:
     - pip install -r requirements.txt
-  
+
   script:
     - pytest tests/
 ```
@@ -527,7 +527,7 @@ def validate_config():
     """Validate required environment variables."""
     required = ["OPENROUTER_API_KEY"]
     missing = [var for var in required if not os.getenv(var)]
-    
+
     if missing:
         raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
 

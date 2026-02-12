@@ -21,7 +21,7 @@
 class Browser4Driver:
     """
     Browser4Driver manages the lifecycle of a local Browser4.jar process.
-    
+
     Args:
         jar_path: Path where Browser4.jar should be stored
                   (default: ~/.browser4/lib/Browser4.jar)
@@ -308,11 +308,11 @@ with Browser4Driver() as driver:
     client = PulsarClient(base_url=driver.base_url)
     session_id = client.create_session()
     session = AgenticSession(client)
-    
+
     # Use the session
     page = session.open("https://example.com")
     print(f"Loaded: {page.url}")
-    
+
     # Cleanup
     session.close()
 ```
@@ -334,9 +334,9 @@ driver = Browser4Driver(
 try:
     driver.start()
     print(f"Server started at {driver.base_url}")
-    
+
     # Use the server...
-    
+
 finally:
     driver.stop()
 ```
@@ -387,7 +387,7 @@ driver.stop()
 
 ## Constants
 
-- **DEFAULT_DOWNLOAD_URL**: `"https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar"`
+- **DEFAULT_DOWNLOAD_URL**: `"https://github.com/platonai/Browser4/releases/download/v4.5.0/Browser4.jar"`
 - **LATEST_RELEASE_API**: `"https://api.github.com/repos/platonai/Browser4/releases/latest"`
 - **JAR_FILENAME**: `"Browser4.jar"`
 - **DEFAULT_PORT**: `8182`

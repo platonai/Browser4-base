@@ -94,7 +94,7 @@ driver.start()
 
 **Default**: Latest release from GitHub:
 ```
-https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar
+https://github.com/platonai/Browser4/releases/download/v4.5.0/Browser4.jar
 ```
 
 ### Java Options Configuration
@@ -132,27 +132,27 @@ from pathlib import Path
 driver = Browser4Driver(
     # Server port
     port=8183,
-    
+
     # JAR file location
     jar_path=str(Path.home() / "browser4-lib" / "Browser4.jar"),
-    
+
     # Download URL
-    download_url="https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar",
-    
+    download_url="https://github.com/platonai/Browser4/releases/download/v4.5.0/Browser4.jar",
+
     # Java system properties
     java_options={
         # Server configuration
         "server.port": "8183",
         "spring.profiles.active": "rest,private",
-        
+
         # Logging
         "logging.level.ai.platon": "INFO",
         "logging.level.root": "WARN",
-        
+
         # Browser settings
         "browser4.driver.headless": "true",
         "browser4.browser.chrome.options": "--disable-gpu",
-        
+
         # Performance
         "browser4.fetch.queue.capacity": "1000",
         "browser4.storage.crawl.id": "my-crawl",
@@ -163,19 +163,19 @@ try:
     # Start server
     driver.start()
     print(f"Server running at {driver.base_url}")
-    
+
     # Create client
     client = PulsarClient(base_url=driver.base_url)
     session_id = client.create_session()
     session = AgenticSession(client)
-    
+
     # Use the session...
     page = session.open("https://example.com")
-    
+
     # Cleanup
     session.close()
     client.close()
-    
+
 finally:
     driver.stop()
 ```

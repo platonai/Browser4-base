@@ -118,7 +118,7 @@ class TestBrowser4Driver:
             "assets": [
                 {
                     "name": "Browser4.jar",
-                    "browser_download_url": "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar"
+                    "browser_download_url": "https://github.com/platonai/Browser4/releases/download/v4.5.0/Browser4.jar"
                 }
             ]
         }
@@ -126,7 +126,7 @@ class TestBrowser4Driver:
 
         url = Browser4Driver._parse_latest_browser_download_url(json_response)
 
-        assert url == "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar"
+        assert url == "https://github.com/platonai/Browser4/releases/download/v4.5.0/Browser4.jar"
 
     def test_parse_latest_browser_download_url_not_found(self):
         """Test parsing returns None when URL not found."""

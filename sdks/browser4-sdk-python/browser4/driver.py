@@ -66,7 +66,7 @@ class Browser4Driver:
         java_options: Additional Java options for the process
     """
 
-    DEFAULT_DOWNLOAD_URL = "https://github.com/platonai/Browser4/releases/download/v4.4.0/Browser4.jar"
+    DEFAULT_DOWNLOAD_URL = "https://github.com/platonai/Browser4/releases/download/v4.5.0/Browser4.jar"
     LATEST_RELEASE_API = "https://api.github.com/repos/platonai/Browser4/releases/latest"
     JAR_FILENAME = "Browser4.jar"
     DEFAULT_PORT = 8182
