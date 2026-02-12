@@ -1,0 +1,14 @@
+# Ignore test artifacts
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# Ignore temporary files
+*.tmp
+*.bak
+*~
+
+# Ignore virtual environments
+venv/
+env/
+.venv/

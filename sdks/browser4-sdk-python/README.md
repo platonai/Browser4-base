@@ -481,3 +481,18 @@ This SDK aims to maintain API consistency with the Kotlin Browser4 interfaces:
 - `PageEventHandlers` → Python `PageEventHandlers` (placeholder)
 
 Method names use Python naming conventions (snake_case) with Kotlin-style aliases available for compatibility.
+
+## Release Information
+
+For maintainers and contributors working on SDK releases:
+
+- **[Release Plan (中文)](RELEASE_PLAN.md)** - Complete release process documentation in Chinese
+- **[Release Plan (English)](RELEASE_PLAN.en.md)** - Complete release process documentation in English
+- **[Quick Reference](RELEASE_QUICKREF.md)** - Quick reference guide for releases (Chinese)
+
+These documents cover:
+- Version management and semantic versioning strategy
+- Pre-release testing and validation procedures
+- Building and packaging for PyPI
+- Automated CI/CD release workflows
+- Post-release monitoring and maintenance
