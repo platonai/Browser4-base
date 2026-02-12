@@ -43,7 +43,8 @@ session = AgenticSession(client)
 
 # Navigation and extraction
 page = session.open("https://example.com")
-fields = session.extract(page, {"title": "h1"})
+document = session.parse(page)
+fields = session.extract(document, {"title": "h1"})
 
 # AI-powered actions
 result = session.act("click the search button")
