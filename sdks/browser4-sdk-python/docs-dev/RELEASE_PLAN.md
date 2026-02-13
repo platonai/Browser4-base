@@ -43,7 +43,7 @@ browser4-sdk-python 遵循**独立版本号**策略，与主项目 Browser4 版�
 
 | 组件 | 当前版本 | 版本策略 |
 |------|---------|---------|
-| Browser4 (主项目) | 4.6.0-SNAPSHOT | Maven 语义化版本 |
+| Browser4 (主项目) | 4.5.0 | Maven 语义化版本 |
 | browser4-sdk-kotlin | 跟随主项目 | 与主项目同步 |
 | browser4-sdk-python | 0.1.0 | 独立版本号 |
 | browser4-sdk-nodejs | TBD | 独立版本号 |
@@ -553,33 +553,33 @@ jobs:
   build:
     name: Build Distribution
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      
+
       - name: Install build tools
         run: uv pip install --system build twine
-      
+
       - name: Build package
         run: |
           cd sdks/browser4-sdk-python
           python -m build
-      
+
       - name: Check package
         run: |
           cd sdks/browser4-sdk-python
           twine check dist/*
-      
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -594,21 +594,21 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.9', '3.10', '3.11', '3.12']
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
-      
+
       - name: Test wheel installation
         run: |
           python -m pip install dist/*.whl
@@ -619,18 +619,18 @@ jobs:
     needs: [build, test-package]
     runs-on: ubuntu-latest
     if: github.event.inputs.dry_run == 'true'
-    
+
     environment:
       name: testpypi
       url: https://test.pypi.org/project/browser4-sdk/
-    
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
-      
+
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -642,21 +642,21 @@ jobs:
     needs: [build, test-package]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/python-sdk-v') && github.event.inputs.dry_run != 'true'
-    
+
     environment:
       name: pypi
       url: https://pypi.org/project/browser4-sdk/
-    
+
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
-    
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
-      
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -666,25 +666,25 @@ jobs:
     name: Create GitHub Release
     needs: publish-pypi
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
-      
+
       - name: Extract version from tag
         id: version
         run: |
           VERSION=${GITHUB_REF#refs/tags/python-sdk-v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-      
+
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -891,7 +891,7 @@ git push
 1. **标记为废弃（Deprecation）**
    ```python
    import warnings
-   
+
    def old_function():
        warnings.warn(
            "old_function is deprecated and will be removed in v2.0.0. "
@@ -1144,13 +1144,13 @@ else
     if [ "$confirm" = "yes" ]; then
         echo "📤 Uploading to PyPI..."
         twine upload dist/*
-        
+
         echo "🏷️  Creating git tag..."
         git add pyproject.toml setup.cfg browser4/__init__.py
         git commit -m "chore(python-sdk): Release v$VERSION"
         git tag "python-sdk-v$VERSION"
         git push origin main "python-sdk-v$VERSION"
-        
+
         echo "✅ Release complete!"
         echo "📦 Install with: pip install browser4-sdk==$VERSION"
         echo "🔗 PyPI: https://pypi.org/project/browser4-sdk/$VERSION/"
