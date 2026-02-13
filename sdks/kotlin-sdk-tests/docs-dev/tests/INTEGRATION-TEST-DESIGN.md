@@ -942,7 +942,7 @@ mvn test -pl sdks/kotlin-sdk-tests -Dgroups="IntegrationTest,!Slow"
 
     <properties>
         <kotlin.version>2.2.21</kotlin.version>
-        <pulsar.version>4.5.0-rc.1</pulsar.version>
+        <pulsar.version>4.6.0-SNAPSHOT</pulsar.version>
         <browser4.sdk.version>4.5.0-rc.1</browser4.sdk.version>
         <surefire.excludedGroups>MustRunExplicitly,PassedOn20260203</surefire.excludedGroups>
     </properties>
