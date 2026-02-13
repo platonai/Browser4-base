@@ -63,7 +63,7 @@ Exclude specific patterns:
 
 You can also run the Python script directly:
 ```bash
-python3 bin/quality/check-links.py --help
+python3 bin/quality/fix-links.py --help
 ```
 
 ## Options
