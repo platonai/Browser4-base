@@ -1,12 +1,23 @@
 package ai.platon.pulsar.common.code
 
+import ai.platon.pulsar.common.code.ProjectUtils.isInJar
+import ai.platon.pulsar.common.printlnPro
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 class ProjectUtilsTest {
+
+    @BeforeEach
+    fun setUp() {
+        // Skip tests if running in a JAR environment
+        Assumptions.assumeFalse(isInJar(), "Tests are skipped when running in a JAR environment")
+    }
 
     @Test
     fun testFindProjectRootDirFromCurrentDir() {
@@ -26,7 +37,7 @@ class ProjectUtilsTest {
         Files.createDirectory(subdirectory)
 
         val projectRootDir = ProjectUtils.findProjectRootDir(subdirectory)
-        assertNotNull(projectRootDir)
+        assertNotNull(projectRootDir) { "Project root directory should be found" }
         assertEquals(tempDir, projectRootDir)
     }
 
@@ -43,10 +54,12 @@ class ProjectUtilsTest {
 
     @Test
     fun testFindFile() {
+        printlnPro("Project root dir:")
+        printlnPro(ProjectUtils.findProjectRootDir())
+        printlnPro("Current dir:")
+        printlnPro(Paths.get(".").toAbsolutePath().normalize())
         val foundFile = ProjectUtils.findFile("WebDriver.kt")
-//        printlnPro(ProjectUtils.findFile("WebDriver.kt"))
-//        printlnPro(ProjectUtils.findFile("PulsarSession.kt"))
-        assertEquals("WebDriver.kt", ProjectUtils.findFile("WebDriver.kt")?.fileName?.toString())
+        assertEquals("WebDriver.kt", foundFile?.fileName?.toString())
         assertEquals("PulsarSession.kt", ProjectUtils.findFile("PulsarSession.kt")?.fileName?.toString())
     }
 
