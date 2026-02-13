@@ -72,7 +72,9 @@ class CheckpointManagerTest {
         val session = "session-list-test"
 
         checkpointManager.save(createTestCheckpoint(session, step = 10))
+        Thread.sleep(10)
         checkpointManager.save(createTestCheckpoint(session, step = 20))
+        Thread.sleep(10)
         checkpointManager.save(createTestCheckpoint(session, step = 30))
 
         val checkpoints = checkpointManager.listCheckpoints(session)

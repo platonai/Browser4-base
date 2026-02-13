@@ -153,7 +153,8 @@ class CheckpointManager(
                     path = path
                 )
             }
-            .sorted { a, b -> b.timestamp.compareTo(a.timestamp) }
+            .sorted(compareByDescending<CheckpointMetadata> { it.timestamp }
+                .thenByDescending { it.currentStep })
             .toList()
     }
 
