@@ -213,7 +213,7 @@ class TestMCPServerForPluginMock {
             })
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         Assertions.assertNotNull(result)
         assertTrue(result.containsKey("content"), "Result should contain content")
@@ -237,7 +237,7 @@ class TestMCPServerForPluginMock {
             })
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         @Suppress("UNCHECKED_CAST")
         val content = result["content"] as List<Map<String, Any>>
@@ -255,7 +255,7 @@ class TestMCPServerForPluginMock {
             })
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         @Suppress("UNCHECKED_CAST")
         val content = result["content"] as List<Map<String, Any>>
@@ -274,7 +274,7 @@ class TestMCPServerForPluginMock {
             })
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         @Suppress("UNCHECKED_CAST")
         val content = result["content"] as List<Map<String, Any>>
@@ -292,7 +292,7 @@ class TestMCPServerForPluginMock {
         }
 
         assertThrows(IllegalArgumentException::class.java) {
-            server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+            server.callTool(objectMapper.writeValueAsString(request))
         }
     }
 
@@ -305,7 +305,7 @@ class TestMCPServerForPluginMock {
         }
 
         assertThrows(IllegalArgumentException::class.java) {
-            server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+            server.callTool(objectMapper.writeValueAsString(request))
         }
     }
 
@@ -317,7 +317,7 @@ class TestMCPServerForPluginMock {
             set<ObjectNode>("arguments", objectMapper.createObjectNode()) // Missing 'message'
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         Assertions.assertNotNull(result)
         assertTrue(result.containsKey("isError"), "Response should indicate error")

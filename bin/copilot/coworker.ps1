@@ -133,7 +133,7 @@ Prompt: $promptSample
 
         $waited = $false
         try {
-            $null = Wait-Process -Id $nameProcess.Id -Timeout $copilotNameTimeoutSeconds
+            $null = Wait-Process -Id $nameProcess.Id -Timeout $copilotNameTimeoutSeconds -ErrorAction Stop
             $waited = $true
         } catch {
             $waited = $false
@@ -278,6 +278,12 @@ $prompt
 
         $optimizedContent | Out-File -FilePath $workingPath -Encoding UTF8
         Write-LogMessage "Created optimized task: $workingPath" INFO
+
+        # Define log file paths for this task
+        $workingBaseName = $taskInfo.FileName -replace [regex]::Escape($file.Extension), ''
+        $taskLogPath = Join-Path $logsDir "$workingBaseName.task.log"
+        $copilotLogPath = Join-Path $logsDir "$workingBaseName.copilot.log"
+
         Write-LogVerbose "Task log will be written to: $taskLogPath"
 
         # Change working directory to repository root
@@ -316,7 +322,7 @@ Copilot Execution Output:
 
             $runWaited = $false
             try {
-                $null = Wait-Process -Id $process.Id -Timeout $copilotRunTimeoutSeconds
+                $null = Wait-Process -Id $process.Id -Timeout $copilotRunTimeoutSeconds -ErrorAction Stop
                 $runWaited = $true
             } catch {
                 $runWaited = $false

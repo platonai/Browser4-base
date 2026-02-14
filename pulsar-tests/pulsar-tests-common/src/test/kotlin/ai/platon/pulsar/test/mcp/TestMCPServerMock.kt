@@ -71,7 +71,7 @@ class TestMCPServerMock {
             })
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         assertNotNull(result)
         assertTrue(result.containsKey("content"))
@@ -94,7 +94,7 @@ class TestMCPServerMock {
             })
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         assertNotNull(result)
         assertTrue(result.containsKey("content"))
@@ -117,7 +117,7 @@ class TestMCPServerMock {
             })
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         assertNotNull(result)
         assertTrue(result.containsKey("content"))
@@ -150,7 +150,7 @@ class TestMCPServerMock {
             set<ObjectNode>("arguments", objectMapper.createObjectNode()) // Missing 'message' argument
         }
 
-        val result = server.callTool(objectMapper.convertValue(request, Map::class.java) as Map<String, Any>)
+        val result = server.callTool(objectMapper.writeValueAsString(request))
 
         assertNotNull(result)
         assertTrue(result.containsKey("isError"))

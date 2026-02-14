@@ -203,7 +203,7 @@ class XiaoHongShuE2ETest : KotlinSdkIntegrationTestBase() {
      * - 退出路径明确，退出后无异常弹窗或卡死状态
      */
     @Test
-    fun testContentToProduct() = runBlocking {
+    fun testContentToProduct(): Unit = runBlocking {
         createSession()
         val session = AgenticSession(client)
         val driver = session.driver
