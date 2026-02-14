@@ -28,30 +28,20 @@ while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "VERSION"))) 
 Set-Location $AppHome
 
 # Define directory paths for task management workflow
-$baseDir = Join-Path $AppHome "docs-dev\copilot\tasks\daily"
-$createdDir = Join-Path $baseDir "created"        # Input directory for new tasks
-$workingDir = Join-Path $baseDir "working"        # Processing directory for current tasks
-$finishedDir = Join-Path $baseDir "finished"      # Output directory for completed tasks
-$logsDir = Join-Path $baseDir "logs"              # Directory for script and execution logs
 $repoRoot = $AppHome                              # Repository root for Copilot execution
 
-$extraTasksRoot = Join-Path $AppHome "docs-dev\tasks"
+$tasksRoot = Join-Path $AppHome "docs-dev\tasks"
 $taskRoots = @(
     @{
-        Created = $createdDir
-        Working = $workingDir
-        Finished = $finishedDir
-        Logs = $logsDir
-        Label = "copilot-daily"
-    },
-    @{
-        Created = (Join-Path $extraTasksRoot "created")
-        Working = (Join-Path $extraTasksRoot "working")
-        Finished = (Join-Path $extraTasksRoot "finished")
-        Logs = (Join-Path $extraTasksRoot "logs")
+        Created = (Join-Path $tasksRoot "created")
+        Working = (Join-Path $tasksRoot "working")
+        Finished = (Join-Path $tasksRoot "finished")
+        Logs = (Join-Path $tasksRoot "logs")
         Label = "tasks"
     }
 )
+
+$logsDir = $taskRoots[0].Logs
 
 # Ensure all required directories exist
 # Create them if they don't already exist
@@ -65,6 +55,9 @@ foreach ($root in $taskRoots) {
 # Main log file for all script output
 $scriptLogPath = Join-Path $logsDir "coworker-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 $scriptStartTime = Get-Date
+
+$copilotNameTimeoutSeconds = 60
+$copilotRunTimeoutSeconds = 6000
 
 # ============================================================================
 # Logging Functions
@@ -105,6 +98,84 @@ function Write-LogVerbose {
 
     # Append to script log file only (not console)
     $logEntry | Out-File -FilePath $scriptLogPath -Append
+}
+
+function Get-TaskBaseName {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Title,
+        [Parameter(Mandatory=$true)]
+        [string]$Description,
+        [Parameter(Mandatory=$true)]
+        [string]$Prompt,
+        [Parameter(Mandatory=$true)]
+        [string]$Fallback
+    )
+
+    $promptSample = $Prompt
+    if ($promptSample.Length -gt 600) {
+        $promptSample = $promptSample.Substring(0, 600)
+    }
+
+    $namingPrompt = @"
+Create a short, descriptive task name in kebab-case (3-6 words max). Output only the name.
+Title: $Title
+Description: $Description
+Prompt: $promptSample
+"@
+
+    try {
+        $promptEscaped = $namingPrompt -replace '"', '\"'
+        $nameArgs = "-p `"$promptEscaped`" --allow-all-tools --allow-all-paths"
+        $nameStdOut = [System.IO.Path]::GetTempFileName()
+        $nameStdErr = [System.IO.Path]::GetTempFileName()
+        $nameProcess = Start-Process -FilePath "copilot" -ArgumentList $nameArgs -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
+
+        $waited = $false
+        try {
+            $null = Wait-Process -Id $nameProcess.Id -Timeout $copilotNameTimeoutSeconds
+            $waited = $true
+        } catch {
+            $waited = $false
+        }
+
+        if (-not $waited -or -not $nameProcess.HasExited) {
+            Stop-Process -Id $nameProcess.Id -Force -ErrorAction SilentlyContinue
+            Remove-Item $nameStdOut -ErrorAction SilentlyContinue
+            Remove-Item $nameStdErr -ErrorAction SilentlyContinue
+            return $Fallback
+        }
+
+        $rawName = ""
+        if (Test-Path $nameStdOut) {
+            $rawName = (Get-Content -Path $nameStdOut | Where-Object { $_ -and $_.Trim() } | Select-Object -First 1)
+        }
+
+        Remove-Item $nameStdOut -ErrorAction SilentlyContinue
+        Remove-Item $nameStdErr -ErrorAction SilentlyContinue
+
+        if ($nameProcess.ExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($rawName)) {
+            return $Fallback
+        }
+
+        $normalized = $rawName.Trim()
+        $normalized = $normalized -replace '\s+', '-'
+        $normalized = $normalized -replace '[^A-Za-z0-9._-]', '-'
+        $normalized = $normalized -replace '-+', '-'
+        $normalized = $normalized.Trim(' ', '.', '-', '_')
+        if ($normalized.Length -gt 60) {
+            $normalized = $normalized.Substring(0, 60).Trim(' ', '.', '-', '_')
+        }
+
+        if ([string]::IsNullOrWhiteSpace($normalized)) {
+            return $Fallback
+        }
+
+        return $normalized
+    }
+    catch {
+        return $Fallback
+    }
 }
 
 function Resolve-UniquePath {
@@ -151,10 +222,14 @@ foreach ($taskRoot in $taskRoots) {
 
     # Process each task file found in the created directory
     foreach ($file in $files) {
+        $incomingInfo = Resolve-UniquePath -Directory $workingDir -BaseName ("$($file.BaseName).incoming") -Extension $file.Extension
+        Move-Item -Path $file.FullName -Destination $incomingInfo.Path -Force
+        Write-LogMessage "Moved to working (incoming): $($incomingInfo.Path)" INFO
+
         Write-LogMessage "Processing $($file.Name)..." INFO
 
         # Read the entire file content
-        $content = Get-Content -Path $file.FullName -Raw
+        $content = Get-Content -Path $incomingInfo.Path -Raw
 
         # Initialize variables for task metadata
         $title = ""
@@ -181,22 +256,19 @@ foreach ($taskRoot in $taskRoots) {
             $safeTitle = "task"
         }
 
-        $taskInfo = Resolve-UniquePath -Directory $workingDir -BaseName $safeTitle -Extension $file.Extension
-        $originalInfo = Resolve-UniquePath -Directory $workingDir -BaseName "$safeTitle.original" -Extension $file.Extension
+        $baseName = Get-TaskBaseName -Title $title -Description $description -Prompt $prompt -Fallback $safeTitle
+
+        $taskInfo = Resolve-UniquePath -Directory $workingDir -BaseName $baseName -Extension $file.Extension
+        $originalInfo = Resolve-UniquePath -Directory $workingDir -BaseName "$baseName.original" -Extension $file.Extension
 
         # Define full paths for the task file at each workflow stage
         $workingPath = $taskInfo.Path
         $workingOriginalPath = $originalInfo.Path
 
-        $workingFileName = $taskInfo.FileName
-        $workingBaseName = [System.IO.Path]::GetFileNameWithoutExtension($workingFileName)
+        Move-Item -Path $incomingInfo.Path -Destination $workingOriginalPath -Force
+        Write-LogMessage "Renamed incoming to original: $workingOriginalPath" INFO
 
-        # Task log path - combined log for task execution
-        $taskLogPath = Join-Path $logsDir "task_${workingBaseName}_$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
-
-        # Copilot-specific external tool log (separate from task log)
-        $copilotLogPath = Join-Path $logsDir "copilot_${workingBaseName}_$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
-
+        # Write optimized task file to working directory
         $optimizedContent = @"
 Title: $title
 Description: $description
@@ -204,11 +276,6 @@ Prompt:
 $prompt
 "@
 
-        # Move original task file from created directory to working directory (as .original)
-        Move-Item -Path $file.FullName -Destination $workingOriginalPath -Force
-        Write-LogMessage "Moved original to working: $workingOriginalPath" INFO
-
-        # Write optimized task file to working directory
         $optimizedContent | Out-File -FilePath $workingPath -Encoding UTF8
         Write-LogMessage "Created optimized task: $workingPath" INFO
         Write-LogVerbose "Task log will be written to: $taskLogPath"
@@ -245,7 +312,20 @@ Copilot Execution Output:
 
             # Execute Copilot tool with the task prompt
             # Capture both standard output and error output to separate files
-            $process = Start-Process -FilePath "copilot" -ArgumentList $copilotArgs -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog -Wait
+            $process = Start-Process -FilePath "copilot" -ArgumentList $copilotArgs -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
+
+            $runWaited = $false
+            try {
+                $null = Wait-Process -Id $process.Id -Timeout $copilotRunTimeoutSeconds
+                $runWaited = $true
+            } catch {
+                $runWaited = $false
+            }
+
+            if (-not $runWaited -or -not $process.HasExited) {
+                Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+                Write-LogMessage "Copilot timed out after ${copilotRunTimeoutSeconds}s" WARN
+            }
 
             # Combine copilot stdout and stderr logs into the copilot-specific log
             # First append stdout if it exists
@@ -290,7 +370,7 @@ Copilot Log: $copilotLogPath
 
         # Move completed task from working directory to finished directory
         $finishedInfo = Resolve-UniquePath -Directory $finishedDir -BaseName $workingBaseName -Extension $file.Extension
-        $finishedOriginalInfo = Resolve-UniquePath -Directory $finishedDir -BaseName "$safeTitle.original" -Extension $file.Extension
+        $finishedOriginalInfo = Resolve-UniquePath -Directory $finishedDir -BaseName "$workingBaseName.original" -Extension $file.Extension
 
         Move-Item -Path $workingPath -Destination $finishedInfo.Path -Force
         Write-LogMessage "Task moved to finished: $($finishedInfo.Path)" INFO
