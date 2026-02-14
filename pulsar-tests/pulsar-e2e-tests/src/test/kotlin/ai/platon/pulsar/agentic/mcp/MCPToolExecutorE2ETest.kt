@@ -17,6 +17,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 /**
  * End-to-end tests for MCP functionality.
@@ -94,7 +95,8 @@ class MCPToolExecutorE2ETest {
     // ========== Server Connectivity Tests ==========
 
     @Test
-    fun `test server is accessible via HTTP`() {
+        @DisplayName("test server is accessible via HTTP")
+    fun testServerIsAccessibleViaHttp() {
         val info = getInfo()
         assertNotNull(info)
         assertEquals("test-mcp-server", info["name"])
@@ -102,7 +104,8 @@ class MCPToolExecutorE2ETest {
     }
 
     @Test
-    fun `test server lists available tools`() {
+        @DisplayName("test server lists available tools")
+    fun testServerListsAvailableTools() {
         val result = listTools()
         assertNotNull(result)
 
@@ -117,7 +120,8 @@ class MCPToolExecutorE2ETest {
     // ========== Tool Discovery Tests ==========
 
     @Test
-    fun `test tool discovery returns all available tools`() {
+        @DisplayName("test tool discovery returns all available tools")
+    fun testToolDiscoveryReturnsAllAvailableTools() {
         val result = listTools()
 
         @Suppress("UNCHECKED_CAST")
@@ -138,7 +142,8 @@ class MCPToolExecutorE2ETest {
     }
 
     @Test
-    fun `test echo tool schema is correct`() {
+        @DisplayName("test echo tool schema is correct")
+    fun testEchoToolSchemaIsCorrect() {
         val result = listTools()
 
         @Suppress("UNCHECKED_CAST")
@@ -161,7 +166,8 @@ class MCPToolExecutorE2ETest {
     // ========== Tool Execution Tests ==========
 
     @Test
-    fun `test echo tool execution via direct server call`() {
+        @DisplayName("test echo tool execution via direct server call")
+    fun testEchoToolExecutionViaDirectServerCall() {
         val request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "echo")
             set<ObjectNode>(
@@ -184,7 +190,8 @@ class MCPToolExecutorE2ETest {
     }
 
     @Test
-    fun `test add tool execution returns correct sum`() {
+        @DisplayName("test add tool execution returns correct sum")
+    fun testAddToolExecutionReturnsCorrectSum() {
         val request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "add")
             set<ObjectNode>(
@@ -205,7 +212,8 @@ class MCPToolExecutorE2ETest {
     }
 
     @Test
-    fun `test multiply tool execution returns correct product`() {
+        @DisplayName("test multiply tool execution returns correct product")
+    fun testMultiplyToolExecutionReturnsCorrectProduct() {
         val request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "multiply")
             set<ObjectNode>(
@@ -228,7 +236,8 @@ class MCPToolExecutorE2ETest {
     // ========== Error Handling Tests ==========
 
     @Test
-    fun `test calling non-existent tool throws exception`() {
+        @DisplayName("test calling non-existent tool throws exception")
+    fun testCallingNonExistentToolThrowsException() {
         val request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "non_existent_tool")
             set<ObjectNode>(
@@ -245,7 +254,8 @@ class MCPToolExecutorE2ETest {
     }
 
     @Test
-    fun `test calling tool with missing required argument returns error`() {
+        @DisplayName("test calling tool with missing required argument returns error")
+    fun testCallingToolWithMissingRequiredArgumentReturnsError() {
         val request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "echo")
             set<ObjectNode>(
@@ -262,7 +272,8 @@ class MCPToolExecutorE2ETest {
     }
 
     @Test
-    fun `test add tool with missing argument returns error`() {
+        @DisplayName("test add tool with missing argument returns error")
+    fun testAddToolWithMissingArgumentReturnsError() {
         val request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "add")
             set<ObjectNode>(
@@ -283,7 +294,8 @@ class MCPToolExecutorE2ETest {
     // ========== Sequential Operations Tests ==========
 
     @Test
-    fun `test multiple sequential tool calls maintain server state`() {
+        @DisplayName("test multiple sequential tool calls maintain server state")
+    fun testMultipleSequentialToolCallsMaintainServerState() {
         // First call: echo
         var request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "echo")
@@ -336,7 +348,8 @@ class MCPToolExecutorE2ETest {
     }
 
     @Test
-    fun `test mixed successful and failed calls maintain server stability`() {
+        @DisplayName("test mixed successful and failed calls maintain server stability")
+    fun testMixedSuccessfulAndFailedCallsMaintainServerStability() {
         // Successful call
         var request = jacksonObjectMapper().createObjectNode().apply {
             put("name", "echo")
@@ -388,7 +401,8 @@ class MCPToolExecutorE2ETest {
     // ========== Network Communication Tests ==========
 
     @Test
-    fun `test cross-network communication via HTTP endpoints`() {
+        @DisplayName("test cross-network communication via HTTP endpoints")
+    fun testCrossNetworkCommunicationViaHttpEndpoints() {
         // This test validates that the TestMCPServer is accessible over HTTP
         // and can handle requests across network boundaries
 

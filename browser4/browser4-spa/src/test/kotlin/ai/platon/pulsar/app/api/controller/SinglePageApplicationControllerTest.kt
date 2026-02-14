@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
+import org.junit.jupiter.api.DisplayName
 
 @Tag("Slow")
 @Tag("ManualOnly")
@@ -46,7 +47,8 @@ class SinglePageApplicationControllerTest : IntegrationTestBase() {
     }
 
     @BeforeEach
-    fun `init Single Page Application`() {
+        @DisplayName("init Single Page Application")
+    fun initSinglePageApplication() {
         Assumptions.assumeTrue { ChatModelFactory.isModelConfigured(session.configuration) }
 
         health()
@@ -55,7 +57,8 @@ class SinglePageApplicationControllerTest : IntegrationTestBase() {
 
     @Order(10)
     @Test
-    fun `navigate to product page`() {
+        @DisplayName("navigate to product page")
+    fun navigateToProductPage() {
         val request = NavigateRequest(TestHelper.PRODUCT_DETAIL_URL)
         val result = client.post().uri("/api/navigate")
             .body(request)
@@ -73,7 +76,8 @@ class SinglePageApplicationControllerTest : IntegrationTestBase() {
 
     @Order(20)
     @Test
-    fun `act with searching`() {
+        @DisplayName("act with searching")
+    fun actWithSearching() {
         val request = ActionOptions(action = "search latest iphone, give me a summary of the search result")
 
         var lastStatus: Int? = null
@@ -121,7 +125,8 @@ class SinglePageApplicationControllerTest : IntegrationTestBase() {
 
     @Order(30)
     @Test
-    fun `take screenshot`() {
+        @DisplayName("take screenshot")
+    fun takeScreenshot() {
         val result = client.post().uri("/api/screenshot")
             .body(emptyMap<String, Any?>())
             .exchange()
@@ -148,7 +153,8 @@ class SinglePageApplicationControllerTest : IntegrationTestBase() {
 
     @Order(40)
     @Test
-    fun `extract with prompt`() {
+        @DisplayName("extract with prompt")
+    fun extractWithPrompt() {
         val requestBody = mapOf(
             "instruction" to "name, price",
             "iframes" to true,

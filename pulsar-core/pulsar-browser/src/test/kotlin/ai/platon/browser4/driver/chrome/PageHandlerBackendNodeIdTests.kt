@@ -1,5 +1,7 @@
 package ai.platon.browser4.driver.chrome
 
+import org.junit.jupiter.api.DisplayName
+
 /**
  * Tests for backend node ID support in PageHandler selectors.
  *
@@ -9,7 +11,8 @@ package ai.platon.browser4.driver.chrome
 class PageHandlerBackendNodeIdTests {
 
 //    @Test
-//    fun `test backend node ID selector format parsing`() {
+//        @DisplayName("test backend node ID selector format parsing")
+    fun testBackendNodeIdSelectorFormatParsing() {
 //        val devTools = mock(RemoteDevTools::class.java)
 //        val confuser = mock(ScriptConfuser::class.java)
 //        val domAPI = mock(DOM::class.java)
@@ -40,7 +43,8 @@ class PageHandlerBackendNodeIdTests {
 //    }
 //
 //    @Test
-//    fun `test regular CSS selector still works`() {
+//        @DisplayName("test regular CSS selector still works")
+    fun testRegularCssSelectorStillWorks() {
 //        val devTools = mock(RemoteDevTools::class.java)
 //        val confuser = mock(ScriptConfuser::class.java)
 //        val domAPI = mock(DOM::class.java)
@@ -61,7 +65,8 @@ class PageHandlerBackendNodeIdTests {
 //    }
 //
 //    @Test
-//    fun `test invalid backend node ID format returns null`() {
+//        @DisplayName("test invalid backend node ID format returns null")
+    fun testInvalidBackendNodeIdFormatReturnsNull() {
 //        val devTools = mock(RemoteDevTools::class.java)
 //        val confuser = mock(ScriptConfuser::class.java)
 //
@@ -84,7 +89,8 @@ class PageHandlerBackendNodeIdTests {
 //    }
 //
 //    @Test
-//    fun `test focusOnSelector with backend node ID`() {
+//        @DisplayName("test focusOnSelector with backend node ID")
+    fun testFocusonselectorWithBackendNodeId() {
 //        val devTools = mock(RemoteDevTools::class.java)
 //        val confuser = mock(ScriptConfuser::class.java)
 //        val domAPI = mock(DOM::class.java)
@@ -113,7 +119,8 @@ class PageHandlerBackendNodeIdTests {
 //    }
 //
 //    @Test
-//    fun `test querySelectorAll with backend node ID returns single element list`() {
+//        @DisplayName("test querySelectorAll with backend node ID returns single element list")
+    fun testQueryselectorallWithBackendNodeIdReturnsSingleElementList() {
 //        val devTools = mock(RemoteDevTools::class.java)
 //        val confuser = mock(ScriptConfuser::class.java)
 //        val domAPI = mock(DOM::class.java)

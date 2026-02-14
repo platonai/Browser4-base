@@ -23,6 +23,7 @@ import org.springframework.test.context.ContextConfiguration
 import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 @SpringBootTest
 @ContextConfiguration(initializers = [PulsarTestContextInitializer::class])
@@ -43,7 +44,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand WITHOUT instructions`() {
+        @DisplayName("test executeCommand WITHOUT instructions")
+    fun testExecutecommandWithoutInstructions() {
         val request = CommandRequest(MOCK_PRODUCT_DETAIL_URL)
         val status = runBlocking { commandService.executePageVisitCommand(request).toCommandStatus() }
         val result = status.commandResult
@@ -56,7 +58,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with onPageReadyActions`() {
+        @DisplayName("test executeCommand with onPageReadyActions")
+    fun testExecutecommandWithOnpagereadyactions() {
         val actions = """
             move cursor to the element with id 'title' and click it
             scroll to middle
@@ -85,7 +88,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with onBrowserLaunchedActions`() {
+        @DisplayName("test executeCommand with onBrowserLaunchedActions")
+    fun testExecutecommandWithOnbrowserlaunchedactions() {
         val actions = """
             clear cookies
             goto origin url of $MOCK_PRODUCT_DETAIL_URL
@@ -112,7 +116,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with pageSummaryPrompt`() {
+        @DisplayName("test executeCommand with pageSummaryPrompt")
+    fun testExecutecommandWithPagesummaryprompt() {
         val request = CommandRequest(
             MOCK_PRODUCT_DETAIL_URL,
             pageSummaryPrompt = "Give me the product name",
@@ -136,7 +141,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with dataExtractionRules`() {
+        @DisplayName("test executeCommand with dataExtractionRules")
+    fun testExecutecommandWithDataextractionrules() {
         val request = CommandRequest(
             MOCK_PRODUCT_DETAIL_URL,
             dataExtractionRules = "product name, ratings, price"
@@ -164,7 +170,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with uriExtractionRules`() {
+        @DisplayName("test executeCommand with uriExtractionRules")
+    fun testExecutecommandWithUriextractionrules() {
 //        val testURL = "http://localhost:8182/ec/-/zh/ap/register?openid.pape.max_auth_age=0&openid.return_to=http://localhost:8182/ec/dp/B0E000001/?_encoding=UTF8&ref_=nav_newcust&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.ns=http://specs.openid.net/auth/2.0"
 //        val testRegex = "https?://.+/dp/[\\w]+.*".toRegex()
 //        assertTrue { testURL.matches(testRegex) }
@@ -196,7 +203,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test translate plain command to CommandRequest with X-SQL`() {
+        @DisplayName("test translate plain command to CommandRequest with X-SQL")
+    fun testTranslatePlainCommandToCommandrequestWithXSql() {
         val request = CommandRequest(
             MOCK_PRODUCT_DETAIL_URL,
             xsql = """
@@ -230,7 +238,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with uriExtractionRules in regex`() {
+        @DisplayName("test executeCommand with uriExtractionRules in regex")
+    fun testExecutecommandWithUriextractionrulesInRegex() {
         val request = CommandRequest(
             MOCK_PRODUCT_DETAIL_URL,
             uriExtractionRules = "Regex: http://localhost:\\d+/ec/dp/\\w+"
@@ -258,7 +267,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with simple and clean command`() {
+        @DisplayName("test executeCommand with simple and clean command")
+    fun testExecutecommandWithSimpleAndCleanCommand() {
         val prompt = PAGE_VISIT_COMMAND_PROMPT1
 
         val status = runBlocking { commandService.executePageVisitCommand(prompt) }.toCommandStatus()
@@ -274,7 +284,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with detailed and verbose command`() {
+        @DisplayName("test executeCommand with detailed and verbose command")
+    fun testExecutecommandWithDetailedAndVerboseCommand() {
         val prompt = PAGE_VISIT_COMMAND_PROMPT3
 
         val status = runBlocking { commandService.executePageVisitCommand(prompt) }.toCommandStatus()
@@ -290,7 +301,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executePlainCommandSync with URL-based command`() {
+        @DisplayName("test executePlainCommandSync with URL-based command")
+    fun testExecuteplaincommandsyncWithUrlBasedCommand() {
         // A command with URL should be handled by the standard flow
         val plainCommand = """
             Visit $MOCK_PRODUCT_DETAIL_URL
@@ -306,7 +318,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executePlainCommandSync with blank command returns bad request`() {
+        @DisplayName("test executePlainCommandSync with blank command returns bad request")
+    fun testExecuteplaincommandsyncWithBlankCommandReturnsBadRequest() {
         val status = runBlocking { commandService.executePlainCommandSync("") }
         assertNotNull(status)
         assertTrue { status.isDone }
@@ -314,7 +327,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test submitPlainCommandAsync with URL-based command`() {
+        @DisplayName("test submitPlainCommandAsync with URL-based command")
+    fun testSubmitplaincommandasyncWithUrlBasedCommand() {
         // A command with URL should be handled by the standard async flow
         val plainCommand = """
             Visit $MOCK_PRODUCT_DETAIL_URL
@@ -331,7 +345,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test submitPlainCommandAsync with blank command`() {
+        @DisplayName("test submitPlainCommandAsync with blank command")
+    fun testSubmitplaincommandasyncWithBlankCommand() {
         val statusId = runBlocking { commandService.submitPlainCommandAsync("") }
         assertNotNull(statusId)
 
@@ -343,7 +358,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeAgentCommand sets agentHistory on status`() {
+        @DisplayName("test executeAgentCommand sets agentHistory on status")
+    fun testExecuteagentcommandSetsAgenthistoryOnStatus() {
         // Use a simple command that will trigger agent execution
         val plainCommand = "Search for test information"
 
@@ -358,7 +374,8 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test executeCommand with uriExtractionRules without regex and regex inference disabled`() {
+        @DisplayName("test executeCommand with uriExtractionRules without regex and regex inference disabled")
+    fun testExecutecommandWithUriextractionrulesWithoutRegexAndRegexInferenceDisabled() {
         val request = CommandRequest(
             MOCK_PRODUCT_DETAIL_URL,
             uriExtractionRules = "links containing /dp/",

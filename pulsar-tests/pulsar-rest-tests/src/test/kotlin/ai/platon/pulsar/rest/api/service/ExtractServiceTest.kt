@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 @Tag("Slow")
 @SpringBootTest
@@ -38,7 +39,8 @@ class ExtractServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test extract`() {
+        @DisplayName("test extract")
+    fun testExtract() {
         val request = PromptRequest(MOCK_PRODUCT_DETAIL_URL, "title, price, images")
         val response = runBlocking { extractService.extract(request) }
         printlnPro(response)
@@ -46,7 +48,8 @@ class ExtractServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test extract with actions`() {
+        @DisplayName("test extract with actions")
+    fun testExtractWithActions() {
         val actions = """
             move cursor to the element with id 'title' and click it
             scroll to middle

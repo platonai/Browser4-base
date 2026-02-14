@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.DisplayName
 
 class SequentialPrivacyAgentGeneratorTest {
 
@@ -41,7 +42,8 @@ class SequentialPrivacyAgentGeneratorTest {
     }
 
     @Test
-    fun `test invoke with valid context directory`() {
+        @DisplayName("test invoke with valid context directory")
+    fun testInvokeWithValidContextDirectory() {
         // Given
 
         // When
@@ -52,7 +54,8 @@ class SequentialPrivacyAgentGeneratorTest {
     }
 
     @Test
-    fun `test invoke with non-existent fingerprint config file`() {
+        @DisplayName("test invoke with non-existent fingerprint config file")
+    fun testInvokeWithNonExistentFingerprintConfigFile() {
         // Given
 
         // When

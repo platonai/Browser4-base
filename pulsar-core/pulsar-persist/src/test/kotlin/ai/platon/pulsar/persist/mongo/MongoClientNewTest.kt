@@ -4,6 +4,7 @@ import ai.platon.pulsar.common.printlnPro
 import shaded.com.mongodb.client.model.Filters
 import shaded.org.bson.Document
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 /**
  * The driver com.mongodb.MongoClient is a Legacy Driver.
@@ -23,7 +24,8 @@ class MongoClientNewTest : MongoTestBase() {
     }
 
     @Test
-    fun `when querying a document using cursor then it works`() {
+        @DisplayName("when querying a document using cursor then it works")
+    fun whenQueryingADocumentUsingCursorThenItWorks() {
         val document: Document = Document("name", "John Doe")
             .append("age", 30)
             .append("city", "New York")
@@ -42,7 +44,8 @@ class MongoClientNewTest : MongoTestBase() {
     }
 
     @Test
-    fun `when inserting a document into MongoDB then it should be inserted successfully`() {
+        @DisplayName("when inserting a document into MongoDB then it should be inserted successfully")
+    fun whenInsertingADocumentIntoMongodbThenItShouldBeInsertedSuccessfully() {
         val document: Document = Document("name", "John Doe")
             .append("age", 30)
             .append("city", "New York")
@@ -52,7 +55,8 @@ class MongoClientNewTest : MongoTestBase() {
     }
 
     @Test
-    fun `when deleting a document then it should be deleted successfully`() {
+        @DisplayName("when deleting a document then it should be deleted successfully")
+    fun whenDeletingADocumentThenItShouldBeDeletedSuccessfully() {
         collection.deleteOne(Filters.eq("name", "John Doe"))
         printlnPro("Document deleted")
     }

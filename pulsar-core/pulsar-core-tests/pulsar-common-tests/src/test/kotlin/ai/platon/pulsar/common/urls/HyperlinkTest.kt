@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class HyperlinkTest {
     private lateinit var hyperlink: Hyperlink
@@ -80,7 +81,7 @@ class HyperlinkTest {
             nMaxRetry= 5,
             depth = 2
         )
-        
+
         val constructedHyperlink = Hyperlink(fullHyperlink)
         assertEquals(fullHyperlink.url, constructedHyperlink.url)
         assertEquals("Example", constructedHyperlink.text)
@@ -93,7 +94,7 @@ class HyperlinkTest {
         assertEquals(5, constructedHyperlink.nMaxRetry)
         assertEquals(2, constructedHyperlink.depth)
     }
-    
+
     /**
      * Construct from HyperlinkDatum
      * */
@@ -125,7 +126,7 @@ class HyperlinkTest {
         assertEquals(5, constructedHyperlink.nMaxRetry)
         assertEquals(2, constructedHyperlink.depth)
     }
-    
+
     @Test
     fun testHyperlink_Parse_ExpectedBehavior() {
         val linkText = "http://example.com -text Example -args key=value -href http://href.com -priority 10 -lang en -country US -district CA -nMaxRetry 5 -depth 2"
@@ -149,7 +150,7 @@ class HyperlinkTest {
         hyperlink.serializeTo(sb)
         assertEquals("http://example.com", sb.toString())
     }
-    
+
     @Test
     fun testHyperlink_IsDefault_ExpectedBehavior() {
         assertEquals(false, hyperlink.isDefault("url"))
@@ -165,7 +166,7 @@ class HyperlinkTest {
         assertEquals(true, hyperlink.isDefault("nMaxRetry"))
         assertEquals(true, hyperlink.isDefault("depth"))
     }
-    
+
     @Test
     fun testHyperlink_IsNotDefault_ExpectedBehavior() {
         val hyperlink = Hyperlink("http://example.com/is-not-default", text = "Example", order = 1, referrer = "http://referrer.com", args = "key=value", href = "http://href.com", priority = 10, lang = "en")
@@ -181,7 +182,7 @@ class HyperlinkTest {
         assertEquals(true, hyperlink.isDefault("district"))
         assertEquals(true, hyperlink.isDefault("nMaxRetry"))
     }
-    
+
     @Test
     fun testHyperlink_Data_ExpectedBehavior() {
         val hyperlink = Hyperlink("http://example.com/data", text = "Example", order = 1, referrer = "http://referrer.com", args = "key=value", href = "http://href.com", priority = 10, lang = "en")
@@ -190,7 +191,7 @@ class HyperlinkTest {
         assertEquals("Example", data.text)
         assertEquals(1, data.order)
     }
-    
+
     @Test
     fun testHyperlink_Equals_ExpectedBehavior() {
         val hyperlink1 = Hyperlink("http://example.com/equals", text = "Example", order = 1, referrer = "http://referrer.com", args = "key=value", href = "http://href.com", priority = 10, lang = "en")
@@ -198,7 +199,7 @@ class HyperlinkTest {
         assertEquals(hyperlink1, hyperlink2)
         assertEquals(hyperlink1.hashCode(), hyperlink2.hashCode())
     }
-    
+
     @Test
     fun testHyperlink_NotEquals_ExpectedBehavior() {
         val hyperlink1 = Hyperlink("http://example.com/", text = "Example", order = 1, referrer = "http://referrer.com", args = "key=value", href = "http://href.com", priority = 10, lang = "en")
@@ -206,13 +207,13 @@ class HyperlinkTest {
         assertNotEquals(hyperlink1, hyperlink2)
         assertNotEquals(hyperlink1.hashCode(), hyperlink2.hashCode())
     }
-    
+
     @Test
     fun testHyperlink_ToString_ExpectedBehavior() {
         val hyperlink = Hyperlink("http://example.com/toString", text = "Example", order = 1, referrer = "http://referrer.com", args = "key=value", href = "http://href.com", priority = 10, lang = "en")
         assertEquals("http://example.com/toString", hyperlink.toString())
     }
-    
+
     @Test
     fun testHyperlink_CompareTo_ExpectedBehavior() {
         val hyperlink1 = Hyperlink("http://example.com/compare-to-1", text = "Example", order = 1, referrer = "http://referrer.com", args = "key=value", href = "http://href.com", priority = 10, lang = "en")
@@ -226,7 +227,8 @@ class HyperlinkTest {
 
 
     @Test
-    fun `test constructor with url`() {
+        @DisplayName("test constructor with url")
+    fun testConstructorWithUrl() {
         val url = "http://example.com"
         val hyperlink = Hyperlink(url)
 
@@ -236,7 +238,8 @@ class HyperlinkTest {
     }
 
     @Test
-    fun `test constructor with UrlAware`() {
+        @DisplayName("test constructor with UrlAware")
+    fun testConstructorWithUrlaware() {
         val urlAware = Hyperlink(
             url = "http://example.com",
             text = "Example",
@@ -269,7 +272,8 @@ class HyperlinkTest {
     }
 
     @Test
-    fun `test serializeTo`() {
+        @DisplayName("test serializeTo")
+    fun testSerializeto() {
         val url = "http://example.com"
         val hyperlink = Hyperlink(url, "Example", 1, "http://referrer.com", "arg1=val1", "http://example.com/href", 5, "en", "US", "CA", 2, 3)
         val sb = StringBuilder()
@@ -280,7 +284,8 @@ class HyperlinkTest {
     }
 
     @Test
-    fun `test parse`() {
+        @DisplayName("test parse")
+    fun testParse() {
         val linkText = "http://example.com -text Example -order 1 -referrer http://referrer.com -args arg1=val1 -href http://example.com/href -priority 5 -lang en -country US -district CA -nMaxRetry 2 -depth 3"
         val hyperlink = Hyperlink.parse(linkText)
 
@@ -299,7 +304,8 @@ class HyperlinkTest {
     }
 
     @Test
-    fun `test isDefault`() {
+        @DisplayName("test isDefault")
+    fun testIsdefault() {
         val hyperlink = Hyperlink("http://example.com")
         assertTrue(hyperlink.isDefault("text"))
         assertFalse(hyperlink.isDefault("url"))

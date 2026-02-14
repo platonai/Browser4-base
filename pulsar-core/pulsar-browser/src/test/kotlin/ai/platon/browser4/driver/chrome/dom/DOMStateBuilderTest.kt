@@ -5,12 +5,14 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class DOMStateBuilderTest {
     private val mapper = jacksonObjectMapper()
 
     @Test
-    fun `serialize filters attributes and populates selector map`() {
+        @DisplayName("serialize filters attributes and populates selector map")
+    fun serializeFiltersAttributesAndPopulatesSelectorMap() {
         val childOriginal = DOMTreeNodeEx(
             nodeId = 2,
             nodeName = "SPAN",
@@ -47,7 +49,8 @@ class DOMStateBuilderTest {
     }
 
     @Test
-    fun `serialize propagates scroll info only when helper allows it`() {
+        @DisplayName("serialize propagates scroll info only when helper allows it")
+    fun serializePropagatesScrollInfoOnlyWhenHelperAllowsIt() {
         val scrollableNode = DOMTreeNodeEx(
             nodeId = 3,
             nodeName = "div",
@@ -81,7 +84,8 @@ class DOMStateBuilderTest {
     }
 
     @Test
-    fun `serialize with paint order pruning removes high paint order elements`() {
+        @DisplayName("serialize with paint order pruning removes high paint order elements")
+    fun serializeWithPaintOrderPruningRemovesHighPaintOrderElements() {
         val highPaintOrderNode = DOMTreeNodeEx(
             nodeId = 4,
             nodeName = "DIV",
@@ -133,7 +137,8 @@ class DOMStateBuilderTest {
     }
 
     @Test
-    fun `serialize detects compound components correctly`() {
+        @DisplayName("serialize detects compound components correctly")
+    fun serializeDetectsCompoundComponentsCorrectly() {
         val listItem = DOMTreeNodeEx(
             nodeId = 6,
             nodeName = "LI",
@@ -173,7 +178,8 @@ class DOMStateBuilderTest {
     }
 
     @Test
-    fun `serialize aligns attribute casing correctly`() {
+        @DisplayName("serialize aligns attribute casing correctly")
+    fun serializeAlignsAttributeCasingCorrectly() {
         val node = DOMTreeNodeEx(
             nodeId = 7,
             nodeName = "INPUT",
@@ -204,7 +210,8 @@ class DOMStateBuilderTest {
     }
 
     @Test
-    fun `serialize builds enhanced selector map with multiple keys`() {
+        @DisplayName("serialize builds enhanced selector map with multiple keys")
+    fun serializeBuildsEnhancedSelectorMapWithMultipleKeys() {
         val node = DOMTreeNodeEx(
             nodeId = 8,
             nodeName = "BUTTON",
@@ -232,7 +239,8 @@ class DOMStateBuilderTest {
     }
 
     @Test
-    fun `serialize preserves original casing when configured`() {
+        @DisplayName("serialize preserves original casing when configured")
+    fun serializePreservesOriginalCasingWhenConfigured() {
         val node = DOMTreeNodeEx(
             nodeId = 9,
             nodeName = "CustomElement",
@@ -253,7 +261,8 @@ class DOMStateBuilderTest {
     }
 
     @Test
-    fun `serialize handles deep tree end-to-end`() {
+        @DisplayName("serialize handles deep tree end-to-end")
+    fun serializeHandlesDeepTreeEndToEnd() {
         val levels = 30
 
         // Build a deep chain of SlimNodes: node-1 -> node-2 -> ... -> node-29 -> node-30(leaf)
@@ -301,7 +310,8 @@ class DOMStateBuilderTest {
 
     @Disabled("Feature disabled temporarily")
     @Test
-    fun `test href and navigation attributes are preserved in NanoDOMTree`() {
+        @DisplayName("test href and navigation attributes are preserved in NanoDOMTree")
+    fun testHrefAndNavigationAttributesArePreservedInNanodomtree() {
         // Create an anchor node with href attribute
         val anchorNode = DOMTreeNodeEx(
             nodeId = 1,

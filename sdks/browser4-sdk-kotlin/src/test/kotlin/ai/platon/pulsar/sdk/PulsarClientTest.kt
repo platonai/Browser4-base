@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Unit tests for PulsarClient.
@@ -27,25 +28,29 @@ import kotlin.test.assertNull
 class PulsarClientTest {
 
     @Test
-    fun `PulsarClient can be created with default settings`() {
+        @DisplayName("PulsarClient can be created with default settings")
+    fun pulsarclientCanBeCreatedWithDefaultSettings() {
         val client = PulsarClient()
         assertNull(client.sessionId)
     }
 
     @Test
-    fun `PulsarClient can be created with custom base URL`() {
+        @DisplayName("PulsarClient can be created with custom base URL")
+    fun pulsarclientCanBeCreatedWithCustomBaseUrl() {
         val client = PulsarClient(baseUrl = "http://custom-server:9999")
         assertNull(client.sessionId)
     }
 
     @Test
-    fun `PulsarClient can be created with initial session ID`() {
+        @DisplayName("PulsarClient can be created with initial session ID")
+    fun pulsarclientCanBeCreatedWithInitialSessionId() {
         val client = PulsarClient(sessionId = "test-session-123")
         assertEquals("test-session-123", client.sessionId)
     }
 
     @Test
-    fun `PulsarClient requires session for session-dependent operations`() = runTest {
+        @DisplayName("PulsarClient requires session for session-dependent operations")
+    fun pulsarclientRequiresSessionForSessionDependentOperations() = runTest {
         val client = PulsarClient()
 
         // post with {sessionId} placeholder should throw without session
@@ -55,7 +60,8 @@ class PulsarClientTest {
     }
 
     @Test
-    fun `PulsarClient session ID can be updated`() {
+        @DisplayName("PulsarClient session ID can be updated")
+    fun pulsarclientSessionIdCanBeUpdated() {
         val client = PulsarClient()
         assertNull(client.sessionId)
 
@@ -64,7 +70,8 @@ class PulsarClientTest {
     }
 
     @Test
-    fun `PulsarClient close does not throw`() {
+        @DisplayName("PulsarClient close does not throw")
+    fun pulsarclientCloseDoesNotThrow() {
         val client = PulsarClient()
         client.close()
         // Should complete without exception

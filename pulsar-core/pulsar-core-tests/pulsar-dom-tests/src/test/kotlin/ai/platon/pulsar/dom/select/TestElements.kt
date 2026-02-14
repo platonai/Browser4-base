@@ -4,6 +4,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Node
 import org.jsoup.select.NodeVisitor
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests for ElementList.
@@ -154,7 +155,8 @@ class TestElements {
     }
 
     @Test
-    fun `val`() {
+        @DisplayName("val")
+    fun val() {
         val doc = Jsoup.parse("<input value='one' /><textarea>two</textarea>")
         val els = doc.select("input, textarea")
         assertEquals(2, els.size.toLong())
@@ -249,7 +251,8 @@ class TestElements {
     }
 
     @Test
-    fun `is`() {
+        @DisplayName("is")
+    fun is() {
         val h = "<p>Hello<p title=foo>there<p>world"
         val doc = Jsoup.parse(h)
         val ps = doc.select("p")

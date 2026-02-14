@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests for the TestMCPServer.
@@ -26,12 +27,14 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `server starts and is running`() {
+        @DisplayName("server starts and is running")
+    fun serverStartsAndIsRunning() {
         assertTrue(server.isRunning(), "Server should be running after initialization")
     }
 
     @Test
-    fun `server provides info`() {
+        @DisplayName("server provides info")
+    fun serverProvidesInfo() {
         val info = server.getInfo()
 
         assertNotNull(info)
@@ -41,7 +44,8 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `server lists available tools`() {
+        @DisplayName("server lists available tools")
+    fun serverListsAvailableTools() {
         val result = server.listTools()
 
         assertNotNull(result)
@@ -58,7 +62,8 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `echo tool returns input message`() {
+        @DisplayName("echo tool returns input message")
+    fun echoToolReturnsInputMessage() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "echo")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -79,7 +84,8 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `add tool adds two numbers`() {
+        @DisplayName("add tool adds two numbers")
+    fun addToolAddsTwoNumbers() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "add")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -101,7 +107,8 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `multiply tool multiplies two numbers`() {
+        @DisplayName("multiply tool multiplies two numbers")
+    fun multiplyToolMultipliesTwoNumbers() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "multiply")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -123,7 +130,8 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `calling non-existent tool throws exception`() {
+        @DisplayName("calling non-existent tool throws exception")
+    fun callingNonExistentToolThrowsException() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "non_existent_tool")
             set<ObjectNode>("arguments", objectMapper.createObjectNode())
@@ -135,7 +143,8 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `calling tool without required argument returns error`() {
+        @DisplayName("calling tool without required argument returns error")
+    fun callingToolWithoutRequiredArgumentReturnsError() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "echo")
             set<ObjectNode>("arguments", objectMapper.createObjectNode()) // Missing 'message' argument
@@ -150,7 +159,8 @@ class TestMCPServerMock {
     }
 
     @Test
-    fun `server can be closed`() {
+        @DisplayName("server can be closed")
+    fun serverCanBeClosed() {
         assertTrue(server.isRunning())
         server.close()
         assertFalse(server.isRunning())

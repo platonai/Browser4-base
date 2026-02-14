@@ -10,6 +10,7 @@ import org.junit.jupiter.api.assertNotNull
 import kotlin.math.abs
 import kotlin.test.Ignore
 import kotlin.test.assertIs
+import org.junit.jupiter.api.DisplayName
 
 class ChromeDomBoundsParityTest : WebDriverTestBase() {
 
@@ -39,7 +40,8 @@ class ChromeDomBoundsParityTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `bounds are in CSS pixels independent of DPR (scaling applied)`() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
+        @DisplayName("bounds are in CSS pixels independent of DPR (scaling applied)")
+    fun boundsAreInCssPixelsIndependentOfDprScalingApplied() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
         assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -83,7 +85,8 @@ class ChromeDomBoundsParityTest : WebDriverTestBase() {
 
     @Test
     @Ignore("inner iframe features are postponed")
-    fun `iframe offsets and scroll are reflected in absolutePosition and visibility true when within viewport`()
+        @DisplayName("iframe offsets and scroll are reflected in absolutePosition and visibility true when within viewport")
+    fun iframeOffsetsAndScrollAreReflectedInAbsolutepositionAndVisibilityTrueWhenWithinViewport()
         = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
         assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
@@ -161,7 +164,8 @@ class ChromeDomBoundsParityTest : WebDriverTestBase() {
 
     @Test
     @Ignore("inner iframe features are postponed")
-    fun `iframe content outside viewport is not visible`() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
+        @DisplayName("iframe content outside viewport is not visible")
+    fun iframeContentOutsideViewportIsNotVisible() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
         assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)

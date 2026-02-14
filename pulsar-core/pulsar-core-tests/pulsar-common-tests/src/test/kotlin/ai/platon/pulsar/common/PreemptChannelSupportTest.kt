@@ -21,7 +21,8 @@ class PreemptChannelSupportTest {
     }
 
     @Test
-    fun `test initial state`() {
+        @DisplayName("test initial state")
+    fun testInitialState() {
         assertFalse(channel.isPreempted)
         assertTrue(channel.isNormal)
         assertFalse(channel.hasEvent)
@@ -29,7 +30,8 @@ class PreemptChannelSupportTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `test preemptive task blocks normal tasks`() {
+        @DisplayName("test preemptive task blocks normal tasks")
+    fun testPreemptiveTaskBlocksNormalTasks() {
         val latch = CountDownLatch(1)
         val normalTaskStarted = AtomicInteger(0)
         val normalTaskCompleted = AtomicInteger(0)
@@ -66,7 +68,8 @@ class PreemptChannelSupportTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `test multiple preemptive tasks`() {
+        @DisplayName("test multiple preemptive tasks")
+    fun testMultiplePreemptiveTasks() {
         val latch = CountDownLatch(2)
         val results = ConcurrentLinkedDeque<String>()
 
@@ -92,7 +95,8 @@ class PreemptChannelSupportTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `test releaseLocks`() {
+        @DisplayName("test releaseLocks")
+    fun testReleaselocks() {
         val latch = CountDownLatch(1)
         var normalTaskCompleted = false
 
@@ -126,7 +130,8 @@ class PreemptChannelSupportTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `test concurrent normal tasks`() {
+        @DisplayName("test concurrent normal tasks")
+    fun testConcurrentNormalTasks() {
         val latch = CountDownLatch(3)
         val results = ConcurrentLinkedDeque<String>()
 
@@ -153,7 +158,8 @@ class PreemptChannelSupportTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `test preemptive task with exception`() {
+        @DisplayName("test preemptive task with exception")
+    fun testPreemptiveTaskWithException() {
         val exception = assertThrows<RuntimeException> {
             channel.preempt {
                 throw RuntimeException("Test exception")
@@ -166,7 +172,8 @@ class PreemptChannelSupportTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `test normal task with exception`() {
+        @DisplayName("test normal task with exception")
+    fun testNormalTaskWithException() {
         val exception = assertThrows<RuntimeException> {
             channel.whenNormal {
                 throw RuntimeException("Test exception")
@@ -179,7 +186,8 @@ class PreemptChannelSupportTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `test mixed preemptive and normal tasks`() {
+        @DisplayName("test mixed preemptive and normal tasks")
+    fun testMixedPreemptiveAndNormalTasks() {
         val latch = CountDownLatch(4)
         val results = ConcurrentLinkedDeque<String>()
 

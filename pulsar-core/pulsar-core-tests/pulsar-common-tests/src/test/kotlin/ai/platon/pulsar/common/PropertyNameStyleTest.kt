@@ -37,52 +37,62 @@ class PropertyNameStyleTest {
         "EMPTY__MIDDLE, empty.middle",
         "CONSECUTIVE__UNDERSCORES, consecutive.underscores"
     )
-    fun `test toKebabCase converts env vars to Spring Boot properties`(input: String, expected: String) {
+        @DisplayName("test toKebabCase converts env vars to Spring Boot properties")
+    fun testTokebabcaseConvertsEnvVarsToSpringBootProperties(input: String, expected: String) {
         assertEquals(expected, toDotSeparatedKebabCase(input))
     }
 
     @Test
-    fun `test toKebabCase handles empty string`() {
+        @DisplayName("test toKebabCase handles empty string")
+    fun testTokebabcaseHandlesEmptyString() {
         assertEquals("", toDotSeparatedKebabCase(""))
     }
 
     @Test
-    fun `test toKebabCase handles single word`() {
+        @DisplayName("test toKebabCase handles single word")
+    fun testTokebabcaseHandlesSingleWord() {
         assertEquals("spring", toDotSeparatedKebabCase("SPRING"))
     }
 
     @Test
-    fun `test toKebabCase handles already converted string`() {
+        @DisplayName("test toKebabCase handles already converted string")
+    fun testTokebabcaseHandlesAlreadyConvertedString() {
         assertEquals("spring.profiles.active", toDotSeparatedKebabCase("spring.profiles.active"))
     }
 
     @Test
-    fun `test toKebabCase handles only underscores`() {
+        @DisplayName("test toKebabCase handles only underscores")
+    fun testTokebabcaseHandlesOnlyUnderscores() {
         assertEquals(".", toDotSeparatedKebabCase("___"))
     }
 
     @Test
-    fun `test toKebabCase handles mixed separators`() {
+        @DisplayName("test toKebabCase handles mixed separators")
+    fun testTokebabcaseHandlesMixedSeparators() {
         assertEquals("spring.profiles.active", toDotSeparatedKebabCase("SPRING.PROFILES_ACTIVE"))
     }
 
     @Test
-    fun `test toKebabCase handles unicode characters`() {
+        @DisplayName("test toKebabCase handles unicode characters")
+    fun testTokebabcaseHandlesUnicodeCharacters() {
         assertEquals("test.测试.テスト", toDotSeparatedKebabCase("TEST_测试_テスト"))
     }
 
     @Test
-    fun `test toKebabCase handles special characters`() {
+        @DisplayName("test toKebabCase handles special characters")
+    fun testTokebabcaseHandlesSpecialCharacters() {
         assertEquals("test.special.chars!@#$%^&*()", toDotSeparatedKebabCase("TEST_SPECIAL_CHARS!@#$%^&*()"))
     }
 
     @Test
-    fun `test toKebabCase handles whitespace`() {
+        @DisplayName("test toKebabCase handles whitespace")
+    fun testTokebabcaseHandlesWhitespace() {
         assertEquals("test.with.whitespace", toDotSeparatedKebabCase("TEST WITH WHITESPACE"))
     }
 
     @Test
-    fun `test toKebabCase handles very long input`() {
+        @DisplayName("test toKebabCase handles very long input")
+    fun testTokebabcaseHandlesVeryLongInput() {
         val longInput = "A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_THAT_GOES_ON_AND_ON_AND_ON_AND_ON_AND_ON"
         val expected = "a.very.long.environment.variable.name.that.goes.on.and.on.and.on.and.on.and.on"
         assertEquals(expected, toDotSeparatedKebabCase(longInput))
@@ -104,49 +114,57 @@ class PropertyNameStyleTest {
      *
      * */
     @Test
-    fun `TC01 example(dot)property-name should convert to EXAMPLE_PROPERTYNAME`() {
+        @DisplayName("TC01 example(dot)property-name should convert to EXAMPLE_PROPERTYNAME")
+    fun tc01ExampleDotPropertyNameShouldConvertToExamplePropertyname() {
         val result = toUpperUnderscoreCase("example.property-name")
         assertEquals("EXAMPLE_PROPERTYNAME", result)
     }
 
     @Test
-    fun `TC02 hello(dot)world should convert to HELLO_WORLD`() {
+        @DisplayName("TC02 hello(dot)world should convert to HELLO_WORLD")
+    fun tc02HelloDotWorldShouldConvertToHelloWorld() {
         val result = toUpperUnderscoreCase("hello.world")
         assertEquals("HELLO_WORLD", result)
     }
 
     @Test
-    fun `TC03 user name should convert to USER_NAME`() {
+        @DisplayName("TC03 user name should convert to USER_NAME")
+    fun tc03UserNameShouldConvertToUserName() {
         val result = toUpperUnderscoreCase("user name")
         assertEquals("USER_NAME", result)
     }
 
     @Test
-    fun `TC04 some-random-test should convert to SOMERANDOMTEST`() {
+        @DisplayName("TC04 some-random-test should convert to SOMERANDOMTEST")
+    fun tc04SomeRandomTestShouldConvertToSomerandomtest() {
         val result = toUpperUnderscoreCase("some-random-test")
         assertEquals("SOMERANDOMTEST", result)
     }
 
     @Test
-    fun `TC05 a(dot)b c-d should convert to A_B_C_D`() {
+        @DisplayName("TC05 a(dot)b c-d should convert to A_B_C_D")
+    fun tc05ADotBCDShouldConvertToABCD() {
         val result = toUpperUnderscoreCase("a.b c-d")
         assertEquals("A_B_CD", result)
     }
 
     @Test
-    fun `TC06 empty string should return empty`() {
+        @DisplayName("TC06 empty string should return empty")
+    fun tc06EmptyStringShouldReturnEmpty() {
         val result = toUpperUnderscoreCase("")
         assertEquals("", result)
     }
 
     @Test
-    fun `TC07 UPPER(dot)CASE should convert to UPPER_CASE`() {
+        @DisplayName("TC07 UPPER(dot)CASE should convert to UPPER_CASE")
+    fun tc07UpperDotCaseShouldConvertToUpperCase() {
         val result = toUpperUnderscoreCase("UPPER.CASE")
         assertEquals("UPPER_CASE", result)
     }
 
     @Test
-    fun `TC08 lower-case(dot)test should convert to LOWERCASE_TEST`() {
+        @DisplayName("TC08 lower-case(dot)test should convert to LOWERCASE_TEST")
+    fun tc08LowerCaseDotTestShouldConvertToLowercaseTest() {
         val result = toUpperUnderscoreCase("lower-case.test")
         assertEquals("LOWERCASE_TEST", result)
     }
@@ -168,75 +186,87 @@ class PropertyNameStyleTest {
         "spring-redis-host, springRedisHost",
         "mixed.case_with-separators, mixedCaseWithSeparators"
     )
-    fun `test kebabToCamelCase converts various formats to camelCase`(input: String, expected: String) {
+        @DisplayName("test kebabToCamelCase converts various formats to camelCase")
+    fun testKebabtocamelcaseConvertsVariousFormatsToCamelcase(input: String, expected: String) {
         assertEquals(expected, kebabToCamelCase(input))
     }
 
     @Test
-    fun `test kebabToCamelCase handles single word`() {
+        @DisplayName("test kebabToCamelCase handles single word")
+    fun testKebabtocamelcaseHandlesSingleWord() {
         assertEquals("spring", kebabToCamelCase("spring"))
         assertEquals("UPPERCASE", kebabToCamelCase("UPPERCASE"))
         assertEquals("MixedCase", kebabToCamelCase("MixedCase"))
     }
 
     @Test
-    fun `test kebabToCamelCase handles empty string`() {
+        @DisplayName("test kebabToCamelCase handles empty string")
+    fun testKebabtocamelcaseHandlesEmptyString() {
         assertEquals("", kebabToCamelCase(""))
     }
 
     @Test
-    fun `test kebabToCamelCase handles whitespace`() {
+        @DisplayName("test kebabToCamelCase handles whitespace")
+    fun testKebabtocamelcaseHandlesWhitespace() {
         assertEquals("", kebabToCamelCase("   "))
         assertEquals("hello", kebabToCamelCase("  hello  "))
     }
 
     @Test
-    fun `test kebabToCamelCase handles multiple consecutive separators`() {
+        @DisplayName("test kebabToCamelCase handles multiple consecutive separators")
+    fun testKebabtocamelcaseHandlesMultipleConsecutiveSeparators() {
         assertEquals("springProfilesActive", kebabToCamelCase("spring...profiles___active---"))
         assertEquals("testMultipleSeparators", kebabToCamelCase("test...__--multiple--__..separators"))
     }
 
     @Test
-    fun `test kebabToCamelCase handles leading and trailing separators`() {
+        @DisplayName("test kebabToCamelCase handles leading and trailing separators")
+    fun testKebabtocamelcaseHandlesLeadingAndTrailingSeparators() {
         assertEquals("springProfiles", kebabToCamelCase("___spring.profiles___"))
         assertEquals("apiKey", kebabToCamelCase("---api-key---"))
         assertEquals("testValue", kebabToCamelCase("...test.value..."))
     }
 
     @Test
-    fun `test kebabToCamelCase handles mixed separators`() {
+        @DisplayName("test kebabToCamelCase handles mixed separators")
+    fun testKebabtocamelcaseHandlesMixedSeparators() {
         assertEquals("springProfilesActive", kebabToCamelCase("spring.profiles_active"))
         assertEquals("mixedSeparatorTest", kebabToCamelCase("mixed_separator.test"))
     }
 
     @Test
-    fun `test kebabToCamelCase handles numeric values`() {
+        @DisplayName("test kebabToCamelCase handles numeric values")
+    fun testKebabtocamelcaseHandlesNumericValues() {
         assertEquals("version2", kebabToCamelCase("version-2"))
         assertEquals("api2Key", kebabToCamelCase("api2.key"))
         assertEquals("test123Value", kebabToCamelCase("test123_value"))
     }
 
     @Test
-    fun `test kebabToCamelCase handles special characters in segments`() {
+        @DisplayName("test kebabToCamelCase handles special characters in segments")
+    fun testKebabtocamelcaseHandlesSpecialCharactersInSegments() {
         assertEquals("test@#\$Special!%^&chars", kebabToCamelCase("test@#\$.special!%^&chars"))
         assertEquals("apiKeyValue", kebabToCamelCase("api-key-value"))
     }
 
     @Test
-    fun `test kebabToCamelCase handles unicode characters`() {
+        @DisplayName("test kebabToCamelCase handles unicode characters")
+    fun testKebabtocamelcaseHandlesUnicodeCharacters() {
         assertEquals("测试Value", kebabToCamelCase("测试.value"))
         assertEquals("testテスト", kebabToCamelCase("test_テスト"))
     }
 
     @Test
-    fun `test kebabToCamelCase handles very long input`() {
+        @DisplayName("test kebabToCamelCase handles very long input")
+    fun testKebabtocamelcaseHandlesVeryLongInput() {
         val input = "very.long.property.name.with.many.segments.that.goes.on.and.on"
         val expected = "veryLongPropertyNameWithManySegmentsThatGoesOnAndOn"
         assertEquals(expected, kebabToCamelCase(input))
     }
 
     @Test
-    fun `test kebabToCamelCase handles edge cases`() {
+        @DisplayName("test kebabToCamelCase handles edge cases")
+    fun testKebabtocamelcaseHandlesEdgeCases() {
         // Single character segments
         assertEquals("aBC", kebabToCamelCase("a.b.c"))
 
@@ -245,7 +275,8 @@ class PropertyNameStyleTest {
     }
 
     @Test
-    fun `test kebabToCamelCase real world examples`() {
+        @DisplayName("test kebabToCamelCase real world examples")
+    fun testKebabtocamelcaseRealWorldExamples() {
         // Common Spring Boot properties
         assertEquals("springProfilesActive", kebabToCamelCase("spring.profiles.active"))
         assertEquals("serverPort", kebabToCamelCase("server.port"))

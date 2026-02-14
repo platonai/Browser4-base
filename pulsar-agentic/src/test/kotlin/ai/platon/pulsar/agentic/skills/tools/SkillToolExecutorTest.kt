@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Verifies that skills can be executed through AgentToolManager custom tool domain `skill`.
@@ -36,7 +37,8 @@ class SkillToolExecutorTest {
     }
 
     @Test
-    fun `skill run executes registered skill`() = runBlocking {
+        @DisplayName("skill run executes registered skill")
+    fun skillRunExecutesRegisteredSkill() = runBlocking {
         registry.register(WebScrapingSkill(), ctx)
 
         val executor = SkillToolExecutor(registry)
@@ -70,7 +72,8 @@ class SkillToolExecutorTest {
     }
 
     @Test
-    fun `skill run fails with missing id`() = runBlocking {
+        @DisplayName("skill run fails with missing id")
+    fun skillRunFailsWithMissingId() = runBlocking {
         val executor = SkillToolExecutor(registry)
         CustomToolRegistry.instance.register(executor)
 

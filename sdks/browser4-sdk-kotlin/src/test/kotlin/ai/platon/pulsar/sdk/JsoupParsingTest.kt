@@ -20,6 +20,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Unit tests for parsing and extraction with Jsoup.
@@ -27,7 +28,8 @@ import kotlin.test.assertTrue
 class JsoupParsingTest {
 
     @Test
-    fun `parse returns null for WebPage without HTML`() {
+        @DisplayName("parse returns null for WebPage without HTML")
+    fun parseReturnsNullForWebpageWithoutHtml() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -38,7 +40,8 @@ class JsoupParsingTest {
     }
 
     @Test
-    fun `parse returns Jsoup Document for WebPage with HTML`() {
+        @DisplayName("parse returns Jsoup Document for WebPage with HTML")
+    fun parseReturnsJsoupDocumentForWebpageWithHtml() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -53,7 +56,8 @@ class JsoupParsingTest {
     }
 
     @Test
-    fun `extract works with Jsoup Document and CSS selectors`() {
+        @DisplayName("extract works with Jsoup Document and CSS selectors")
+    fun extractWorksWithJsoupDocumentAndCssSelectors() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -91,7 +95,8 @@ class JsoupParsingTest {
     }
 
     @Test
-    fun `extract returns null for non-existent selectors`() {
+        @DisplayName("extract returns null for non-existent selectors")
+    fun extractReturnsNullForNonExistentSelectors() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -112,7 +117,8 @@ class JsoupParsingTest {
     }
 
     @Test
-    fun `extract with iterable selectors uses selector as field name`() {
+        @DisplayName("extract with iterable selectors uses selector as field name")
+    fun extractWithIterableSelectorsUsesSelectorAsFieldName() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -136,7 +142,8 @@ class JsoupParsingTest {
     }
 
     @Test
-    fun `scrape loads, parses and extracts in one operation`() {
+        @DisplayName("scrape loads, parses and extracts in one operation")
+    fun scrapeLoadsParsesAndExtractsInOneOperation() {
         // Note: This test would require a real server to work
         // Here we just verify the method signature exists
         val client = PulsarClient(sessionId = "test-session")
@@ -147,7 +154,8 @@ class JsoupParsingTest {
     }
 
     @Test
-    fun `Jsoup Document supports complex CSS selectors`() {
+        @DisplayName("Jsoup Document supports complex CSS selectors")
+    fun jsoupDocumentSupportsComplexCssSelectors() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 

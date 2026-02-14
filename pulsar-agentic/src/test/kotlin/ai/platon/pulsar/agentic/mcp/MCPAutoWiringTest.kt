@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Contract test: if `mcp.<serverName>` is registered, a PerceptiveAgent should have the
@@ -34,7 +35,8 @@ class MCPAutoWiringTest {
     }
 
     @Test
-    fun `BrowserAgentActor auto-wires MCPClientManager as target for mcp domain`() {
+        @DisplayName("BrowserAgentActor auto-wires MCPClientManager as target for mcp domain")
+    fun browseragentactorAutoWiresMcpclientmanagerAsTargetForMcpDomain() {
         // Arrange: inject a dummy MCPClientManager into the registry (no connect required)
         val config = MCPConfig(
             serverName = serverName,

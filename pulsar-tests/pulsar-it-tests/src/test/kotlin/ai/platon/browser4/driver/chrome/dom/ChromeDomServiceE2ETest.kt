@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertIs
 import java.io.File
 import java.time.Instant
+import org.junit.jupiter.api.DisplayName
 
 class ChromeDomServiceE2ETest : WebDriverTestBase() {
     private val testURL get() = "$generatedAssetsBaseURL/interactive-dynamic.html"
@@ -52,7 +53,8 @@ class ChromeDomServiceE2ETest : WebDriverTestBase() {
 
 
     @Test
-    fun `Given interactive page When collecting all trees Then get DOM AX and Snapshot with timings`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("Given interactive page When collecting all trees Then get DOM AX and Snapshot with timings")
+    fun givenInteractivePageWhenCollectingAllTreesThenGetDomAxAndSnapshotWithTimings() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)

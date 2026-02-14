@@ -6,13 +6,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 open class ScrapeControllerTestBase : IntegrationTestBase() {
 
     companion object {
         @JvmStatic
         @BeforeAll
-        fun `Ensure resources are prepared`() {
+                @DisplayName("Ensure resources are prepared")
+        fun ensureResourcesArePrepared() {
         }
     }
 
@@ -43,7 +45,8 @@ open class ScrapeControllerTestBase : IntegrationTestBase() {
     }
 
     @Test
-    fun `When say hello then returns hello`() {
+        @DisplayName("When say hello then returns hello")
+    fun whenSayHelloThenReturnsHello() {
         assertThat(getHtml("/api/system/hello").body).contains("hello")
     }
 }

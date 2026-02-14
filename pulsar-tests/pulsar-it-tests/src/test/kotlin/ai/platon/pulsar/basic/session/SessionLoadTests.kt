@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import java.util.concurrent.CompletableFuture
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 class SessionLoadTests: TestBase() {
     private val url = "https://www.amazon.com/Best-Sellers-Beauty/zgbs/beauty"
@@ -138,7 +139,8 @@ class SessionLoadTests: TestBase() {
     }
 
     @Test
-    fun `When loaded a HTML page then the navigate state are correct`() {
+        @DisplayName("When loaded a HTML page then the navigate state are correct")
+    fun whenLoadedAHtmlPageThenTheNavigateStateAreCorrect() {
         logger.info("Testing - When loaded a HTML page then the navigate state are correct")
 
         val options = session.options("-refresh")

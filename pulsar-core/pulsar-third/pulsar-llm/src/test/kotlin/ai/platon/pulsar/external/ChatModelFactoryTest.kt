@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class ChatModelFactoryTest {
     /**
@@ -27,7 +28,8 @@ class ChatModelFactoryTest {
      *
      * */
     @org.junit.jupiter.api.Test
-    fun `doubao API should be compatible with OpenAI API`() {
+        @DisplayName("doubao API should be compatible with OpenAI API")
+    fun doubaoApiShouldBeCompatibleWithOpenaiApi() {
         val provider = "volcengine"
         val baseURL = "https://ark.cn-beijing.volces.com/api/v3"
         val modelName = "doubao-1-5-pro-32k-250115"

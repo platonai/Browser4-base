@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
+import org.junit.jupiter.api.DisplayName
 
 data class InteractiveIndexEntry(
     val file: String,
@@ -32,7 +33,8 @@ class InteractivePagesTest {
     }
 
     @Test
-    fun `all indexed elements exist with matching id and data-testid`() {
+        @DisplayName("all indexed elements exist with matching id and data-testid")
+    fun allIndexedElementsExistWithMatchingIdAndDataTestid() {
         val index = loadIndex()
         val byFile = index.groupBy { it.file }
         byFile.forEach { (file, entries) ->
@@ -45,7 +47,8 @@ class InteractivePagesTest {
     }
 
     @Test
-    fun `ids are unique per file and data-testids mirror ids for structural elements`() {
+        @DisplayName("ids are unique per file and data-testids mirror ids for structural elements")
+    fun idsAreUniquePerFileAndDataTestidsMirrorIdsForStructuralElements() {
         val index = loadIndex()
         val byFile = index.groupBy { it.file }
         // Match id attribute preceded by whitespace to avoid data-testid.
@@ -69,7 +72,8 @@ class InteractivePagesTest {
     }
 
     @Test
-    fun `index covers all major structural sections (header, section) that have explicit ids`() {
+        @DisplayName("index covers all major structural sections (header, section) that have explicit ids")
+    fun indexCoversAllMajorStructuralSectionsHeaderSectionThatHaveExplicitIds() {
         val index = loadIndex()
         val indexKey = index.map { it.file to it.id }.toSet()
         val structuralTagPattern = Pattern.compile("""<(header|section)\s+[^>]*id="([^"]+)"""")

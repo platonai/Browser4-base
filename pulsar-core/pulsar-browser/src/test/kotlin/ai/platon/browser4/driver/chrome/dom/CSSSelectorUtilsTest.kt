@@ -5,11 +5,13 @@ import ai.platon.browser4.driver.chrome.dom.model.NodeType
 import ai.platon.browser4.driver.chrome.dom.util.CSSSelectorUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class CSSSelectorUtilsTest {
 
     @Test
-    fun `uses id when valid css identifier`() {
+        @DisplayName("uses id when valid css identifier")
+    fun usesIdWhenValidCssIdentifier() {
         val node = DOMTreeNodeEx(
             nodeName = "DIV",
             attributes = mapOf("id" to "main")
@@ -19,7 +21,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `uses attribute selector when id is not a valid css identifier and escapes`() {
+        @DisplayName("uses attribute selector when id is not a valid css identifier and escapes")
+    fun usesAttributeSelectorWhenIdIsNotAValidCssIdentifierAndEscapes() {
         val node = DOMTreeNodeEx(
             nodeName = "DIV",
             attributes = mapOf("id" to "a\"b\\c")
@@ -30,7 +33,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `uses up to three stable classes in order`() {
+        @DisplayName("uses up to three stable classes in order")
+    fun usesUpToThreeStableClassesInOrder() {
         val node = DOMTreeNodeEx(
             nodeName = "div",
             attributes = mapOf(
@@ -49,7 +53,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `class selector without tag when tag is wildcard`() {
+        @DisplayName("class selector without tag when tag is wildcard")
+    fun classSelectorWithoutTagWhenTagIsWildcard() {
         val node = DOMTreeNodeEx(
             nodeName = "", // will become "*"
             attributes = mapOf("class" to "btn primary")
@@ -59,7 +64,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `falls back to preferred attributes`() {
+        @DisplayName("falls back to preferred attributes")
+    fun fallsBackToPreferredAttributes() {
         val node = DOMTreeNodeEx(
             nodeName = "SPAN",
             attributes = mapOf("aria-label" to "Close")
@@ -69,7 +75,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `input prefers value attribute`() {
+        @DisplayName("input prefers value attribute")
+    fun inputPrefersValueAttribute() {
         val node = DOMTreeNodeEx(
             nodeName = "INPUT",
             attributes = mapOf("value" to "Search")
@@ -79,7 +86,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `last resort is lowercase tag`() {
+        @DisplayName("last resort is lowercase tag")
+    fun lastResortIsLowercaseTag() {
         val node = DOMTreeNodeEx(
             nodeName = "Section",
             attributes = emptyMap()
@@ -89,7 +97,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `non-element returns name lowercased or star when blank`() {
+        @DisplayName("non-element returns name lowercased or star when blank")
+    fun nonElementReturnsNameLowercasedOrStarWhenBlank() {
         val textWithName = DOMTreeNodeEx(
             nodeType = NodeType.TEXT_NODE,
             nodeName = "#TEXT",
@@ -108,7 +117,8 @@ class CSSSelectorUtilsTest {
     // New tests for tree scenarios
 
     @Test
-    fun `selectors in a simple tree`() {
+        @DisplayName("selectors in a simple tree")
+    fun selectorsInASimpleTree() {
         val li1 = DOMTreeNodeEx(
             nodeName = "LI",
             attributes = mapOf("class" to "item primary abcd1234"),
@@ -144,7 +154,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `deeply nested node selector remains based on itself`() {
+        @DisplayName("deeply nested node selector remains based on itself")
+    fun deeplyNestedNodeSelectorRemainsBasedOnItself() {
         val deepChild = DOMTreeNodeEx(
             nodeName = "SPAN",
             attributes = mapOf("aria-label" to "Badge")
@@ -167,7 +178,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `shadow root descendants are handled as regular nodes for selector`() {
+        @DisplayName("shadow root descendants are handled as regular nodes for selector")
+    fun shadowRootDescendantsAreHandledAsRegularNodesForSelector() {
         val insideShadow = DOMTreeNodeEx(
             nodeName = "INPUT",
             attributes = mapOf("id" to "a b", "value" to "Ignored because id present"))
@@ -185,7 +197,8 @@ class CSSSelectorUtilsTest {
     }
 
     @Test
-    fun `wildcard tag in tree yields class-only selector`() {
+        @DisplayName("wildcard tag in tree yields class-only selector")
+    fun wildcardTagInTreeYieldsClassOnlySelector() {
         val child = DOMTreeNodeEx(
             nodeName = "",
             attributes = mapOf("class" to "chip primary"))

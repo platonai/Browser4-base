@@ -3,6 +3,7 @@ package ai.platon.pulsar.common
 import ai.platon.pulsar.common.AppPaths.fromHost
 import ai.platon.pulsar.common.AppPaths.fromUri
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.net.URI
 import java.net.URL
@@ -10,7 +11,8 @@ import java.net.URL
 class AppPathsTest {
 
     @Test
-    fun `test fromHost with URL`() {
+        @DisplayName("test fromHost with URL")
+    fun testFromhostWithUrl() {
         // 正常情况
         assertEquals("baidu-com", fromHost(URI.create("http://www.baidu.com").toURL()))
         assertEquals("taobao-com", fromHost(URI.create("https://www.taobao.com").toURL()))
@@ -29,7 +31,8 @@ class AppPathsTest {
     }
 
     @Test
-    fun `test fromHost with String`() {
+        @DisplayName("test fromHost with String")
+    fun testFromhostWithString() {
         // 正常情况
         assertEquals("baidu-com", fromHost("http://www.baidu.com"))
         assertEquals("taobao-com", fromHost("https://www.taobao.com"))
@@ -40,7 +43,8 @@ class AppPathsTest {
     }
 
     @Test
-    fun `test fromUri`() {
+        @DisplayName("test fromUri")
+    fun testFromuri() {
         // 正常情况
         assertEquals("pre-baidu-com-ddcd696103c7865a3301ac293b27c55c-post", fromUri("http://www.baidu.com/some/path?query=param", "pre-", "-post"))
 

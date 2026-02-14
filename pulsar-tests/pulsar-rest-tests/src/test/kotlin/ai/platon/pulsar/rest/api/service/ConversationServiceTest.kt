@@ -20,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 const val PAGE_VISIT_COMMAND_PROMPT1 = """
 Visit http://localhost:18080/ec/dp/B0E000001
@@ -81,7 +82,8 @@ class ConversationServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test prompt conversion to request`() {
+        @DisplayName("test prompt conversion to request")
+    fun testPromptConversionToRequest() {
         val prompt = PAGE_VISIT_COMMAND_PROMPT1
 
         val request = runBlocking { conversationService.normalizePlainCommand(prompt) }
@@ -91,7 +93,8 @@ class ConversationServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test prompt conversion to request 2`() {
+        @DisplayName("test prompt conversion to request 2")
+    fun testPromptConversionToRequest2() {
         val prompt = PAGE_VISIT_COMMAND_PROMPT2
 
         val request = runBlocking { conversationService.normalizePlainCommand(prompt) }
@@ -101,7 +104,8 @@ class ConversationServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    fun `test convertPlainCommandToJSON with X-SQL`() {
+        @DisplayName("test convertPlainCommandToJSON with X-SQL")
+    fun testConvertplaincommandtojsonWithXSql() {
         val url1 = "http://localhost:18080/ec/dp/B0E000001"
         val url2 = "http://localhost:18080/ec/dp/B0E000002"
 
@@ -148,7 +152,8 @@ from load_and_select(@url, 'body');
     }
 
     @Test
-    fun `test prompt conversion to request 3`() {
+        @DisplayName("test prompt conversion to request 3")
+    fun testPromptConversionToRequest3() {
         val prompt = PAGE_VISIT_COMMAND_PROMPT3
 
         val request = runBlocking { conversationService.normalizePlainCommand(prompt) }
@@ -158,7 +163,8 @@ from load_and_select(@url, 'body');
     }
 
     @Test
-    fun `test convertPlainCommandToJSON with cache`() {
+        @DisplayName("test convertPlainCommandToJSON with cache")
+    fun testConvertplaincommandtojsonWithCache() {
         val url1 = "http://localhost:18080/ec/dp/B0E000001"
         val url2 = "http://localhost:18080/ec/dp/B0E000002"
 
@@ -189,7 +195,8 @@ Page summary prompt: Provide a brief introduction of this product.
     }
 
     @Test
-    fun `test prompt conversion without URL`() {
+        @DisplayName("test prompt conversion without URL")
+    fun testPromptConversionWithoutUrl() {
         val prompt = """
 Go to localhost:18080/ec/dp/B0E000001
 
@@ -204,7 +211,8 @@ Page summary prompt: Provide a brief introduction of this product.
      * Execute a normal sql
      * */
     @Test
-    fun `When chat about a page then the result is not empty`() {
+        @DisplayName("When chat about a page then the result is not empty")
+    fun whenChatAboutAPageThenTheResultIsNotEmpty() {
         val request = PromptRequest(TestUrls.MOCK_PRODUCT_LIST_URL, "Tell me something about the page")
 
         val response = runBlocking { conversationService.chat(request) }
@@ -213,7 +221,8 @@ Page summary prompt: Provide a brief introduction of this product.
     }
 
     @Test
-    fun `test actions on page ready`() {
+        @DisplayName("test actions on page ready")
+    fun testActionsOnPageReady() {
         val actions = """
             move cursor to the element with id 'title' and click it
             scroll to middle
@@ -230,7 +239,8 @@ Page summary prompt: Provide a brief introduction of this product.
     }
 
     @Test
-    fun `test convertResponseToMarkdown`() {
+        @DisplayName("test convertResponseToMarkdown")
+    fun testConvertresponsetomarkdown() {
         val response = """
 {
   "uuid" : null,

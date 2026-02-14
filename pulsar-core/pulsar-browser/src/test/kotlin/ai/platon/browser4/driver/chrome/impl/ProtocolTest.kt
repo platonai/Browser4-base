@@ -24,11 +24,13 @@ import ai.platon.cdt.kt.protocol.types.accessibility.AXNode
 import ai.platon.pulsar.common.ResourceLoader
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class ProtocolTest {
 
     @Test
-    fun `Given AXTree json then deserialize correctly by OBJECT_MAPPER`() {
+        @DisplayName("Given AXTree json then deserialize correctly by OBJECT_MAPPER")
+    fun givenAxtreeJsonThenDeserializeCorrectlyByObjectMapper() {
         val mapper = EventDispatcher.OBJECT_MAPPER
         val json = ResourceLoader.readString("dom/AXTree.json")
         val jsonNode = mapper.readTree(json)
@@ -39,7 +41,8 @@ class ProtocolTest {
     }
 
     @Test
-    fun `Given AXTree json then deserialize correctly by EventDispatcher`() {
+        @DisplayName("Given AXTree json then deserialize correctly by EventDispatcher")
+    fun givenAxtreeJsonThenDeserializeCorrectlyByEventdispatcher() {
         val mapper = EventDispatcher.OBJECT_MAPPER
         val json = ResourceLoader.readString("dom/AXTree.json")
         val jsonNode = mapper.readTree(json)
@@ -53,7 +56,8 @@ class ProtocolTest {
     }
 
     @Test
-    fun `Given AXTree json WITH BAD FIELDS then deserialize correctly by EventDispatcher`() {
+        @DisplayName("Given AXTree json WITH BAD FIELDS then deserialize correctly by EventDispatcher")
+    fun givenAxtreeJsonWithBadFieldsThenDeserializeCorrectlyByEventdispatcher() {
         val mapper = EventDispatcher.OBJECT_MAPPER
         val json = ResourceLoader.readString("dom/AXTree.json")
             .replace("uninteresting", "UNINTERESTINGREPLACEDFORTEST")

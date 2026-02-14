@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.awt.Dimension
 import java.util.Locale
+import org.junit.jupiter.api.DisplayName
 
 class TabSwitchTest {
 
@@ -33,7 +34,8 @@ class TabSwitchTest {
     )
 
     @Test
-    fun `TabState serialization includes all fields`() {
+        @DisplayName("TabState serialization includes all fields")
+    fun tabstateSerializationIncludesAllFields() {
         val tabState = TabState(
             id = "tab-1",
             driverId = 42,
@@ -52,7 +54,8 @@ class TabSwitchTest {
     }
 
     @Test
-    fun `BrowserState with tabs serialization`() {
+        @DisplayName("BrowserState with tabs serialization")
+    fun browserstateWithTabsSerialization() {
         val tabs = listOf(
             TabState("tab-1", 1, "https://example.com", "Example", true),
             TabState("tab-2", 2, "https://google.com", "Google", false)
@@ -77,7 +80,8 @@ class TabSwitchTest {
     }
 
     @Test
-    fun `parse browser switchTab call`() {
+        @DisplayName("parse browser switchTab call")
+    fun parseBrowserSwitchtabCall() {
         val tc = SimpleKotlinParser().parseFunctionExpression("browser.switchTab(\"tab-1\")")
         assertNotNull(tc)
         tc!!
@@ -87,7 +91,8 @@ class TabSwitchTest {
     }
 
     @Test
-    fun `parse browser switchTab with numeric id`() {
+        @DisplayName("parse browser switchTab with numeric id")
+    fun parseBrowserSwitchtabWithNumericId() {
         // Even though the signature now uses String, test parsing of numeric-looking IDs
         val tc = SimpleKotlinParser().parseFunctionExpression("browser.switchTab(\"123\")")
         assertNotNull(tc)
@@ -98,7 +103,8 @@ class TabSwitchTest {
     }
 
     @Test
-    fun `BrowserState with empty tabs list`() {
+        @DisplayName("BrowserState with empty tabs list")
+    fun browserstateWithEmptyTabsList() {
         val browserState = BrowserState(
             url = "https://example.com",
             goBackUrl = null,
@@ -116,7 +122,8 @@ class TabSwitchTest {
     }
 
     @Test
-    fun `TabState with minimal fields`() {
+        @DisplayName("TabState with minimal fields")
+    fun tabstateWithMinimalFields() {
         val tabState = TabState(
             id = "tab-minimal",
             url = "https://minimal.com"

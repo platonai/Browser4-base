@@ -9,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class FileSystemToolExecutorTest {
 
@@ -22,7 +23,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `writeString calls fs writeString with correct args`() = runBlocking {
+        @DisplayName("writeString calls fs writeString with correct args")
+    fun writestringCallsFsWritestringWithCorrectArgs() = runBlocking {
         coEvery { fs.writeString(any(), any()) } returns "success"
 
         val tc = ToolCall(
@@ -36,7 +38,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `writeString allows empty content`() = runBlocking {
+        @DisplayName("writeString allows empty content")
+    fun writestringAllowsEmptyContent() = runBlocking {
         coEvery { fs.writeString(any(), any()) } returns "success"
 
         val tc = ToolCall(
@@ -50,7 +53,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `readString calls fs readString with correct args`() = runBlocking {
+        @DisplayName("readString calls fs readString with correct args")
+    fun readstringCallsFsReadstringWithCorrectArgs() = runBlocking {
         coEvery { fs.readString(any(), any()) } returns "content"
 
         val tc = ToolCall(
@@ -64,7 +68,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `readString defaults external to false`() = runBlocking {
+        @DisplayName("readString defaults external to false")
+    fun readstringDefaultsExternalToFalse() = runBlocking {
         coEvery { fs.readString(any(), any()) } returns "content"
 
         val tc = ToolCall(
@@ -78,7 +83,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `append calls fs append with correct args`() = runBlocking {
+        @DisplayName("append calls fs append with correct args")
+    fun appendCallsFsAppendWithCorrectArgs() = runBlocking {
         coEvery { fs.append(any(), any()) } returns "success"
 
         val tc = ToolCall(
@@ -92,7 +98,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `replaceContent calls fs replaceContent with correct args`() = runBlocking {
+        @DisplayName("replaceContent calls fs replaceContent with correct args")
+    fun replacecontentCallsFsReplacecontentWithCorrectArgs() = runBlocking {
         coEvery { fs.replaceContent(any(), any(), any()) } returns "success"
 
         val tc = ToolCall(
@@ -106,7 +113,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `fileExists calls fs fileExists with correct args`() = runBlocking {
+        @DisplayName("fileExists calls fs fileExists with correct args")
+    fun fileexistsCallsFsFileexistsWithCorrectArgs() = runBlocking {
         coEvery { fs.fileExists(any()) } returns "exists"
 
         val tc = ToolCall(
@@ -120,7 +128,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `getFileInfo calls fs getFileInfo with correct args`() = runBlocking {
+        @DisplayName("getFileInfo calls fs getFileInfo with correct args")
+    fun getfileinfoCallsFsGetfileinfoWithCorrectArgs() = runBlocking {
         coEvery { fs.getFileInfo(any()) } returns "info"
 
         val tc = ToolCall(
@@ -134,7 +143,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `deleteFile calls fs deleteFile with correct args`() = runBlocking {
+        @DisplayName("deleteFile calls fs deleteFile with correct args")
+    fun deletefileCallsFsDeletefileWithCorrectArgs() = runBlocking {
         coEvery { fs.deleteFile(any()) } returns "deleted"
 
         val tc = ToolCall(
@@ -148,7 +158,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `copyFile calls fs copyFile with correct args`() = runBlocking {
+        @DisplayName("copyFile calls fs copyFile with correct args")
+    fun copyfileCallsFsCopyfileWithCorrectArgs() = runBlocking {
         coEvery { fs.copyFile(any(), any()) } returns "copied"
 
         val tc = ToolCall(
@@ -162,7 +173,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `moveFile calls fs moveFile with correct args`() = runBlocking {
+        @DisplayName("moveFile calls fs moveFile with correct args")
+    fun movefileCallsFsMovefileWithCorrectArgs() = runBlocking {
         coEvery { fs.moveFile(any(), any()) } returns "moved"
 
         val tc = ToolCall(
@@ -176,7 +188,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `listFiles calls fs listFilesInfo`() = runBlocking {
+        @DisplayName("listFiles calls fs listFilesInfo")
+    fun listfilesCallsFsListfilesinfo() = runBlocking {
         coEvery { fs.listFilesInfo() } returns "files list"
 
         val tc = ToolCall(
@@ -190,7 +203,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `unsupported method returns exception`() = runBlocking {
+        @DisplayName("unsupported method returns exception")
+    fun unsupportedMethodReturnsException() = runBlocking {
         val tc = ToolCall(
             domain = "fs",
             method = "unsupportedMethod",
@@ -203,7 +217,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `missing required parameter returns exception`() = runBlocking {
+        @DisplayName("missing required parameter returns exception")
+    fun missingRequiredParameterReturnsException() = runBlocking {
         val tc = ToolCall(
             domain = "fs",
             method = "append",
@@ -217,7 +232,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `wrong domain returns exception`() = runBlocking {
+        @DisplayName("wrong domain returns exception")
+    fun wrongDomainReturnsException() = runBlocking {
         val tc = ToolCall(
             domain = "wrong",
             method = "writeString",
@@ -229,7 +245,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `help returns available file system methods`() {
+        @DisplayName("help returns available file system methods")
+    fun helpReturnsAvailableFileSystemMethods() {
         val help = executor.help()
 
         assertNotNull(help)
@@ -238,7 +255,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `help for writeString returns detailed help`() {
+        @DisplayName("help for writeString returns detailed help")
+    fun helpForWritestringReturnsDetailedHelp() {
         val help = executor.help("writeString")
 
         assertNotNull(help)
@@ -246,7 +264,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `help for readString returns detailed help`() {
+        @DisplayName("help for readString returns detailed help")
+    fun helpForReadstringReturnsDetailedHelp() {
         val help = executor.help("readString")
 
         assertNotNull(help)
@@ -254,7 +273,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `help for all methods is available`() {
+        @DisplayName("help for all methods is available")
+    fun helpForAllMethodsIsAvailable() {
         val methods = listOf("writeString", "readString", "append", "replaceContent",
                              "fileExists", "getFileInfo", "deleteFile", "copyFile",
                              "moveFile", "listFiles")
@@ -267,7 +287,8 @@ class FileSystemToolExecutorTest {
     }
 
     @Test
-    fun `help for unknown method returns empty string`() {
+        @DisplayName("help for unknown method returns empty string")
+    fun helpForUnknownMethodReturnsEmptyString() {
         val help = executor.help("unknownMethod")
         assertEquals("", help)
     }

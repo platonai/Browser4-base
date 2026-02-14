@@ -5,6 +5,7 @@ import ai.platon.browser4.driver.common.DualWorldScriptLoader
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import ai.platon.pulsar.common.config.ImmutableConfig
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests for the dual-world script injection mechanism.
@@ -16,7 +17,8 @@ class DualWorldScriptLoaderTest {
     private val loader = settings.dualWorldScriptLoader
 
     @Test
-    fun `test page world scripts contain only stealth patches`() {
+        @DisplayName("test page world scripts contain only stealth patches")
+    fun testPageWorldScriptsContainOnlyStealthPatches() {
         val pageWorldJs = loader.getPageWorldJs()
 
         // Page world should contain stealth.js
@@ -33,7 +35,8 @@ class DualWorldScriptLoaderTest {
     }
 
     @Test
-    fun `test isolated world scripts contain runtime`() {
+        @DisplayName("test isolated world scripts contain runtime")
+    fun testIsolatedWorldScriptsContainRuntime() {
         val isolatedWorldJs = loader.getIsolatedWorldJs()
 
         // Isolated world should contain runtime components
@@ -55,7 +58,8 @@ class DualWorldScriptLoaderTest {
     }
 
     @Test
-    fun `test scripts are separated correctly`() {
+        @DisplayName("test scripts are separated correctly")
+    fun testScriptsAreSeparatedCorrectly() {
         val pageWorldJs = loader.getPageWorldJs()
         val isolatedWorldJs = loader.getIsolatedWorldJs()
 
@@ -74,7 +78,8 @@ class DualWorldScriptLoaderTest {
     }
 
     @Test
-    fun `test reload functionality`() {
+        @DisplayName("test reload functionality")
+    fun testReloadFunctionality() {
         val initial = loader.getPageWorldJs()
         loader.reload()
         val reloaded = loader.getPageWorldJs()
@@ -84,7 +89,8 @@ class DualWorldScriptLoaderTest {
     }
 
     @Test
-    fun `test page world resources list`() {
+        @DisplayName("test page world resources list")
+    fun testPageWorldResourcesList() {
         val resources = DualWorldScriptLoader.PAGE_WORLD_RESOURCES
 
         assertTrue(resources.contains("js/stealth.js"),
@@ -94,7 +100,8 @@ class DualWorldScriptLoaderTest {
     }
 
     @Test
-    fun `test isolated world resources list`() {
+        @DisplayName("test isolated world resources list")
+    fun testIsolatedWorldResourcesList() {
         val resources = DualWorldScriptLoader.ISOLATED_WORLD_RESOURCES
 
         assertTrue(resources.contains("js/__pulsar_utils__.js"),

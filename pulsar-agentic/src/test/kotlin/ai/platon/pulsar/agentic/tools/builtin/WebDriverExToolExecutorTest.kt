@@ -9,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class WebDriverExToolExecutorTest {
 
@@ -22,7 +23,8 @@ class WebDriverExToolExecutorTest {
     }
 
     @Test
-    fun `help returns available methods`() {
+        @DisplayName("help returns available methods")
+    fun helpReturnsAvailableMethods() {
         val help = executor.help()
 
         assertNotNull(help)
@@ -31,7 +33,8 @@ class WebDriverExToolExecutorTest {
     }
 
     @Test
-    fun `help for extract method returns detailed help`() {
+        @DisplayName("help for extract method returns detailed help")
+    fun helpForExtractMethodReturnsDetailedHelp() {
         val help = executor.help("extract")
 
         assertNotNull(help)
@@ -40,14 +43,16 @@ class WebDriverExToolExecutorTest {
     }
 
     @Test
-    fun `help for unknown method returns empty string`() {
+        @DisplayName("help for unknown method returns empty string")
+    fun helpForUnknownMethodReturnsEmptyString() {
         val help = executor.help("unknownMethod")
 
         assertEquals("", help)
     }
 
     @Test
-    fun `extract calls selectTextAll with union selector`() = runBlocking {
+        @DisplayName("extract calls selectTextAll with union selector")
+    fun extractCallsSelecttextallWithUnionSelector() = runBlocking {
         coEvery { driver.selectTextAll(any()) } returns listOf("text1", "text2")
 
         val tc = ToolCall(
@@ -62,7 +67,8 @@ class WebDriverExToolExecutorTest {
     }
 
     @Test
-    fun `extract with comma-separated string selectors`() = runBlocking {
+        @DisplayName("extract with comma-separated string selectors")
+    fun extractWithCommaSeparatedStringSelectors() = runBlocking {
         coEvery { driver.selectTextAll(any()) } returns listOf("text")
 
         val tc = ToolCall(
@@ -77,7 +83,8 @@ class WebDriverExToolExecutorTest {
     }
 
     @Test
-    fun `unsupported method returns exception`() = runBlocking {
+        @DisplayName("unsupported method returns exception")
+    fun unsupportedMethodReturnsException() = runBlocking {
         val tc = ToolCall(
             domain = "driverEx",
             method = "unsupportedMethod",
@@ -91,7 +98,8 @@ class WebDriverExToolExecutorTest {
     }
 
     @Test
-    fun `domain property is driverEx`() {
+        @DisplayName("domain property is driverEx")
+    fun domainPropertyIsDriverex() {
         assertEquals("driverEx", executor.domain)
     }
 }

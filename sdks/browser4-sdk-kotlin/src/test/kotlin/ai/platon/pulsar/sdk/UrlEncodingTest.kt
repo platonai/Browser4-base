@@ -19,6 +19,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests to verify URL encoding behavior for special characters.
@@ -26,16 +27,18 @@ import kotlin.test.assertTrue
 class UrlEncodingTest {
 
     @Test
-    fun `URL encoding should encode hash symbol`() {
+        @DisplayName("URL encoding should encode hash symbol")
+    fun urlEncodingShouldEncodeHashSymbol() {
         val selector = "#username"
         val encoded = URLEncoder.encode(selector, StandardCharsets.UTF_8)
-        
+
         assertEquals("%23username", encoded)
         assertFalse(encoded.contains("#"))
     }
 
     @Test
-    fun `URL encoding should encode various special characters`() {
+        @DisplayName("URL encoding should encode various special characters")
+    fun urlEncodingShouldEncodeVariousSpecialCharacters() {
         val testCases = mapOf(
             "#id" to "%23id",
             ".class" to ".class",  // Dots are safe in URLs and not encoded
@@ -51,9 +54,10 @@ class UrlEncodingTest {
     }
 
     @Test
-    fun `URL encoded string should not contain fragment identifier`() {
+        @DisplayName("URL encoded string should not contain fragment identifier")
+    fun urlEncodedStringShouldNotContainFragmentIdentifier() {
         val selectors = listOf("#username", "#password", "#email", "#id-123")
-        
+
         selectors.forEach { selector ->
             val encoded = URLEncoder.encode(selector, StandardCharsets.UTF_8)
             assertFalse(encoded.contains("#"), "Encoded string should not contain # for: $selector")
@@ -62,17 +66,18 @@ class UrlEncodingTest {
     }
 
     @Test
-    fun `sendKeys delegates to fill method`() {
+        @DisplayName("sendKeys delegates to fill method")
+    fun sendkeysDelegatesToFillMethod() {
         // This test documents that sendKeys now takes a selector parameter
         // and delegates to fill() instead of using /element/{id}/value endpoint
         // The signature changed from: sendKeys(elementId: String, text: String)
         // to: sendKeys(selector: String, text: String, strategy: String = "css")
-        
+
         // Note: This is a documentation test. Integration tests would verify
         // the actual HTTP call is made to /session/{sessionId}/selectors/fill
         val client = ai.platon.pulsar.sdk.v0.detail.PulsarClient(sessionId = "test")
         val driver = ai.platon.pulsar.sdk.v0.WebDriver(client)
-        
+
         // Verify WebDriver instance is created (structure test)
         assertNotNull(driver)
     }

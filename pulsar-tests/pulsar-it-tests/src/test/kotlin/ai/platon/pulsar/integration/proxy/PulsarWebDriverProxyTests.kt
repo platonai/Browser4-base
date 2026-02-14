@@ -19,6 +19,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class PulsarWebDriverProxyTests : WebDriverTestBase() {
     private val proxyLoader by lazy { ProxyHubLoader(conf) }
@@ -54,7 +55,8 @@ class PulsarWebDriverProxyTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `When navigate to a HTML page with proxy then success`() = runWebDriverTest(browserId) { driver ->
+        @DisplayName("When navigate to a HTML page with proxy then success")
+    fun whenNavigateToAHtmlPageWithProxyThenSuccess() = runWebDriverTest(browserId) { driver ->
         Assumptions.assumeTrue(proxies.isNotEmpty())
 
         openEnhanced(ipTestUrl, driver, 1)

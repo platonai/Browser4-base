@@ -8,12 +8,14 @@ import kotlinx.coroutines.flow.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import org.junit.jupiter.api.DisplayName
 
 class ServerSideEventHandlersTest {
     private val conf = ImmutableConfig()
 
     @Test
-    fun `test ServerSideEvent creation`() {
+        @DisplayName("test ServerSideEvent creation")
+    fun testServersideeventCreation() {
         val event = ServerSideEvent(
             eventType = "onWillLoad",
             eventPhase = "crawl",
@@ -29,7 +31,8 @@ class ServerSideEventHandlersTest {
     }
 
     @Test
-    fun `test DefaultServerSideEventHandlers emits crawl events`() = runBlocking {
+        @DisplayName("test DefaultServerSideEventHandlers emits crawl events")
+    fun testDefaultserversideeventhandlersEmitsCrawlEvents() = runBlocking {
         val handlers = DefaultServerSideEventHandlers()
         val events = mutableListOf<ServerSideEvent>()
         val readyLatch = CompletableDeferred<Unit>()
@@ -67,7 +70,8 @@ class ServerSideEventHandlersTest {
     }
 
     @Test
-    fun `test DefaultServerSideEventHandlers emits load events`() = runBlocking {
+        @DisplayName("test DefaultServerSideEventHandlers emits load events")
+    fun testDefaultserversideeventhandlersEmitsLoadEvents() = runBlocking {
         val handlers = DefaultServerSideEventHandlers()
         val events = mutableListOf<ServerSideEvent>()
         val page = GoraWebPage.newWebPage("https://example.com", conf.toVolatileConfig())
@@ -102,7 +106,8 @@ class ServerSideEventHandlersTest {
     }
 
     @Test
-    fun `test DefaultServerSideEventHandlers emits browse events`() = runBlocking {
+        @DisplayName("test DefaultServerSideEventHandlers emits browse events")
+    fun testDefaultserversideeventhandlersEmitsBrowseEvents() = runBlocking {
         val handlers = DefaultServerSideEventHandlers()
         val events = mutableListOf<ServerSideEvent>()
         val page = GoraWebPage.newWebPage("https://example.com", conf.toVolatileConfig())
@@ -137,7 +142,8 @@ class ServerSideEventHandlersTest {
     }
 
     @Test
-    fun `test DefaultServerSideEventHandlers emits generic events`() = runBlocking {
+        @DisplayName("test DefaultServerSideEventHandlers emits generic events")
+    fun testDefaultserversideeventhandlersEmitsGenericEvents() = runBlocking {
         val handlers = DefaultServerSideEventHandlers()
         val events = mutableListOf<ServerSideEvent>()
         val allEventsReceived = CompletableDeferred<Unit>()
@@ -174,7 +180,8 @@ class ServerSideEventHandlersTest {
     }
 
     @Test
-    fun `test event flow buffering with replay 0`() = runBlocking {
+        @DisplayName("test event flow buffering with replay 0")
+    fun testEventFlowBufferingWithReplay0() = runBlocking {
         val handlers = DefaultServerSideEventHandlers(replay = 0)
 
         // Emit events before any collector is attached
@@ -210,7 +217,8 @@ class ServerSideEventHandlersTest {
     }
 
     @Test
-    fun `test concurrent event emission`() = runBlocking {
+        @DisplayName("test concurrent event emission")
+    fun testConcurrentEventEmission() = runBlocking {
         val handlers = DefaultServerSideEventHandlers()
         val eventCount = 10
         val events = mutableListOf<ServerSideEvent>()

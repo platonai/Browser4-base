@@ -10,6 +10,7 @@ import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertNull
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Test injected JS
@@ -21,7 +22,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     val testURL get() = "$generatedAssetsBaseURL/injected-js.test.html"
 
     @Test
-    fun `test evaluate that returns primitive value`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test evaluate that returns primitive value")
+    fun testEvaluateThatReturnsPrimitiveValue() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         val expression = """1+1"""
 
         val result = driver.evaluate(expression)
@@ -29,7 +31,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test evaluate that returns JS Object`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test evaluate that returns JS Object")
+    fun testEvaluateThatReturnsJsObject() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         val expression = """document"""
 
         val result = driver.evaluateDetail(expression)
@@ -44,7 +47,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test evaluateValueDetail that returns JS Object`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test evaluateValueDetail that returns JS Object")
+    fun testEvaluatevaluedetailThatReturnsJsObject() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         val code = """document"""
 
         val result = driver.evaluateValueDetail(code)
@@ -61,7 +65,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test __pulsar_NodeExt can not be seen`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test __pulsar_NodeExt can not be seen")
+    fun testPulsarNodeextCanNotBeSeen() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         var result = driver.evaluateValue("__pulsar_NodeExt")
         // printlnPro(result)
         assertNull(result)
@@ -76,7 +81,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test getConfig`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test getConfig")
+    fun testGetconfig() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         val expression = """__pulsar_utils__.getConfig()"""
 
         val result = driver.evaluateValue(expression)
@@ -89,7 +95,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `Given JS with escaped special characters When execute Then success`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("Given JS with escaped special characters When execute Then success")
+    fun givenJsWithEscapedSpecialCharactersWhenExecuteThenSuccess() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         val selectors = """
 #itemList [data-id='1'] input[type='text']
         """.trimIndent().split("\n")
@@ -108,7 +115,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test queryComputedStyle`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test queryComputedStyle")
+    fun testQuerycomputedstyle() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         // Load the required scripts
         ScriptLoader.addInitParameter("ATTR_ELEMENT_NODE_DATA", AppConstants.PULSAR_ATTR_ELEMENT_NODE_DATA)
         driver.browser.settings.scriptLoader.reload()
@@ -141,7 +149,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test JS selectAttributes`() {
+        @DisplayName("test JS selectAttributes")
+    fun testJsSelectattributes() {
         val driver = browser.newDriver()
 
         runBlocking {
@@ -230,7 +239,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test JS queryComputedStyle`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test JS queryComputedStyle")
+    fun testJsQuerycomputedstyle() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         // Load the required scripts
         ScriptLoader.addInitParameter("ATTR_ELEMENT_NODE_DATA", AppConstants.PULSAR_ATTR_ELEMENT_NODE_DATA)
         driver.browser.settings.scriptLoader.reload()
@@ -253,7 +263,8 @@ class PulsarWebDriverInjectedJSTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test JS compute`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test JS compute")
+    fun testJsCompute() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         val expression = """new __pulsar_NodeTraversor(new __pulsar_NodeFeatureCalculator()).traverse(document.body);"""
 
         val result = driver.evaluateValue(expression)

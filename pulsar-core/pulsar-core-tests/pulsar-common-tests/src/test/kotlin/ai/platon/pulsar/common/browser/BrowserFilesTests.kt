@@ -6,6 +6,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 class BrowserFilesTests {
 
@@ -35,14 +36,16 @@ class BrowserFilesTests {
     }
 
     @Test
-    fun `when deleteTemporaryUserDataDirWithLock then userDataDir is deleted`() {
+        @DisplayName("when deleteTemporaryUserDataDirWithLock then userDataDir is deleted")
+    fun whenDeletetemporaryuserdatadirwithlockThenUserdatadirIsDeleted() {
         val userDataDir = tempContextGroupDir.resolve("user_data_dir")
         Files.createDirectories(userDataDir)
         deleteTemporaryUserDataDirWithLock(userDataDir)
     }
 
     @Test
-    fun `when parallel deleteTemporaryUserDataDirWithLock then userDataDirs are deleted`() {
+        @DisplayName("when parallel deleteTemporaryUserDataDirWithLock then userDataDirs are deleted")
+    fun whenParallelDeletetemporaryuserdatadirwithlockThenUserdatadirsAreDeleted() {
         val userDataDirs = IntRange(0, 200).map { tempContextGroupDir.resolve("user_data_dir.$it") }
         userDataDirs.forEach { Files.createDirectories(it) }
         userDataDirs.parallelStream().forEach { deleteTemporaryUserDataDirWithLock(it) }
@@ -57,7 +60,8 @@ class BrowserFilesTests {
     }
 
     @Test
-    fun `when computeNextSequentialContextDir then next sequential context dir is created`() {
+        @DisplayName("when computeNextSequentialContextDir then next sequential context dir is created")
+    fun whenComputenextsequentialcontextdirThenNextSequentialContextDirIsCreated() {
         val path = BrowserFiles.computeNextSequentialContextDir(group)
         // logPrintln(path)
         assertTrue("directory should exists: $contextBaseDir") { Files.exists(contextBaseDir) }
@@ -65,7 +69,8 @@ class BrowserFilesTests {
     }
 
     @Test
-    fun `when parallel computeNextSequentialContextDir then multiple context dirs are created`() {
+        @DisplayName("when parallel computeNextSequentialContextDir then multiple context dirs are created")
+    fun whenParallelComputenextsequentialcontextdirThenMultipleContextDirsAreCreated() {
         val numAgents = 13
         IntRange(1, 100).toList().parallelStream().forEach {
             val path = BrowserFiles.computeNextSequentialContextDir(group, maxAgents = numAgents)

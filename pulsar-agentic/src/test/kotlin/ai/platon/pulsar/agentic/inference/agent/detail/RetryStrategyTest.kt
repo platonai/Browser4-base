@@ -11,6 +11,7 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.atomic.AtomicInteger
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Integration tests for RetryStrategy component.
@@ -29,7 +30,8 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should retry transient errors`() {
+        @DisplayName("should retry transient errors")
+    fun shouldRetryTransientErrors() {
         assertTrue(retryStrategy.shouldRetry(PerceptiveAgentError.TransientError("test")))
         assertTrue(retryStrategy.shouldRetry(ConnectException("test")))
         assertTrue(retryStrategy.shouldRetry(SocketTimeoutException("test")))
@@ -37,14 +39,16 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should not retry permanent errors`() {
+        @DisplayName("should not retry permanent errors")
+    fun shouldNotRetryPermanentErrors() {
         assertFalse(retryStrategy.shouldRetry(PerceptiveAgentError.PermanentError("test")))
         assertFalse(retryStrategy.shouldRetry(IllegalStateException("test")))
         assertFalse(retryStrategy.shouldRetry(NullPointerException("test")))
     }
 
     @Test
-    fun `should calculate increasing delays with exponential backoff`() {
+        @DisplayName("should calculate increasing delays with exponential backoff")
+    fun shouldCalculateIncreasingDelaysWithExponentialBackoff() {
         val delay0 = retryStrategy.calculateDelay(0)
         val delay1 = retryStrategy.calculateDelay(1)
         val delay2 = retryStrategy.calculateDelay(2)
@@ -58,7 +62,8 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should execute action with retry on transient failure`() = runBlocking {
+        @DisplayName("should execute action with retry on transient failure")
+    fun shouldExecuteActionWithRetryOnTransientFailure() = runBlocking {
         val attemptCounter = AtomicInteger(0)
 
         val result = retryStrategy.execute(
@@ -76,7 +81,8 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should exhaust retries and throw last error`() = runBlocking {
+        @DisplayName("should exhaust retries and throw last error")
+    fun shouldExhaustRetriesAndThrowLastError() = runBlocking {
         val attemptCounter = AtomicInteger(0)
 
         try {
@@ -94,7 +100,8 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should not retry on permanent error`() = runBlocking {
+        @DisplayName("should not retry on permanent error")
+    fun shouldNotRetryOnPermanentError() = runBlocking {
         val attemptCounter = AtomicInteger(0)
 
         try {
@@ -112,7 +119,8 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should invoke callbacks on retry`() = runBlocking {
+        @DisplayName("should invoke callbacks on retry")
+    fun shouldInvokeCallbacksOnRetry() = runBlocking {
         val retryCallbacks = mutableListOf<Pair<Int, Long>>()
         val errorCallbacks = mutableListOf<Pair<Int, Throwable>>()
         val attemptCounter = AtomicInteger(0)
@@ -138,7 +146,8 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should classify errors correctly`() {
+        @DisplayName("should classify errors correctly")
+    fun shouldClassifyErrorsCorrectly() {
         val timeout = retryStrategy.classifyError(SocketTimeoutException("test"), "step 1")
         assertTrue(timeout is PerceptiveAgentError.TimeoutError)
 
@@ -153,7 +162,8 @@ class RetryStrategyTest {
     }
 
     @Test
-    fun `should classify IOException based on message`() {
+        @DisplayName("should classify IOException based on message")
+    fun shouldClassifyIoexceptionBasedOnMessage() {
         val connectionError = retryStrategy.classifyError(
             IOException("Connection refused"), "step 1"
         )

@@ -27,6 +27,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 class PrivacyContextManagerTests {
     private val logger = getLogger(this)
@@ -148,7 +149,8 @@ class PrivacyContextManagerTests {
     }
 
     @Test
-    fun `When a privacy context closed then it's removed from the active queue`() {
+        @DisplayName("When a privacy context closed then it's removed from the active queue")
+    fun whenAPrivacyContextClosedThenItSRemovedFromTheActiveQueue() {
         val manager = MultiPrivacyContextManager(driverPoolManager, conf)
 
         val agent = BrowserProfile(contextPath, BrowserType.DEFAULT)
@@ -160,7 +162,8 @@ class PrivacyContextManagerTests {
     }
 
     @Test
-    fun `When tasks run then contexts rotates`() {
+        @DisplayName("When tasks run then contexts rotates")
+    fun whenTasksRunThenContextsRotates() {
         val manager = MultiPrivacyContextManager(driverPoolManager, conf)
         val url = "about:blank"
         val page = WebPageExt.newTestWebPage(url)
@@ -177,7 +180,8 @@ class PrivacyContextManagerTests {
 
     @Ignore("Failed, will correct the test later")
     @Test
-    fun `When task run then maintainer started`() {
+        @DisplayName("When task run then maintainer started")
+    fun whenTaskRunThenMaintainerStarted() {
         val manager = MultiPrivacyContextManager(driverPoolManager, conf)
         val url = "about:blank"
         val page = WebPageExt.newTestWebPage(url)

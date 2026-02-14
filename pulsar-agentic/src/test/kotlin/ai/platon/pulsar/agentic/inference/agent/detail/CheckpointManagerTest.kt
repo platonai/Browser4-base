@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Integration tests for CheckpointManager component.
@@ -25,7 +26,8 @@ class CheckpointManagerTest {
     }
 
     @Test
-    fun `should save and load checkpoint`() {
+        @DisplayName("should save and load checkpoint")
+    fun shouldSaveAndLoadCheckpoint() {
         val checkpoint = createTestCheckpoint("session-123")
 
         val path = checkpointManager.save(checkpoint)
@@ -39,7 +41,8 @@ class CheckpointManagerTest {
     }
 
     @Test
-    fun `should create latest checkpoint file`() {
+        @DisplayName("should create latest checkpoint file")
+    fun shouldCreateLatestCheckpointFile() {
         val checkpoint = createTestCheckpoint("session-456")
 
         checkpointManager.save(checkpoint)
@@ -49,7 +52,8 @@ class CheckpointManagerTest {
     }
 
     @Test
-    fun `should load latest checkpoint when checkpointId not specified`() {
+        @DisplayName("should load latest checkpoint when checkpointId not specified")
+    fun shouldLoadLatestCheckpointWhenCheckpointidNotSpecified() {
         val checkpoint1 = createTestCheckpoint("session-789", step = 10)
         val checkpoint2 = createTestCheckpoint("session-789", step = 20)
 
@@ -62,13 +66,15 @@ class CheckpointManagerTest {
     }
 
     @Test
-    fun `should return null for non-existent checkpoint`() {
+        @DisplayName("should return null for non-existent checkpoint")
+    fun shouldReturnNullForNonExistentCheckpoint() {
         val loaded = checkpointManager.load("non-existent-session")
         assertNull(loaded)
     }
 
     @Test
-    fun `should list all checkpoints for session`() {
+        @DisplayName("should list all checkpoints for session")
+    fun shouldListAllCheckpointsForSession() {
         val session = "session-list-test"
 
         checkpointManager.save(createTestCheckpoint(session, step = 10))
@@ -87,7 +93,8 @@ class CheckpointManagerTest {
     }
 
     @Test
-    fun `should prune old checkpoints`() {
+        @DisplayName("should prune old checkpoints")
+    fun shouldPruneOldCheckpoints() {
         val session = "session-prune-test"
 
         // Save 5 checkpoints
@@ -104,7 +111,8 @@ class CheckpointManagerTest {
     }
 
     @Test
-    fun `should delete all checkpoints for session`() {
+        @DisplayName("should delete all checkpoints for session")
+    fun shouldDeleteAllCheckpointsForSession() {
         val session = "session-delete-test"
 
         checkpointManager.save(createTestCheckpoint(session, step = 10))
@@ -120,7 +128,8 @@ class CheckpointManagerTest {
     }
 
     @Test
-    fun `should preserve checkpoint data integrity`() {
+        @DisplayName("should preserve checkpoint data integrity")
+    fun shouldPreserveCheckpointDataIntegrity() {
         val checkpoint = AgentCheckpoint(
             sessionId = "session-integrity-test",
             currentStep = 42,

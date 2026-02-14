@@ -4,11 +4,13 @@ import ai.platon.pulsar.common.ai.llm.PromptTemplate.Companion.PLACEHOLDER_PATTE
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class PromptTemplateTest {
 
     @Test
-    fun `test PLACEHOLDER_PATTERN`() {
+        @DisplayName("test PLACEHOLDER_PATTERN")
+    fun testPlaceholderPattern() {
         val template = "Hello, {NAME}! Welcome to {PLACE}."
 
         val groups = PLACEHOLDER_PATTERN.findAll(template).toList()
@@ -19,7 +21,8 @@ class PromptTemplateTest {
     }
 
     @Test
-    fun `test render`() {
+        @DisplayName("test render")
+    fun testRender() {
         val template = "Hello, {NAME}! Welcome to {PLACE}."
         val variables = mapOf("NAME" to "Alice", "PLACE" to "Wonderland")
 
@@ -30,7 +33,8 @@ class PromptTemplateTest {
     }
 
     @Test
-    fun `test render with reserved variables`() {
+        @DisplayName("test render with reserved variables")
+    fun testRenderWithReservedVariables() {
         val template = "Hello, {NAME}! Welcome to {PLACE}."
         val reservedVariables = listOf("NAME")
         val variables = mapOf("NAME" to "Alice", "PLACE" to "Wonderland")

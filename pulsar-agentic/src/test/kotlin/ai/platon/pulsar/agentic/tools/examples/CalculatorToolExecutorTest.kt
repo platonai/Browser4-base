@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests for the example CalculatorToolExecutor.
@@ -33,7 +34,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator add operation`() = runBlocking {
+        @DisplayName("test calculator add operation")
+    fun testCalculatorAddOperation() = runBlocking {
         val toolCall = ToolCall("calc", "add", mutableMapOf("a" to "5.0", "b" to "3.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -42,7 +44,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator subtract operation`() = runBlocking {
+        @DisplayName("test calculator subtract operation")
+    fun testCalculatorSubtractOperation() = runBlocking {
         val toolCall = ToolCall("calc", "subtract", mutableMapOf("a" to "10.0", "b" to "4.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -51,7 +54,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator multiply operation`() = runBlocking {
+        @DisplayName("test calculator multiply operation")
+    fun testCalculatorMultiplyOperation() = runBlocking {
         val toolCall = ToolCall("calc", "multiply", mutableMapOf("a" to "7.0", "b" to "6.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -60,7 +64,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator divide operation`() = runBlocking {
+        @DisplayName("test calculator divide operation")
+    fun testCalculatorDivideOperation() = runBlocking {
         val toolCall = ToolCall("calc", "divide", mutableMapOf("a" to "20.0", "b" to "4.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -69,7 +74,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator divide by zero fails`() = runBlocking {
+        @DisplayName("test calculator divide by zero fails")
+    fun testCalculatorDivideByZeroFails() = runBlocking {
         val toolCall = ToolCall("calc", "divide", mutableMapOf("a" to "10.0", "b" to "0.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -80,7 +86,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator with missing arguments`() = runBlocking {
+        @DisplayName("test calculator with missing arguments")
+    fun testCalculatorWithMissingArguments() = runBlocking {
         val toolCall = ToolCall("calc", "add", mutableMapOf("a" to "5.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -91,7 +98,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator with extra arguments`() = runBlocking {
+        @DisplayName("test calculator with extra arguments")
+    fun testCalculatorWithExtraArguments() = runBlocking {
         val toolCall = ToolCall("calc", "add", mutableMapOf("a" to "5.0", "b" to "3.0", "c" to "1.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -102,7 +110,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator with invalid method`() = runBlocking {
+        @DisplayName("test calculator with invalid method")
+    fun testCalculatorWithInvalidMethod() = runBlocking {
         val toolCall = ToolCall("calc", "power", mutableMapOf("a" to "2.0", "b" to "3.0"))
 
         val result = executor.callFunctionOn(toolCall, calculator)
@@ -113,7 +122,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator registration in registry`() {
+        @DisplayName("test calculator registration in registry")
+    fun testCalculatorRegistrationInRegistry() {
         registry.register(executor)
 
         assertTrue(registry.contains("calc"))
@@ -121,7 +131,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator with string arguments are converted to doubles`() = runBlocking {
+        @DisplayName("test calculator with string arguments are converted to doubles")
+    fun testCalculatorWithStringArgumentsAreConvertedToDoubles() = runBlocking {
         // The paramDouble function should handle string-to-double conversion
         val toolCall = ToolCall("calc", "add", mutableMapOf("a" to "5.5", "b" to "3.5"))
 
@@ -131,17 +142,20 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator domain property`() {
+        @DisplayName("test calculator domain property")
+    fun testCalculatorDomainProperty() {
         assertEquals("calc", executor.domain)
     }
 
     @Test
-    fun `test calculator target class property`() {
+        @DisplayName("test calculator target class property")
+    fun testCalculatorTargetClassProperty() {
         assertEquals(Calculator::class, executor.targetClass)
     }
 
     @Test
-    fun `test calculator implementation directly`() {
+        @DisplayName("test calculator implementation directly")
+    fun testCalculatorImplementationDirectly() {
         val calc = Calculator()
 
         assertEquals(8.0, calc.add(5.0, 3.0), 0.001)
@@ -151,7 +165,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `test calculator divide by zero in implementation`() {
+        @DisplayName("test calculator divide by zero in implementation")
+    fun testCalculatorDivideByZeroInImplementation() {
         val calc = Calculator()
 
         val exception = assertThrows<IllegalArgumentException> {
@@ -161,7 +176,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `help returns available calculator methods`() {
+        @DisplayName("help returns available calculator methods")
+    fun helpReturnsAvailableCalculatorMethods() {
         val help = executor.help()
 
         assertTrue(help.isNotBlank())
@@ -169,14 +185,16 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `help for add returns detailed help`() {
+        @DisplayName("help for add returns detailed help")
+    fun helpForAddReturnsDetailedHelp() {
         val help = executor.help("add")
 
         assertTrue(help.contains("Add two numbers"))
     }
 
     @Test
-    fun `help for all calculator methods is available`() {
+        @DisplayName("help for all calculator methods is available")
+    fun helpForAllCalculatorMethodsIsAvailable() {
         val methods = listOf("add", "subtract", "multiply", "divide")
 
         methods.forEach { method ->
@@ -187,7 +205,8 @@ class CalculatorToolExecutorTest {
     }
 
     @Test
-    fun `help for unknown method returns empty string`() {
+        @DisplayName("help for unknown method returns empty string")
+    fun helpForUnknownMethodReturnsEmptyString() {
         val help = executor.help("unknownMethod")
         assertEquals("", help)
     }

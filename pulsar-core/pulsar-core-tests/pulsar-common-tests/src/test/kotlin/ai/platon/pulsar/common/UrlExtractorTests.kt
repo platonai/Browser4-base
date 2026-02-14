@@ -27,7 +27,8 @@ class UrlExtractorTests {
     }
 
     @Test
-    fun `extract should return first URL from line`() {
+        @DisplayName("extract should return first URL from line")
+    fun extractShouldReturnFirstUrlFromLine() {
         val urlExtractor = UrlExtractor()
         val line = "Check out this link: http://example.com and this one: https://another-example.com"
         val result = urlExtractor.extract(line)
@@ -35,7 +36,8 @@ class UrlExtractorTests {
     }
 
     @Test
-    fun `extract should return null if no URL found in line`() {
+        @DisplayName("extract should return null if no URL found in line")
+    fun extractShouldReturnNullIfNoUrlFoundInLine() {
         val urlExtractor = UrlExtractor()
         val line = "No URLs here"
         val result = urlExtractor.extract(line)
@@ -43,7 +45,8 @@ class UrlExtractorTests {
     }
 
     @Test
-    fun `extractTo should add all URLs from line to set`() {
+        @DisplayName("extractTo should add all URLs from line to set")
+    fun extracttoShouldAddAllUrlsFromLineToSet() {
         val urlExtractor = UrlExtractor()
         val line = "Check out these links: http://example.com and https://another-example.com"
         val urls = mutableSetOf<String>()
@@ -52,7 +55,8 @@ class UrlExtractorTests {
     }
 
     @Test
-    fun `extractTo should not add anything to set if no URL found in line`() {
+        @DisplayName("extractTo should not add anything to set if no URL found in line")
+    fun extracttoShouldNotAddAnythingToSetIfNoUrlFoundInLine() {
         val urlExtractor = UrlExtractor()
         val line = "No URLs here"
         val urls = mutableSetOf<String>()
@@ -61,21 +65,24 @@ class UrlExtractorTests {
     }
 
     @Test
-    fun `extract from file with URLs should extract URLs`() {
+        @DisplayName("extract from file with URLs should extract URLs")
+    fun extractFromFileWithUrlsShouldExtractUrls() {
         Files.write(tempFile, "http://example.com\nhttps://another-example.com".toByteArray())
         val urls = LinkExtractors.fromFile(tempFile)
         kotlin.test.assertEquals(setOf("http://example.com", "https://another-example.com"), urls)
     }
 
     @Test
-    fun `extract from non-existent file should return empty set`() {
+        @DisplayName("extract from non-existent file should return empty set")
+    fun extractFromNonExistentFileShouldReturnEmptySet() {
         val nonExistentFile = Paths.get("non_existent_file.txt")
         val urls = LinkExtractors.fromFile(nonExistentFile)
         kotlin.test.assertTrue(urls.isEmpty())
     }
 
     @Test
-    fun `extract from directory with files containing URLs should extract URLs`() {
+        @DisplayName("extract from directory with files containing URLs should extract URLs")
+    fun extractFromDirectoryWithFilesContainingUrlsShouldExtractUrls() {
         val file1 = Files.createTempFile(tempDir, "file1", ".txt")
         val file2 = Files.createTempFile(tempDir, "file2", ".txt")
         Files.write(file1, "http://example.com\n".toByteArray())
@@ -86,14 +93,16 @@ class UrlExtractorTests {
     }
 
     @Test
-    fun `extract from non-existent directory should return empty set`() {
+        @DisplayName("extract from non-existent directory should return empty set")
+    fun extractFromNonExistentDirectoryShouldReturnEmptySet() {
         val nonExistentDir = Paths.get("non_existent_dir")
         val urls = LinkExtractors.fromDirectory(nonExistentDir)
         kotlin.test.assertTrue(urls.isEmpty())
     }
 
     @Test
-    fun `extract and filter then return filtered URLs`() {
+        @DisplayName("extract and filter then return filtered URLs")
+    fun extractAndFilterThenReturnFilteredUrls() {
         val urlExtractor = UrlExtractor()
         val line = "Check out these links: http://example.com and https://amazon.com"
         val filteredUrls = urlExtractor.extractAll(line) { it.contains("example") }

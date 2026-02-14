@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.expectBody
 import kotlin.test.assertNotNull
+import org.junit.jupiter.api.DisplayName
 
 @Tag("Slow")
 class CommandControllerSSETest : RestAPITestBase() {
@@ -17,7 +18,8 @@ class CommandControllerSSETest : RestAPITestBase() {
      * Test [CommandController.streamEvents]
      * */
     @Test
-    fun `Test submitCommand with pageSummaryPrompt + SSE`() {
+        @DisplayName("Test submitCommand with pageSummaryPrompt + SSE")
+    fun testSubmitcommandWithPagesummarypromptSse() {
         val pageType = "productDetailPage"
         val url = requireNotNull(urls[pageType])
 
@@ -39,7 +41,8 @@ class CommandControllerSSETest : RestAPITestBase() {
      * Test [CommandController.streamEvents]
      * */
     @Test
-    fun `Test submitCommand with pageSummaryPrompt, dataExtractionRules + SSE`() {
+        @DisplayName("Test submitCommand with pageSummaryPrompt, dataExtractionRules + SSE")
+    fun testSubmitcommandWithPagesummarypromptDataextractionrulesSse() {
         val pageType = "productDetailPage"
         val url = requireNotNull(urls[pageType])
 

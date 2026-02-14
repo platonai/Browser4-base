@@ -3,11 +3,13 @@ package ai.platon.browser4.driver.chrome.dom
 import ai.platon.browser4.driver.chrome.dom.model.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class DOMTinyTreeBuilderTest {
 
     @Test
-    fun `bbox filtering excludes contained non-exception children`() {
+        @DisplayName("bbox filtering excludes contained non-exception children")
+    fun bboxFilteringExcludesContainedNonExceptionChildren() {
         // Parent propagating element: <div role="button"> with bounds 0,0,100x40
         val parent = DOMTreeNodeEx(
             nodeId = 1,
@@ -33,7 +35,8 @@ class DOMTinyTreeBuilderTest {
     }
 
     @Test
-    fun `interactive indices assigned only to visible and interactive nodes and appear in selector map`() {
+        @DisplayName("interactive indices assigned only to visible and interactive nodes and appear in selector map")
+    fun interactiveIndicesAssignedOnlyToVisibleAndInteractiveNodesAndAppearInSelectorMap() {
         // Two interactive visible buttons
         val btn1 = DOMTreeNodeEx(
             nodeId = 10,
@@ -67,7 +70,8 @@ class DOMTinyTreeBuilderTest {
     }
 
     @Test
-    fun `optimizeTree prunes invisible non-scrollable parent with all children pruned`() {
+        @DisplayName("optimizeTree prunes invisible non-scrollable parent with all children pruned")
+    fun optimizetreePrunesInvisibleNonScrollableParentWithAllChildrenPruned() {
         // Root visible container
         val root = DOMTreeNodeEx(
             nodeId = 1,

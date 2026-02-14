@@ -20,13 +20,15 @@ import java.nio.file.Paths
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class TestDataCollectors : TestBase() {
 
     private val lowerCacheSize = 10
 
     @Test
-    fun `When add a item to queue then queue is not empty`() {
+        @DisplayName("When add a item to queue then queue is not empty")
+    fun whenAddAItemToQueueThenQueueIsNotEmpty() {
         val source = LoadingUrlCache("", 0, TemporaryLocalFileUrlLoader())
         val sink = mutableListOf<UrlAware>()
 
@@ -40,7 +42,8 @@ class TestDataCollectors : TestBase() {
     }
 
     @Test
-    fun `When add an item to LoadingurlCache then LoadingIterable has next`() {
+        @DisplayName("When add an item to LoadingurlCache then LoadingIterable has next")
+    fun whenAddAnItemToLoadingurlcacheThenLoadingiterableHasNext() {
         val urlCache = LoadingUrlCache("", 0, TemporaryLocalFileUrlLoader())
         urlCache.nReentrantQueue.add(PlainUrl(AppConstants.EXAMPLE_URL))
         assertEquals(1, urlCache.size)
@@ -104,7 +107,8 @@ class TestDataCollectors : TestBase() {
     }
 
     @Test
-    fun `When iterate through fetch iterable then items are correct`() {
+        @DisplayName("When iterate through fetch iterable then items are correct")
+    fun whenIterateThroughFetchIterableThenItemsAreCorrect() {
         val fetchIterable = UrlFeeder(urlPool, lowerCacheSize)
         val resourceURI = ResourceLoader.getURL("seeds/head100/best-sellers.txt").toURI()
         val collector = LocalFileHyperlinkCollector(Paths.get(resourceURI), Priority13.NORMAL)

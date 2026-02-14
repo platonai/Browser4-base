@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
 import java.util.concurrent.ConcurrentHashMap
+import org.junit.jupiter.api.DisplayName
 
 /**
  * End-to-end test for skill registration and invocation.
@@ -70,7 +71,8 @@ class SkillRegistrationAndInvocationE2ETest {
     }
 
     @Test
-    suspend fun `test skill registration and invocation through agent`() {
+    suspend  @DisplayName("test skill registration and invocation through agent")
+ fun testSkillRegistrationAndInvocationThroughAgent() {
         val session = AgenticContexts.getOrCreateSession()
         val driver = session.createBoundDriver()
         val agent = session.companionAgent

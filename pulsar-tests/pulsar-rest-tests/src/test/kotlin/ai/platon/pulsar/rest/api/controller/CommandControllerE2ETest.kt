@@ -12,6 +12,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 @Tag("E2ETest")
 class CommandControllerE2ETest : RestAPITestBase() {
@@ -20,7 +21,8 @@ class CommandControllerE2ETest : RestAPITestBase() {
      * Test [CommandController.submitCommand]
      * */
     @Test
-    fun `Test submitCommand with pageSummaryPrompt + sync mode`() {
+        @DisplayName("Test submitCommand with pageSummaryPrompt + sync mode")
+    fun testSubmitcommandWithPagesummarypromptSyncMode() {
         val pageType = "productDetailPage"
         val url = requireNotNull(urls[pageType])
 
@@ -57,7 +59,8 @@ class CommandControllerE2ETest : RestAPITestBase() {
      * Test [CommandController.streamEvents]
      * */
     @Test
-    fun `Test submitCommand with pageSummaryPrompt, dataExtractionRules + sync mode`() {
+        @DisplayName("Test submitCommand with pageSummaryPrompt, dataExtractionRules + sync mode")
+    fun testSubmitcommandWithPagesummarypromptDataextractionrulesSyncMode() {
         val pageType = "productDetailPage"
         val url = requireNotNull(urls[pageType])
 
@@ -91,7 +94,8 @@ class CommandControllerE2ETest : RestAPITestBase() {
     }
 
     @Test
-    fun `test executeCommand with X-SQL + sync mode`() {
+        @DisplayName("test executeCommand with X-SQL + sync mode")
+    fun testExecutecommandWithXSqlSyncMode() {
         val sqlTemplate = sqlTemplates["productDetailPage"]!!.template
         val request = CommandRequest(
             MOCK_PRODUCT_DETAIL_URL,

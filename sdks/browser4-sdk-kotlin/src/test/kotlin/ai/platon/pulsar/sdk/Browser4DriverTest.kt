@@ -21,6 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Unit tests for Browser4Driver.
@@ -32,7 +33,8 @@ import kotlin.test.assertTrue
 class Browser4DriverTest {
 
     @Test
-    fun `Browser4Driver can be created with default settings`() {
+        @DisplayName("Browser4Driver can be created with default settings")
+    fun browser4driverCanBeCreatedWithDefaultSettings() {
         val driver = Browser4Driver()
 
         assertNotNull(driver.baseUrl)
@@ -41,14 +43,16 @@ class Browser4DriverTest {
     }
 
     @Test
-    fun `Browser4Driver can be created with custom port`() {
+        @DisplayName("Browser4Driver can be created with custom port")
+    fun browser4driverCanBeCreatedWithCustomPort() {
         val driver = Browser4Driver(port = 9999)
 
         assertEquals("http://localhost:9999", driver.baseUrl)
     }
 
     @Test
-    fun `Browser4Driver can be created with custom jar path`() {
+        @DisplayName("Browser4Driver can be created with custom jar path")
+    fun browser4driverCanBeCreatedWithCustomJarPath() {
         val customPath = "/tmp/test-browser4.jar"
         val driver = Browser4Driver(jarPath = customPath)
 
@@ -57,7 +61,8 @@ class Browser4DriverTest {
     }
 
     @Test
-    fun `Browser4Driver defaultJarPath returns valid path`() {
+        @DisplayName("Browser4Driver defaultJarPath returns valid path")
+    fun browser4driverDefaultjarpathReturnsValidPath() {
         val defaultPath = Browser4Driver.defaultJarPath()
 
         assertNotNull(defaultPath)
@@ -66,14 +71,16 @@ class Browser4DriverTest {
     }
 
     @Test
-    fun `Browser4Driver isRunning returns false when not started`() {
+        @DisplayName("Browser4Driver isRunning returns false when not started")
+    fun browser4driverIsrunningReturnsFalseWhenNotStarted() {
         val driver = Browser4Driver()
 
         assertFalse(driver.isRunning)
     }
 
     @Test
-    fun `Browser4Driver start throws when already running`() {
+        @DisplayName("Browser4Driver start throws when already running")
+    fun browser4driverStartThrowsWhenAlreadyRunning() {
         // This test validates the API exists
         // In real implementation, this would be tested in integration tests
         // where we actually start the driver
@@ -82,7 +89,8 @@ class Browser4DriverTest {
     }
 
     @Test
-    fun `Browser4Driver stop does not throw when not running`() {
+        @DisplayName("Browser4Driver stop does not throw when not running")
+    fun browser4driverStopDoesNotThrowWhenNotRunning() {
         val driver = Browser4Driver()
 
         // Should complete without exception even if not started
@@ -90,7 +98,8 @@ class Browser4DriverTest {
     }
 
     @Test
-    fun `Browser4Driver close does not throw`() {
+        @DisplayName("Browser4Driver close does not throw")
+    fun browser4driverCloseDoesNotThrow() {
         val driver = Browser4Driver()
 
         driver.close()
@@ -98,7 +107,8 @@ class Browser4DriverTest {
     }
 
     @Test
-    fun `Browser4Driver can be used with try-with-resources`() {
+        @DisplayName("Browser4Driver can be used with try-with-resources")
+    fun browser4driverCanBeUsedWithTryWithResources() {
         // Validate AutoCloseable implementation
         Browser4Driver().use { driver ->
             assertNotNull(driver)
@@ -106,7 +116,8 @@ class Browser4DriverTest {
     }
 
     @Test
-    fun `Browser4Driver accepts Java options`() {
+        @DisplayName("Browser4Driver accepts Java options")
+    fun browser4driverAcceptsJavaOptions() {
         val javaOptions = mapOf(
             "OPENROUTER_API_KEY" to "test-key",
             "server.port" to "8183"
@@ -123,14 +134,16 @@ class Browser4DriverTest {
 class LocalDriverOptionsTest {
 
     @Test
-    fun `LocalDriverOptions can be created with defaults`() {
+        @DisplayName("LocalDriverOptions can be created with defaults")
+    fun localdriveroptionsCanBeCreatedWithDefaults() {
         val options = LocalDriverOptions()
 
         assertTrue(options.javaOptions.isEmpty())
     }
 
     @Test
-    fun `LocalDriverOptions can be created with custom values`() {
+        @DisplayName("LocalDriverOptions can be created with custom values")
+    fun localdriveroptionsCanBeCreatedWithCustomValues() {
         val options = LocalDriverOptions(
             jarPath = "/custom/path/Browser4.jar",
             downloadUrl = "https://custom.url/Browser4.jar",
@@ -145,7 +158,8 @@ class LocalDriverOptionsTest {
     }
 
     @Test
-    fun `LocalDriverOptions data class properties work correctly`() {
+        @DisplayName("LocalDriverOptions data class properties work correctly")
+    fun localdriveroptionsDataClassPropertiesWorkCorrectly() {
         val options1 = LocalDriverOptions(port = 8182)
         val options2 = LocalDriverOptions(port = 8182)
         val options3 = LocalDriverOptions(port = 9999)
@@ -161,21 +175,24 @@ class LocalDriverOptionsTest {
 class PulsarClientLocalDriverTest {
 
     @Test
-    fun `PulsarClient can be created with useLocalDriver false`() {
+        @DisplayName("PulsarClient can be created with useLocalDriver false")
+    fun pulsarclientCanBeCreatedWithUselocaldriverFalse() {
         val client = PulsarClient(useLocalDriver = false)
 
         assertNotNull(client)
     }
 
     @Test
-    fun `PulsarClient can be created with explicit baseUrl`() {
+        @DisplayName("PulsarClient can be created with explicit baseUrl")
+    fun pulsarclientCanBeCreatedWithExplicitBaseurl() {
         val client = PulsarClient(baseUrl = "http://remote-server:8182")
 
         assertNotNull(client)
     }
 
     @Test
-    fun `PulsarClient with explicit baseUrl does not start local driver`() {
+        @DisplayName("PulsarClient with explicit baseUrl does not start local driver")
+    fun pulsarclientWithExplicitBaseurlDoesNotStartLocalDriver() {
         val client = PulsarClient(
             baseUrl = "http://remote-server:8182",
             useLocalDriver = false
@@ -186,7 +203,8 @@ class PulsarClientLocalDriverTest {
     }
 
     @Test
-    fun `PulsarClient accepts LocalDriverOptions`() {
+        @DisplayName("PulsarClient accepts LocalDriverOptions")
+    fun pulsarclientAcceptsLocaldriveroptions() {
         val options = LocalDriverOptions(
             port = 9000,
             javaOptions = mapOf("test" to "value")
@@ -207,21 +225,24 @@ class PulsarClientLocalDriverTest {
 class AgenticSessionLocalDriverTest {
 
     @Test
-    fun `AgenticSession getOrCreate accepts null baseUrl`() {
+        @DisplayName("AgenticSession getOrCreate accepts null baseUrl")
+    fun agenticsessionGetorcreateAcceptsNullBaseurl() {
         // Note: This would start local driver in real usage
         // For unit test, we just validate the API signature exists
         assertNotNull(AgenticSession::getOrCreate)
     }
 
     @Test
-    fun `AgenticSession create accepts null baseUrl`() {
+        @DisplayName("AgenticSession create accepts null baseUrl")
+    fun agenticsessionCreateAcceptsNullBaseurl() {
         // Note: This would start local driver in real usage
         // For unit test, we just validate the API signature exists
         assertNotNull(AgenticSession::create)
     }
 
     @Test
-    fun `AgenticSession getOrCreate with explicit URL works`() {
+        @DisplayName("AgenticSession getOrCreate with explicit URL works")
+    fun agenticsessionGetorcreateWithExplicitUrlWorks() {
         // With explicit URL, should not start local driver
         // This test validates backward compatibility
         assertNotNull(AgenticSession::getOrCreate)

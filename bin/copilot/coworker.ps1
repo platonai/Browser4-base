@@ -102,7 +102,7 @@ foreach ($file in $files) {
     Write-LogMessage "Processing $($file.Name)..." INFO
 
     # Read the entire file content
-    $content = Get-Content -Path $file.FullPath -Raw
+    $content = Get-Content -Path $file.FullName -Raw
 
     # Initialize variables for task metadata
     $title = ""
@@ -139,7 +139,7 @@ foreach ($file in $files) {
 
     # Move task file from created directory to working directory
     # This marks the task as currently being processed
-    Move-Item -Path $file.FullPath -Destination $workingPath -Force
+    Move-Item -Path $file.FullName -Destination $workingPath -Force
     Write-LogMessage "Moved to working: $workingPath" INFO
     Write-LogVerbose "Task log will be written to: $taskLogPath"
 

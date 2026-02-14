@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 import org.yaml.snakeyaml.Yaml
 import java.nio.charset.StandardCharsets
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Light-weight contract checks to prevent OpenAPI spec drifting away from Spring MVC mappings.
@@ -31,14 +32,16 @@ class OpenApiContractTest {
     private lateinit var applicationContext: ApplicationContext
 
     @Test
-    fun `openapi yaml should be parseable and contain paths`() {
+        @DisplayName("openapi yaml should be parseable and contain paths")
+    fun openapiYamlShouldBeParseableAndContainPaths() {
         val spec = loadOpenApiYaml()
         val paths = (spec["paths"] as? Map<*, *>)
         assertTrue(!paths.isNullOrEmpty(), "openapi.yaml must define non-empty paths")
     }
 
     @Test
-    fun `documented openapi paths should be implemented by spring mvc mappings`() {
+        @DisplayName("documented openapi paths should be implemented by spring mvc mappings")
+    fun documentedOpenapiPathsShouldBeImplementedBySpringMvcMappings() {
         val spec = loadOpenApiYaml()
         val documented = extractDocumentedOperations(spec)
         val implemented = extractImplementedOperations()

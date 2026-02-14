@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.context.annotation.Import
+import org.junit.jupiter.api.DisplayName
 
 @Import(MockEcServerConfiguration::class)
 open class RestAPITestBase : IntegrationTestBase() {
@@ -20,7 +21,8 @@ open class RestAPITestBase : IntegrationTestBase() {
 
         @JvmStatic
         @BeforeAll
-        fun `Ensure resources are prepared`() {
+                @DisplayName("Ensure resources are prepared")
+        fun ensureResourcesArePrepared() {
         }
     }
 
@@ -54,7 +56,8 @@ open class RestAPITestBase : IntegrationTestBase() {
     }
 
     @Test
-    fun `When say hello then returns hello`() {
+        @DisplayName("When say hello then returns hello")
+    fun whenSayHelloThenReturnsHello() {
         assertThat(getHtml("/api/system/hello").body).contains("hello")
     }
 }

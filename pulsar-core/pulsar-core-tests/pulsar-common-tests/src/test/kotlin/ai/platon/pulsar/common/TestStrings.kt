@@ -24,7 +24,8 @@ class TestStrings {
     }
 
     @Test
-    fun `Urls match regexes`() {
+        @DisplayName("Urls match regexes")
+    fun urlsMatchRegexes() {
         assertTrue { "http://amazon.com/b/ref=dp_bc_aui_C_3&node=17874225011".contains("&node=\\d+".toRegex()) }
         assertTrue { "http://amazon.com/a/reviews/123".contains("/reviews/".toRegex()) }
         assertTrue { "http://amazon.com/a/reviews/123".matches(".+/reviews/.+".toRegex()) }

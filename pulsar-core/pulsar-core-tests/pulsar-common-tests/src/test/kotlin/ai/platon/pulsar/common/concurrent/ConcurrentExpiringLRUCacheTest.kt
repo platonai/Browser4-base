@@ -6,11 +6,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.junit.jupiter.api.DisplayName
 
 class ConcurrentExpiringLRUCacheTest {
 
     @Test
-    fun `getDatum should return null at expiration boundary`() {
+        @DisplayName("getDatum should return null at expiration boundary")
+    fun getdatumShouldReturnNullAtExpirationBoundary() {
         val cache = ConcurrentExpiringLRUCache<String, String>(ttl = Duration.ZERO, capacity = 10)
 
         val base = Instant.parse("2026-01-01T00:00:00Z")
@@ -24,7 +26,8 @@ class ConcurrentExpiringLRUCacheTest {
     }
 
     @Test
-    fun `computeDatumIfAbsent should recompute when expired`() {
+        @DisplayName("computeDatumIfAbsent should recompute when expired")
+    fun computedatumifabsentShouldRecomputeWhenExpired() {
         val cache = ConcurrentExpiringLRUCache<String, Int>(ttl = Duration.ZERO, capacity = 10)
 
         val base = Instant.parse("2026-01-01T00:00:00Z")

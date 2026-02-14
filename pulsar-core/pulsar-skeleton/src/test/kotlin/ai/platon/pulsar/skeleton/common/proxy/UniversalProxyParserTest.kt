@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 @Tag("RequiresServer")
 class UniversalProxyParserTest {
@@ -19,7 +20,8 @@ class UniversalProxyParserTest {
     }
 
     @Test
-    fun `test parseUniversalProxy`() {
+        @DisplayName("test parseUniversalProxy")
+    fun testParseuniversalproxy() {
         val parser = UniversalProxyParser()
         val proxies = parser.parse(
             """
@@ -54,7 +56,8 @@ proxy89.myvpn.network:443
     }
 
     @Test
-    fun `test parseUniversalProxy with NON-STANDARD proxy`() {
+        @DisplayName("test parseUniversalProxy with NON-STANDARD proxy")
+    fun testParseuniversalproxyWithNonStandardProxy() {
         val parser = UniversalProxyParser()
         val proxies = parser.parse(
             """

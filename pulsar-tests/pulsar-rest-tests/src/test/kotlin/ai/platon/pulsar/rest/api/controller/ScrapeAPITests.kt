@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.client.expectBody
 import kotlin.test.assertNotNull
+import org.junit.jupiter.api.DisplayName
 
 open class ScrapeAPITests : RestAPITestBase() {
 
@@ -17,7 +18,8 @@ open class ScrapeAPITests : RestAPITestBase() {
      * Test [ScrapeController.submitJob]
      * */
     @Test
-    fun `Test extracting product list page with X-SQL sync`() {
+        @DisplayName("Test extracting product list page with X-SQL sync")
+    fun testExtractingProductListPageWithXSqlSync() {
         val pageType = "productListPage"
         val url = requireNotNull(urls[pageType])
         val sql = requireNotNull(sqlTemplates[pageType]).createSQL(url)
@@ -37,7 +39,8 @@ open class ScrapeAPITests : RestAPITestBase() {
      * Test [ScrapeController.submitJob]
      * */
     @Test
-    fun `Test extracting product list page with X-SQL`() {
+        @DisplayName("Test extracting product list page with X-SQL")
+    fun testExtractingProductListPageWithXSql() {
         val pageType = "productListPage"
         val url = requireNotNull(urls[pageType])
         val sql = requireNotNull(sqlTemplates[pageType]).createSQL("$url -refresh")
@@ -60,7 +63,8 @@ open class ScrapeAPITests : RestAPITestBase() {
      * Test [LLMFunctions.extract]
      * */
     @Test
-    fun `Test extracting product detail page with LLM + X-SQL`() {
+        @DisplayName("Test extracting product detail page with LLM + X-SQL")
+    fun testExtractingProductDetailPageWithLlmXSql() {
         val pageType = "productDetailPage"
         val url = requireNotNull(urls[pageType])
         val sql = requireNotNull(sqlTemplates[pageType]).createSQL("$url -refresh")

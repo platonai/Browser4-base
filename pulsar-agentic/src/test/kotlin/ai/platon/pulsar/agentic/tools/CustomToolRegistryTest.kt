@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.reflect.KClass
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests for CustomToolRegistry functionality.
@@ -29,7 +30,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test register custom tool executor`() {
+        @DisplayName("test register custom tool executor")
+    fun testRegisterCustomToolExecutor() {
         val executor = TestToolExecutor()
 
         registry.register(executor)
@@ -40,7 +42,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test register duplicate domain throws exception`() {
+        @DisplayName("test register duplicate domain throws exception")
+    fun testRegisterDuplicateDomainThrowsException() {
         val executor1 = TestToolExecutor()
         val executor2 = TestToolExecutor()
 
@@ -53,7 +56,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test unregister custom tool executor`() {
+        @DisplayName("test unregister custom tool executor")
+    fun testUnregisterCustomToolExecutor() {
         val executor = TestToolExecutor()
         registry.register(executor)
 
@@ -65,14 +69,16 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test unregister non-existent domain returns false`() {
+        @DisplayName("test unregister non-existent domain returns false")
+    fun testUnregisterNonExistentDomainReturnsFalse() {
         val removed = registry.unregister("nonexistent")
 
         assertFalse(removed)
     }
 
     @Test
-    fun `test get all executors`() {
+        @DisplayName("test get all executors")
+    fun testGetAllExecutors() {
         val executor1 = TestToolExecutor()
         val executor2 = AnotherTestToolExecutor()
 
@@ -86,7 +92,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test get all domains`() {
+        @DisplayName("test get all domains")
+    fun testGetAllDomains() {
         registry.register(TestToolExecutor())
         registry.register(AnotherTestToolExecutor())
 
@@ -97,7 +104,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test clear all executors`() {
+        @DisplayName("test clear all executors")
+    fun testClearAllExecutors() {
         registry.register(TestToolExecutor())
         registry.register(AnotherTestToolExecutor())
 
@@ -109,7 +117,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test register executor with blank domain fails`() = runBlocking {
+        @DisplayName("test register executor with blank domain fails")
+    fun testRegisterExecutorWithBlankDomainFails() = runBlocking {
         val executor = BlankDomainToolExecutor()
 
         val exception = assertThrows<IllegalArgumentException> {
@@ -119,7 +128,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test custom tool executor execution`() = runBlocking {
+        @DisplayName("test custom tool executor execution")
+    fun testCustomToolExecutorExecution() = runBlocking {
         val executor = TestToolExecutor()
         val toolCall = ToolCall("test", "echo", mutableMapOf("message" to "Hello"))
 
@@ -130,7 +140,8 @@ class CustomToolRegistryTest {
     }
 
     @Test
-    fun `test custom tool executor with invalid arguments`() = runBlocking {
+        @DisplayName("test custom tool executor with invalid arguments")
+    fun testCustomToolExecutorWithInvalidArguments() = runBlocking {
         val executor = TestToolExecutor()
         val target = TestTarget()
         val toolCall = ToolCall("test", "echo", mutableMapOf())

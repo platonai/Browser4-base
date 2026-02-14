@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 const val PLACEHOLDER_PAGE_CONTENT = "page_content"
 
@@ -37,7 +38,8 @@ class PromptsTest : MockEcServerTestBase() {
     private val textContent = "This is a sample product page with title 'Sample Product' and price '$19.99'."
 
     @Test
-    fun `test pageSummaryPrompt`() {
+        @DisplayName("test pageSummaryPrompt")
+    fun testPagesummaryprompt() {
         // Test basic prompt normalization
         val pageSummaryPrompt = request.pageSummaryPrompt
         assertNotNull(pageSummaryPrompt)

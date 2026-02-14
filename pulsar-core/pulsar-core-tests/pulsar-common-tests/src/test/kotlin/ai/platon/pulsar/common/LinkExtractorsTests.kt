@@ -31,28 +31,32 @@ class LinkExtractorsTests {
     }
 
     @Test
-    fun `fromFile with URLs should extract URLs`() {
+        @DisplayName("fromFile with URLs should extract URLs")
+    fun fromfileWithUrlsShouldExtractUrls() {
         Files.write(tempFile, "http://example.com\nhttps://another-eexxaammppllee.com".toByteArray())
         val urls = LinkExtractors.fromFile(tempFile)
         assertEquals(setOf("http://example.com", "https://another-eexxaammppllee.com"), urls)
     }
 
     @Test
-    fun `fromFile non-existent file should return empty set`() {
+        @DisplayName("fromFile non-existent file should return empty set")
+    fun fromfileNonExistentFileShouldReturnEmptySet() {
         val nonExistentFile = Paths.get("non_existent_file.txt")
         val urls = LinkExtractors.fromFile(nonExistentFile)
         assertTrue(urls.isEmpty())
     }
 
     @Test
-    fun `fromFile without URLs should return empty set`() {
+        @DisplayName("fromFile without URLs should return empty set")
+    fun fromfileWithoutUrlsShouldReturnEmptySet() {
         Files.write(tempFile, "No URLs here".toByteArray())
         val urls = LinkExtractors.fromFile(tempFile)
         assertTrue(urls.isEmpty())
     }
 
     @Test
-    fun `fromFile with URLs and filter should extract filtered URLs`() {
+        @DisplayName("fromFile with URLs and filter should extract filtered URLs")
+    fun fromfileWithUrlsAndFilterShouldExtractFilteredUrls() {
         Files.write(tempFile, "http://example.com\nhttps://another-eexxaammppllee.com".toByteArray())
         val filter: (String) -> Boolean = { it.contains("example.com") }
         val urls = LinkExtractors.fromFile(tempFile, filter)
@@ -60,7 +64,8 @@ class LinkExtractorsTests {
     }
 
     @Test
-    fun `fromDirectory with files containing URLs should extract URLs`() {
+        @DisplayName("fromDirectory with files containing URLs should extract URLs")
+    fun fromdirectoryWithFilesContainingUrlsShouldExtractUrls() {
         val file1 = Files.createTempFile(tempDir, "file1", ".txt")
         val file2 = Files.createTempFile(tempDir, "file2", ".txt")
         Files.write(file1, "http://example.com\n".toByteArray())
@@ -71,20 +76,23 @@ class LinkExtractorsTests {
     }
 
     @Test
-    fun `fromDirectory non-existent directory should return empty set`() {
+        @DisplayName("fromDirectory non-existent directory should return empty set")
+    fun fromdirectoryNonExistentDirectoryShouldReturnEmptySet() {
         val nonExistentDir = Paths.get("non_existent_dir")
         val urls = LinkExtractors.fromDirectory(nonExistentDir)
         assertTrue(urls.isEmpty())
     }
 
     @Test
-    fun `fromDirectory without files should return empty set`() {
+        @DisplayName("fromDirectory without files should return empty set")
+    fun fromdirectoryWithoutFilesShouldReturnEmptySet() {
         val urls = LinkExtractors.fromDirectory(tempDir)
         assertTrue(urls.isEmpty())
     }
 
     @Test
-    fun `fromDirectory with files without URLs should return empty set`() {
+        @DisplayName("fromDirectory with files without URLs should return empty set")
+    fun fromdirectoryWithFilesWithoutUrlsShouldReturnEmptySet() {
         val file1 = Files.createTempFile(tempDir, "file1", ".txt")
         val file2 = Files.createTempFile(tempDir, "file2", ".txt")
         Files.write(file1, "No URLs here\n".toByteArray())
@@ -95,7 +103,8 @@ class LinkExtractorsTests {
     }
 
     @Test
-    fun `fromDirectory with files containing URLs and filter should extract filtered URLs`() {
+        @DisplayName("fromDirectory with files containing URLs and filter should extract filtered URLs")
+    fun fromdirectoryWithFilesContainingUrlsAndFilterShouldExtractFilteredUrls() {
         val file1 = Files.createTempFile(tempDir, "file1", ".txt")
         val file2 = Files.createTempFile(tempDir, "file2", ".txt")
         Files.write(file1, "http://a.com\n".toByteArray())

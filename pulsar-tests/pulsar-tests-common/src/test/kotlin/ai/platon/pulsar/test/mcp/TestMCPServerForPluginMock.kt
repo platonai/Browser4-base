@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Comprehensive tests demonstrating how TestMCPServer can be used for MCP plugin testing.
@@ -46,7 +47,8 @@ import org.junit.jupiter.api.Assertions.*
  *     private var port: Int = 0
  *
  *     @Test
- *     fun `test MCP plugin with TestMCPServer`() = runBlocking {
+ *          @DisplayName("test MCP plugin with TestMCPServer")
+     fun testMcpPluginWithTestmcpserver() = runBlocking {
  *         // Configure MCP client to use test server
  *         val config = MCPConfig(
  *             serverName = "test-server",
@@ -88,19 +90,22 @@ class TestMCPServerForPluginMock {
     // ========== Server Lifecycle Tests ==========
 
     @Test
-    fun `server initializes and is running`() {
+        @DisplayName("server initializes and is running")
+    fun serverInitializesAndIsRunning() {
         assertTrue(server.isRunning(), "Server should be running after initialization")
     }
 
     @Test
-    fun `server can be closed and stopped`() {
+        @DisplayName("server can be closed and stopped")
+    fun serverCanBeClosedAndStopped() {
         assertTrue(server.isRunning())
         server.close()
         assertFalse(server.isRunning(), "Server should be stopped after close()")
     }
 
     @Test
-    fun `server info provides required MCP metadata`() {
+        @DisplayName("server info provides required MCP metadata")
+    fun serverInfoProvidesRequiredMcpMetadata() {
         val info = server.getInfo()
 
         Assertions.assertNotNull(info)
@@ -116,7 +121,8 @@ class TestMCPServerForPluginMock {
     // ========== Tool Discovery Tests ==========
 
     @Test
-    fun `list_tools returns all available tools`() {
+        @DisplayName("list_tools returns all available tools")
+    fun listToolsReturnsAllAvailableTools() {
         val result = server.listTools()
 
         Assertions.assertNotNull(result)
@@ -133,7 +139,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `tool schemas are MCP-compliant`() {
+        @DisplayName("tool schemas are MCP-compliant")
+    fun toolSchemasAreMcpCompliant() {
         val result = server.listTools()
 
         @Suppress("UNCHECKED_CAST")
@@ -155,7 +162,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `tool schemas describe arguments correctly`() {
+        @DisplayName("tool schemas describe arguments correctly")
+    fun toolSchemasDescribeArgumentsCorrectly() {
         val result = server.listTools()
 
         @Suppress("UNCHECKED_CAST")
@@ -195,7 +203,8 @@ class TestMCPServerForPluginMock {
     // ========== Tool Execution Tests ==========
 
     @Test
-    fun `echo tool executes correctly`() {
+        @DisplayName("echo tool executes correctly")
+    fun echoToolExecutesCorrectly() {
         val testMessage = "Hello from MCP plugin test!"
         val request = objectMapper.createObjectNode().apply {
             put("name", "echo")
@@ -218,7 +227,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `add tool calculates sum correctly`() {
+        @DisplayName("add tool calculates sum correctly")
+    fun addToolCalculatesSumCorrectly() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "add")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -235,7 +245,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `add tool handles decimal numbers`() {
+        @DisplayName("add tool handles decimal numbers")
+    fun addToolHandlesDecimalNumbers() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "add")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -253,7 +264,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `multiply tool calculates product correctly`() {
+        @DisplayName("multiply tool calculates product correctly")
+    fun multiplyToolCalculatesProductCorrectly() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "multiply")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -272,7 +284,8 @@ class TestMCPServerForPluginMock {
     // ========== Error Handling Tests ==========
 
     @Test
-    fun `calling non-existent tool throws exception`() {
+        @DisplayName("calling non-existent tool throws exception")
+    fun callingNonExistentToolThrowsException() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "non_existent_tool")
             set<ObjectNode>("arguments", objectMapper.createObjectNode())
@@ -284,7 +297,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `calling tool without name throws exception`() {
+        @DisplayName("calling tool without name throws exception")
+    fun callingToolWithoutNameThrowsException() {
         val request = objectMapper.createObjectNode().apply {
             set<ObjectNode>("arguments", objectMapper.createObjectNode())
             // Missing "name" field
@@ -296,7 +310,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `calling tool without required argument returns error response`() {
+        @DisplayName("calling tool without required argument returns error response")
+    fun callingToolWithoutRequiredArgumentReturnsErrorResponse() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "echo")
             set<ObjectNode>("arguments", objectMapper.createObjectNode()) // Missing 'message'
@@ -320,7 +335,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `calling add without required argument returns error`() {
+        @DisplayName("calling add without required argument returns error")
+    fun callingAddWithoutRequiredArgumentReturnsError() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "add")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -338,7 +354,8 @@ class TestMCPServerForPluginMock {
     // ========== Multiple Operations Tests ==========
 
     @Test
-    fun `server handles multiple sequential tool calls`() {
+        @DisplayName("server handles multiple sequential tool calls")
+    fun serverHandlesMultipleSequentialToolCalls() {
         // Call 1: Echo
         var request = objectMapper.createObjectNode().apply {
             put("name", "echo")
@@ -384,7 +401,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `server maintains state across mixed successful and failed calls`() {
+        @DisplayName("server maintains state across mixed successful and failed calls")
+    fun serverMaintainsStateAcrossMixedSuccessfulAndFailedCalls() {
         // Successful call
         var request = objectMapper.createObjectNode().apply {
             put("name", "echo")
@@ -428,7 +446,8 @@ class TestMCPServerForPluginMock {
     // ========== MCP Protocol Compliance Tests ==========
 
     @Test
-    fun `response format is MCP-compliant for successful tool execution`() {
+        @DisplayName("response format is MCP-compliant for successful tool execution")
+    fun responseFormatIsMcpCompliantForSuccessfulToolExecution() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "echo")
             set<ObjectNode>("arguments", objectMapper.createObjectNode().apply {
@@ -451,7 +470,8 @@ class TestMCPServerForPluginMock {
     }
 
     @Test
-    fun `response format is MCP-compliant for error cases`() {
+        @DisplayName("response format is MCP-compliant for error cases")
+    fun responseFormatIsMcpCompliantForErrorCases() {
         val request = objectMapper.createObjectNode().apply {
             put("name", "echo")
             set<ObjectNode>("arguments", objectMapper.createObjectNode())

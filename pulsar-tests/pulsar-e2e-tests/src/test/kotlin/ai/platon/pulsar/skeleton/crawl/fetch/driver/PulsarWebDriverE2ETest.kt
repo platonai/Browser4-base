@@ -15,6 +15,7 @@ import java.nio.file.Path
 import java.text.MessageFormat
 import java.util.*
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 @Tag("Slow")
 @Tag("E2ETest")
@@ -50,7 +51,8 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
     }
 
     @Test
-    fun `When navigate to a HTML page then the navigate state are correct`() = runEnhancedWebDriverTest(browser) { driver ->
+        @DisplayName("When navigate to a HTML page then the navigate state are correct")
+    fun whenNavigateToAHtmlPageThenTheNavigateStateAreCorrect() = runEnhancedWebDriverTest(browser) { driver ->
         openEnhanced(e2eProductUrl, driver, 1)
 
         val navbarMain = driver.selectFirstTextOrNull("#navbar-main")
@@ -72,7 +74,8 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
     }
 
     @Test
-    fun `When navigate to a HTML page then mainRequestCookies are captured`() = runEnhancedWebDriverTest(browser) { driver ->
+        @DisplayName("When navigate to a HTML page then mainRequestCookies are captured")
+    fun whenNavigateToAHtmlPageThenMainrequestcookiesAreCaptured() = runEnhancedWebDriverTest(browser) { driver ->
         // Navigate to the page with cookies
         openEnhanced(e2eProductUrl, driver, 1)
 
@@ -97,7 +100,8 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
     }
 
     @Test
-    fun `when open a HTML page then script is injected`() = runEnhancedWebDriverTest(e2eOriginUrl, browser) { driver ->
+        @DisplayName("when open a HTML page then script is injected")
+    fun whenOpenAHtmlPageThenScriptIsInjected() = runEnhancedWebDriverTest(e2eOriginUrl, browser) { driver ->
         var detail = driver.evaluateDetail("typeof(window)")
         printlnPro(detail)
         // assertNotNull(detail?.value)
@@ -123,7 +127,8 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
     }
 
     @Test
-    fun `open a HTML page and compute metadata`() = runEnhancedWebDriverTest(e2eOriginUrl, browser) { driver ->
+        @DisplayName("open a HTML page and compute metadata")
+    fun openAHtmlPageAndComputeMetadata() = runEnhancedWebDriverTest(e2eOriginUrl, browser) { driver ->
         driver.evaluate("__pulsar_utils__.scrollToMiddle()")
         var detail = driver.evaluateDetail("__pulsar_utils__.compute()")
         printlnPro(detail)
@@ -407,7 +412,8 @@ open class PulsarWebDriverE2ETest : WebDriverTestBase() {
     }
 
     @Test
-    fun `When call queryClientRects then return client rects`() = runEnhancedWebDriverTest(e2eProductUrl, browser) { driver ->
+        @DisplayName("When call queryClientRects then return client rects")
+    fun whenCallQueryclientrectsThenReturnClientRects() = runEnhancedWebDriverTest(e2eProductUrl, browser) { driver ->
         val navbarMain = driver.selectFirstTextOrNull("#navbar-main")
         val title = driver.selectFirstTextOrNull("#productTitle")
         Assumptions.assumeTrue { navbarMain != null || title != null }

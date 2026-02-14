@@ -5,6 +5,7 @@ import ai.platon.pulsar.agentic.skills.SkillRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests for example skills.
@@ -27,7 +28,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test WebScrapingSkill registration`() = runBlocking {
+        @DisplayName("test WebScrapingSkill registration")
+    fun testWebscrapingskillRegistration() = runBlocking {
         val skill = WebScrapingSkill()
 
         registry.register(skill, context)
@@ -39,7 +41,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test WebScrapingSkill execution with valid parameters`() = runBlocking {
+        @DisplayName("test WebScrapingSkill execution with valid parameters")
+    fun testWebscrapingskillExecutionWithValidParameters() = runBlocking {
         val skill = WebScrapingSkill()
         registry.register(skill, context)
 
@@ -56,7 +59,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test WebScrapingSkill execution with missing url parameter`() = runBlocking {
+        @DisplayName("test WebScrapingSkill execution with missing url parameter")
+    fun testWebscrapingskillExecutionWithMissingUrlParameter() = runBlocking {
         val skill = WebScrapingSkill()
         registry.register(skill, context)
 
@@ -69,7 +73,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test WebScrapingSkill execution with missing selector parameter`() = runBlocking {
+        @DisplayName("test WebScrapingSkill execution with missing selector parameter")
+    fun testWebscrapingskillExecutionWithMissingSelectorParameter() = runBlocking {
         val skill = WebScrapingSkill()
         registry.register(skill, context)
 
@@ -82,7 +87,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test WebScrapingSkill rejects invalid URL in onBeforeExecute`() = runBlocking {
+        @DisplayName("test WebScrapingSkill rejects invalid URL in onBeforeExecute")
+    fun testWebscrapingskillRejectsInvalidUrlInOnbeforeexecute() = runBlocking {
         val skill = WebScrapingSkill()
         registry.register(skill, context)
 
@@ -98,7 +104,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test WebScrapingSkill with custom attributes`() = runBlocking {
+        @DisplayName("test WebScrapingSkill with custom attributes")
+    fun testWebscrapingskillWithCustomAttributes() = runBlocking {
         val skill = WebScrapingSkill()
         registry.register(skill, context)
 
@@ -117,7 +124,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test WebScrapingSkill sets shared resource on success`() = runBlocking {
+        @DisplayName("test WebScrapingSkill sets shared resource on success")
+    fun testWebscrapingskillSetsSharedResourceOnSuccess() = runBlocking {
         val skill = WebScrapingSkill()
         registry.register(skill, context)
 
@@ -132,7 +140,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test FormFillingSkill registration`() = runBlocking {
+        @DisplayName("test FormFillingSkill registration")
+    fun testFormfillingskillRegistration() = runBlocking {
         val webScraping = WebScrapingSkill()
         val formFilling = FormFillingSkill()
 
@@ -145,7 +154,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test FormFillingSkill cannot register without dependency`() = runBlocking {
+        @DisplayName("test FormFillingSkill cannot register without dependency")
+    fun testFormfillingskillCannotRegisterWithoutDependency() = runBlocking {
         val skill = FormFillingSkill()
 
         val exception = assertThrows<IllegalStateException> {
@@ -155,7 +165,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test FormFillingSkill execution with valid parameters`() = runBlocking {
+        @DisplayName("test FormFillingSkill execution with valid parameters")
+    fun testFormfillingskillExecutionWithValidParameters() = runBlocking {
         registry.register(WebScrapingSkill(), context)
         registry.register(FormFillingSkill(), context)
 
@@ -180,7 +191,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test FormFillingSkill execution with submit flag`() = runBlocking {
+        @DisplayName("test FormFillingSkill execution with submit flag")
+    fun testFormfillingskillExecutionWithSubmitFlag() = runBlocking {
         registry.register(WebScrapingSkill(), context)
         registry.register(FormFillingSkill(), context)
 
@@ -200,7 +212,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test FormFillingSkill rejects empty form data`() = runBlocking {
+        @DisplayName("test FormFillingSkill rejects empty form data")
+    fun testFormfillingskillRejectsEmptyFormData() = runBlocking {
         registry.register(WebScrapingSkill(), context)
         registry.register(FormFillingSkill(), context)
 
@@ -216,7 +229,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test DataValidationSkill registration`() = runBlocking {
+        @DisplayName("test DataValidationSkill registration")
+    fun testDatavalidationskillRegistration() = runBlocking {
         val skill = DataValidationSkill()
 
         registry.register(skill, context)
@@ -227,7 +241,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test DataValidationSkill validates email successfully`() = runBlocking {
+        @DisplayName("test DataValidationSkill validates email successfully")
+    fun testDatavalidationskillValidatesEmailSuccessfully() = runBlocking {
         val skill = DataValidationSkill()
         registry.register(skill, context)
 
@@ -243,7 +258,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test DataValidationSkill rejects invalid email`() = runBlocking {
+        @DisplayName("test DataValidationSkill rejects invalid email")
+    fun testDatavalidationskillRejectsInvalidEmail() = runBlocking {
         val skill = DataValidationSkill()
         registry.register(skill, context)
 
@@ -259,7 +275,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test DataValidationSkill validates required fields`() = runBlocking {
+        @DisplayName("test DataValidationSkill validates required fields")
+    fun testDatavalidationskillValidatesRequiredFields() = runBlocking {
         val skill = DataValidationSkill()
         registry.register(skill, context)
 
@@ -274,7 +291,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test DataValidationSkill rejects empty required fields`() = runBlocking {
+        @DisplayName("test DataValidationSkill rejects empty required fields")
+    fun testDatavalidationskillRejectsEmptyRequiredFields() = runBlocking {
         val skill = DataValidationSkill()
         registry.register(skill, context)
 
@@ -290,7 +308,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test DataValidationSkill handles unknown rules`() = runBlocking {
+        @DisplayName("test DataValidationSkill handles unknown rules")
+    fun testDatavalidationskillHandlesUnknownRules() = runBlocking {
         val skill = DataValidationSkill()
         registry.register(skill, context)
 
@@ -306,7 +325,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test DataValidationSkill with multiple rules`() = runBlocking {
+        @DisplayName("test DataValidationSkill with multiple rules")
+    fun testDatavalidationskillWithMultipleRules() = runBlocking {
         val skill = DataValidationSkill()
         registry.register(skill, context)
 
@@ -324,7 +344,8 @@ class ExampleSkillsTest {
     }
 
     @Test
-    fun `test skill tool call specifications`() {
+        @DisplayName("test skill tool call specifications")
+    fun testSkillToolCallSpecifications() {
         val webScraping = WebScrapingSkill()
         val formFilling = FormFillingSkill()
         val dataValidation = DataValidationSkill()

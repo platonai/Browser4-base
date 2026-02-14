@@ -12,6 +12,7 @@ import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertIs
+import org.junit.jupiter.api.DisplayName
 
 class TinyTreeTest : WebDriverTestBase() {
 
@@ -26,7 +27,8 @@ class TinyTreeTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `DOMTinyTreeBuilder invariants on interactive-dynamic page`() =
+        @DisplayName("DOMTinyTreeBuilder invariants on interactive-dynamic page")
+    fun domtinytreebuilderInvariantsOnInteractiveDynamicPage() =
         runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
             assertIs<PulsarWebDriver>(driver)
             val devTools = driver.implementation as RemoteDevTools
@@ -113,7 +115,8 @@ class TinyTreeTest : WebDriverTestBase() {
         }
 
     @Test
-    fun `isNew flag respects previous backend node ids`() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
+        @DisplayName("isNew flag respects previous backend node ids")
+    fun isnewFlagRespectsPreviousBackendNodeIds() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -161,7 +164,8 @@ class TinyTreeTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `optimizeTree prunes invisible wrapper with pruned children on real page`() =
+        @DisplayName("optimizeTree prunes invisible wrapper with pruned children on real page")
+    fun optimizetreePrunesInvisibleWrapperWithPrunedChildrenOnRealPage() =
         runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
             assertIs<PulsarWebDriver>(driver)
             val devTools = driver.implementation as RemoteDevTools

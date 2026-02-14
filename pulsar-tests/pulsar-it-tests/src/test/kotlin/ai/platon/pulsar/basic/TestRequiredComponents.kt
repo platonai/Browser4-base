@@ -5,6 +5,7 @@ import ai.platon.pulsar.skeleton.crawl.component.LoadComponent
 import kotlin.test.*
 import org.springframework.beans.factory.annotation.Autowired
 import kotlin.test.assertNotNull
+import org.junit.jupiter.api.DisplayName
 
 class TestRequiredComponents: TestBase() {
 
@@ -15,7 +16,8 @@ class TestRequiredComponents: TestBase() {
     lateinit var fetchComponent: FetchComponent
 
     @Test
-    fun `When AmazonCrawler started then coreMetrics is working`() {
+        @DisplayName("When AmazonCrawler started then coreMetrics is working")
+    fun whenAmazoncrawlerStartedThenCoremetricsIsWorking() {
         assertNotNull(fetchComponent.coreMetrics)
         assertNotNull(loadComponent.parseComponent)
         assertNotNull(loadComponent.statusTracker)

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class DoubleBindModuleTest {
 
@@ -28,7 +29,8 @@ class DoubleBindModuleTest {
     )
 
     @Test
-    fun `primitive and boxed doubles are formatted`() {
+        @DisplayName("primitive and boxed doubles are formatted")
+    fun primitiveAndBoxedDoublesAreFormatted() {
         val m = mapper()
         val box = Box(
             a = 1.234,
@@ -51,7 +53,8 @@ class DoubleBindModuleTest {
     }
 
     @Test
-    fun `list array and map elements are formatted`() {
+        @DisplayName("list array and map elements are formatted")
+    fun listArrayAndMapElementsAreFormatted() {
         val m = mapper()
         val arr = arrayOf(1.234, 1.0, 2.5)
         val list = listOf(1.234, 1.0, 2.5)
@@ -69,7 +72,8 @@ class DoubleBindModuleTest {
     }
 
     @Test
-    fun `configured decimals are honored`() {
+        @DisplayName("configured decimals are honored")
+    fun configuredDecimalsAreHonored() {
         val m = mapper(decimals = 3)
         val list = listOf(1.2346, 0.005, -0.005)
         // HALF_UP rounding with 3 decimals
@@ -77,7 +81,8 @@ class DoubleBindModuleTest {
     }
 
     @Test
-    fun `nested structures format doubles without recursion`() {
+        @DisplayName("nested structures format doubles without recursion")
+    fun nestedStructuresFormatDoublesWithoutRecursion() {
         val m = mapper()
         val tree: Map<String, Any> = linkedMapOf(
             "n" to 1.234,

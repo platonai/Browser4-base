@@ -16,6 +16,7 @@ import ai.platon.pulsar.sdk.v0.*
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import org.junit.jupiter.api.Test
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Unit tests for WebDriver.
@@ -25,7 +26,8 @@ import kotlin.test.*
 class WebDriverTest {
 
     @Test
-    fun `WebDriver can be created with client`() {
+        @DisplayName("WebDriver can be created with client")
+    fun webdriverCanBeCreatedWithClient() {
         val client = PulsarClient(sessionId = "test-session")
         val driver = WebDriver(client)
 
@@ -34,7 +36,8 @@ class WebDriverTest {
     }
 
     @Test
-    fun `WebDriver tracks navigation history`() {
+        @DisplayName("WebDriver tracks navigation history")
+    fun webdriverTracksNavigationHistory() {
         val client = PulsarClient(sessionId = "test-session")
         val driver = WebDriver(client)
 
@@ -44,7 +47,8 @@ class WebDriverTest {
     }
 
     @Test
-    fun `WebDriver close does not throw`() {
+        @DisplayName("WebDriver close does not throw")
+    fun webdriverCloseDoesNotThrow() {
         val client = PulsarClient(sessionId = "test-session")
         val driver = WebDriver(client)
         driver.close()
@@ -58,7 +62,8 @@ class WebDriverTest {
 class PulsarSessionTest {
 
     @Test
-    fun `PulsarSession can be created with client`() {
+        @DisplayName("PulsarSession can be created with client")
+    fun pulsarsessionCanBeCreatedWithClient() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -68,7 +73,8 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession display shows session info`() {
+        @DisplayName("PulsarSession display shows session info")
+    fun pulsarsessionDisplayShowsSessionInfo() {
         val client = PulsarClient(sessionId = "abcdefgh12345678")
         val session = PulsarSession(client)
 
@@ -76,7 +82,8 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession display shows no-session when inactive`() {
+        @DisplayName("PulsarSession display shows no-session when inactive")
+    fun pulsarsessionDisplayShowsNoSessionWhenInactive() {
         val client = PulsarClient()
         val session = PulsarSession(client)
 
@@ -85,7 +92,8 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession driver is lazily created`() {
+        @DisplayName("PulsarSession driver is lazily created")
+    fun pulsarsessionDriverIsLazilyCreated() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -99,7 +107,8 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession createBoundDriver creates new driver`() {
+        @DisplayName("PulsarSession createBoundDriver creates new driver")
+    fun pulsarsessionCreatebounddriverCreatesNewDriver() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -112,7 +121,8 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession bindDriver and unbindDriver work correctly`() {
+        @DisplayName("PulsarSession bindDriver and unbindDriver work correctly")
+    fun pulsarsessionBinddriverAndUnbinddriverWorkCorrectly() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
         val driver = WebDriver(client)
@@ -125,7 +135,8 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession normalizeOrNull returns null for blank URL`() = kotlinx.coroutines.test.runTest {
+        @DisplayName("PulsarSession normalizeOrNull returns null for blank URL")
+    fun pulsarsessionNormalizeornullReturnsNullForBlankUrl() = kotlinx.coroutines.test.runTest {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -135,7 +146,8 @@ class PulsarSessionTest {
     }
 
     @Test
-    fun `PulsarSession loadAll returns list of pages`() {
+        @DisplayName("PulsarSession loadAll returns list of pages")
+    fun pulsarsessionLoadallReturnsListOfPages() {
         val client = PulsarClient(sessionId = "test-session")
         val session = PulsarSession(client)
 
@@ -151,7 +163,8 @@ class PulsarSessionTest {
 class AgenticSessionTest {
 
     @Test
-    fun `AgenticSession can be created with client`() {
+        @DisplayName("AgenticSession can be created with client")
+    fun agenticsessionCanBeCreatedWithClient() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
 
@@ -164,7 +177,8 @@ class AgenticSessionTest {
     }
 
     @Test
-    fun `AgenticSession stateHistory is initially empty`() {
+        @DisplayName("AgenticSession stateHistory is initially empty")
+    fun agenticsessionStatehistoryIsInitiallyEmpty() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
 
@@ -175,7 +189,8 @@ class AgenticSessionTest {
     }
 
     @Test
-    fun `AgenticSession processTrace is initially empty`() {
+        @DisplayName("AgenticSession processTrace is initially empty")
+    fun agenticsessionProcesstraceIsInitiallyEmpty() {
         val client = PulsarClient(sessionId = "test-session")
         val session = AgenticSession(client)
 
@@ -183,7 +198,8 @@ class AgenticSessionTest {
     }
 
 //    @Test
-//    fun `AgenticSession options creates map with args`() {
+//        @DisplayName("AgenticSession options creates map with args")
+    fun agenticsessionOptionsCreatesMapWithArgs() {
 //        val client = PulsarClient(sessionId = "test-session")
 //        val session = AgenticSession(client)
 //
@@ -193,7 +209,8 @@ class AgenticSessionTest {
 //    }
 //
 //    @Test
-//    fun `AgenticSession data returns null by default`() {
+//        @DisplayName("AgenticSession data returns null by default")
+    fun agenticsessionDataReturnsNullByDefault() {
 //        val client = PulsarClient(sessionId = "test-session")
 //        val session = AgenticSession(client)
 //
@@ -201,7 +218,8 @@ class AgenticSessionTest {
 //    }
 //
 //    @Test
-//    fun `AgenticSession property returns null by default`() {
+//        @DisplayName("AgenticSession property returns null by default")
+    fun agenticsessionPropertyReturnsNullByDefault() {
 //        val client = PulsarClient(sessionId = "test-session")
 //        val session = AgenticSession(client)
 //
@@ -209,7 +227,8 @@ class AgenticSessionTest {
 //    }
 //
 //    @Test
-//    fun `AgenticSession registerClosable does not throw`() {
+//        @DisplayName("AgenticSession registerClosable does not throw")
+    fun agenticsessionRegisterclosableDoesNotThrow() {
 //        val client = PulsarClient(sessionId = "test-session")
 //        val session = AgenticSession(client)
 //
@@ -218,7 +237,8 @@ class AgenticSessionTest {
 //    }
 
     @Test
-    fun `PageEventHandlers can be created`() {
+        @DisplayName("PageEventHandlers can be created")
+    fun pageeventhandlersCanBeCreated() {
         val handlers = PageEventHandlers()
 
         assertTrue(handlers.browse.isEmpty())
@@ -227,7 +247,8 @@ class AgenticSessionTest {
     }
 
     @Test
-    fun `AgentHistory can be created`() {
+        @DisplayName("AgentHistory can be created")
+    fun agenthistoryCanBeCreated() {
         val history = AgentHistory()
 
         assertEquals(0, history.size)
@@ -237,7 +258,8 @@ class AgenticSessionTest {
     }
 
     @Test
-    fun `AgentHistory can track states`() {
+        @DisplayName("AgentHistory can track states")
+    fun agenthistoryCanTrackStates() {
         val state1 = AgentState(step = 1, action = "test", success = true)
         val state2 = AgentState(step = 2, action = "test2", success = false)
         val history = AgentHistory(states = mutableListOf(state1, state2), hasErrors = true)
@@ -249,7 +271,8 @@ class AgenticSessionTest {
     }
 
     @Test
-    fun `ChatResponse can be created from string`() {
+        @DisplayName("ChatResponse can be created from string")
+    fun chatresponseCanBeCreatedFromString() {
         val response = ChatResponse.fromAny("Hello, world!")
 
         assertEquals("Hello, world!", response.content)
@@ -257,7 +280,8 @@ class AgenticSessionTest {
     }
 
     @Test
-    fun `ChatResponse can be created from map`() {
+        @DisplayName("ChatResponse can be created from map")
+    fun chatresponseCanBeCreatedFromMap() {
         val map = mapOf(
             "content" to "Test content",
             "role" to "user",

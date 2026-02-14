@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Integration tests for CircuitBreaker component.
@@ -24,7 +25,8 @@ class CircuitBreakerTest {
     }
 
     @Test
-    fun `should trip on consecutive LLM failures`() {
+        @DisplayName("should trip on consecutive LLM failures")
+    fun shouldTripOnConsecutiveLlmFailures() {
         // Record failures up to threshold
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.LLM_FAILURE)
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.LLM_FAILURE)
@@ -39,7 +41,8 @@ class CircuitBreakerTest {
     }
 
     @Test
-    fun `should reset counter on success`() {
+        @DisplayName("should reset counter on success")
+    fun shouldResetCounterOnSuccess() {
         // Record some failures
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.LLM_FAILURE)
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.LLM_FAILURE)
@@ -56,7 +59,8 @@ class CircuitBreakerTest {
     }
 
     @Test
-    fun `should track different failure types independently`() {
+        @DisplayName("should track different failure types independently")
+    fun shouldTrackDifferentFailureTypesIndependently() {
         // Record LLM failures
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.LLM_FAILURE)
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.LLM_FAILURE)
@@ -71,7 +75,8 @@ class CircuitBreakerTest {
     }
 
     @Test
-    fun `should reset all counters`() {
+        @DisplayName("should reset all counters")
+    fun shouldResetAllCounters() {
         // Record various failures
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.LLM_FAILURE)
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.VALIDATION_FAILURE)
@@ -87,7 +92,8 @@ class CircuitBreakerTest {
     }
 
     @Test
-    fun `should report healthy state correctly`() {
+        @DisplayName("should report healthy state correctly")
+    fun shouldReportHealthyStateCorrectly() {
         assertTrue(circuitBreaker.isHealthy())
 
         // Add one failure - should still be healthy
@@ -100,7 +106,8 @@ class CircuitBreakerTest {
     }
 
     @Test
-    fun `should trip on execution failures with lower threshold`() {
+        @DisplayName("should trip on execution failures with lower threshold")
+    fun shouldTripOnExecutionFailuresWithLowerThreshold() {
         circuitBreaker.recordFailure(CircuitBreaker.FailureType.EXECUTION_FAILURE)
 
         // Should trip on 2nd failure

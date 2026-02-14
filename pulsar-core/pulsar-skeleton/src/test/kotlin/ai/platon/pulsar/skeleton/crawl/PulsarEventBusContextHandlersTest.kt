@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class PulsarEventBusContextHandlersTest {
 
@@ -56,7 +57,8 @@ class PulsarEventBusContextHandlersTest {
     }
 
     @Test
-    fun `withServerSideEventHandlers should isolate handlers between concurrent coroutines`() = runBlocking {
+        @DisplayName("withServerSideEventHandlers should isolate handlers between concurrent coroutines")
+    fun withserversideeventhandlersShouldIsolateHandlersBetweenConcurrentCoroutines() = runBlocking {
         val h1 = RecordingHandlers("h1")
         val h2 = RecordingHandlers("h2")
 

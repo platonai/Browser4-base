@@ -18,13 +18,15 @@ import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     private val testURL = interactiveDynamicURL
 //    private val testURL = "https://news.ycombinator.com/news"
 
     @Test
-    fun `Get trees, build and serialize end-to-end with assertions`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("Get trees, build and serialize end-to-end with assertions")
+    fun getTreesBuildAndSerializeEndToEndWithAssertions() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -72,7 +74,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `Find element using css, xpath, backend id, element hash and convert to interacted element`() =
+        @DisplayName("Find element using css, xpath, backend id, element hash and convert to interacted element")
+    fun findElementUsingCssXpathBackendIdElementHashAndConvertToInteractedElement() =
         runEnhancedWebDriverTest(testURL) { driver ->
             assertIs<PulsarWebDriver>(driver)
             val devTools = driver.implementation as RemoteDevTools
@@ -154,7 +157,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         }
 
     @Test
-    fun `Options toggling - no AX or Snapshot yields minimal enhanced nodes`() =
+        @DisplayName("Options toggling - no AX or Snapshot yields minimal enhanced nodes")
+    fun optionsTogglingNoAxOrSnapshotYieldsMinimalEnhancedNodes() =
         runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
             assertIs<PulsarWebDriver>(driver)
             val devTools = driver.implementation as RemoteDevTools
@@ -192,7 +196,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         }
 
     @Test
-    fun `Scrollability and interactivity analysis on dynamic content`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("Scrollability and interactivity analysis on dynamic content")
+    fun scrollabilityAndInteractivityAnalysisOnDynamicContent() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = driver.domService
@@ -293,7 +298,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `Dynamic content load is reflected in enhanced DOM tree`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("Dynamic content load is reflected in enhanced DOM tree")
+    fun dynamicContentLoadIsReflectedInEnhancedDomTree() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -343,7 +349,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `SnapshotNodeEx bounds and rects are populated correctly`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("SnapshotNodeEx bounds and rects are populated correctly")
+    fun snapshotnodeexBoundsAndRectsArePopulatedCorrectly() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -405,7 +412,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `SnapshotNodeEx bounds on interactive elements`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("SnapshotNodeEx bounds on interactive elements")
+    fun snapshotnodeexBoundsOnInteractiveElements() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -564,7 +572,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `SnapshotNodeEx scrollRects on scrollable container`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("SnapshotNodeEx scrollRects on scrollable container")
+    fun snapshotnodeexScrollrectsOnScrollableContainer() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)

@@ -9,11 +9,13 @@ import kotlin.test.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class TestLoadingQueues : TestBase() {
 
     @Test
-    fun `When create a LoadingurlCache then the first page is loaded`() {
+        @DisplayName("When create a LoadingurlCache then the first page is loaded")
+    fun whenCreateALoadingurlcacheThenTheFirstPageIsLoaded() {
         val urlCache = LoadingUrlCache("", group.priority, urlLoader)
         // not loaded
         assertEquals(0, urlCache.size)
@@ -22,7 +24,8 @@ class TestLoadingQueues : TestBase() {
     }
 
     @Test
-    fun `When collect from collector with loading fetch cache then sink has items`() {
+        @DisplayName("When collect from collector with loading fetch cache then sink has items")
+    fun whenCollectFromCollectorWithLoadingFetchCacheThenSinkHasItems() {
         val source = LoadingUrlCache("", group.priority, urlLoader)
         val sink = mutableListOf<UrlAware>()
 

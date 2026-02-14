@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
+import org.junit.jupiter.api.DisplayName
 
 @Tag("TestInfraCheck")
 class AccessibilityAndDragDropTest {
@@ -24,7 +25,8 @@ class AccessibilityAndDragDropTest {
     )
 
     @Test
-    fun `buttons with data-action have aria-label and role semantics`() {
+        @DisplayName("buttons with data-action have aria-label and role semantics")
+    fun buttonsWithDataActionHaveAriaLabelAndRoleSemantics() {
         val buttonPattern = Pattern.compile("<button[^>]*data-action=\"([^\"]+)\"[\\s\\S]*?>")
         interactiveFiles.forEach { file ->
             val html = readResource(file)
@@ -40,7 +42,8 @@ class AccessibilityAndDragDropTest {
     }
 
     @Test
-    fun `toggle message buttons manage aria-expanded and controls attribute`() {
+        @DisplayName("toggle message buttons manage aria-expanded and controls attribute")
+    fun toggleMessageButtonsManageAriaExpandedAndControlsAttribute() {
         val html = readResource("generated/interactive-1.html") + readResource("generated/interactive-screens.html")
         assertTrue(html.contains("id=\"toggleMessageButton\""), "Missing toggleMessageButton id")
         val pattern = Pattern.compile("<button[^>]*id=\"toggleMessageButton\"[^>]*>")
@@ -56,7 +59,8 @@ class AccessibilityAndDragDropTest {
     }
 
     @Test
-    fun `hidden message elements have aria-hidden role region`() {
+        @DisplayName("hidden message elements have aria-hidden role region")
+    fun hiddenMessageElementsHaveAriaHiddenRoleRegion() {
         val pattern = Pattern.compile("<p[^>]*id=\"hiddenMessage\"[^>]*>")
         val aggregated = interactiveFiles.joinToString("\n") { readResource(it) }
         val m = pattern.matcher(aggregated)
@@ -71,7 +75,8 @@ class AccessibilityAndDragDropTest {
     }
 
     @Test
-    fun `drag-drop list items have sequential data-order and unique ids`() {
+        @DisplayName("drag-drop list items have sequential data-order and unique ids")
+    fun dragDropListItemsHaveSequentialDataOrderAndUniqueIds() {
         val html = readResource("generated/interactive-4.html")
         // Capture list items
         val itemPattern = Pattern.compile("<li[^>]*data-order=\"(\\d+)\"[^>]*>([\\s\\S]*?)</li>")
@@ -94,7 +99,8 @@ class AccessibilityAndDragDropTest {
     }
 
     @Test
-    fun `data-role and data-component exist on structural sections`() {
+        @DisplayName("data-role and data-component exist on structural sections")
+    fun dataRoleAndDataComponentExistOnStructuralSections() {
         val sectionPattern = Pattern.compile("<(header|section)[^>]*id=\"([^\"]+)\"[^>]*>")
         interactiveFiles.forEach { file ->
             val html = readResource(file)

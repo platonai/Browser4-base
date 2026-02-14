@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class TestEvents : TestBase() {
 
@@ -26,7 +27,8 @@ class TestEvents : TestBase() {
     }
 
     @Test
-    fun `When a page is fetched then events are fired and metrics are recorded`() {
+        @DisplayName("When a page is fetched then events are fired and metrics are recorded")
+    fun whenAPageIsFetchedThenEventsAreFiredAndMetricsAreRecorded() {
         val metrics = fetchComponent.coreMetrics
         assertNotNull(metrics)
 

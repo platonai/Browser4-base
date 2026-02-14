@@ -8,6 +8,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.StringWriter
+import org.junit.jupiter.api.DisplayName
 
 class DoubleSerializerTest {
 
@@ -39,7 +40,8 @@ class DoubleSerializerTest {
     data class Holder(val a: Double, val b: Double?, val c: Double)
 
     @Test
-    fun `direct serialize - rounding and trimming basic numbers`() {
+        @DisplayName("direct serialize - rounding and trimming basic numbers")
+    fun directSerializeRoundingAndTrimmingBasicNumbers() {
         assertEquals("1.1", serializeWithCustom(1.101))
         assertEquals("1.23", serializeWithCustom(1.234))
         assertEquals("1.2", serializeWithCustom(1.2))
@@ -56,12 +58,14 @@ class DoubleSerializerTest {
     }
 
     @Test
-    fun `direct serialize - null value`() {
+        @DisplayName("direct serialize - null value")
+    fun directSerializeNullValue() {
         assertEquals("null", serializeWithCustom(null))
     }
 
     @Test
-    fun `direct serialize - rounding boundaries`() {
+        @DisplayName("direct serialize - rounding boundaries")
+    fun directSerializeRoundingBoundaries() {
         // HALF_UP rounding
         assertEquals("0.01", serializeWithCustom(0.005))
         assertEquals("0", serializeWithCustom(0.0049))
@@ -70,14 +74,16 @@ class DoubleSerializerTest {
     }
 
     @Test
-    fun `direct serialize - non-finite numbers are serialized as null by default`() {
+        @DisplayName("direct serialize - non-finite numbers are serialized as null by default")
+    fun directSerializeNonFiniteNumbersAreSerializedAsNullByDefault() {
         assertEquals("null", serializeWithCustom(Double.NaN))
         assertEquals("null", serializeWithCustom(Double.POSITIVE_INFINITY))
         assertEquals("null", serializeWithCustom(Double.NEGATIVE_INFINITY))
     }
 
     @Test
-    fun `integration - serialize primitive and boxed fields`() {
+        @DisplayName("integration - serialize primitive and boxed fields")
+    fun integrationSerializePrimitiveAndBoxedFields() {
         val m = mapper()
         val h = Holder(1.234, 1.0, 2.0)
         val json = m.writeValueAsString(h)
@@ -90,7 +96,8 @@ class DoubleSerializerTest {
     }
 
     @Test
-    fun `integration - serialize with null boxed field included`() {
+        @DisplayName("integration - serialize with null boxed field included")
+    fun integrationSerializeWithNullBoxedFieldIncluded() {
         val m = mapper(includeNulls = true)
         val h = Holder(1.234, null, 2.0)
         val json = m.writeValueAsString(h)
@@ -102,7 +109,8 @@ class DoubleSerializerTest {
     }
 
     @Test
-    fun `integration - serialize arrays and lists use default for elements`() {
+        @DisplayName("integration - serialize arrays and lists use default for elements")
+    fun integrationSerializeArraysAndListsUseDefaultForElements() {
         val m = mapper()
         val arr = arrayOf(1.234, 1.0, 2.5)
         val list = listOf(1.234, 1.0, 2.5)

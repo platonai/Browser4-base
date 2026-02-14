@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
 import java.text.MessageFormat
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 class PulsarWebDriverCDPTests : WebDriverTestBase() {
     fun setLogLevel(loggerName: String?, level: Level?) {
@@ -69,7 +70,8 @@ class PulsarWebDriverCDPTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test evaluate`() = runEnhancedWebDriverTest(testURL, browser) { driver ->
+        @DisplayName("test evaluate")
+    fun testEvaluate() = runEnhancedWebDriverTest(testURL, browser) { driver ->
         val code = """1+1"""
 
         val result = driver.evaluate(code)
@@ -77,7 +79,8 @@ class PulsarWebDriverCDPTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test DOM event`() = runWebDriverDOMEventTest(testURL, browser) { driver ->
+        @DisplayName("test DOM event")
+    fun testDomEvent() = runWebDriverDOMEventTest(testURL, browser) { driver ->
         assertIs<PulsarWebDriver>(driver)
 
         val code = """1+1"""

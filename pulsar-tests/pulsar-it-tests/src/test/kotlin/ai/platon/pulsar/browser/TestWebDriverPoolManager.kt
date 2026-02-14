@@ -11,6 +11,7 @@ import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 class TestWebDriverPoolManager {
     companion object {
@@ -31,7 +32,8 @@ class TestWebDriverPoolManager {
     }
 
     @Test
-    fun `test createUnmanagedDriverPool`() {
+        @DisplayName("test createUnmanagedDriverPool")
+    fun testCreateunmanageddriverpool() {
         val driverPool = driverPoolManager.createUnmanagedDriverPool(BrowserId.RANDOM_TEMP)
         val workingDrivers = mutableListOf<WebDriver>()
         var numDrivers = 0

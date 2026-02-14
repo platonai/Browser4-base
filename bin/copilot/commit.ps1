@@ -15,4 +15,5 @@ if ($AppHome -eq $null) {
 Set-Location $AppHome
 
 # Call copilot to commit all changes with a message
-copilot -p "Commit all changes in $AppHome and push to the remote repository. Resolve conflicts if there is any." --allow-all-tools
+$prompt = "Commit all changes in $AppHome and push to the remote repository. Resolve conflicts if there is any."
+copilot -p "$prompt" --allow-all-tools

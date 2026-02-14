@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class SystemToolExecutorTest {
 
@@ -21,7 +22,8 @@ class SystemToolExecutorTest {
     }
 
     @Test
-    fun `help for help method returns detailed help`() {
+        @DisplayName("help for help method returns detailed help")
+    fun helpForHelpMethodReturnsDetailedHelp() {
         val help = executor.help("help")
 
         assertNotNull(help)
@@ -30,7 +32,8 @@ class SystemToolExecutorTest {
     }
 
     @Test
-    fun `help with domain and method delegates to agent tool manager`() = runBlocking {
+        @DisplayName("help with domain and method delegates to agent tool manager")
+    fun helpWithDomainAndMethodDelegatesToAgentToolManager() = runBlocking {
         every { agentToolManager.help("fs", "writeString") } returns "File system help"
 
         val result = executor.help("fs", "writeString")
@@ -39,7 +42,8 @@ class SystemToolExecutorTest {
     }
 
     @Test
-    fun `system help method executes correctly`() = runBlocking {
+        @DisplayName("system help method executes correctly")
+    fun systemHelpMethodExecutesCorrectly() = runBlocking {
         every { agentToolManager.help("driver", "click") } returns "Click help text"
 
         val tc = ToolCall(
@@ -54,7 +58,8 @@ class SystemToolExecutorTest {
     }
 
     @Test
-    fun `domain property is system`() {
+        @DisplayName("domain property is system")
+    fun domainPropertyIsSystem() {
         assertEquals("system", executor.domain)
     }
 }

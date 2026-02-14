@@ -8,6 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 class PulsarWebDriverTests : WebDriverTestBase() {
 
@@ -16,7 +17,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     val text = "awesome AI enabled Browser4!"
 
     @Test
-    fun `test fill form with JavaScript`() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
+        @DisplayName("test fill form with JavaScript")
+    fun testFillFormWithJavascript() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
         val selector = "input[id=input]"
 
         driver.fill(selector, text)
@@ -30,7 +32,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test fill`() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
+        @DisplayName("test fill")
+    fun testFill() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
         val selector = "input[id=input]"
 
         driver.fill(selector, text)
@@ -40,7 +43,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test scrollBy`() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        @DisplayName("test scrollBy")
+    fun testScrollby() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
         val scrollY = driver.scrollBy(200.0, smooth = true)
 
         assertEquals(200.0, scrollY, 1.0)
@@ -48,7 +52,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test hover`() = runEnhancedWebDriverTest(interactiveUrl2, browser) { driver ->
+        @DisplayName("test hover")
+    fun testHover() = runEnhancedWebDriverTest(interactiveUrl2, browser) { driver ->
         // First scroll to ensure the element is in view and page is in a stable state
         driver.scrollToTop()
         driver.delay(300)
@@ -82,7 +87,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test selectFirstPropertyValueOrNull`() =
+        @DisplayName("test selectFirstPropertyValueOrNull")
+    fun testSelectfirstpropertyvalueornull() =
         runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
             val selector = "input[id=input]"
 
@@ -94,7 +100,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
         }
 
     @Test
-    fun `test selectPropertyValueAll`() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
+        @DisplayName("test selectPropertyValueAll")
+    fun testSelectpropertyvalueall() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
         val selector = "input"
 
         val propValues = driver.selectPropertyValueAll(selector, "tagName")
@@ -103,7 +110,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test setProperty`() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
+        @DisplayName("test setProperty")
+    fun testSetproperty() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
         val selector = "input"
         val propName = "value"
 
@@ -114,7 +122,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test setPropertyAll`() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
+        @DisplayName("test setPropertyAll")
+    fun testSetpropertyall() = runEnhancedWebDriverTest(simpleDomURL, browser) { driver ->
         val selector = "input"
         val propName = "value"
 
@@ -126,7 +135,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test deleteCookies`() = runEnhancedWebDriverTest("$assetsPBaseURL/cookie.html", browser) { driver ->
+        @DisplayName("test deleteCookies")
+    fun testDeletecookies() = runEnhancedWebDriverTest("$assetsPBaseURL/cookie.html", browser) { driver ->
         var cookies = driver.getCookies()
 
         printlnPro(cookies.toString())
@@ -146,7 +156,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test clearBrowserCookies`() = runEnhancedWebDriverTest("$assetsPBaseURL/cookie.html", browser) { driver ->
+        @DisplayName("test clearBrowserCookies")
+    fun testClearbrowsercookies() = runEnhancedWebDriverTest("$assetsPBaseURL/cookie.html", browser) { driver ->
         var cookies = driver.getCookies()
 
         printlnPro(cookies.toString())
@@ -165,7 +176,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test scrollToBottom`() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        @DisplayName("test scrollToBottom")
+    fun testScrolltobottom() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
         val bottomY = driver.scrollToBottom()
         val viewportHeight = (driver.evaluate("window.innerHeight", 0.0) as? Number)?.toDouble() ?: 0.0
         val totalHeight = (driver.evaluate(
@@ -179,7 +191,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test scrollToTop`() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        @DisplayName("test scrollToTop")
+    fun testScrolltotop() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
         // First go to bottom to ensure movement
         driver.scrollToBottom()
         val topY = driver.scrollToTop()
@@ -189,7 +202,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test scrollToMiddle`() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        @DisplayName("test scrollToMiddle")
+    fun testScrolltomiddle() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
         val ratio = 0.5
         val middleY = driver.scrollToMiddle(ratio)
         val viewportHeight = (driver.evaluate("window.innerHeight", 0.0) as? Number)?.toDouble() ?: 0.0
@@ -205,7 +219,8 @@ class PulsarWebDriverTests : WebDriverTestBase() {
     }
 
     @Test
-    fun `test scrollToViewport`() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        @DisplayName("test scrollToViewport")
+    fun testScrolltoviewport() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
         val n = 2.0 // second viewport
         val y = driver.scrollToViewport(n, smooth = false)
         val viewportHeight = (driver.evaluate("window.innerHeight", 0.0) as? Number)?.toDouble() ?: 0.0

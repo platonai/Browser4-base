@@ -8,11 +8,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class ScrollUtilsTest {
 
     @Test
-    fun `isActuallyScrollable returns true when scroll rect exceeds client rect`() {
+        @DisplayName("isActuallyScrollable returns true when scroll rect exceeds client rect")
+    fun isactuallyscrollableReturnsTrueWhenScrollRectExceedsClientRect() {
         val node = DOMTreeNodeEx(
             nodeName = "DIV",
             snapshotNode = SnapshotNodeEx(
@@ -26,7 +28,8 @@ class ScrollUtilsTest {
     }
 
     @Test
-    fun `isActuallyScrollable returns false when overflow hidden`() {
+        @DisplayName("isActuallyScrollable returns false when overflow hidden")
+    fun isactuallyscrollableReturnsFalseWhenOverflowHidden() {
         val node = DOMTreeNodeEx(
             nodeName = "DIV",
             snapshotNode = SnapshotNodeEx(
@@ -40,7 +43,8 @@ class ScrollUtilsTest {
     }
 
     @Test
-    fun `shouldShowScrollInfo hides nested scroll containers`() {
+        @DisplayName("shouldShowScrollInfo hides nested scroll containers")
+    fun shouldshowscrollinfoHidesNestedScrollContainers() {
         val outer = DOMTreeNodeEx(
             nodeName = "DIV",
             snapshotNode = SnapshotNodeEx(
@@ -63,7 +67,8 @@ class ScrollUtilsTest {
     }
 
     @Test
-    fun `getScrollInfoText describes dominant scroll axes`() {
+        @DisplayName("getScrollInfoText describes dominant scroll axes")
+    fun getscrollinfotextDescribesDominantScrollAxes() {
         val node = DOMTreeNodeEx(
             nodeName = "DIV",
             snapshotNode = SnapshotNodeEx(

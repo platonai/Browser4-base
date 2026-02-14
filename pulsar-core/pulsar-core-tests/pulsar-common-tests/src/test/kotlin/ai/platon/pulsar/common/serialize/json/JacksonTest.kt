@@ -8,11 +8,13 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import org.junit.jupiter.api.DisplayName
 
 class PulsarObjectMapperTest {
 
     @Test
-    fun `test ObjectMapper configuration`() {
+        @DisplayName("test ObjectMapper configuration")
+    fun testObjectmapperConfiguration() {
         val objectMapper = pulsarObjectMapper()
 
         // 验证配置是否正确
@@ -32,7 +34,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `test date serialization without timestamp`() {
+        @DisplayName("test date serialization without timestamp")
+    fun testDateSerializationWithoutTimestamp() {
         val objectMapper = pulsarObjectMapper()
         val date = LocalDateTime.of(2023, 1, 1, 12, 0)
         val json = objectMapper.writeValueAsString(date)
@@ -42,7 +45,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `test JSON parsing with trailing comma`() {
+        @DisplayName("test JSON parsing with trailing comma")
+    fun testJsonParsingWithTrailingComma() {
         val objectMapper = pulsarObjectMapper()
         val json = """{"name": "John", "age": 30,}"""
         val map = objectMapper.readValue(json, Map::class.java)
@@ -53,7 +57,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `test JSON parsing with single quotes`() {
+        @DisplayName("test JSON parsing with single quotes")
+    fun testJsonParsingWithSingleQuotes() {
         val objectMapper = pulsarObjectMapper()
         val json = "{'name': 'John', 'age': 30}"
         val map = objectMapper.readValue(json, Map::class.java)
@@ -64,7 +69,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `test JSON parsing with unquoted control chars`() {
+        @DisplayName("test JSON parsing with unquoted control chars")
+    fun testJsonParsingWithUnquotedControlChars() {
         val objectMapper = pulsarObjectMapper()
         val json = "{\"name\": \"John\", \"age\": 30, \"description\": \"This is a test\n\"}"
         val map = objectMapper.readValue(json, Map::class.java)
@@ -76,7 +82,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `test deserialization with unknown properties`() {
+        @DisplayName("test deserialization with unknown properties")
+    fun testDeserializationWithUnknownProperties() {
         val objectMapper = pulsarObjectMapper()
         val json = """{"name": "John", "age": 30}"""
         val map = objectMapper.readValue(json, Map::class.java)
@@ -88,7 +95,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `test JavaTimeModule registration`() {
+        @DisplayName("test JavaTimeModule registration")
+    fun testJavatimemoduleRegistration() {
         val objectMapper = pulsarObjectMapper()
         val date = LocalDateTime.of(2023, 1, 1, 12, 0)
         val json = objectMapper.writeValueAsString(date)
@@ -99,7 +107,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `test extract json with special chars`() {
+        @DisplayName("test extract json with special chars")
+    fun testExtractJsonWithSpecialChars() {
         val json = """
             {
               "product_name": "Huawei P60 Pro Dual SIM 8GB + 256GB Global Model MNA-LX9 Factory Unlocked Mobile Cellphone - Black",
@@ -115,7 +124,8 @@ class PulsarObjectMapperTest {
     }
 
     @Test
-    fun `pulsarObjectMapper formats doubles in containers`() {
+        @DisplayName("pulsarObjectMapper formats doubles in containers")
+    fun pulsarobjectmapperFormatsDoublesInContainers() {
         val objectMapper = pulsarObjectMapper()
         val listNum: List<Number> = listOf(1.234, 1.0, 2.5)
         val mapAny: Map<String, Any> = mapOf("x" to 1.234, "y" to 1.0, "z" to 2.5)

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.ConcurrentHashMap
+import org.junit.jupiter.api.DisplayName
 
 class HashUtilsTests {
 
@@ -23,7 +24,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash with default config includes all components`() {
+        @DisplayName("elementHash with default config includes all components")
+    fun elementhashWithDefaultConfigIncludesAllComponents() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -44,7 +46,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash with legacy config excludes backend and session IDs`() {
+        @DisplayName("elementHash with legacy config excludes backend and session IDs")
+    fun elementhashWithLegacyConfigExcludesBackendAndSessionIds() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -64,7 +67,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash with backend node config uses only backend and session`() {
+        @DisplayName("elementHash with backend node config uses only backend and session")
+    fun elementhashWithBackendNodeConfigUsesOnlyBackendAndSession() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -99,7 +103,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash includes parent branch hash when provided`() {
+        @DisplayName("elementHash includes parent branch hash when provided")
+    fun elementhashIncludesParentBranchHashWhenProvided() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -117,7 +122,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash uses static attributes correctly`() {
+        @DisplayName("elementHash uses static attributes correctly")
+    fun elementhashUsesStaticAttributesCorrectly() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -140,7 +146,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash fallback strategy works for nodes without meaningful attributes`() {
+        @DisplayName("elementHash fallback strategy works for nodes without meaningful attributes")
+    fun elementhashFallbackStrategyWorksForNodesWithoutMeaningfulAttributes() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -164,7 +171,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash caching works correctly`() {
+        @DisplayName("elementHash caching works correctly")
+    fun elementhashCachingWorksCorrectly() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -182,7 +190,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `parentBranchHash creates consistent hash for ancestor path`() {
+        @DisplayName("parentBranchHash creates consistent hash for ancestor path")
+    fun parentbranchhashCreatesConsistentHashForAncestorPath() {
         // Arrange
         val ancestors = listOf(
             DOMTreeNodeEx(nodeId = 1, nodeName = "HTML"),
@@ -201,7 +210,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `parentBranchHash handles special elements correctly`() {
+        @DisplayName("parentBranchHash handles special elements correctly")
+    fun parentbranchhashHandlesSpecialElementsCorrectly() {
         // Arrange
         val shadowHost = DOMTreeNodeEx(
             nodeId = 1,
@@ -221,7 +231,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `parentBranchHash caching works correctly`() {
+        @DisplayName("parentBranchHash caching works correctly")
+    fun parentbranchhashCachingWorksCorrectly() {
         // Arrange
         val ancestors = listOf(
             DOMTreeNodeEx(nodeId = 1, nodeName = "HTML"),
@@ -238,7 +249,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `simpleElementHash uses default configuration`() {
+        @DisplayName("simpleElementHash uses default configuration")
+    fun simpleelementhashUsesDefaultConfiguration() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -255,7 +267,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash with custom sessionId override`() {
+        @DisplayName("elementHash with custom sessionId override")
+    fun elementhashWithCustomSessionidOverride() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -273,7 +286,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `elementHash handles null and empty values gracefully`() {
+        @DisplayName("elementHash handles null and empty values gracefully")
+    fun elementhashHandlesNullAndEmptyValuesGracefully() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -292,7 +306,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `all hash configurations produce different hashes for same node`() {
+        @DisplayName("all hash configurations produce different hashes for same node")
+    fun allHashConfigurationsProduceDifferentHashesForSameNode() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -314,7 +329,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `hash configurations are deterministic`() {
+        @DisplayName("hash configurations are deterministic")
+    fun hashConfigurationsAreDeterministic() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,
@@ -336,7 +352,8 @@ class HashUtilsTests {
     }
 
     @Test
-    fun `fallback identifier includes helpful attributes`() {
+        @DisplayName("fallback identifier includes helpful attributes")
+    fun fallbackIdentifierIncludesHelpfulAttributes() {
         // Arrange
         val node = DOMTreeNodeEx(
             nodeId = 1,

@@ -6,11 +6,13 @@ import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
+import org.junit.jupiter.api.DisplayName
 
 class CombinedScopedUrlNormalizerTest {
 
     @Test
-    fun `test normalize with valid url and options`() {
+        @DisplayName("test normalize with valid url and options")
+    fun testNormalizeWithValidUrlAndOptions() {
         val urlAware = mock(UrlAware::class.java)
         `when`(urlAware.url).thenReturn("http://example.com")
         `when`(urlAware.args).thenReturn("arg1=val1")
@@ -26,7 +28,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test normalize with invalid url`() {
+        @DisplayName("test normalize with invalid url")
+    fun testNormalizeWithInvalidUrl() {
         val urlAware = mock(UrlAware::class.java)
         `when`(urlAware.url).thenReturn("invalid-url")
 
@@ -40,7 +43,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test priority overriding`() {
+        @DisplayName("test priority overriding")
+    fun testPriorityOverriding() {
         val urlAware = Hyperlink("http://example.com", "", args = "-priority -2000")
 
         val options = LoadOptions.parse("-priority -3000")
@@ -60,7 +64,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test normalize with null urlNormalizers`() {
+        @DisplayName("test normalize with null urlNormalizers")
+    fun testNormalizeWithNullUrlnormalizers() {
         val urlAware = mock(UrlAware::class.java)
         `when`(urlAware.url).thenReturn("http://example.com")
 
@@ -74,7 +79,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test createLoadOptions`() {
+        @DisplayName("test createLoadOptions")
+    fun testCreateloadoptions() {
         val urlAware = mock(UrlAware::class.java)
         val options = LoadOptions.parse("")
 
@@ -85,7 +91,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test createLoadOptions0`() {
+        @DisplayName("test createLoadOptions0")
+    fun testCreateloadoptions0() {
         val urlAware = mock(UrlAware::class.java)
         val options = LoadOptions.parse("")
 
@@ -96,7 +103,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test normalize with empty url`() {
+        @DisplayName("test normalize with empty url")
+    fun testNormalizeWithEmptyUrl() {
         val urlAware = mock(UrlAware::class.java)
         `when`(urlAware.url).thenReturn("")
 
@@ -109,7 +117,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test normalize with special characters in url not supported`() {
+        @DisplayName("test normalize with special characters in url not supported")
+    fun testNormalizeWithSpecialCharactersInUrlNotSupported() {
         val urlAware = mock(UrlAware::class.java)
         `when`(urlAware.url).thenReturn("http://example.com/!@#$%^&*()")
 
@@ -123,7 +132,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test normalize with very long url`() {
+        @DisplayName("test normalize with very long url")
+    fun testNormalizeWithVeryLongUrl() {
         val longUrl = "http://example.com/" + "a".repeat(5000)
         val urlAware = mock(UrlAware::class.java)
         `when`(urlAware.url).thenReturn(longUrl)
@@ -138,7 +148,8 @@ class CombinedScopedUrlNormalizerTest {
     }
 
     @Test
-    fun `test normalize with url containing spaces not supported`() {
+        @DisplayName("test normalize with url containing spaces not supported")
+    fun testNormalizeWithUrlContainingSpacesNotSupported() {
         val urlAware = mock(UrlAware::class.java)
         `when`(urlAware.url).thenReturn("http://example.com/with spaces-not-supported")
 

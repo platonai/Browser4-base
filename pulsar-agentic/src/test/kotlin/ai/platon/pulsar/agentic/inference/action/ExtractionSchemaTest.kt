@@ -8,13 +8,15 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.DisplayName
 
 class ExtractionSchemaTest {
 
     private val mapper = ObjectMapper()
 
     @Test
-    fun `simple string field produces required and description`() {
+        @DisplayName("simple string field produces required and description")
+    fun simpleStringFieldProducesRequiredAndDescription() {
         val schema = ExtractionSchema(
             listOf(
                 ExtractionField.string("title", description = "The title", required = true)
@@ -34,7 +36,8 @@ class ExtractionSchemaTest {
     }
 
     @Test
-    fun `object with nested array renders children and item schema`() {
+        @DisplayName("object with nested array renders children and item schema")
+    fun objectWithNestedArrayRendersChildrenAndItemSchema() {
         val item = ExtractionField.obj(
             name = "item",
             objectMemberProperties = listOf(
@@ -70,7 +73,8 @@ class ExtractionSchemaTest {
     }
 
     @Test
-    fun `array without items falls back to string item type`() {
+        @DisplayName("array without items falls back to string item type")
+    fun arrayWithoutItemsFallsBackToStringItemType() {
         val field = ExtractionField(
             name = "tags",
             type = "array",
@@ -84,7 +88,8 @@ class ExtractionSchemaTest {
     }
 
     @Test
-    fun `When parse from JSON string Then success`() {
+        @DisplayName("When parse from JSON string Then success")
+    fun whenParseFromJsonStringThenSuccess() {
         val json = """
 {"fields":[{"name":"articles","type":"array","description":"文章列表","arrayElements":{"name":"article","type":"object","objectMemberProperties":[{"name":"title","type":"string","description":"文章标题","required":true},{"name":"comments","type":"number","description":"评论数量","required":true}]}}]}
 
@@ -94,7 +99,8 @@ class ExtractionSchemaTest {
     }
 
     @Test
-    fun `parse from JSON string`() {
+        @DisplayName("parse from JSON string")
+    fun parseFromJsonString() {
         val json = """
             {
               "fields" : [ {
@@ -117,7 +123,8 @@ class ExtractionSchemaTest {
 
     // Kotlin
     @Test
-    fun `parse from JSON string with nested fields`() {
+        @DisplayName("parse from JSON string with nested fields")
+    fun parseFromJsonStringWithNestedFields() {
         val json = """
         {
           "fields": [
@@ -214,7 +221,8 @@ class ExtractionSchemaTest {
     }
 
     @Test
-    fun `legacy map adapter marks fields optional and sets descriptions`() {
+        @DisplayName("legacy map adapter marks fields optional and sets descriptions")
+    fun legacyMapAdapterMarksFieldsOptionalAndSetsDescriptions() {
         val map = mapOf(
             "title" to "Title text",
             "price" to "Price number"

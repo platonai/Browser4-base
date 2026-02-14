@@ -3,12 +3,14 @@ package ai.platon.pulsar.agentic.support
 import ai.platon.pulsar.agentic.common.SimpleKotlinParser
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DisplayName
 
 class ToolCallExecutorTest {
     private val parser = SimpleKotlinParser()
 
     @Test
-    fun `parse simple call without args`() {
+        @DisplayName("parse simple call without args")
+    fun parseSimpleCallWithoutArgs() {
         val tc = parser.parseFunctionExpression("driver.goBack()")
         assertNotNull(tc)
         tc!!
@@ -18,7 +20,8 @@ class ToolCallExecutorTest {
     }
 
     @Test
-    fun `parse call with one arg`() {
+        @DisplayName("parse call with one arg")
+    fun parseCallWithOneArg() {
         val tc = parser.parseFunctionExpression("driver.scrollToMiddle(0.4)")
         assertNotNull(tc)
         tc!!
@@ -28,7 +31,8 @@ class ToolCallExecutorTest {
     }
 
     @Test
-    fun `parse args with comma inside quotes`() {
+        @DisplayName("parse args with comma inside quotes")
+    fun parseArgsWithCommaInsideQuotes() {
         val src = "driver.clickTextMatches(\"a.link\", \"hello, world\", 2)"
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
@@ -41,7 +45,8 @@ class ToolCallExecutorTest {
     }
 
     @Test
-    fun `parse single-quoted arg with escapes`() {
+        @DisplayName("parse single-quoted arg with escapes")
+    fun parseSingleQuotedArgWithEscapes() {
         val src = "driver.fill('#input', 'He said \\\'hi\\\' and \\\\path')"
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
@@ -53,7 +58,8 @@ class ToolCallExecutorTest {
     }
 
     @Test
-    fun `parse nested parentheses and comma inside string`() {
+        @DisplayName("parse nested parentheses and comma inside string")
+    fun parseNestedParenthesesAndCommaInsideString() {
         val arg = "(function(){ return (1,(2+3)); })()"
         val src = "driver.evaluate(\"$arg\")"
         val tc = parser.parseFunctionExpression(src)
@@ -65,7 +71,8 @@ class ToolCallExecutorTest {
     }
 
     @Test
-    fun `parse trailing comma with one arg`() {
+        @DisplayName("parse trailing comma with one arg")
+    fun parseTrailingCommaWithOneArg() {
         val src = "driver.click(\"a.link\",)"
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
@@ -77,7 +84,8 @@ class ToolCallExecutorTest {
 
 
     @Test
-    fun `parse mixed whitespace and trailing comma`() {
+        @DisplayName("parse mixed whitespace and trailing comma")
+    fun parseMixedWhitespaceAndTrailingComma() {
         val src = "driver.scrollToMiddle(   0.75   ,   )"
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
@@ -222,7 +230,8 @@ class ToolCallExecutorTest {
 
     // Additional focused coverage
     @Test
-    fun `parse input with trailing semicolon`() {
+        @DisplayName("parse input with trailing semicolon")
+    fun parseInputWithTrailingSemicolon() {
         val input = "driver.open(\"https://t.tt\");"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
@@ -232,7 +241,8 @@ class ToolCallExecutorTest {
     }
 
     @Test
-    fun `parse double-quoted arg with escapes`() {
+        @DisplayName("parse double-quoted arg with escapes")
+    fun parseDoubleQuotedArgWithEscapes() {
         val src = "driver.fill(\"#input\", \"He said \"hi\" and \\path\")"
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)

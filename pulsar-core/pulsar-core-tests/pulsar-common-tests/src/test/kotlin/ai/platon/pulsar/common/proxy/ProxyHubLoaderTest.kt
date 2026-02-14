@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
 import java.net.URI
 import kotlin.test.Test
+import org.junit.jupiter.api.DisplayName
 
 class ProxyHubLoaderTest {
     private val conf = MutableConfig()
@@ -20,7 +21,8 @@ class ProxyHubLoaderTest {
     }
 
     @Test
-    fun `test LoadProxies`() {
+        @DisplayName("test LoadProxies")
+    fun testLoadproxies() {
         conf[ProxyHubLoader.PROXY_HUB_URL] = proxyHubUrl
         val proxies = proxyLoader.loadProxies()
         printlnPro(proxies)

@@ -9,6 +9,7 @@ import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.options.LoadOptionsJson
 import java.time.Duration
 import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Tests for [LoadOptionsJson] - JSON serialization and deserialization of LoadOptions.
@@ -18,7 +19,8 @@ class TestLoadOptionsJson {
     private val conf = VolatileConfig.UNSAFE
 
     @Test
-    fun `test toJson with default options`() {
+        @DisplayName("test toJson with default options")
+    fun testTojsonWithDefaultOptions() {
         val options = LoadOptions.create(conf)
         val json = LoadOptionsJson.toJson(options)
 
@@ -28,7 +30,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test toJson with modified options`() {
+        @DisplayName("test toJson with modified options")
+    fun testTojsonWithModifiedOptions() {
         val options = LoadOptions.parse("-expires 1d -ignoreFailure -parse", conf)
         val json = LoadOptionsJson.toJson(options)
 
@@ -41,7 +44,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test toJson with includeDefaults`() {
+        @DisplayName("test toJson with includeDefaults")
+    fun testTojsonWithIncludedefaults() {
         val options = LoadOptions.create(conf)
         val json = LoadOptionsJson.toJson(options, includeDefaults = true)
 
@@ -54,7 +58,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromJson basic`() {
+        @DisplayName("test fromJson basic")
+    fun testFromjsonBasic() {
         val json = """
             {
                 "expires": "1d",
@@ -71,7 +76,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromJson with various duration formats`() {
+        @DisplayName("test fromJson with various duration formats")
+    fun testFromjsonWithVariousDurationFormats() {
         val json = """
             {
                 "expires": "2h",
@@ -90,7 +96,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromJson with enum values`() {
+        @DisplayName("test fromJson with enum values")
+    fun testFromjsonWithEnumValues() {
         val json = """
             {
                 "browser": "PULSAR_CHROME",
@@ -107,7 +114,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test roundtrip conversion`() {
+        @DisplayName("test roundtrip conversion")
+    fun testRoundtripConversion() {
         val originalOptions = LoadOptions.parse(
             "-expires 1d -ignoreFailure -parse -topLinks 50 -autoScrollCount 10 -browser PULSAR_CHROME",
             conf
@@ -127,7 +135,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test toMap`() {
+        @DisplayName("test toMap")
+    fun testTomap() {
         val options = LoadOptions.parse("-expires 1d -ignoreFailure -topLinks 50", conf)
         val map = LoadOptionsJson.toMap(options)
 
@@ -139,7 +148,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test toModifiedMap`() {
+        @DisplayName("test toModifiedMap")
+    fun testTomodifiedmap() {
         val options = LoadOptions.parse("-expires 1d -ignoreFailure", conf)
         val map = LoadOptionsJson.toModifiedMap(options)
 
@@ -152,7 +162,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromMap`() {
+        @DisplayName("test fromMap")
+    fun testFrommap() {
         val map = mapOf(
             "expires" to "1d",
             "ignoreFailure" to true,
@@ -167,7 +178,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test generateJsonTemplate`() {
+        @DisplayName("test generateJsonTemplate")
+    fun testGeneratejsontemplate() {
         val template = LoadOptionsJson.generateJsonTemplate()
 
         println("JSON Template:\n$template")
@@ -178,7 +190,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromJson ignores unknown properties`() {
+        @DisplayName("test fromJson ignores unknown properties")
+    fun testFromjsonIgnoresUnknownProperties() {
         val json = """
             {
                 "expires": "1d",
@@ -193,7 +206,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromJson with string values`() {
+        @DisplayName("test fromJson with string values")
+    fun testFromjsonWithStringValues() {
         val json = """
             {
                 "label": "test-label",
@@ -210,7 +224,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromJson with integer values`() {
+        @DisplayName("test fromJson with integer values")
+    fun testFromjsonWithIntegerValues() {
         val json = """
             {
                 "topLinks": 100,
@@ -229,7 +244,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test fromJson with boolean values`() {
+        @DisplayName("test fromJson with boolean values")
+    fun testFromjsonWithBooleanValues() {
         val json = """
             {
                 "refresh": true,
@@ -248,7 +264,8 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test item options in JSON`() {
+        @DisplayName("test item options in JSON")
+    fun testItemOptionsInJson() {
         val json = """
             {
                 "itemExpires": "7d",
@@ -267,17 +284,18 @@ class TestLoadOptionsJson {
     }
 
     @Test
-    fun `test complex roundtrip`() {
+        @DisplayName("test complex roundtrip")
+    fun testComplexRoundtrip() {
         val originalArgs = """
-            -expires 2d 
-            -itemExpires 7d 
-            -ignoreFailure 
-            -parse 
-            -topLinks 100 
-            -outLinkSelector ".products a" 
-            -autoScrollCount 15 
-            -scrollInterval 1s 
-            -browser PULSAR_CHROME 
+            -expires 2d
+            -itemExpires 7d
+            -ignoreFailure
+            -parse
+            -topLinks 100
+            -outLinkSelector ".products a"
+            -autoScrollCount 15
+            -scrollInterval 1s
+            -browser PULSAR_CHROME
             -interactLevel GOOD_DATA
             -label test-label
             -entity product

@@ -9,6 +9,7 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 /**
  * Test event handlers.
@@ -46,7 +47,8 @@ class TestEventHandlers : TestBase() {
     }
 
     @Test
-    fun `When load degenerated link then load event is performed`() {
+        @DisplayName("When load degenerated link then load event is performed")
+    fun whenLoadDegeneratedLinkThenLoadEventIsPerformed() {
         logger.info("Testing - whenLoadDegeneratedLink_ThenEventsAreTriggered")
 
         val url = MockDegeneratedListenableHyperlink()

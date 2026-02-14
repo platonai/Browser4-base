@@ -6,6 +6,7 @@ import org.mockito.kotlin.*
 import org.slf4j.Logger
 import org.slf4j.helpers.MessageFormatter
 import java.time.Duration
+import org.junit.jupiter.api.DisplayName
 
 class ThrottlingLoggerTest {
 
@@ -19,7 +20,8 @@ class ThrottlingLoggerTest {
     }
 
     @Test
-    fun `should log message only once within TTL`() {
+        @DisplayName("should log message only once within TTL")
+    fun shouldLogMessageOnlyOnceWithinTtl() {
         val format = "User %s logged in"
         val args = arrayOf("Alice")
 
@@ -30,7 +32,8 @@ class ThrottlingLoggerTest {
     }
 
     @Test
-    fun `should allow logging after TTL expires`() {
+        @DisplayName("should allow logging after TTL expires")
+    fun shouldAllowLoggingAfterTtlExpires() {
         val format = "System warning: %s"
         val args = arrayOf("low memory")
 
@@ -44,7 +47,8 @@ class ThrottlingLoggerTest {
     }
 
     @Test
-    fun `should count suppressed messages when enabled`() {
+        @DisplayName("should count suppressed messages when enabled")
+    fun shouldCountSuppressedMessagesWhenEnabled() {
         val format = "Configuration reload failed: {}"
         val args = arrayOf("timeout")
 
@@ -60,7 +64,8 @@ class ThrottlingLoggerTest {
     }
 
     @Test
-    fun `should reset suppression count and cache`() {
+        @DisplayName("should reset suppression count and cache")
+    fun shouldResetSuppressionCountAndCache() {
         val format = "Error processing request: {}"
         val args = arrayOf("404")
 
@@ -73,7 +78,8 @@ class ThrottlingLoggerTest {
     }
 
     @Test
-    fun `should log error with exception and throttle correctly`() {
+        @DisplayName("should log error with exception and throttle correctly")
+    fun shouldLogErrorWithExceptionAndThrottleCorrectly() {
         val throwable = RuntimeException("Database connection failed")
         val format = "Failed to connect to {}"
         val args = arrayOf("main-db")
@@ -85,7 +91,8 @@ class ThrottlingLoggerTest {
     }
 
     @Test
-    fun `should handle multiple different messages independently`() {
+        @DisplayName("should handle multiple different messages independently")
+    fun shouldHandleMultipleDifferentMessagesIndependently() {
         logger.info("Message A")
         logger.info("Message B")
         logger.info("Message A")
@@ -95,7 +102,8 @@ class ThrottlingLoggerTest {
     }
 
     @Test
-    fun `should not track suppressed count if disabled`() {
+        @DisplayName("should not track suppressed count if disabled")
+    fun shouldNotTrackSuppressedCountIfDisabled() {
         val simpleLogger = ThrottlingLogger(mockLogger, Duration.ofMinutes(1), enableSuppressedCount = false)
 
         simpleLogger.info("Repeated message")

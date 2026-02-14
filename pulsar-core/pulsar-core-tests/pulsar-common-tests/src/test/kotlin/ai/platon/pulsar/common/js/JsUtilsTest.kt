@@ -6,46 +6,53 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNull
+import org.junit.jupiter.api.DisplayName
 
 class JsUtilsTest {
 
     @Test
-    fun `test normal function expression`() {
+        @DisplayName("test normal function expression")
+    fun testNormalFunctionExpression() {
         val input = "function() { console.log('hello'); }"
         val expected = "(function() { console.log('hello'); })();"
         assertEquals(expected, toIIFEOrNull(input))
     }
 
     @Test
-    fun `test function with leading and trailing spaces`() {
+        @DisplayName("test function with leading and trailing spaces")
+    fun testFunctionWithLeadingAndTrailingSpaces() {
         val input = "   function() {}   "
         val expected = "(function() {})();"
         assertEquals(expected, toIIFEOrNull(input))
     }
 
     @Test
-    fun `test function with semicolons`() {
+        @DisplayName("test function with semicolons")
+    fun testFunctionWithSemicolons() {
         val input = ";(function(){});"
         val expected = "((function(){}))();"
         assertEquals(expected, toIIFEOrNull(input))
     }
 
     @Test
-    fun `test async function`() {
+        @DisplayName("test async function")
+    fun testAsyncFunction() {
         val input = "async function() { await doSomething(); }"
         val expected = "(async function() { await doSomething(); })();"
         assertEquals(expected, toIIFEOrNull(input))
     }
 
     @Test
-    fun `test arrow function`() {
+        @DisplayName("test arrow function")
+    fun testArrowFunction() {
         val input = "() => { return 42; }"
         val expected = "(() => { return 42; })();"
         assertEquals(expected, toIIFEOrNull(input))
     }
 
     @Test
-    fun `test arrow function with arguments`() {
+        @DisplayName("test arrow function with arguments")
+    fun testArrowFunctionWithArguments() {
         val input = "x => x * 2"
         val args = "5"
         val expected = "(x => x * 2)(5);"
@@ -53,28 +60,32 @@ class JsUtilsTest {
     }
 
     @Test
-    fun `test object literal should not be treated as function`() {
+        @DisplayName("test object literal should not be treated as function")
+    fun testObjectLiteralShouldNotBeTreatedAsFunction() {
         val input = "{ key: 'value' }"
         val expected = "({ key: 'value' });"
         assertEquals(expected, toIIFEOrNull(input))
     }
 
     @Test
-    fun `test invalid format returns error message`() {
+        @DisplayName("test invalid format returns error message")
+    fun testInvalidFormatReturnsErrorMessage() {
         val input = "This is not a function"
         // ❌ Unsupported format: not a valid JS function
         assertNull(toIIFEOrNull(input))
     }
 
     @Test
-    fun `test empty string returns error message`() {
+        @DisplayName("test empty string returns error message")
+    fun testEmptyStringReturnsErrorMessage() {
         val input = ""
         // ❌ Unsupported format: not a valid JS function
         assertNull(toIIFEOrNull(input))
     }
 
     @Test
-    fun `test function with multi-line expressions`() {
+        @DisplayName("test function with multi-line expressions")
+    fun testFunctionWithMultiLineExpressions() {
         val input = """
             const a = 10;
             const b = 20;
@@ -86,14 +97,16 @@ class JsUtilsTest {
     }
 
     @Test
-    fun `test function starting with x`() {
+        @DisplayName("test function starting with x")
+    fun testFunctionStartingWithX() {
         val input = "x => x + 1"
         val expected = "(x => x + 1)();"
         assertEquals(expected, toIIFEOrNull(input))
     }
 
     @Test
-    fun `test function with custom arguments`() {
+        @DisplayName("test function with custom arguments")
+    fun testFunctionWithCustomArguments() {
         val input = "function(a, b) { return a + b; }"
         val args = "1, 2"
         val expected = "(function(a, b) { return a + b; })(1, 2);"
@@ -101,7 +114,8 @@ class JsUtilsTest {
     }
 
     @Test
-    fun `test toCDPCompatibleExpression remove heading return`() {
+        @DisplayName("test toCDPCompatibleExpression remove heading return")
+    fun testTocdpcompatibleexpressionRemoveHeadingReturn() {
         var expected = "document.title"
         assertEquals(expected, toCDPCompatibleExpression("return   document.title  "))
         assertEquals(expected, toCDPCompatibleExpression("return   \ndocument.title  "))
@@ -119,21 +133,24 @@ class JsUtilsTest {
     }
 
     @Test
-    fun `test toCDPCompatibleExpression wraps single line object literal`() {
+        @DisplayName("test toCDPCompatibleExpression wraps single line object literal")
+    fun testTocdpcompatibleexpressionWrapsSingleLineObjectLiteral() {
         val input = "{ answer: 42 }"
         val expected = "({ answer: 42 });"
         assertEquals(expected, toCDPCompatibleExpression(input))
     }
 
     @Test
-    fun `test toCDPCompatibleExpression converts single line function expression`() {
+        @DisplayName("test toCDPCompatibleExpression converts single line function expression")
+    fun testTocdpcompatibleexpressionConvertsSingleLineFunctionExpression() {
         val input = "function() { return 1 }"
         val expected = "(function() { return 1 })();"
         assertEquals(expected, toCDPCompatibleExpression(input))
     }
 
     @Test
-    fun `test toCDPCompatibleExpression keeps normal expression`() {
+        @DisplayName("test toCDPCompatibleExpression keeps normal expression")
+    fun testTocdpcompatibleexpressionKeepsNormalExpression() {
         val input = "  document.title  "
         val expected = "document.title"
         assertEquals(expected, toCDPCompatibleExpression(input))

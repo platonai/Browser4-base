@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test
 import kotlin.test.Ignore
 import kotlin.test.assertIs
 import kotlin.test.fail
+import org.junit.jupiter.api.DisplayName
 
 class ChromeDomServiceIsScrollableTest : WebDriverTestBase() {
     private val testURL get() = "$generatedAssetsBaseURL/interactive-dynamic.html"
 
     @Test
     @Ignore("Disabled temporarily")
-    fun `isScrollable basics - regular elements and overflow hidden`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("isScrollable basics - regular elements and overflow hidden")
+    fun isscrollableBasicsRegularElementsAndOverflowHidden() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -99,7 +101,8 @@ class ChromeDomServiceIsScrollableTest : WebDriverTestBase() {
 
     @Test
     @Ignore("Disabled temporarily")
-    fun `isScrollable special - body html and toggle overflow`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("isScrollable special - body html and toggle overflow")
+    fun isscrollableSpecialBodyHtmlAndToggleOverflow() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -163,7 +166,8 @@ class ChromeDomServiceIsScrollableTest : WebDriverTestBase() {
 
     @Test
     @Ignore("Disabled temporarily")
-    fun `isScrollable dedup - nested containers similar vs distinct areas`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("isScrollable dedup - nested containers similar vs distinct areas")
+    fun isscrollableDedupNestedContainersSimilarVsDistinctAreas() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -286,7 +290,8 @@ class ChromeDomServiceIsScrollableTest : WebDriverTestBase() {
     }
 
     @Test
-    fun `isScrollable null when scroll analysis disabled`() = runEnhancedWebDriverTest(testURL) { driver ->
+        @DisplayName("isScrollable null when scroll analysis disabled")
+    fun isscrollableNullWhenScrollAnalysisDisabled() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)

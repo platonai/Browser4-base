@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Tag
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.DisplayName
 
 @Tag("RequiresServer")
 class ChatModelTests {
@@ -41,7 +42,8 @@ class ChatModelTests {
     }
 
     @Test
-    fun `introduce model`() {
+        @DisplayName("introduce model")
+    fun introduceModel() {
         val prompt = "introduce yourself, what can you do for me?"
         val response = runBlocking { model.call(prompt) }
         printlnPro(response.content)
@@ -53,7 +55,8 @@ class ChatModelTests {
     }
 
     @Test
-    fun `should generate answer and return token usage and finish reason stop`() {
+        @DisplayName("should generate answer and return token usage and finish reason stop")
+    fun shouldGenerateAnswerAndReturnTokenUsageAndFinishReasonStop() {
         val document = Documents.parse(productHtml, url)
 
         val prompt = "以下是一个电商网站的网页内容，找出商品标题、商品价格："
@@ -67,7 +70,8 @@ class ChatModelTests {
     }
 
     @Test
-    fun `should generate answer from the partial content of a webpage`() {
+        @DisplayName("should generate answer from the partial content of a webpage")
+    fun shouldGenerateAnswerFromThePartialContentOfAWebpage() {
         val text = productText
         val prompt = """
 以下我将提供一个典型电商网站的商品页面内容，找出商品标题、商品价格和评分，并且以以下格式输出：
@@ -93,7 +97,8 @@ class ChatModelTests {
     }
 
     @Test
-    fun `When ask LLM to analyze cluster then it responses with json`() {
+        @DisplayName("When ask LLM to analyze cluster then it responses with json")
+    fun whenAskLlmToAnalyzeClusterThenItResponsesWithJson() {
         val response = runBlocking { model.call(clusterAnalysisPrompt) }
         printlnPro(response.content)
 
