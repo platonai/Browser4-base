@@ -55,7 +55,7 @@ fun main() {
     // Available modes:
     // - withDefaultBrowser(): Isolated profile, reusable across sessions
     // - withSequentialBrowsers(): New browser context per task, better for concurrent crawling
-    // - withTemporaryBrowsers(): Disposable browsers, maximum isolation
+    // - withTemporaryBrowser(): Disposable browsers, maximum isolation
     PulsarSettings.withDefaultBrowser()
 
     // =====================================================================
@@ -66,14 +66,14 @@ fun main() {
     // AI Note: A session holds references to browser instances, page cache,
     // and configuration. One session is typically sufficient per application.
     val session = PulsarContexts.createSession()
-    
+
     // The main url we are playing with
     val url = PRODUCT_DETAIL_URL
 
     // =====================================================================
     // STEP 3: Page Loading Methods
     // =====================================================================
-    
+
     // Method 1: open() - Direct browser navigation
     // Opens the URL in the browser and returns the page immediately after loading.
     // AI Note: Use when you need fresh page content regardless of cache.
@@ -93,7 +93,7 @@ fun main() {
     // =====================================================================
     // STEP 4: Document Parsing
     // =====================================================================
-    
+
     // Parse the page content into a document
     // AI Note: Returns a FeaturedDocument (Jsoup-based) for CSS selector queries
     val document = session.parse(page)
@@ -118,7 +118,7 @@ fun main() {
     // =====================================================================
     // STEP 6: Portal Page Crawling (Multi-Page Loading)
     // =====================================================================
-    
+
     // Load the portal page and then load all links specified by `-outLink`.
     // Option `-outLink` specifies the cssSelector to select links in the portal page to load.
     // Option `-topLinks` specifies the maximal number of links selected by `-outLink`.
@@ -138,7 +138,7 @@ fun main() {
     // =====================================================================
     // STEP 7: Data Extraction (Scraping)
     // =====================================================================
-    
+
     // Load, parse and scrape fields using CSS selectors
     // AI Note: scrape() extracts text content from elements matching the selectors
     // - First argument: URL to load
@@ -160,16 +160,16 @@ fun main() {
     // Scrape from multiple out-pages (portal crawling + extraction)
     // AI Note: Combines portal page crawling with field extraction in one operation
     // - `-ii` is shorthand for `-itemExpires` (expiration for linked pages)
-    // - `-topLink` limits the number of out-pages to scrape
+    // - `-topLinks` limits the number of out-pages to scrape
     val fields3 = session.scrapeOutPages(
-        url, "-i 1d -ii 1d -outLink a[href~=/dp/] -topLink 10", "#centerCol",
+        url, "-i 1d -ii 1d -outLink a[href~=/dp/] -topLinks 10", "#centerCol",
         mapOf("title" to "#title", "reviews" to "#acrCustomerReviewText")
     )
 
     // =====================================================================
     // STEP 8: Parsing Subsystem Activation
     // =====================================================================
-    
+
     // Add `-parse` option to activate the parsing subsystem during load
     // AI Note: This enables HTML parsing, feature extraction, and DOM analysis
     // during the fetch phase, which is useful for pages requiring immediate analysis
@@ -178,7 +178,7 @@ fun main() {
     // =====================================================================
     // STEP 9: Async Operations
     // =====================================================================
-    
+
     // Kotlin suspend calls - uses Kotlin coroutines for async loading
     // AI Note: loadDeferred() returns a WebPage from a coroutine context
     val page11 = runBlocking { session.loadDeferred(url, "-expires 1d") }
@@ -191,7 +191,7 @@ fun main() {
     // =====================================================================
     // STEP 10: Output Results
     // =====================================================================
-    
+
     println("== document")
     // AI Note: title property returns the <title> tag content
     println(document.title)
@@ -220,7 +220,7 @@ fun main() {
     // =====================================================================
     // STEP 11: Graceful Shutdown
     // =====================================================================
-    
+
     // Wait until all tasks are done.
     // AI Note: This is essential when using submit() or async operations.
     // It blocks until all background crawl tasks complete and browsers are closed.

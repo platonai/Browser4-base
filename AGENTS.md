@@ -295,18 +295,21 @@ When given a task, Claude should:
 
 **Common Patterns:**
 ```kotlin
-// Loading a page
-val page = session.load(url, "-expires 1d -refresh")
-
-// Browser interaction
-val driver = session.driver()
-driver.click("button.submit")
-driver.type("#search", "query")
-driver.waitFor(".results")
-
-// Extraction
-val elements = driver.selectAll(".product")
-val data = elements.map { it.attr("data-price") }
+val agent = session.companionAgent
+val driver = session.getOrCreateBoundDriver()
+var page = session.open(url)
+var document = session.parse(page)
+var fields = session.extract(document, mapOf("title" to "#title"))
+var result = agent.act("scroll to the bottom")
+result = agent.act("scroll to the top")
+result = agent.act("enter 'pulsar' into the search box and submit the form (RESULTS will display in the same page)")
+result = agent.act("click search button")
+var content = driver.selectFirstTextOrNull("body")
+content = driver.selectFirstTextOrNull("body")
+var history = agent.run("find the search box, type 'web scraping' and submit the form (RESULTS will display in the same page)")
+page = session.capture(driver)
+document = session.parse(page)
+fields = session.extract(document, mapOf("title" to "#title"))
 ```
 
 ### MCP (Model Context Protocol) Integration
