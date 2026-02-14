@@ -296,6 +296,7 @@ When given a task, Claude should:
 
 **Common Patterns:**
 ```kotlin
+val session = AgenticContexts.getOrCreateSession()
 val agent = session.companionAgent
 val driver = session.getOrCreateBoundDriver()
 var page = session.open(url)
