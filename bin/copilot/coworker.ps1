@@ -32,6 +32,7 @@ $baseDir = Join-Path $AppHome "docs-dev\copilot\tasks\daily"
 $createdDir = Join-Path $baseDir "created"        # Input directory for new tasks
 $workingDir = Join-Path $baseDir "working"        # Processing directory for current tasks
 $finishedDir = Join-Path $baseDir "finished"      # Output directory for completed tasks
+$logsDir = Join-Path $baseDir "logs"              # Directory for script and execution logs
 $repoRoot = $AppHome                              # Repository root for Copilot execution
 
 # Ensure all required directories exist
@@ -39,12 +40,66 @@ $repoRoot = $AppHome                              # Repository root for Copilot 
 if (!(Test-Path $createdDir)) { New-Item -ItemType Directory -Path $createdDir | Out-Null }
 if (!(Test-Path $workingDir)) { New-Item -ItemType Directory -Path $workingDir | Out-Null }
 if (!(Test-Path $finishedDir)) { New-Item -ItemType Directory -Path $finishedDir | Out-Null }
+if (!(Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir | Out-Null }
+
+# Initialize script-level logging
+# Main log file for all script output
+$scriptLogPath = Join-Path $logsDir "coworker-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+$scriptStartTime = Get-Date
+
+# ============================================================================
+# Logging Functions
+# ============================================================================
+
+# Function: Write message to console and main script log file
+function Write-LogMessage {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Message,
+        [ValidateSet('INFO', 'WARN', 'ERROR')]
+        [string]$Level = 'INFO'
+    )
+
+    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    $logEntry = "[$timestamp] [$Level] $Message"
+
+    # Write to console
+    switch ($Level) {
+        'INFO' { Write-Host $logEntry }
+        'WARN' { Write-Host $logEntry -ForegroundColor Yellow }
+        'ERROR' { Write-Host $logEntry -ForegroundColor Red }
+    }
+
+    # Append to script log file
+    $logEntry | Out-File -FilePath $scriptLogPath -Append
+}
+
+# Function: Write message only to log file (for verbose output)
+function Write-LogVerbose {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+
+    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    $logEntry = "[$timestamp] [DEBUG] $Message"
+
+    # Append to script log file only (not console)
+    $logEntry | Out-File -FilePath $scriptLogPath -Append
+}
+
+# Log script startup
+Write-LogMessage "===========================================================================" INFO
+Write-LogMessage "Coworker Task Runner - PowerShell Version" INFO
+Write-LogMessage "Started at: $scriptStartTime" INFO
+Write-LogMessage "Script Log: $scriptLogPath" INFO
+Write-LogMessage "==========================================================================" INFO
 
 $files = Get-ChildItem -Path $createdDir
 
 # Process each task file found in the created directory
 foreach ($file in $files) {
-    Write-Host "Processing $($file.Name)..."
+    Write-LogMessage "Processing $($file.Name)..." INFO
 
     # Read the entire file content
     $content = Get-Content -Path $file.FullPath -Raw
@@ -75,19 +130,37 @@ foreach ($file in $files) {
     # Define full paths for the task file at each workflow stage
     $workingPath = Join-Path $workingDir $newFileName
     $finishedPath = Join-Path $finishedDir $newFileName
-    $logPath = Join-Path $finishedDir ($newFileName + ".log")
+
+    # Task log path - combined log for task execution
+    $taskLogPath = Join-Path $logsDir "task_${safeTitle}_$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+
+    # Copilot-specific external tool log (separate from task log)
+    $copilotLogPath = Join-Path $logsDir "copilot_${safeTitle}_$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 
     # Move task file from created directory to working directory
     # This marks the task as currently being processed
     Move-Item -Path $file.FullPath -Destination $workingPath -Force
-    Write-Host "Moved to working: $workingPath"
+    Write-LogMessage "Moved to working: $workingPath" INFO
+    Write-LogVerbose "Task log will be written to: $taskLogPath"
 
     # Change working directory to repository root
     # This ensures that Copilot runs in the correct context
     Push-Location $repoRoot
 
-    Write-Host "Executing Copilot for task: $title"
-    Write-Host "Prompt: $prompt"
+    Write-LogMessage "Executing Copilot for task: $title" INFO
+    Write-LogVerbose "Task Description: $description"
+    Write-LogVerbose "Prompt length: $($prompt.Length) characters"
+
+    # Record task execution details to task log
+    @"
+Task: $title
+Description: $description
+Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+Prompt:
+$prompt
+---
+Copilot Execution Output:
+"@ | Out-File -FilePath $taskLogPath
 
     try {
         # Escape double quotes in prompt for safe argument passing
@@ -96,23 +169,23 @@ foreach ($file in $files) {
         # Construct Copilot command arguments
         $copilotArgs = "-p `"$promptEscaped`" --allow-all-tools --allow-all-paths"
 
-        # Define paths for temporary output and error logs
-        $stdOutLog = $logPath + ".stdout"
-        $stdErrLog = $logPath + ".stderr"
+        # Define paths for temporary output and error logs (for copilot external tool)
+        $stdOutLog = $copilotLogPath + ".stdout"
+        $stdErrLog = $copilotLogPath + ".stderr"
 
         # Execute Copilot tool with the task prompt
         # Capture both standard output and error output to separate files
         $process = Start-Process -FilePath "copilot" -ArgumentList $copilotArgs -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog -Wait
 
-        # Combine stdout and stderr logs into a single log file
+        # Combine copilot stdout and stderr logs into the copilot-specific log
         # First append stdout if it exists
-        if (Test-Path $stdOutLog) { Get-Content $stdOutLog | Out-File -FilePath $logPath -Append }
+        if (Test-Path $stdOutLog) { Get-Content $stdOutLog | Out-File -FilePath $copilotLogPath -Append }
         # Then append stderr if it exists and contains content
         if (Test-Path $stdErrLog) {
             $errContent = Get-Content $stdErrLog
             if ($errContent) {
-                "`r`n=== STDERR ===`r`n" | Out-File -FilePath $logPath -Append
-                $errContent | Out-File -FilePath $logPath -Append
+                "`r`n=== COPILOT STDERR ===`r`n" | Out-File -FilePath $copilotLogPath -Append
+                $errContent | Out-File -FilePath $copilotLogPath -Append
             }
         }
 
@@ -120,17 +193,25 @@ foreach ($file in $files) {
         Remove-Item $stdOutLog -ErrorAction SilentlyContinue
         Remove-Item $stdErrLog -ErrorAction SilentlyContinue
 
-        Write-Host "Copilot execution finished with exit code $($process.ExitCode)"
+        Write-LogMessage "Copilot execution finished with exit code $($process.ExitCode)" INFO
+        Write-LogVerbose "Copilot external tool log: $copilotLogPath"
+
+        # Append copilot result to task log
+        @"
+
+Copilot Exit Code: $($process.ExitCode)
+Copilot Log: $copilotLogPath
+"@ | Out-File -FilePath $taskLogPath -Append
 
         # Warn if Copilot exited with an error code
         if ($process.ExitCode -ne 0) {
-            Write-Warning "Copilot exited with non-zero code. Check log: $logPath"
+            Write-LogMessage "Warning: Copilot exited with non-zero code. Check log: $copilotLogPath" WARN
         }
     }
     catch {
         # Handle any errors that occur during Copilot execution
-        Write-Error "Failed to execute copilot: $_"
-        "Error executing copilot: $_" | Out-File -FilePath $logPath -Append
+        Write-LogMessage "Failed to execute copilot: $_" ERROR
+        "Error executing copilot: $_" | Out-File -FilePath $taskLogPath -Append
     }
     finally {
         # Always return to the original directory after execution
@@ -139,6 +220,15 @@ foreach ($file in $files) {
 
     # Move completed task from working directory to finished directory
     Move-Item -Path $workingPath -Destination $finishedPath -Force
-    Write-Host "Task moved to finished: $finishedPath"
-    Write-Host "---------------------------------------------------"
+    Write-LogMessage "Task moved to finished: $finishedPath" INFO
+    Write-LogMessage "---" INFO
 }
+
+# Log script completion
+$scriptEndTime = Get-Date
+Write-LogMessage "===========================================================================" INFO
+Write-LogMessage "All tasks completed" INFO
+Write-LogMessage "Ended at: $scriptEndTime" INFO
+Write-LogMessage "Script Log: $scriptLogPath" INFO
+Write-LogMessage "==========================================================================" INFO
+

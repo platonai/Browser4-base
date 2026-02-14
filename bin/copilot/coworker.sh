@@ -34,6 +34,7 @@ baseDir="$AppHome/docs-dev/copilot/tasks/daily"
 createdDir="$baseDir/created"        # Input directory for new tasks
 workingDir="$baseDir/working"        # Processing directory for current tasks
 finishedDir="$baseDir/finished"      # Output directory for completed tasks
+logsDir="$baseDir/logs"              # Directory for script and execution logs
 repoRoot="$AppHome"                  # Repository root for Copilot execution
 
 # Ensure all required directories exist
@@ -41,13 +42,67 @@ repoRoot="$AppHome"                  # Repository root for Copilot execution
 mkdir -p "$createdDir"
 mkdir -p "$workingDir"
 mkdir -p "$finishedDir"
+mkdir -p "$logsDir"
+
+# Initialize script-level logging
+# Main log file for all script output
+scriptLogPath="$logsDir/coworker-$(date +%Y%m%d-%H%M%S).log"
+scriptStartTime=$(date '+%Y-%m-%d %H:%M:%S')
+
+# ============================================================================
+# Logging Functions
+# ============================================================================
+
+# Function: Write message to console and main script log file
+# Usage: log_message "message text" [LEVEL]
+# Levels: INFO (default), WARN, ERROR
+log_message() {
+    local message="$1"
+    local level="${2:-INFO}"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local logEntry="[$timestamp] [$level] $message"
+
+    # Write to console
+    case "$level" in
+        WARN)
+            echo -e "\033[33m$logEntry\033[0m"  # Yellow for warnings
+            ;;
+        ERROR)
+            echo -e "\033[31m$logEntry\033[0m" >&2  # Red for errors
+            ;;
+        *)
+            echo "$logEntry"
+            ;;
+    esac
+
+    # Append to script log file
+    echo "$logEntry" >> "$scriptLogPath"
+}
+
+# Function: Write message only to log file (for verbose output)
+# Usage: log_verbose "debug message"
+log_verbose() {
+    local message="$1"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local logEntry="[$timestamp] [DEBUG] $message"
+
+    # Append to script log file only (not console)
+    echo "$logEntry" >> "$scriptLogPath"
+}
+
+# Log script startup
+log_message "===========================================================================" INFO
+log_message "Coworker Task Runner - Bash Shell Version" INFO
+log_message "Started at: $scriptStartTime" INFO
+log_message "Script Log: $scriptLogPath" INFO
+log_message "==========================================================================" INFO
 
 # Process each file in the created directory
 for file in "$createdDir"/*; do
     # Skip if directory is empty
     [[ -e "$file" ]] || continue
 
-    echo "Processing $(basename "$file")..."
+    log_message "Processing $(basename "$file")..." INFO
 
     # Read file content
     content=$(cat "$file")
@@ -90,25 +145,43 @@ for file in "$createdDir"/*; do
     # Define full paths for the task file at each workflow stage
     workingPath="$workingDir/$newFileName"
     finishedPath="$finishedDir/$newFileName"
-    logPath="$finishedDir/${newFileName}.log"
+
+    # Task log path - combined log for task execution
+    taskLogPath="$logsDir/task_${safeTitle}_$(date +%Y%m%d-%H%M%S).log"
+
+    # Copilot-specific external tool log (separate from task log)
+    copilotLogPath="$logsDir/copilot_${safeTitle}_$(date +%Y%m%d-%H%M%S).log"
 
     # Move task file from created directory to working directory
     # This marks the task as currently being processed
     mv "$file" "$workingPath"
-    echo "Moved to working: $workingPath"
+    log_message "Moved to working: $workingPath" INFO
+    log_verbose "Task log will be written to: $taskLogPath"
 
     # Change to repository root directory for execution
     # This ensures that Copilot runs in the correct context
     pushd "$repoRoot" > /dev/null || exit 1
 
-    echo "Executing Copilot for task: $title"
-    echo "Prompt: $prompt"
+    log_message "Executing Copilot for task: $title" INFO
+    log_verbose "Task Description: $description"
+    log_verbose "Prompt length: ${#prompt} characters"
+
+    # Record task execution details to task log
+    {
+        echo "Task: $title"
+        echo "Description: $description"
+        echo "Started: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo "Prompt:"
+        echo "$prompt"
+        echo "---"
+        echo "Copilot Execution Output:"
+    } > "$taskLogPath"
 
     # Execute Copilot and handle logging and error handling
     {
         # Define paths for temporary output and error logs
-        stdOutLog="${logPath}.stdout"
-        stdErrLog="${logPath}.stderr"
+        stdOutLog="${copilotLogPath}.stdout"
+        stdErrLog="${copilotLogPath}.stderr"
 
         # Execute copilot tool with the task prompt
         # Capture both standard output and standard error to separate files
@@ -118,38 +191,46 @@ for file in "$createdDir"/*; do
             exitCode=$?
         fi
 
-        # Combine stdout and stderr logs into a single log file
+        # Combine copilot stdout and stderr logs into the copilot-specific log
         # First append stdout if it exists
         if [[ -f "$stdOutLog" ]]; then
-            cat "$stdOutLog" >> "$logPath"
+            cat "$stdOutLog" >> "$copilotLogPath"
         fi
         # Then append stderr if it exists and contains content
         if [[ -f "$stdErrLog" && -s "$stdErrLog" ]]; then
             {
                 echo ""
-                echo "=== STDERR ==="
+                echo "=== COPILOT STDERR ==="
                 echo ""
                 cat "$stdErrLog"
-            } >> "$logPath"
+            } >> "$copilotLogPath"
         fi
 
         # Clean up temporary log files
         rm -f "$stdOutLog"
         rm -f "$stdErrLog"
 
-        echo "Copilot execution finished with exit code $exitCode"
+        log_message "Copilot execution finished with exit code $exitCode" INFO
+        log_verbose "Copilot external tool log: $copilotLogPath"
+
+        # Append copilot result to task log
+        {
+            echo ""
+            echo "Copilot Exit Code: $exitCode"
+            echo "Copilot Log: $copilotLogPath"
+        } >> "$taskLogPath"
 
         # Warn if Copilot exited with an error code
         if [[ $exitCode -ne 0 ]]; then
-            echo "Warning: Copilot exited with non-zero code. Check log: $logPath" >&2
+            log_message "Warning: Copilot exited with non-zero code. Check log: $copilotLogPath" WARN
         fi
     } || {
         # Handle any errors that occur during script execution
-        echo "Failed to execute copilot: $?" >&2
+        log_message "Failed to execute copilot: $?" ERROR
         {
             echo ""
             echo "Error executing copilot"
-        } >> "$logPath"
+        } >> "$taskLogPath"
     }
 
     # Return to previous directory from pushd
@@ -157,7 +238,15 @@ for file in "$createdDir"/*; do
 
     # Move completed task from working directory to finished directory
     mv "$workingPath" "$finishedPath"
-    echo "Task moved to finished: $finishedPath"
-    echo "---------------------------------------------------"
+    log_message "Task moved to finished: $finishedPath" INFO
+    log_message "---" INFO
 done
+
+# Log script completion
+scriptEndTime=$(date '+%Y-%m-%d %H:%M:%S')
+log_message "===========================================================================" INFO
+log_message "All tasks completed" INFO
+log_message "Ended at: $scriptEndTime" INFO
+log_message "Script Log: $scriptLogPath" INFO
+log_message "==========================================================================" INFO
 
