@@ -5,6 +5,13 @@ $AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
 while ($AppHome -ne $null -and !(Test-Path "$AppHome/VERSION")) {
     $AppHome = Split-Path -Parent $AppHome
 }
+
+# If we couldn't find the VERSION file, throw an error
+if ($AppHome -eq $null) {
+    Write-Error "Could not find the VERSION file in any parent directory."
+    exit 1
+}
+
 Set-Location $AppHome
 
 # Call copilot to commit all changes with a message
