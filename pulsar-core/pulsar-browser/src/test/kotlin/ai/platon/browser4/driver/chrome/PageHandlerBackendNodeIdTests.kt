@@ -40,7 +40,7 @@ class PageHandlerBackendNodeIdTests {
 //        verify(domAPI).resolveNode(null, backendNodeId, null, null)
 //        verify(domAPI).requestNode("object-id-123")
 //        verify(runtimeAPI).releaseObject("object-id-123")
-//    }
+    }
 //
 //    @Test
 //        @DisplayName("test regular CSS selector still works")
@@ -62,7 +62,7 @@ class PageHandlerBackendNodeIdTests {
 //
 //        assertEquals(789, nodeId)
 //        verify(domAPI).querySelector(1, "div.test")
-//    }
+    }
 //
 //    @Test
 //        @DisplayName("test invalid backend node ID format returns null")
@@ -86,7 +86,7 @@ class PageHandlerBackendNodeIdTests {
 //            val nodeId = pageHandler.querySelector(selector)
 //            assertNull(nodeId, "Selector '$selector' should return null")
 //        }
-//    }
+    }
 //
 //    @Test
 //        @DisplayName("test focusOnSelector with backend node ID")
@@ -116,7 +116,7 @@ class PageHandlerBackendNodeIdTests {
 //        assertEquals(555, resultNodeId)
 //        verify(domAPI).focus(555, null, null)
 //        verify(runtimeAPI).releaseObject("obj-999")
-//    }
+    }
 //
 //    @Test
 //        @DisplayName("test querySelectorAll with backend node ID returns single element list")
@@ -145,5 +145,5 @@ class PageHandlerBackendNodeIdTests {
 //
 //        assertEquals(1, nodeIds.size)
 //        assertEquals(888, nodeIds[0])
-//    }
+    }
 }

@@ -1,5 +1,6 @@
 package ai.platon.pulsar.common
 
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
@@ -12,7 +13,7 @@ import kotlin.test.assertTrue
 class ProcessCleanupTest {
 
     @Test
-        @DisplayName("test isProcessAlive with invalid PID")
+    @DisplayName("test isProcessAlive with invalid PID")
     fun testIsprocessaliveWithInvalidPid() {
         // Negative PID should always be false
         assertFalse(Runtimes.isProcessAlive(-1))
@@ -23,7 +24,7 @@ class ProcessCleanupTest {
     }
 
     @Test
-        @DisplayName("test isProcessAlive with Int overload")
+    @DisplayName("test isProcessAlive with Int overload")
     fun testIsprocessaliveWithIntOverload() {
         // Test the Int overload we added
         val invalidPid: Int = -1
@@ -32,7 +33,7 @@ class ProcessCleanupTest {
 
     @Test
     @DisabledOnOs(OS.WINDOWS, disabledReason = "Process creation test may behave differently on Windows")
-        @DisplayName("test process cleanup with short-lived process")
+    @DisplayName("test process cleanup with short-lived process")
     fun testProcessCleanupWithShortLivedProcess() {
         // Create a short-lived process
         val processBuilder = ProcessBuilder("sh", "-c", "sleep 1")
