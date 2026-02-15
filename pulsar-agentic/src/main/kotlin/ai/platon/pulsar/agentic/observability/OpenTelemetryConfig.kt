@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
  * Configuration via environment variables:
  * - OTEL_EXPORTER_OTLP_ENDPOINT: OTLP collector endpoint (default: http://localhost:4317)
  * - OTEL_SERVICE_NAME: Service name (default: pulsar-agentic)
- * - OTEL_SERVICE_VERSION: Service version (default: 4.5.0-rc.1)
+ * - OTEL_SERVICE_VERSION: Service version (default: 4.6.0-SNAPSHOT)
  * - OTEL_TRACES_ENABLED: Enable/disable tracing (default: true)
  *
  * Example usage:
@@ -51,7 +51,7 @@ object OpenTelemetryConfig {
         System.getenv("OTEL_SERVICE_NAME") ?: "pulsar-agentic"
 
     private val serviceVersion: String =
-        System.getenv("OTEL_SERVICE_VERSION") ?: "4.5.0-rc.1"
+        System.getenv("OTEL_SERVICE_VERSION") ?: "4.6.0-SNAPSHOT"
 
     /**
      * OpenTelemetry SDK instance.

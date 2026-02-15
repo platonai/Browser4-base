@@ -17,7 +17,7 @@
 ## 项目概况 | Project Overview
 
 ### 当前状态 | Current State
-- **项目版本**: 4.5.0-rc.1
+- **项目版本**: 4.6.0-SNAPSHOT
 - **模块数量**: 41 个 POM 文件
 - **Java 版本**: 17
 - **Kotlin 版本**: 2.2.21

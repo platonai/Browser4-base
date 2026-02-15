@@ -28,7 +28,7 @@
         <!--  Kotlin  -->
         <kotlin.version>2.2.21</kotlin.version>
 
-        <browser4.sdk.version>4.5.0-rc.1</browser4.sdk.version>
+        <browser4.sdk.version>4.6.0-SNAPSHOT</browser4.sdk.version>
     </properties>
 
     <dependencies>

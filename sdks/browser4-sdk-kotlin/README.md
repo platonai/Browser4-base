@@ -25,14 +25,14 @@ Add the dependency to your `pom.xml`:
 <dependency>
     <groupId>ai.platon.pulsar</groupId>
     <artifactId>pulsar-sdk-kotlin</artifactId>
-    <version>4.5.0-rc.1</version>
+    <version>4.6.0-SNAPSHOT</version>
 </dependency>
 ```
 
 Or for Gradle:
 
 ```kotlin
-implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.5.0-rc.1")
+implementation("ai.platon.pulsar:pulsar-sdk-kotlin:4.6.0-SNAPSHOT")
 ```
 
 ## Quick Start

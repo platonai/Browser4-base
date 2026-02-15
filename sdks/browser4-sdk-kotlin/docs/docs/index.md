@@ -1,6 +1,6 @@
 # Browser4 Kotlin SDK
 
-**Version:** 4.5.0-rc.1
+**Version:** 4.6.0-SNAPSHOT
 
 Welcome to the Browser4 Kotlin SDK documentation! This SDK provides a powerful and intuitive interface for browser automation, web scraping, and AI-powered web interaction.
 

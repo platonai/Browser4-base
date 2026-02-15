@@ -22,7 +22,7 @@ Add the dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-browser4-sdk-rust = "4.5.0-rc.1"
+browser4-sdk-rust = "4.6.0-SNAPSHOT"
 tokio = { version = "1.36", features = ["full"] }
 ```
 
