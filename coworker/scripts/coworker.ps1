@@ -31,6 +31,7 @@ Set-Location $AppHome
 $repoRoot = $AppHome                              # Repository root for Copilot execution
 
 $tasksRoot = Join-Path $AppHome "coworker\tasks"
+$scriptsDir = Join-Path $AppHome "coworker\scripts"
 $taskRoots = @(
     @{
         Created = (Join-Path $tasksRoot "1created")
