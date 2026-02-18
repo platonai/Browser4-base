@@ -1,16 +1,24 @@
+#!/usr/bin/env pwsh
+
 param (
     [switch]$Native
 )
+# 🔍 Find the first parent directory containing the ROOT.md file
+$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
+while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
+    $AppHome = Split-Path -Parent $AppHome
+}
+Set-Location $AppHome
 
 if (-not $Native) {
     Write-Host "Launching OpenChrome.kt..."
-    
+
     # Compile first to ensure dependencies are ready
     & "$PSScriptRoot\..\mvnw.cmd" -pl examples/browser4-examples -am compile -D"skipTests"
-    
+
     # Then run the specific project
     & "$PSScriptRoot\..\mvnw.cmd" -pl examples/browser4-examples exec:java -D"exec.mainClass=ai.platon.pulsar.tools.OpenChromeKt" -D"exec.classpathScope=test"
-    
+
     if ($LASTEXITCODE -eq 0) {
         exit 0
     }

@@ -59,7 +59,7 @@ fi
 
 # Find the first parent directory containing the VERSION file
 AppHome="$(dirname "$(realpath "$0")")"
-while [[ -n "$AppHome" && ! -f "$AppHome/VERSION" ]]; do
+while [[ -n "$AppHome" && ! -f "$AppHome/ROOT.md" ]]; do
   AppHome="$(dirname "$AppHome")"
   # dirname / => /
   if [[ "$AppHome" == "/" ]]; then
@@ -67,7 +67,7 @@ while [[ -n "$AppHome" && ! -f "$AppHome/VERSION" ]]; do
   fi
 done
 
-if [[ ! -f "$AppHome/VERSION" ]]; then
+if [[ ! -f "$AppHome/ROOT.md" ]]; then
   echo "[ERROR] Could not find VERSION file in any parent directory" >&2
   exit 1
 fi

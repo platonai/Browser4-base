@@ -2,7 +2,7 @@
 
 # 🔍 Find the first parent directory containing the VERSION file
 $AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/VERSION")) {
+while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
     $AppHome = Split-Path -Parent $AppHome
 }
 if ($AppHome -eq $null) {

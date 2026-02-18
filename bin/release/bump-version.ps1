@@ -37,7 +37,7 @@ $scriptPath = if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
     (Get-PSCallStack)[0].ScriptName
 }
 $AppHome = (Get-Item -Path $scriptPath).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/VERSION")) {
+while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
     $AppHome = Split-Path -Parent $AppHome
 }
 

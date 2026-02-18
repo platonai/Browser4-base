@@ -7,7 +7,7 @@
 AppHome="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 向上查找包含 VERSION 文件的父目录
-while [[ "$AppHome" != "/" && ! -f "$AppHome/VERSION" ]]; do
+while [[ "$AppHome" != "/" && ! -f "$AppHome/ROOT.md" ]]; do
   AppHome="$(dirname "$AppHome")"
 done
 

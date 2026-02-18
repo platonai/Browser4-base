@@ -2,7 +2,7 @@
 
 # Find the first parent directory containing the VERSION file
 AppHome="$(dirname "$(readlink -f "$0")")"
-while [[ "$AppHome" != "/" && ! -f "$AppHome/VERSION" ]]; do
+while [[ "$AppHome" != "/" && ! -f "$AppHome/ROOT.md" ]]; do
     AppHome="$(dirname "$AppHome")"
 done
 cd "$AppHome" || exit 1

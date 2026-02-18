@@ -5,7 +5,7 @@
 
 # Find the first parent directory that contains a VERSION file
 AppHome="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-while [[ ! -f "$AppHome/VERSION" ]] && [[ "$AppHome" != "/" ]]; do
+while [[ ! -f "$AppHome/ROOT.md" ]] && [[ "$AppHome" != "/" ]]; do
     AppHome="$(dirname "$AppHome")"
 done
 
