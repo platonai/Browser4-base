@@ -22,7 +22,7 @@
 # Find the first parent directory that contains a VERSION file
 # This allows the script to be run from any location within the project
 $AppHome = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "VERSION"))) {
+while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "ROOT.md"))) {
     $AppHome = Split-Path -Parent $AppHome
 }
 Set-Location $AppHome

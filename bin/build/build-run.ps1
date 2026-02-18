@@ -4,11 +4,11 @@ $ErrorActionPreference = "Stop"
 
 # Find the first parent directory that contains a VERSION file
 $AppHome = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "VERSION"))) {
+while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "ROOT.md"))) {
   $AppHome = Split-Path -Parent $AppHome
 }
 
-if (-not $AppHome -or -not (Test-Path (Join-Path $AppHome "VERSION"))) {
+if (-not $AppHome -or -not (Test-Path (Join-Path $AppHome "ROOT.md"))) {
   throw "VERSION file not found when resolving project root."
 }
 
