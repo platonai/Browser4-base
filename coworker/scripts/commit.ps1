@@ -1,12 +1,9 @@
 #!/usr/bin/env pwsh
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-    $AppHome = Split-Path -Parent $AppHome
-}
-if ($AppHome -eq $null) {
-    Write-Error "Could not find a parent directory containing a VERSION file."
+# 🔍 Find the repo root using git
+$AppHome = (git rev-parse --show-toplevel 2>$null)
+if (-not $AppHome) {
+    Write-Error "Could not determine repository root using git rev-parse --show-toplevel."
     exit 1
 }
 Set-Location $AppHome
