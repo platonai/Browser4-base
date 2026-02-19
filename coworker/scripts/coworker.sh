@@ -20,22 +20,22 @@
 #   ./coworker.sh
 # ============================================================================
 
-# Find the first parent directory that contains a VERSION file
+
 # This allows the script to be run from any location within the project
 AppHome="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-while [[ ! -f "$AppHome/ROOT.md" ]] && [[ "$AppHome" != "/" ]]; do
-    AppHome="$(dirname "$AppHome")"
+while [[ ! -f "$repoRoot/ROOT.md" ]] && [[ "$repoRoot" != "/" ]]; do
+    AppHome="$(dirname "$repoRoot")"
 done
 
-cd "$AppHome"
+cd "$repoRoot"
 
 # Define directory paths for task management workflow
-baseDir="$AppHome/coworker/tasks"
+baseDir="$repoRoot/coworker/tasks"
 createdDir="$baseDir/1created"        # Input directory for new tasks
 workingDir="$baseDir/2working"        # Processing directory for current tasks
 finishedDir="$baseDir/3finished"      # Output directory for completed tasks
 logsDir="$baseDir/logs"              # Directory for script and execution logs
-repoRoot="$AppHome"                  # Repository root for Copilot execution
+repoRoot="$repoRoot"                  # Repository root for Copilot execution
 
 # Ensure all required directories exist
 # Create them if they don't already exist
@@ -108,13 +108,13 @@ for file in "$createdDir"/*; do
     # This ensures we 'claim' the task immediately
     tempName="processing-$(basename "$file")"
     tempPath="$workingDir/$tempName"
-    
+
     mv "$file" "$tempPath"
     log_message "Moved to working (processing): $tempPath" INFO
 
     # Read content for basic info
     content=$(cat "$tempPath")
-    
+
     # Initialize variables
     title="$(basename "$file" | sed 's/\.[^.]*$//')"
     safeTitle=$(echo "$title" | sed 's/[\/\\*?:"<>|]/_/g')
@@ -132,16 +132,16 @@ for file in "$createdDir"/*; do
     scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     renameScript="$scriptDir/rename.sh"
     descriptiveName=""
-    
+
     chmod +x "$renameScript" 2>/dev/null
-    
+
     if [[ -f "$renameScript" && -x "$renameScript" ]]; then
         generatedName=$("$renameScript" "$tempPath")
         if [[ -n "$generatedName" && "$generatedName" != *" "* && "$generatedName" != "Error"* ]]; then
             descriptiveName="$generatedName"
         fi
     fi
-    
+
     if [[ -z "$descriptiveName" ]]; then
          descriptiveName="$safeTitle"
     fi
@@ -155,7 +155,7 @@ for file in "$createdDir"/*; do
     fi
 
     workingPath="$workingDir/$newFileName"
-    
+
     # Handle filename collision in working dir
     if [[ -e "$workingPath" ]]; then
         counter=2
@@ -261,7 +261,7 @@ for file in "$createdDir"/*; do
     mkdir -p "$finishedSubDir"
 
     finishedPath="$finishedSubDir/$newFileName"
-    
+
     mv "$workingPath" "$finishedPath"
     log_message "Task moved to finished: $finishedPath" INFO
     log_message "---" INFO

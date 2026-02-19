@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Find the first parent directory that contains a VERSION file
+
 APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit 1; pwd)
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME=$(dirname "$APP_HOME")
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME=$(dirname "$repoRoot")
 done
-[[ -f "$APP_HOME/VERSION" ]] && cd "$APP_HOME" || exit 1
+[[ -f "$repoRoot/VERSION" ]] && cd "$repoRoot" || exit 1
 
 function print_usage {
   echo "Usage: build.sh [-clean] [-test] [maven-args...]"
@@ -29,8 +29,8 @@ function print_usage {
 MvnCmd="./mvnw"
 
 # Validate Maven wrapper exists and is executable
-if [[ ! -x "$APP_HOME/mvnw" ]]; then
-    echo "Error: Maven wrapper not found or not executable at $APP_HOME/mvnw"
+if [[ ! -x "$repoRoot/mvnw" ]]; then
+    echo "Error: Maven wrapper not found or not executable at $repoRoot/mvnw"
     exit 1
 fi
 
@@ -93,4 +93,4 @@ function invokeMavenBuild {
 MvnOptions+=("install")
 
 MvnOptions+=("${AdditionalMvnArgs[@]}")
-invokeMavenBuild "$APP_HOME" "${MvnOptions[@]}"
+invokeMavenBuild "$repoRoot" "${MvnOptions[@]}"

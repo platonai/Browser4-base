@@ -40,7 +40,7 @@ chmod +x /path/to/bin/copilot/coworker-daemon.sh
 ### 日志位置
 
 ```
-$AppHome/logs/coworker/coworker-daemon.log
+$repoRoot/logs/coworker/coworker-daemon.log
 ```
 
 ### 锁文件位置
@@ -130,7 +130,7 @@ crontab -l
 ### 日志位置
 
 ```
-$AppHome/logs/coworker/coworker-cron.log
+$repoRoot/logs/coworker/coworker-cron.log
 ```
 
 ---
@@ -167,7 +167,7 @@ LOCK_FILE=$TMPDIR/coworker-locks/coworker.lock
 **A:** 检查以下几点：
 
 1. 脚本是否可执行：`ls -la /path/to/coworker-daemon.sh`
-2. 检查日志文件：`tail -f $AppHome/logs/coworker/coworker-daemon.log`
+2. 检查日志文件：`tail -f $repoRoot/logs/coworker/coworker-daemon.log`
 3. 检查 coworker.sh 是否可执行：`ls -la /path/to/coworker.sh`
 4. 检查 `copilot` 命令是否在 PATH 中：`which copilot`
 

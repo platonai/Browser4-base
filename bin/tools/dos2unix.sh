@@ -2,19 +2,19 @@
 
 # Find the first parent directory that contains a pom.xml file
 APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit; pwd)
-while [[ "$APP_HOME" != "/" ]]; do
-  if [[ -f "$APP_HOME/pom.xml" ]]; then
+while [[ "$repoRoot" != "/" ]]; do
+  if [[ -f "$repoRoot/pom.xml" ]]; then
     break
   fi
-  APP_HOME=$(dirname "$APP_HOME")
+  APP_HOME=$(dirname "$repoRoot")
 done
 
-cd "$APP_HOME" || exit
+cd "$repoRoot" || exit
 
-dos2unix $@ "$APP_HOME"/mvnw
+dos2unix $@ "$repoRoot"/mvnw
 
-find "$APP_HOME"/bin -type f -name "*.sh" -print0 | xargs -0 dos2unix $@
-dos2unix $@ "$APP_HOME"/VERSION
+find "$repoRoot"/bin -type f -name "*.sh" -print0 | xargs -0 dos2unix $@
+dos2unix $@ "$repoRoot"/VERSION
 
 # find all bash files and add executable permission
-find "$APP_HOME"/bin -type f -name "*.sh" -print0 | xargs -0 chmod +x
+find "$repoRoot"/bin -type f -name "*.sh" -print0 | xargs -0 chmod +x

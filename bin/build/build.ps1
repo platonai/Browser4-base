@@ -1,11 +1,7 @@
 #!/usr/bin/env pwsh
 
-# Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 function printUsage {
   Write-Host "Usage: build.ps1 [-clean|-test]"
@@ -13,7 +9,7 @@ function printUsage {
 }
 
 # Maven command and options
-$MvnCmd = Join-Path $AppHome '.\mvnw'
+$MvnCmd = Join-Path $repoRoot '.\mvnw'
 
 # Initialize flags and additional arguments
 $PerformClean = $false
@@ -85,4 +81,4 @@ Function Invoke-MavenBuild
 $MvnOptions += 'install'
 
 $MvnOptions += $AdditionalMvnArgs
-Invoke-MavenBuild -Directory $AppHome -MvnOptions $MvnOptions
+Invoke-MavenBuild -Directory $repoRoot -MvnOptions $MvnOptions

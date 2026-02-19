@@ -1,17 +1,14 @@
 #!/usr/bin/env pwsh
 
-# Find the first parent directory that contains a VERSION file
-$AppHome = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "ROOT.md"))) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 # Import common utility script
-. $AppHome\bin\common\Util.ps1
+. $repoRoot\bin\common\Util.ps1
 
 Fix-Encoding-UTF8
 
-& (Join-Path $AppHome "bin/build/build.ps1") @args
+& (Join-Path $repoRoot "bin/build/build.ps1") @args
 
-& (Join-Path $AppHome "bin/browser4.ps1") @args
+& (Join-Path $repoRoot "bin/browser4.ps1") @args

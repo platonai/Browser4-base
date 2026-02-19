@@ -4,12 +4,12 @@
 
 set -e
 
-# Find the first parent directory that contains a VERSION file
+
 APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit 1; pwd)
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME=$(dirname "$APP_HOME")
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME=$(dirname "$repoRoot")
 done
-[[ -f "$APP_HOME/VERSION" ]] && cd "$APP_HOME" || exit 1
+[[ -f "$repoRoot/VERSION" ]] && cd "$repoRoot" || exit 1
 
 # Color output
 RED='\033[0;31m'
@@ -84,8 +84,8 @@ echo "  Parallel Mode: methods"
 echo ""
 
 # Build Maven command
-MvnCmd="$APP_HOME/mvnw"
-if [ ! -x "$APP_HOME/mvnw" ]; then
+MvnCmd="$repoRoot/mvnw"
+if [ ! -x "$repoRoot/mvnw" ]; then
     MvnCmd="mvn"
 fi
 
@@ -97,7 +97,7 @@ echo -e "${BLUE}Running tests...${NC}"
 echo ""
 
 # Run from kotlin-sdk-tests directory
-cd "$APP_HOME/sdks/kotlin-sdk-tests"
+cd "$repoRoot/sdks/kotlin-sdk-tests"
 
 $MvnCmd clean test \
     -Dtest.thread.count=$OPTIMAL_THREADS \

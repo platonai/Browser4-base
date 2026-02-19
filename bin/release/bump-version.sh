@@ -35,13 +35,13 @@ fi
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 APP_HOME=$(cd "$SCRIPT_DIR" && git rev-parse --show-toplevel)
 
-if [ -z "$APP_HOME" ]; then
+if [ -z "$repoRoot" ]; then
     echo "Error: Could not determine project root. Make sure you are in a git repository."
     exit 1
 fi
 
-cd "$APP_HOME"
-echo "Project root is: $APP_HOME"
+cd "$repoRoot"
+echo "Project root is: $repoRoot"
 
 # Ensure we are not on the master/main branch
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -51,7 +51,7 @@ if [[ "$CURRENT_BRANCH" == "master" || "$CURRENT_BRANCH" == "main" ]]; then
 fi
 
 # Get current version
-SNAPSHOT_VERSION=$(cat "$APP_HOME/VERSION")
+SNAPSHOT_VERSION=$(cat "$repoRoot/VERSION")
 VERSION=$(echo "$SNAPSHOT_VERSION" | sed 's/-SNAPSHOT//')
 
 # Parse version components
@@ -88,23 +88,23 @@ echo "Current version: $SNAPSHOT_VERSION"
 echo "New version: $NEXT_SNAPSHOT_VERSION"
 
 # Update VERSION file
-echo "$NEXT_SNAPSHOT_VERSION" > "$APP_HOME/VERSION"
+echo "$NEXT_SNAPSHOT_VERSION" > "$repoRoot/VERSION"
 
 # Update pom.xml files using Maven
 if ! ./mvnw versions:set -DnewVersion="$NEXT_SNAPSHOT_VERSION" -DprocessAllModules -DgenerateBackupPoms=false; then
     echo "Maven versions:set command failed. Reverting VERSION file."
-    echo "$SNAPSHOT_VERSION" > "$APP_HOME/VERSION"
+    echo "$SNAPSHOT_VERSION" > "$repoRoot/VERSION"
     exit 1
 fi
 
 # Update root pom.xml's git tag
 # Use a different delimiter for sed since the replacement contains slashes
-sed -i "s|<tag>v$VERSION</tag>|<tag>v$NEXT_VERSION</tag>|g" "$APP_HOME/pom.xml"
+sed -i "s|<tag>v$VERSION</tag>|<tag>v$NEXT_VERSION</tag>|g" "$repoRoot/pom.xml"
 
 # Files containing the version number to upgrade
 VERSION_AWARE_FILES=(
-    "$APP_HOME/README.md"
-    "$APP_HOME/README.zh.md"
+    "$repoRoot/README.md"
+    "$repoRoot/README.zh.md"
 )
 
 # Replace version numbers in files

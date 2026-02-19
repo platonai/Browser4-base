@@ -7,12 +7,12 @@
 AppHome="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 向上查找包含 VERSION 文件的父目录
-while [[ "$AppHome" != "/" && ! -f "$AppHome/ROOT.md" ]]; do
-  AppHome="$(dirname "$AppHome")"
+while [[ "$repoRoot" != "/" && ! -f "$repoRoot/ROOT.md" ]]; do
+  AppHome="$(dirname "$repoRoot")"
 done
 
 # 切换到工作目录
-cd $AppHome || exit
+cd $repoRoot || exit
 
 # Print the current time
 echo
@@ -26,5 +26,5 @@ if git status | grep -q 'Your branch is up to date'; then
     echo "No updates found."
 else
     echo "Updates found. Building & Testing ..."
-    "$AppHome"/bin/build.sh -clean -test
+    "$repoRoot"/bin/build.sh -clean -test
 fi

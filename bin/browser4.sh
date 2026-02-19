@@ -2,12 +2,12 @@
 
 set -e
 
-# Find the first parent directory that contains a VERSION file
+
 APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit; pwd)
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME=$(dirname "$APP_HOME")
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME=$(dirname "$repoRoot")
 done
-[[ -f "$APP_HOME/VERSION" ]] && cd "$APP_HOME" || exit
+[[ -f "$repoRoot/VERSION" ]] && cd "$repoRoot" || exit
 
 # find out chrome version
 CHROME_VERSION="$(google-chrome -version | head -n1 | awk -F '[. ]' '{print $3}')"
@@ -16,10 +16,10 @@ if [[ "$CHROME_VERSION" == "" ]]; then
   exit
 fi
 
-mkdir -p "$APP_HOME/target/"
-UBERJAR="$APP_HOME"/target/Browser4.jar
+mkdir -p "$repoRoot/target/"
+UBERJAR="$repoRoot"/target/Browser4.jar
 if [ ! -f "$UBERJAR" ]; then
-  SERVER_HOME=$APP_HOME/browser4/browser4-agents
+  SERVER_HOME=$repoRoot/browser4/browser4-agents
   cp "$SERVER_HOME"/target/Browser4.jar "$UBERJAR"
 fi
 

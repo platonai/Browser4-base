@@ -1,11 +1,7 @@
 #!/usr/bin/env pwsh
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 # 设置 PowerShell 编码以支持中文输出
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

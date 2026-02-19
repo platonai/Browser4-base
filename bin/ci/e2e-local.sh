@@ -4,20 +4,20 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_HOME="$SCRIPT_DIR"
-while [[ "$APP_HOME" != "/" && ! -f "$APP_HOME/VERSION" ]]; do
-  APP_HOME="$(dirname "$APP_HOME")"
+while [[ "$repoRoot" != "/" && ! -f "$repoRoot/VERSION" ]]; do
+  APP_HOME="$(dirname "$repoRoot")"
 done
-[[ -f "$APP_HOME/VERSION" ]] || { echo "VERSION file not found"; exit 1; }
-cd "$APP_HOME"
+[[ -f "$repoRoot/VERSION" ]] || { echo "VERSION file not found"; exit 1; }
+cd "$repoRoot"
 
 API_BASE="${API_BASE:-http://localhost:8182}"
-JAR_PATH="${JAR_PATH:-$APP_HOME/browser4/browser4-agents/target/Browser4.jar}"
+JAR_PATH="${JAR_PATH:-$repoRoot/browser4/browser4-agents/target/Browser4.jar}"
 JAVA_OPTS="${JAVA_OPTS:-}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-120}"
 SKIP_BUILD="${SKIP_BUILD:-false}"
 KEEP_SERVER="${KEEP_SERVER:-false}"
 BUILD_ARGS="${BUILD_ARGS:-}"
-SERVER_LOG="$APP_HOME/target/test-results/e2e-local/browser4.log"
+SERVER_LOG="$repoRoot/target/test-results/e2e-local/browser4.log"
 
 E2E_ARGS=()
 

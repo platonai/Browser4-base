@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Find the first parent directory that contains a VERSION file
+
 APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit 1; pwd)
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME=$(dirname "$APP_HOME")
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME=$(dirname "$repoRoot")
 done
-[[ -f "$APP_HOME/VERSION" ]] && cd "$APP_HOME" || exit 1
+[[ -f "$repoRoot/VERSION" ]] && cd "$repoRoot" || exit 1
 
 function print_usage {
   echo "Usage: test.sh [test-types...] [maven-args...]"
@@ -44,8 +44,8 @@ function print_usage {
 MvnCmd="./mvnw"
 
 # Validate Maven wrapper exists and is executable
-if [[ ! -x "$APP_HOME/mvnw" ]]; then
-    echo "Error: Maven wrapper not found or not executable at $APP_HOME/mvnw"
+if [[ ! -x "$repoRoot/mvnw" ]]; then
+    echo "Error: Maven wrapper not found or not executable at $repoRoot/mvnw"
     exit 1
 fi
 
@@ -356,7 +356,7 @@ for TestType in "${SDKTests[@]}"; do
     case $TestType in
       python-sdk)
         echo "Running Python SDK tests..."
-        PythonSdkDir="$APP_HOME/sdks/browser4-sdk-python"
+        PythonSdkDir="$repoRoot/sdks/browser4-sdk-python"
 
         if [[ ! -d "$PythonSdkDir" ]]; then
           echo "Error: Python SDK directory not found at $PythonSdkDir"
@@ -387,11 +387,11 @@ for TestType in "${SDKTests[@]}"; do
 
         python3 -m pytest "${AdditionalMvnArgs[@]}"
         ExitCode=$?
-        cd "$APP_HOME"
+        cd "$repoRoot"
         ;;
       nodejs-sdk)
         echo "Running NodeJS SDK tests..."
-        NodejsSdkDir="$APP_HOME/sdks/browser4-sdk-nodejs"
+        NodejsSdkDir="$repoRoot/sdks/browser4-sdk-nodejs"
 
         if [[ ! -d "$NodejsSdkDir" ]]; then
           echo "Error: NodeJS SDK directory not found at $NodejsSdkDir"
@@ -413,7 +413,7 @@ for TestType in "${SDKTests[@]}"; do
           npm install
           if [[ $? -ne 0 ]]; then
             echo "Error: Failed to install dependencies"
-            cd "$APP_HOME"
+            cd "$repoRoot"
             exit 1
           fi
         fi
@@ -421,13 +421,13 @@ for TestType in "${SDKTests[@]}"; do
         # Check if jest is available
         if [[ ! -f "$NodejsSdkDir/node_modules/.bin/jest" ]]; then
           echo "Error: jest is not installed. Install it with: npm install"
-          cd "$APP_HOME"
+          cd "$repoRoot"
           exit 1
         fi
 
         npm test -- "${AdditionalMvnArgs[@]}"
         ExitCode=$?
-        cd "$APP_HOME"
+        cd "$repoRoot"
         ;;
       kotlin-sdk)
         echo "Running Kotlin SDK tests..."

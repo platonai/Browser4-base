@@ -3,19 +3,19 @@
 # Daemon script for coworker.sh - runs every 30 seconds with lock-based concurrency control
 # Usage: ./coworker-daemon.sh [start|stop|status|restart]
 
-# Find the first parent directory that contains a VERSION file
+
 AppHome="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-while [[ ! -f "$AppHome/ROOT.md" ]] && [[ "$AppHome" != "/" ]]; do
-    AppHome="$(dirname "$AppHome")"
+while [[ ! -f "$repoRoot/ROOT.md" ]] && [[ "$repoRoot" != "/" ]]; do
+    AppHome="$(dirname "$repoRoot")"
 done
 
 # Configuration
-SCRIPT_DIR="$AppHome/bin/copilot"
+SCRIPT_DIR="$repoRoot/bin/copilot"
 COWORKER_SCRIPT="$SCRIPT_DIR/coworker.sh"
 LOCK_DIR="${TMPDIR:-.}/coworker-locks"
 LOCK_FILE="$LOCK_DIR/coworker.lock"
 PID_FILE="$LOCK_DIR/coworker-daemon.pid"
-LOG_DIR="$AppHome/logs/coworker"
+LOG_DIR="$repoRoot/logs/coworker"
 LOG_FILE="$LOG_DIR/coworker-daemon.log"
 
 # Interval in seconds

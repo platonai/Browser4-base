@@ -27,11 +27,11 @@ param(
 )
 
 # Find the first parent directory containing the VERSION file
-$AppHome = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-    $AppHome = Split-Path -Parent $AppHome
+$repoRoot = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
+while ($repoRoot -ne $null -and !(Test-Path "$repoRoot/ROOT.md")) {
+    $repoRoot = Split-Path -Parent $repoRoot
 }
-Set-Location $AppHome
+Set-Location $repoRoot
 
 # Set PowerShell encoding for UTF-8 support
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

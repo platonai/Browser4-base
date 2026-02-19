@@ -1,10 +1,6 @@
 #!/usr/bin/env pwsh
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-    $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 function Set-TextPreserveNewline {
   param(
@@ -19,7 +15,7 @@ function Set-TextPreserveNewline {
 
 # Replace SNAPSHOT version with the release version
 @('README.md', 'README.zh.md') | ForEach-Object {
-  Get-ChildItem -Path "$AppHome" -Depth 5 -Filter $_ -Recurse | ForEach-Object {
+  Get-ChildItem -Path "$repoRoot" -Depth 5 -Filter $_ -Recurse | ForEach-Object {
     $path = $_.FullName
     $original = Get-Content -Path $path -Raw
     $nl = if ($original -match "\r\n") { "`r`n" } else { "`n" }

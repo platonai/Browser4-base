@@ -1,11 +1,7 @@
 #!/usr/bin/env pwsh
 
-# Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 function Print-Usage {
   Write-Host "Usage: test.ps1 [test-types...] [maven-args...]"
@@ -41,7 +37,7 @@ function Print-Usage {
 }
 
 # Maven command
-$MvnCmd = Join-Path $AppHome '.\mvnw.cmd'
+$MvnCmd = Join-Path $repoRoot '.\mvnw.cmd'
 
 # Validate Maven wrapper exists
 if (!(Test-Path $MvnCmd)) {
@@ -200,7 +196,7 @@ foreach ($TestType in $SDKTests) {
       switch ($TestType) {
         "python-sdk" {
           Write-Host "Running Python SDK tests..."
-          $PythonSdkDir = Join-Path $AppHome "sdks\browser4-sdk-python"
+          $PythonSdkDir = Join-Path $repoRoot "sdks\browser4-sdk-python"
 
           if (!(Test-Path $PythonSdkDir)) {
             Write-Error "Python SDK directory not found at $PythonSdkDir"
@@ -233,7 +229,7 @@ foreach ($TestType in $SDKTests) {
         }
         "nodejs-sdk" {
           Write-Host "Running NodeJS SDK tests..."
-          $NodejsSdkDir = Join-Path $AppHome "sdks\browser4-sdk-nodejs"
+          $NodejsSdkDir = Join-Path $repoRoot "sdks\browser4-sdk-nodejs"
 
           if (!(Test-Path $NodejsSdkDir)) {
             Write-Error "NodeJS SDK directory not found at $NodejsSdkDir"

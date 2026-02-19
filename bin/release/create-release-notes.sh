@@ -2,12 +2,12 @@
 
 # 🔍 Find the first parent directory containing the VERSION file
 APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit; pwd)
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME=$(dirname "$APP_HOME")
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME=$(dirname "$repoRoot")
 done
-[[ -f "$APP_HOME/VERSION" ]] && cd "$APP_HOME" || exit
+[[ -f "$repoRoot/VERSION" ]] && cd "$repoRoot" || exit
 
-VERSION=$(head -n 1 "$APP_HOME/VERSION" | tr -d '\r\n' | tr -d '[:space:]')
+VERSION=$(head -n 1 "$repoRoot/VERSION" | tr -d '\r\n' | tr -d '[:space:]')
 UBERJAR_FILE="Browser4.jar"
 UBERJAR_PATH=$(find browser4 -name $UBERJAR_FILE | head -n 1)
 JAVA_VERSION="17+"

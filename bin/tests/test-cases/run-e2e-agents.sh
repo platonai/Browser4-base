@@ -16,10 +16,10 @@
 
 # Find the first parent directory containing the VERSION file
 AppHome="$(dirname "$(readlink -f "$0")")"
-while [[ "$AppHome" != "/" && ! -f "$AppHome/ROOT.md" ]]; do
-    AppHome="$(dirname "$AppHome")"
+while [[ "$repoRoot" != "/" && ! -f "$repoRoot/ROOT.md" ]]; do
+    AppHome="$(dirname "$repoRoot")"
 done
-cd "$AppHome" || exit 1
+cd "$repoRoot" || exit 1
 
 set -e
 
@@ -29,7 +29,7 @@ set -e
 readonly API_BASE="${API_BASE:-http://localhost:8182}"
 readonly COMMAND_ENDPOINT="$API_BASE/api/commands/plain?async=1"
 readonly COMMAND_STATUS_BASE="$API_BASE/api/commands"
-readonly USE_CASES_DIR="$AppHome/pulsar-tests/pulsar-tests-common/src/main/resources/e2e/scenarios/happy_path/use-cases"
+readonly USE_CASES_DIR="$repoRoot/pulsar-tests/pulsar-tests-common/src/main/resources/e2e/scenarios/happy_path/use-cases"
 readonly TEST_RESULTS_DIR="./target/test-results/use-cases"
 readonly TIMESTAMP="$(date '+%Y%m%d_%H%M%S')"
 readonly LOG_FILE="${TEST_RESULTS_DIR}/use_case_tests_${TIMESTAMP}.log"

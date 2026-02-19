@@ -19,19 +19,19 @@
 #   powershell -ExecutionPolicy Bypass -File coworker.ps1
 # ============================================================================
 
-# Find the first parent directory that contains a VERSION file
+
 # This allows the script to be run from any location within the project
-$AppHome = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "ROOT.md"))) {
-    $AppHome = Split-Path -Parent $AppHome
+$repoRoot = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
+while ($repoRoot -ne $null -and -not (Test-Path (Join-Path $repoRoot "ROOT.md"))) {
+    $repoRoot = Split-Path -Parent $repoRoot
 }
-Set-Location $AppHome
+Set-Location $repoRoot
 
 # Define directory paths for task management workflow
-$repoRoot = $AppHome                              # Repository root for Copilot execution
+$repoRoot = $repoRoot                              # Repository root for Copilot execution
 
-$tasksRoot = Join-Path $AppHome "coworker\tasks"
-$scriptsDir = Join-Path $AppHome "coworker\scripts"
+$tasksRoot = Join-Path $repoRoot "coworker\tasks"
+$scriptsDir = Join-Path $repoRoot "coworker\scripts"
 $taskRoots = @(
     @{
         Created = (Join-Path $tasksRoot "1created")
@@ -232,7 +232,7 @@ foreach ($taskRoot in $taskRoots) {
         # 2. Determine the descriptive name based on content
         $renameScript = Join-Path $scriptsDir "rename.ps1"
         $descriptiveName = ""
-        
+
         # Read content for fallback title
         $content = Get-Content -Path $tempPath -Raw
         $safeTitle = $file.BaseName -replace '[\\/*?:"<>|]', '_'
@@ -245,7 +245,7 @@ foreach ($taskRoot in $taskRoots) {
                 $descriptiveName = $generatedName
             }
         }
-        
+
         if ([string]::IsNullOrWhiteSpace($descriptiveName)) {
              $descriptiveName = $safeTitle
         }
@@ -260,7 +260,7 @@ foreach ($taskRoot in $taskRoots) {
         $title = $descriptiveName
         $description = "Task from $($file.Name)"
         $prompt = $content
-        
+
         # Try to parse structured content
         if ($content -match "(?ms)^Title:\s*(?<title>.*?)(\r\n|\n)Description:\s*(?<desc>.*?)(\r\n|\n)Prompt:\s*(?<prompt>.*)$") {
             $title = $Matches['title'].Trim()
@@ -372,7 +372,7 @@ Copilot Log: $copilotLogPath
         }
 
         $finishedInfo = Resolve-UniquePath -Directory $finishedSubDir -BaseName $workingBaseName -Extension $file.Extension
-        
+
         Move-Item -Path $workingPath -Destination $finishedInfo.Path -Force
         Write-LogMessage "Task moved to finished: $($finishedInfo.Path)" INFO
 

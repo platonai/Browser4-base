@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 
-# Find the first parent directory that contains a VERSION file
+
 BIN=$(dirname "$0")
 APP_HOME=$(realpath "$BIN/..")
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME=$(dirname "$APP_HOME")
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME=$(dirname "$repoRoot")
 done
-[[ -f "$APP_HOME/VERSION" ]] || exit 1
+[[ -f "$repoRoot/VERSION" ]] || exit 1
 
-MVNW="$APP_HOME"/mvnw
+MVNW="$repoRoot"/mvnw
 
 "$BIN"/build.sh "$@"
 
-SERVER_HOME=$APP_HOME/browser4/browser4-agents
+SERVER_HOME=$repoRoot/browser4/browser4-agents
 cd "$SERVER_HOME" || exit
 
 "$BIN"/tools/install-depends.sh
 "$MVNW" spring-boot:run
 
-cd "$APP_HOME" || exit
+cd "$repoRoot" || exit

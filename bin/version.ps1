@@ -1,13 +1,9 @@
 #!/usr/bin/env pwsh
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
-$VERSION = "v$(Get-Content "$AppHome/VERSION")"
+$VERSION = "v$(Get-Content "$repoRoot/VERSION")"
 
 if ($args.Count -gt 0 -and $args[0] -eq "-v") {
     # dynamically pull more interesting stuff from latest git commit

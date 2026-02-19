@@ -35,18 +35,18 @@ $scriptPath = if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
 } else {
     (Get-PSCallStack)[0].ScriptName
 }
-$AppHome = (Get-Item -Path $scriptPath).Directory.Parent
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-    $AppHome = Split-Path -Parent $AppHome
+$repoRoot = (Get-Item -Path $scriptPath).Directory.Parent
+while ($repoRoot -ne $null -and !(Test-Path "$repoRoot/ROOT.md")) {
+    $repoRoot = Split-Path -Parent $repoRoot
 }
 
-if ($null -eq $AppHome) {
+if ($null -eq $repoRoot) {
     Write-Error "VERSION file not found in any parent directory. Could not determine project root."
     exit 1
 }
 
-Set-Location $AppHome
-Write-Host "Project root is: $AppHome"
+Set-Location $repoRoot
+Write-Host "Project root is: $repoRoot"
 
 # Ensure working tree is clean to avoid accidental commits
 & git update-index -q --refresh
@@ -57,7 +57,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Get current version
-$SNAPSHOT_VERSION = Get-Content "$AppHome\VERSION" -TotalCount 1
+$SNAPSHOT_VERSION = Get-Content "$repoRoot\VERSION" -TotalCount 1
 $VERSION = $SNAPSHOT_VERSION -replace "-SNAPSHOT$", ""
 
 # Parse version components
@@ -93,21 +93,21 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Update VERSION file
-$NEXT_SNAPSHOT_VERSION | Set-Content "$AppHome\VERSION"
+$NEXT_SNAPSHOT_VERSION | Set-Content "$repoRoot\VERSION"
 
 # Update pom.xml files using Maven
-$mvnCmd = if ($IsWindows) { Join-Path $AppHome "mvnw.cmd" } else { Join-Path $AppHome "mvnw" }
+$mvnCmd = if ($IsWindows) { Join-Path $repoRoot "mvnw.cmd" } else { Join-Path $repoRoot "mvnw" }
 & $mvnCmd versions:set -DnewVersion=$NEXT_SNAPSHOT_VERSION -DprocessAllModules -DgenerateBackupPoms=false
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Maven versions:set command failed. Reverting VERSION file and branch."
-    $SNAPSHOT_VERSION | Set-Content "$AppHome\VERSION"
+    $SNAPSHOT_VERSION | Set-Content "$repoRoot\VERSION"
     & git checkout -
     & git branch -D $newBranchName | Out-Null
     exit 1
 }
 
 # Update root pom.xml's git tag (if present)
-$pomXmlPath = "$AppHome\pom.xml"
+$pomXmlPath = "$repoRoot\pom.xml"
 if (Test-Path $pomXmlPath) {
     $pomContent = Get-Content $pomXmlPath -Raw
     $pomContent = $pomContent -replace "<tag>v$([regex]::Escape($VERSION))</tag>", "<tag>v$NEXT_VERSION</tag>"
@@ -116,8 +116,8 @@ if (Test-Path $pomXmlPath) {
 
 # Files containing the version number to upgrade (if present)
 $VERSION_AWARE_FILES = @(
-    "$AppHome\README.md",
-    "$AppHome\README.zh.md"
+    "$repoRoot\README.md",
+    "$repoRoot\README.zh.md"
 )
 foreach ($F in $VERSION_AWARE_FILES) {
     if (Test-Path $F) {

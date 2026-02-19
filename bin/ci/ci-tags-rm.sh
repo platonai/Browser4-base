@@ -59,20 +59,20 @@ fi
 
 # Find the first parent directory containing the VERSION file
 AppHome="$(dirname "$(realpath "$0")")"
-while [[ -n "$AppHome" && ! -f "$AppHome/ROOT.md" ]]; do
-  AppHome="$(dirname "$AppHome")"
+while [[ -n "$repoRoot" && ! -f "$repoRoot/ROOT.md" ]]; do
+  AppHome="$(dirname "$repoRoot")"
   # dirname / => /
-  if [[ "$AppHome" == "/" ]]; then
+  if [[ "$repoRoot" == "/" ]]; then
     break
   fi
 done
 
-if [[ ! -f "$AppHome/ROOT.md" ]]; then
+if [[ ! -f "$repoRoot/ROOT.md" ]]; then
   echo "[ERROR] Could not find VERSION file in any parent directory" >&2
   exit 1
 fi
 
-cd "$AppHome"
+cd "$repoRoot"
 
 get_matching_tags() {
   # Match full tag name with the regex.

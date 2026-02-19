@@ -36,18 +36,15 @@ $scriptPath = if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
 } else {
     (Get-PSCallStack)[0].ScriptName
 }
-$AppHome = (Get-Item -Path $scriptPath).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-    $AppHome = Split-Path -Parent $AppHome
-}
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
 
-if ($null -eq $AppHome) {
+if ($null -eq $repoRoot) {
     Write-Error "VERSION file not found in any parent directory. Could not determine project root."
     exit 1
 }
 
-Set-Location $AppHome
-Write-Host "Project root is: $AppHome"
+Set-Location $repoRoot
+Write-Host "Project root is: $repoRoot"
 
 # Ensure we are not on the master/main branch
 $currentBranch = git rev-parse --abbrev-ref HEAD
@@ -57,7 +54,7 @@ if ($currentBranch -in @('master', 'main')) {
 }
 
 # Get current version
-$SNAPSHOT_VERSION = Get-Content "$AppHome\VERSION" -TotalCount 1
+$SNAPSHOT_VERSION = Get-Content "$repoRoot\VERSION" -TotalCount 1
 $VERSION = $SNAPSHOT_VERSION -replace "-SNAPSHOT", ""
 
 # Parse version components
@@ -100,27 +97,27 @@ Write-Host "New version: $NEXT_SNAPSHOT_VERSION"
 
 
 # Update VERSION file
-$NEXT_SNAPSHOT_VERSION | Set-Content "$AppHome\VERSION"
+$NEXT_SNAPSHOT_VERSION | Set-Content "$repoRoot\VERSION"
 
 # Update pom.xml files using Maven
-$mvnCmd = if ($IsWindows) { "$AppHome\mvnw.cmd" } else { "$AppHome\mvnw" }
+$mvnCmd = if ($IsWindows) { "$repoRoot\mvnw.cmd" } else { "$repoRoot\mvnw" }
 & $mvnCmd versions:set -DnewVersion=$NEXT_SNAPSHOT_VERSION -DprocessAllModules -DgenerateBackupPoms=false
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Maven versions:set command failed. Reverting VERSION file."
-    $SNAPSHOT_VERSION | Set-Content "$AppHome\VERSION"
+    $SNAPSHOT_VERSION | Set-Content "$repoRoot\VERSION"
     exit 1
 }
 
 # Update root pom.xml's git tag
-$pomXmlPath = "$AppHome\pom.xml"
+$pomXmlPath = "$repoRoot\pom.xml"
 if (Test-Path $pomXmlPath) {
     ((Get-Content $pomXmlPath -Raw) -replace "<tag>v$VERSION</tag>", "<tag>v$NEXT_VERSION</tag>") | Set-Content $pomXmlPath
 }
 
 # Files containing the version number to upgrade
 $VERSION_AWARE_FILES = @(
-    "$AppHome\README.md",
-    "$AppHome\README.zh.md"
+    "$repoRoot\README.md",
+    "$repoRoot\README.zh.md"
 )
 
 # Replace version numbers in files

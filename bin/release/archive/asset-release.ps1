@@ -6,19 +6,15 @@ param(
     [string]$RemoteBaseDir = "~/platonic.fun/repo/ai/platon/pulsar/"
 )
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-    $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
-$MvnCmd = Join-Path $AppHome '.\mvnw.cmd'
+$MvnCmd = Join-Path $repoRoot '.\mvnw.cmd'
 
-$Version=(Get-Content "$AppHome/VERSION" -TotalCount 1) -replace "-SNAPSHOT", ""
+$Version=(Get-Content "$repoRoot/VERSION" -TotalCount 1) -replace "-SNAPSHOT", ""
 
 # If browser4/browser4-agents/target/Browser4.jar exists, copy it to remote
-$PulsarRPAPath = "$AppHome/browser4/browser4-agents/target/Browser4.jar"
+$PulsarRPAPath = "$repoRoot/browser4/browser4-agents/target/Browser4.jar"
 
 if (Test-Path $PulsarRPAPath) {
     Write-Host "Browser4.jar exists"
@@ -26,9 +22,9 @@ if (Test-Path $PulsarRPAPath) {
     Write-Warning "Browser4.jar does not exist"
 
     # Build browser4/browser4-agents/
-    Set-Location $AppHome/pulsar-app
+    Set-Location $repoRoot/pulsar-app
     & $MvnCmd -pl browser4/browser4-agents/ clean package -DskipTests
-    Set-Location $AppHome
+    Set-Location $repoRoot
 }
 
 $VersionedJarRemoteFullPath = "${RemoteBaseDir}Browser4-${Version}.jar"

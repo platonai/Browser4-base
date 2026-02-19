@@ -44,19 +44,19 @@ done
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 APP_HOME="$SCRIPT_DIR/.."
 
-while [[ ! -f "$APP_HOME/VERSION" ]]; do
-    if [[ "$APP_HOME" == "/" ]]; then
+while [[ ! -f "$repoRoot/VERSION" ]]; do
+    if [[ "$repoRoot" == "/" ]]; then
         echo "❌ VERSION file not found in any parent directory"
         exit 1
     fi
-    APP_HOME="$(dirname "$APP_HOME")"
+    APP_HOME="$(dirname "$repoRoot")"
 done
 
 if [[ "$VERBOSE" == true ]]; then
-    echo "📂 Found project root at: $APP_HOME"
+    echo "📂 Found project root at: $repoRoot"
 fi
 
-cd "$APP_HOME"
+cd "$repoRoot"
 
 # Check if the git repository is clean
 if ! git diff --quiet; then
@@ -65,7 +65,7 @@ if ! git diff --quiet; then
 fi
 
 # Convert all files to Unix line endings
-$APP_HOME/bin/tools/dos2unix.sh -q
+$repoRoot/bin/tools/dos2unix.sh -q
 
 # Function to log messages
 log() {
@@ -100,7 +100,7 @@ run_integration_tests() {
 
     # Extract curl commands using Python script
     local curl_file_dir
-    if ! curl_file_dir=$(python3 "$APP_HOME/bin/tools/python/extract_curl_blocks.py" "$APP_HOME/README.md"); then
+    if ! curl_file_dir=$(python3 "$repoRoot/bin/tools/python/extract_curl_blocks.py" "$repoRoot/README.md"); then
         log "❌ Failed to extract curl commands from README.md"
         return 1
     fi
@@ -144,7 +144,7 @@ run_integration_tests() {
 
 # 1. Deploy to local staging repository
 log "📦 Deploying to local staging repository..."
-if ! $APP_HOME/bin/release/oss-deploy-locally.sh; then
+if ! $repoRoot/bin/release/oss-deploy-locally.sh; then
     echo "❌ Failed to deploy to local staging repository"
     exit 1
 fi
@@ -186,7 +186,7 @@ fi
 if [[ "$PRODUCTION_MODE" == true ]]; then
     # 4.1 Deploy artifact to Sonatype
     log "📦 Deploying artifact to Sonatype..."
-    if ! $APP_HOME/mvnw -P deploy,release nexus-deploy-staged; then
+    if ! $repoRoot/mvnw -P deploy,release nexus-deploy-staged; then
         echo "❌ Failed to deploy to Sonatype"
         exit 1
     fi

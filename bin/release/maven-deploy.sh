@@ -1,11 +1,11 @@
 #bin
 
-# Find the first parent directory that contains a VERSION file
+
 APP_HOME=$(cd "$(dirname "$0")">/dev/null || exit; pwd)
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME=$(dirname "$APP_HOME")
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME=$(dirname "$repoRoot")
 done
-[[ -f "$APP_HOME/VERSION" ]] && cd "$APP_HOME" || exit
+[[ -f "$repoRoot/VERSION" ]] && cd "$repoRoot" || exit
 
 printUsage() {
   echo "Usage: deploy [-clean|-test]"
@@ -46,11 +46,11 @@ done
 echo "Deploy the project ..."
 echo "Changing version ..."
 
-SNAPSHOT_VERSION=$(head -n 1 "$APP_HOME/VERSION")
+SNAPSHOT_VERSION=$(head -n 1 "$repoRoot/VERSION")
 VERSION=${SNAPSHOT_VERSION//"-SNAPSHOT"/""}
-echo "$VERSION" > "$APP_HOME"/VERSION
+echo "$VERSION" > "$repoRoot"/VERSION
 
-find "$APP_HOME" -name 'pom.xml' -exec sed -i "s/$SNAPSHOT_VERSION/$VERSION/" {} \;
+find "$repoRoot" -name 'pom.xml' -exec sed -i "s/$SNAPSHOT_VERSION/$VERSION/" {} \;
 
 if $CLEAN; then
   ./mvnw clean
@@ -67,13 +67,13 @@ exitCode=$?
 
 # Build browser4/browser4-agents/ but do not deploy the artifacts
 echo "Building browser4/browser4-agents/ ..."
-cd "$APP_HOME/browser4/browser4-agents/" || exit
+cd "$repoRoot/browser4/browser4-agents/" || exit
 ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true
 
 exitCode=$?
 [ $exitCode -eq 0 ] && echo "Build successfully" || exit 1
 
-cd "$APP_HOME" || exit
+cd "$repoRoot" || exit
 
 echo "Artifacts are uploaded, you should publish manually:"
 echo "https://central.sonatype.com/publishing"

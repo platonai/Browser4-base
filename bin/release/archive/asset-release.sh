@@ -30,21 +30,21 @@ done
 # Find the first parent directory containing the VERSION file
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_HOME="$SCRIPT_DIR"
-while [[ ! -f "$APP_HOME/VERSION" && "$APP_HOME" != "/" ]]; do
-  APP_HOME="$(dirname "$APP_HOME")"
+while [[ ! -f "$repoRoot/VERSION" && "$repoRoot" != "/" ]]; do
+  APP_HOME="$(dirname "$repoRoot")"
 done
 
-if [[ ! -f "$APP_HOME/VERSION" ]]; then
+if [[ ! -f "$repoRoot/VERSION" ]]; then
   echo "Error: Could not find VERSION file in any parent directory" >&2
   exit 1
 fi
 
-cd "$APP_HOME" || exit 1
+cd "$repoRoot" || exit 1
 
-VERSION=$(head -n 1 "$APP_HOME/VERSION" | sed 's/-SNAPSHOT//')
+VERSION=$(head -n 1 "$repoRoot/VERSION" | sed 's/-SNAPSHOT//')
 
 # If browser4/browser4-agents/target/Browser4.jar exists, copy it to remote
-PULSAR_RPA_PATH="$APP_HOME/browser4/browser4-agents/target/Browser4.jar"
+PULSAR_RPA_PATH="$repoRoot/browser4/browser4-agents/target/Browser4.jar"
 if [[ -f "$PULSAR_RPA_PATH" ]]; then
   DESTINATION_PATH="${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}Browser4-${VERSION}.jar"
 

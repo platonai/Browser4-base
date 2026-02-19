@@ -1,11 +1,7 @@
 #!/usr/bin/env pwsh
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 function printUsage {
   Write-Host "Usage: maven-deploy.ps1 [-clean|-test]"
@@ -13,7 +9,7 @@ function printUsage {
 }
 
 # Maven command and options
-$MvnCmd = Join-Path $AppHome '.\mvnw.cmd'
+$MvnCmd = Join-Path $repoRoot '.\mvnw.cmd'
 
 # Initialize flags and additional arguments
 $PerformClean = $false
@@ -47,13 +43,13 @@ foreach ($Arg in $args)
 Write-Host "Deploy the project ..."
 Write-Host "Changing version ..."
 
-$SNAPSHOT_VERSION = Get-Content "$AppHome\VERSION" -TotalCount 1
+$SNAPSHOT_VERSION = Get-Content "$repoRoot\VERSION" -TotalCount 1
 $VERSION =$SNAPSHOT_VERSION -replace "-SNAPSHOT", ""
-$VERSION | Set-Content "$AppHome\VERSION"
+$VERSION | Set-Content "$repoRoot\VERSION"
 
 # Replace SNAPSHOT version with the release version
 @('README.md', 'README.zh.md', 'pom.xml') | ForEach-Object {
-  Get-ChildItem -Path "$AppHome" -Depth 5 -Filter $_ -Recurse | ForEach-Object {
+  Get-ChildItem -Path "$repoRoot" -Depth 5 -Filter $_ -Recurse | ForEach-Object {
     (Get-Content $_.FullName) -replace $SNAPSHOT_VERSION, $VERSION | Set-Content -Encoding utf8 $_.FullName
   }
 }
@@ -83,7 +79,7 @@ if ($exitCode -eq 0) {
 # mvn nexus-staging:release -P deploy
 
 # Build browser4/browser4-agents/ but do not deploy the artifacts
-$PulsarAppPath = Join-Path $AppHome 'browser4/browser4-agents/'
+$PulsarAppPath = Join-Path $repoRoot 'browser4/browser4-agents/'
 if (Test-Path $PulsarAppPath) {
   Set-Location $PulsarAppPath
   & $MvnCmd clean install -DskipTests
@@ -101,7 +97,7 @@ if ($exitCode -eq 0) {
   exit $exitCode
 }
 
-Set-Location $AppHome
+Set-Location $repoRoot
 
 Write-Host "Artifacts are uploaded, you should publish manually:"
 Write-Host "https://central.sonatype.com/publishing"

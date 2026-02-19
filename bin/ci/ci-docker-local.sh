@@ -2,10 +2,10 @@
 
 # Find the first parent directory containing the VERSION file
 AppHome="$(dirname "$(readlink -f "$0")")"
-while [[ "$AppHome" != "/" && ! -f "$AppHome/ROOT.md" ]]; do
-    AppHome="$(dirname "$AppHome")"
+while [[ "$repoRoot" != "/" && ! -f "$repoRoot/ROOT.md" ]]; do
+    AppHome="$(dirname "$repoRoot")"
 done
-cd "$AppHome" || exit 1
+cd "$repoRoot" || exit 1
 
 # Configuration parameters
 DOCKERFILE="${DOCKERFILE:-docker/browser4-prod/Dockerfile}"

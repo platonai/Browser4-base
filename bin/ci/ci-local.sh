@@ -388,8 +388,8 @@ main() {
     fi
 
     # Get repository path and build script
-    repoPath="$app_home"
-    buildScript="$app_home/bin/build.sh"
+    repoPath="$repoRoot"
+    buildScript="$repoRoot/bin/build.sh"
 
     # Print banner
     print_banner

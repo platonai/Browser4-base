@@ -1,24 +1,19 @@
 #!/usr/bin/env pwsh
 
-# 🔍 查找包含 VERSION 文件的第一个父目录
-$ScriptPath = $MyInvocation.MyCommand.Path
-$APP_HOME = Split-Path -Parent (Resolve-Path $ScriptPath)
-while (!(Test-Path "$APP_HOME/VERSION") -and ($APP_HOME -ne "/")) {
-    $APP_HOME = Split-Path -Parent $APP_HOME
-}
-Set-Location $APP_HOME
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 Write-Host "🔄 Updating Browser4 documentation..."
 Write-Host "📅 Current Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')"
 Write-Host "👤 User: $env:USERNAME"
 
 # 检查 VERSION 文件是否存在
-if (!(Test-Path "$APP_HOME/VERSION")) {
-    Write-Host "❌ Error: VERSION file not found in $APP_HOME"
+if (!(Test-Path "$repoRoot/VERSION")) {
+    Write-Host "❌ Error: VERSION file not found in $repoRoot"
     exit 1
 }
 
-$SNAPSHOT_VERSION = (Get-Content "$APP_HOME/VERSION" -First 1).Trim()
+$SNAPSHOT_VERSION = (Get-Content "$repoRoot/VERSION" -First 1).Trim()
 $VERSION = $SNAPSHOT_VERSION -replace '-SNAPSHOT', ''
 $PREFIX = ($VERSION -split '\.')[0..1] -join '.'
 
@@ -29,8 +24,8 @@ Write-Host "   Prefix:   $PREFIX"
 
 # 包含版本号的文件
 $VERSION_AWARE_FILES = @(
-    "$APP_HOME/README.md",
-    "$APP_HOME/README.zh.md"
+    "$repoRoot/README.md",
+    "$repoRoot/README.zh.md"
 )
 
 Write-Host "🔍 Processing files..."
@@ -90,7 +85,7 @@ foreach ($file in $UPDATED_FILES) {
 # 针对Windows和Unix环境准备不同格式的文件路径
 $GIT_FILES = @()
 foreach ($file in $UPDATED_FILES) {
-    $relativePath = $file.Replace("$APP_HOME\", "").Replace("$APP_HOME/", "")
+    $relativePath = $file.Replace("$repoRoot\", "").Replace("$repoRoot/", "")
     # 统一使用正斜杠，这在Windows和Unix环境都有效
     $gitPath = $relativePath.Replace("\", "/")
     $GIT_FILES += $gitPath

@@ -7,19 +7,15 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-    $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 # Import common utility script
-. $AppHome\bin\common\Util.ps1
+. $repoRoot\bin\common\Util.ps1
 
 Fix-Encoding-UTF8
 
-Write-Host "Working in: $AppHome"
+Write-Host "Working in: $repoRoot"
 
 # Check if we're in a git repo
 if (!(Test-Path ".git")) {

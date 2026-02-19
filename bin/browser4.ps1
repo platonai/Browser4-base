@@ -2,22 +2,18 @@
 
 $ErrorActionPreference = "Stop"
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 # Import common utility script
-. $AppHome\bin\common\Util.ps1
+. $repoRoot\bin\common\Util.ps1
 
 Fix-Encoding-UTF8
 
 $TARGET = Join-Path $PWD "target"
 mkdir -f $TARGET
 $UBERJAR = Join-Path $TARGET "Browser4.jar"
-$SERVER_HOME = Join-Path $AppHome "browser4\browser4-agents"
+$SERVER_HOME = Join-Path $repoRoot "browser4\browser4-agents"
 Copy-Item (Join-Path $SERVER_HOME "target\Browser4.jar") -Destination $UBERJAR
 
 # Other Java options

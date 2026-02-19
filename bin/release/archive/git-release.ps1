@@ -1,16 +1,12 @@
 #!/usr/bin/env pwsh
 
-# 🔍 Find the first parent directory containing the VERSION file
-$AppHome=(Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and !(Test-Path "$AppHome/ROOT.md")) {
-  $AppHome = Split-Path -Parent $AppHome
-}
-Set-Location $AppHome
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+Set-Location $repoRoot
 
 $gitExe = "git" # Assuming git is in the system PATH
 
 # Get version information
-$SNAPSHOT_VERSION = Get-Content "$AppHome\VERSION" -TotalCount 1
+$SNAPSHOT_VERSION = Get-Content "$repoRoot\VERSION" -TotalCount 1
 $VERSION =$SNAPSHOT_VERSION -replace "-SNAPSHOT", ""
 $LAST_COMMIT_ID = &$gitExe log --format="%H" -n 1
 $BRANCH = &$gitExe branch --show-current
@@ -21,7 +17,7 @@ function Replace-Version-In-ReadmeFiles {
   Write-Host "Replacing SNAPSHOT version with the release version in all markdown files"
 
   # Find all .md files recursively in the project directory
-  $mdFiles = Get-ChildItem -Path "$AppHome" -Recurse -Filter *.md
+  $mdFiles = Get-ChildItem -Path "$repoRoot" -Recurse -Filter *.md
 
   # Replace SNAPSHOT version with the release version in each file
   $mdFiles | ForEach-Object {

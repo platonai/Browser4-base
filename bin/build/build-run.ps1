@@ -2,18 +2,15 @@
 
 $ErrorActionPreference = "Stop"
 
-# Find the first parent directory that contains a VERSION file
-$AppHome = (Get-Item -Path $MyInvocation.MyCommand.Path).Directory
-while ($AppHome -ne $null -and -not (Test-Path (Join-Path $AppHome "ROOT.md"))) {
-  $AppHome = Split-Path -Parent $AppHome
-}
 
-if (-not $AppHome -or -not (Test-Path (Join-Path $AppHome "ROOT.md"))) {
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+
+if (-not $repoRoot -or -not (Test-Path (Join-Path $repoRoot "ROOT.md"))) {
   throw "VERSION file not found when resolving project root."
 }
 
-Set-Location $AppHome
+Set-Location $repoRoot
 
-& (Join-Path $AppHome "bin/build/build.ps1") @args
+& (Join-Path $repoRoot "bin/build/build.ps1") @args
 
-& (Join-Path $AppHome "bin/browser4.ps1") @args
+& (Join-Path $repoRoot "bin/browser4.ps1") @args
