@@ -213,11 +213,14 @@ def test_pulsar_session_parse_without_beautifulsoup(stub_session, monkeypatch):
     session, _ = stub_session
     
     # Mock BeautifulSoup import to fail
+    import builtins
+    real_import = builtins.__import__
+
     def mock_import(name, *args, **kwargs):
         if name == "bs4":
             raise ImportError("BeautifulSoup not installed")
-        return __import__(name, *args, **kwargs)
-    
+        return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", mock_import)
     
     page = WebPage(url="https://example.com", html="<html></html>")

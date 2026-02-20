@@ -179,7 +179,7 @@ if [[ ${#MavenTests[@]} -gt 0 ]]; then
              fi
 
              JoinedPatterns=$(IFS=, ; echo "${TestPatterns[*]}")
-             MvnTestArgs+=("-Dtest=$JoinedPatterns")
+             MvnTestArgs+=("-Dtest=$JoinedPatterns" "-Dsurefire.failIfNoSpecifiedTests=false")
         fi
     fi
 
