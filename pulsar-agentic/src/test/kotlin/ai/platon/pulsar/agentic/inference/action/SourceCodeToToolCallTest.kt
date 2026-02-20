@@ -12,7 +12,7 @@ class SourceCodeToToolCallTest {
     @DisplayName("extract methods from WebDriver resource")
     fun extractMethodsFromWebdriverResource() {
         val sourceCode =
-            LLMUtils.readSourceFileFromResource("WebDriver.kt")
+            LLMUtils.readSourceFileFromResource("pulsar-core", "WebDriver.kt")
         val tools = SourceCodeToToolCallSpec.extractInterface("driver", sourceCode, "WebDriver")
         assertTrue(tools.isNotEmpty(), "Tool list should not be empty")
         val click = tools.firstOrNull { it.domain == "driver" && it.method == "click" }

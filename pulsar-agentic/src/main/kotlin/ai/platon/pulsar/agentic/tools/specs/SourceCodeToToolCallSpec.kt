@@ -13,10 +13,10 @@ object SourceCodeToToolCallSpec {
     val perceptiveAgentToolCallList = mutableListOf<ToolSpec>()
 
     init {
-        var sourceCode = LLMUtils.readSourceFileFromResource("WebDriver.kt")
+        var sourceCode = LLMUtils.readSourceFileFromResource("pulsar-core", "WebDriver.kt")
         extractInterface("driver", sourceCode, "WebDriver").toCollection(webDriverToolCallList)
 
-        sourceCode = LLMUtils.readSourceFileFromResource("PerceptiveAgent.kt")
+        sourceCode = LLMUtils.readSourceFileFromResource("pulsar-agentic", "PerceptiveAgent.kt")
         extractInterface("agent", sourceCode, "PerceptiveAgent").toCollection(perceptiveAgentToolCallList)
 
         var fileName = "driver-tool-call-specs.json"

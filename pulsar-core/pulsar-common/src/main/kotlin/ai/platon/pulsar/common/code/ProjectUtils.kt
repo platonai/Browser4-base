@@ -77,12 +77,15 @@ object ProjectUtils {
 
      * @param fileName The name of the file to find.
      * @param baseDir The directory to start the search from.
-     * @return The list of paths to the files that match the specified name, excluding those in "target" and "build" directories.
+     * @return The list of paths to the files that match the specified name.
      */
-    fun walkToFindFiles(fileName: String, baseDir: Path): List<Path> {
+    fun walkToFindFiles(
+        fileName: String, baseDir: Path,
+        excludePaths: List<String> = listOf("/target/", "/build/", "/test/")
+    ): List<Path> {
         return Files.walk(baseDir)
             .filter { it.fileName.toString() == fileName }
-            .filter { !it.toString().contains("/target/") && !it.toString().contains("/build/") }
+            .filter { path -> excludePaths.none { path.toString().contains(it) } }
             .toList()
     }
 
@@ -94,7 +97,7 @@ object ProjectUtils {
      * This method works only when running in an environment where the project structure is accessible (i.e., not in a JAR environment). If the project root directory cannot be found, it returns an empty list.
      *
      * @param fileName The name of the file to find.
-     * @return The list of paths to the files that match the specified name, or null if the project root directory is not found.
+     * @return The list of paths to the files that match the specified name.
      */
     fun findFiles(fileName: String): List<Path> {
         val projectRootDir = findProjectRootDir()
@@ -111,7 +114,7 @@ object ProjectUtils {
      * This method works only when running in an environment where the project structure is accessible (i.e., not in a JAR environment). If the project root directory cannot be found, it returns an empty list.
      *
      * @param fileName The name of the file to find.
-     * @return The list of paths to the files that match the specified name, or null if the project root directory is not found.
+     * @return The list of paths to the files that match the specified name.
      */
     fun findFiles(moduleName: String, fileName: String): List<Path> {
         val projectRootDir = findProjectRootDir() ?: return emptyList()

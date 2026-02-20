@@ -10,18 +10,18 @@ import kotlin.io.path.notExists
 
 object LLMUtils {
 
-    fun copySourceFileAsResource(filename: String) {
+    fun copySourceFileAsResource(moduleName: String, filename: String) {
         if (ProjectUtils.findProjectRootDir() == null) {
             // we are not in a source code project
             return
         }
 
-        val file = ProjectUtils.findFiles("pulsar-core", filename).firstOrNull() ?: throw FileNotFoundException(filename)
+        val file = ProjectUtils.findFiles(moduleName, filename).firstOrNull() ?: throw FileNotFoundException(filename)
         ProjectUtils.copySourceFileAsCodeResource(file)
     }
 
-    fun readSourceFileFromResource(resource: String): String {
-        copySourceFileAsResource(resource)
+    fun readSourceFileFromResource(moduleName: String, resource: String): String {
+        copySourceFileAsResource(moduleName, resource)
 
         val resource = "$CODE_MIRROR_DIR/$resource.txt"
         return when {
