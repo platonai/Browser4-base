@@ -564,6 +564,7 @@ open class BrowserSettings constructor(
             .addArgument("window-size", formatViewPort())
             .addArgument("pageLoadStrategy", pageLoadStrategy)
             .addArgument("throwExceptionOnScriptError", "true")
+            .addArgument("disable-blink-features", "AutomationControlled")
 //            .addArgument("start-maximized")
 
         return chromeOptions

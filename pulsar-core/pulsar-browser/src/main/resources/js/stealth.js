@@ -107,3 +107,118 @@
         return eval(_mainFunction)(utils, ..._args) // eslint-disable-line no-eval
       })({"_utilsFns":{"init":"() => {\n  utils.preloadCache()\n}","stripProxyFromErrors":"(handler = {}) => {\n  const newHandler = {\n    setPrototypeOf: function (target, proto) {\n      if (proto === null)\n        throw new TypeError('Cannot convert object to primitive value')\n      if (Object.getPrototypeOf(target) === Object.getPrototypeOf(proto)) {\n        throw new TypeError('Cyclic __proto__ value')\n      }\n      return Reflect.setPrototypeOf(target, proto)\n    }\n  }\n  // We wrap each trap in the handler in a try/catch and modify the error stack if they throw\n  const traps = Object.getOwnPropertyNames(handler)\n  traps.forEach(trap => {\n    newHandler[trap] = function () {\n      try {\n        // Forward the call to the defined proxy handler\n        return handler[trap].apply(this, arguments || [])\n      } catch (err) {\n        // Stack traces differ per browser, we only support chromium based ones currently\n        if (!err || !err.stack || !err.stack.includes(`at `)) {\n          throw err\n        }\n\n        // When something throws within one of our traps the Proxy will show up in error stacks\n        // An earlier implementation of this code would simply strip lines with a blacklist,\n        // but it makes sense to be more surgical here and only remove lines related to our Proxy.\n        // We try to use a known \"anchor\" line for that and strip it with everything above it.\n        // If the anchor line cannot be found for some reason we fall back to our blacklist approach.\n\n        const stripWithBlacklist = (stack, stripFirstLine = true) => {\n          const blacklist = [\n            `at Reflect.${trap} `, // e.g. Reflect.get or Reflect.apply\n            `at Object.${trap} `, // e.g. Object.get or Object.apply\n            `at Object.newHandler.<computed> [as ${trap}] ` // caused by this very wrapper :-)\n          ]\n          return (\n            err.stack\n              .split('\\n')\n              // Always remove the first (file) line in the stack (guaranteed to be our proxy)\n              .filter((line, index) => !(index === 1 && stripFirstLine))\n              // Check if the line starts with one of our blacklisted strings\n              .filter(line => !blacklist.some(bl => line.trim().startsWith(bl)))\n              .join('\\n')\n          )\n        }\n\n        const stripWithAnchor = (stack, anchor) => {\n          const stackArr = stack.split('\\n')\n          anchor = anchor || `at Object.newHandler.<computed> [as ${trap}] ` // Known first Proxy line in chromium\n          const anchorIndex = stackArr.findIndex(line =>\n            line.trim().startsWith(anchor)\n          )\n          if (anchorIndex === -1) {\n            return false // 404, anchor not found\n          }\n          // Strip everything from the top until we reach the anchor line\n          // Note: We're keeping the 1st line (zero index) as it's unrelated (e.g. `TypeError`)\n          stackArr.splice(1, anchorIndex)\n          return stackArr.join('\\n')\n        }\n\n        // Special cases due to our nested toString proxies\n        err.stack = err.stack.replace(\n          'at Object.toString (',\n          'at Function.toString ('\n        )\n        if ((err.stack || '').includes('at Function.toString (')) {\n          err.stack = stripWithBlacklist(err.stack, false)\n          throw err\n        }\n\n        // Try using the anchor method, fallback to blacklist if necessary\n        err.stack = stripWithAnchor(err.stack) || stripWithBlacklist(err.stack)\n\n        throw err // Re-throw our now sanitized error\n      }\n    }\n  })\n  return newHandler\n}","stripErrorWithAnchor":"(err, anchor) => {\n  const stackArr = err.stack.split('\\n')\n  const anchorIndex = stackArr.findIndex(line => line.trim().startsWith(anchor))\n  if (anchorIndex === -1) {\n    return err // 404, anchor not found\n  }\n  // Strip everything from the top until we reach the anchor line (remove anchor line as well)\n  // Note: We're keeping the 1st line (zero index) as it's unrelated (e.g. `TypeError`)\n  stackArr.splice(1, anchorIndex)\n  err.stack = stackArr.join('\\n')\n  return err\n}","replaceProperty":"(obj, propName, descriptorOverrides = {}) => {\n  return Object.defineProperty(obj, propName, {\n    // Copy over the existing descriptors (writable, enumerable, configurable, etc)\n    ...(Object.getOwnPropertyDescriptor(obj, propName) || {}),\n    // Add our overrides (e.g. value, get())\n    ...descriptorOverrides\n  })\n}","preloadCache":"() => {\n  if (utils.cache) {\n    return\n  }\n  utils.cache = {\n    // Used in our proxies\n    Reflect: {\n      get: Reflect.get.bind(Reflect),\n      apply: Reflect.apply.bind(Reflect)\n    },\n    // Used in `makeNativeString`\n    nativeToStringStr: Function.toString + '' // => `function toString() { [native code] }`\n  }\n}","makeNativeString":"(name = '') => {\n  return utils.cache.nativeToStringStr.replace('toString', name || '')\n}","patchToString":"(obj, str = '') => {\n  const handler = {\n    apply: function (target, ctx) {\n      // This fixes e.g. `HTMLMediaElement.prototype.canPlayType.toString + \"\"`\n      if (ctx === Function.prototype.toString) {\n        return utils.makeNativeString('toString')\n      }\n      // `toString` targeted at our proxied Object detected\n      if (ctx === obj) {\n        // We either return the optional string verbatim or derive the most desired result automatically\n        return str || utils.makeNativeString(obj.name)\n      }\n      // Check if the toString protype of the context is the same as the global prototype,\n      // if not indicates that we are doing a check across different windows., e.g. the iframeWithdirect` test case\n      const hasSameProto = Object.getPrototypeOf(\n        Function.prototype.toString\n      ).isPrototypeOf(ctx.toString) // eslint-disable-line no-prototype-builtins\n      if (!hasSameProto) {\n        // Pass the call on to the local Function.prototype.toString instead\n        return ctx.toString()\n      }\n      return target.call(ctx)\n    }\n  }\n\n  const toStringProxy = new Proxy(\n    Function.prototype.toString,\n    utils.stripProxyFromErrors(handler)\n  )\n  utils.replaceProperty(Function.prototype, 'toString', {\n    value: toStringProxy\n  })\n}","patchToStringNested":"(obj = {}) => {\n  return utils.execRecursively(obj, ['function'], utils.patchToString)\n}","redirectToString":"(proxyObj, originalObj) => {\n  const handler = {\n    apply: function (target, ctx) {\n      // This fixes e.g. `HTMLMediaElement.prototype.canPlayType.toString + \"\"`\n      if (ctx === Function.prototype.toString) {\n        return utils.makeNativeString('toString')\n      }\n\n      // `toString` targeted at our proxied Object detected\n      if (ctx === proxyObj) {\n        const fallback = () =>\n          originalObj && originalObj.name\n            ? utils.makeNativeString(originalObj.name)\n            : utils.makeNativeString(proxyObj.name)\n\n        // Return the toString representation of our original object if possible\n        return originalObj + '' || fallback()\n      }\n\n      if (typeof ctx === 'undefined' || ctx === null) {\n        return target.call(ctx)\n      }\n\n      // Check if the toString protype of the context is the same as the global prototype,\n      // if not indicates that we are doing a check across different windows., e.g. the iframeWithdirect` test case\n      const hasSameProto = Object.getPrototypeOf(\n        Function.prototype.toString\n      ).isPrototypeOf(ctx.toString) // eslint-disable-line no-prototype-builtins\n      if (!hasSameProto) {\n        // Pass the call on to the local Function.prototype.toString instead\n        return ctx.toString()\n      }\n\n      return target.call(ctx)\n    }\n  }\n\n  const toStringProxy = new Proxy(\n    Function.prototype.toString,\n    utils.stripProxyFromErrors(handler)\n  )\n  utils.replaceProperty(Function.prototype, 'toString', {\n    value: toStringProxy\n  })\n}","replaceWithProxy":"(obj, propName, handler) => {\n  const originalObj = obj[propName]\n  const proxyObj = new Proxy(obj[propName], utils.stripProxyFromErrors(handler))\n\n  utils.replaceProperty(obj, propName, { value: proxyObj })\n  utils.redirectToString(proxyObj, originalObj)\n\n  return true\n}","replaceGetterWithProxy":"(obj, propName, handler) => {\n  const fn = Object.getOwnPropertyDescriptor(obj, propName).get\n  const fnStr = fn.toString() // special getter function string\n  const proxyObj = new Proxy(fn, utils.stripProxyFromErrors(handler))\n\n  utils.replaceProperty(obj, propName, { get: proxyObj })\n  utils.patchToString(proxyObj, fnStr)\n\n  return true\n}","mockWithProxy":"(obj, propName, pseudoTarget, handler) => {\n  const proxyObj = new Proxy(pseudoTarget, utils.stripProxyFromErrors(handler))\n\n  utils.replaceProperty(obj, propName, { value: proxyObj })\n  utils.patchToString(proxyObj)\n\n  return true\n}","createProxy":"(pseudoTarget, handler) => {\n  const proxyObj = new Proxy(pseudoTarget, utils.stripProxyFromErrors(handler))\n  utils.patchToString(proxyObj)\n\n  return proxyObj\n}","splitObjPath":"objPath => ({\n  // Remove last dot entry (property) ==> `HTMLMediaElement.prototype`\n  objName: objPath.split('.').slice(0, -1).join('.'),\n  // Extract last dot entry ==> `canPlayType`\n  propName: objPath.split('.').slice(-1)[0]\n})","replaceObjPathWithProxy":"(objPath, handler) => {\n  const { objName, propName } = utils.splitObjPath(objPath)\n  const obj = eval(objName) // eslint-disable-line no-eval\n  return utils.replaceWithProxy(obj, propName, handler)\n}","execRecursively":"(obj = {}, typeFilter = [], fn) => {\n  function recurse(obj) {\n    for (const key in obj) {\n      if (obj[key] === undefined) {\n        continue\n      }\n      if (obj[key] && typeof obj[key] === 'object') {\n        recurse(obj[key])\n      } else {\n        if (obj[key] && typeFilter.includes(typeof obj[key])) {\n          fn.call(this, obj[key])\n        }\n      }\n    }\n  }\n  recurse(obj)\n  return obj\n}","stringifyFns":"(fnObj = { hello: () => 'world' }) => {\n  // Object.fromEntries() ponyfill (in 6 lines) - supported only in Node v12+, modern browsers are fine\n  // https://github.com/feross/fromentries\n  function fromEntries(iterable) {\n    return [...iterable].reduce((obj, [key, val]) => {\n      obj[key] = val\n      return obj\n    }, {})\n  }\n  return (Object.fromEntries || fromEntries)(\n    Object.entries(fnObj)\n      .filter(([key, value]) => typeof value === 'function')\n      .map(([key, value]) => [key, value.toString()]) // eslint-disable-line no-eval\n  )\n}","materializeFns":"(fnStrObj = { hello: \"() => 'world'\" }) => {\n  return Object.fromEntries(\n    Object.entries(fnStrObj).map(([key, value]) => {\n      if (value.startsWith('function')) {\n        // some trickery is needed to make oldschool functions work :-)\n        return [key, eval(`() => ${value}`)()] // eslint-disable-line no-eval\n      } else {\n        // arrow functions just work\n        return [key, eval(value)] // eslint-disable-line no-eval\n      }\n    })\n  )\n}","makeHandler":"() => ({\n  // Used by simple `navigator` getter evasions\n  getterValue: value => ({\n    apply(target, ctx, args) {\n      // Let's fetch the value first, to trigger and escalate potential errors\n      // Illegal invocations like `navigator.__proto__.vendor` will throw here\n      utils.cache.Reflect.apply(...arguments)\n      return value\n    }\n  })\n})"},"_mainFunction":"(utils, opts) => {\n      try {\n        // Adds a contentWindow proxy to the provided iframe element\n        const addContentWindowProxy = iframe => {\n          const contentWindowProxy = {\n            get(target, key) {\n              // Now to the interesting part:\n              // We actually make this thing behave like a regular iframe window,\n              // by intercepting calls to e.g. `.self` and redirect it to the correct thing. :)\n              // That makes it possible for these assertions to be correct:\n              // iframe.contentWindow.self === window.top // must be false\n              if (key === 'self') {\n                return this\n              }\n              // iframe.contentWindow.frameElement === iframe // must be true\n              if (key === 'frameElement') {\n                return iframe\n              }\n              // Intercept iframe.contentWindow[0] to hide the property 0 added by the proxy.\n              if (key === '0') {\n                  return undefined\n              }\n              return Reflect.get(target, key)\n            }\n          }\n\n          if (!iframe.contentWindow) {\n            const proxy = new Proxy(window, contentWindowProxy)\n            Object.defineProperty(iframe, 'contentWindow', {\n              get() {\n                return proxy\n              },\n              set(newValue) {\n                return newValue // contentWindow is immutable\n              },\n              enumerable: true,\n              configurable: false\n            })\n          }\n        }\n\n        // Handles iframe element creation, augments `srcdoc` property so we can intercept further\n        const handleIframeCreation = (target, thisArg, args) => {\n          const iframe = target.apply(thisArg, args)\n\n          // We need to keep the originals around\n          const _iframe = iframe\n          const _srcdoc = _iframe.srcdoc\n\n          // Add hook for the srcdoc property\n          // We need to be very surgical here to not break other iframes by accident\n          Object.defineProperty(iframe, 'srcdoc', {\n            configurable: true, // Important, so we can reset this later\n            get: function() {\n              return _srcdoc\n            },\n            set: function(newValue) {\n              addContentWindowProxy(this)\n              // Reset property, the hook is only needed once\n              Object.defineProperty(iframe, 'srcdoc', {\n                configurable: false,\n                writable: false,\n                value: _srcdoc\n              })\n              _iframe.srcdoc = newValue\n            }\n          })\n          return iframe\n        }\n\n        // Adds a hook to intercept iframe creation events\n        const addIframeCreationSniffer = () => {\n          /* global document */\n          const createElementHandler = {\n            // Make toString() native\n            get(target, key) {\n              return Reflect.get(target, key)\n            },\n            apply: function(target, thisArg, args) {\n              const isIframe =\n                args && args.length && `${args[0]}`.toLowerCase() === 'iframe'\n              if (!isIframe) {\n                // Everything as usual\n                return target.apply(thisArg, args)\n              } else {\n                return handleIframeCreation(target, thisArg, args)\n              }\n            }\n          }\n          // All this just due to iframes with srcdoc bug\n          utils.replaceWithProxy(\n            document,\n            'createElement',\n            createElementHandler\n          )\n        }\n\n        // Let's go\n        addIframeCreationSniffer()\n      } catch (err) {\n        // console.warn(err)\n      }\n    }","_args":[]});
 
+
+// Fix for CDP detection (isAutomatedWithCDP)
+(() => {
+  try {
+    const cdcProps = Object.getOwnPropertyNames(window).filter(p => p.startsWith('cdc_'));
+    for (const prop of cdcProps) {
+        delete window[prop];
+    }
+  } catch (err) {}
+})();
+
+// CDP Detection Fix (Main Context)
+(() => {
+    try {
+        Object.defineProperty(Error, 'prepareStackTrace', {
+            writable: false,
+            configurable: false,
+            value: undefined
+        });
+    } catch (e) {}
+})();
+
+// Patch Blob to inject stealth into workers
+(() => {
+    try {
+        const OriginalBlob = window.Blob;
+        
+        window.Blob = function(parts, options) {
+            if (options && options.type === 'application/javascript') {
+                // Read WebGL vendor/renderer from main context
+                let vendor = 'Intel Inc.';
+                let renderer = 'Intel Iris OpenGL Engine';
+                
+                try {
+                    const canvas = document.createElement('canvas');
+                    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                    if (gl) {
+                        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                        if (debugInfo) {
+                            vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                            renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                        }
+                    }
+                } catch(e) {}
+
+                const stealthCode = `
+// Worker Stealth
+(function() {
+    try {
+        const mocked = {
+            userAgent: ${JSON.stringify(navigator.userAgent)},
+            platform: ${JSON.stringify(navigator.platform)},
+            languages: ${JSON.stringify(navigator.languages)},
+            hardwareConcurrency: ${navigator.hardwareConcurrency},
+            deviceMemory: ${navigator.deviceMemory},
+            webGLVendor: ${JSON.stringify(vendor)},
+            webGLRenderer: ${JSON.stringify(renderer)}
+        };
+        
+        try { if (mocked.userAgent) Object.defineProperty(navigator, 'userAgent', { get: () => mocked.userAgent }); } catch(e) {}
+        try { if (mocked.platform) Object.defineProperty(navigator, 'platform', { get: () => mocked.platform }); } catch(e) {}
+        try { if (mocked.languages) Object.defineProperty(navigator, 'languages', { get: () => mocked.languages }); } catch(e) {}
+        try { if (mocked.hardwareConcurrency) Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => mocked.hardwareConcurrency }); } catch(e) {}
+        try { if (mocked.deviceMemory) Object.defineProperty(navigator, 'deviceMemory', { get: () => mocked.deviceMemory }); } catch(e) {}
+
+        // Mock WebGL
+        try {
+            if (typeof WebGLRenderingContext !== 'undefined') {
+                const originalGetParameter = WebGLRenderingContext.prototype.getParameter;
+                WebGLRenderingContext.prototype.getParameter = function(parameter) {
+                    // UNMASKED_VENDOR_WEBGL = 37445
+                    if (parameter === 37445) return mocked.webGLVendor;
+                    // UNMASKED_RENDERER_WEBGL = 37446
+                    if (parameter === 37446) return mocked.webGLRenderer;
+                    return originalGetParameter.apply(this, arguments);
+                };
+            }
+        } catch(e) {}
+
+        // Hide navigator.webdriver
+        try {
+            if (navigator.webdriver) {
+                delete Object.getPrototypeOf(navigator).webdriver;
+            }
+        } catch(e) {}
+        
+        // CDP Detection Fix in Worker
+        try {
+            Object.defineProperty(Error, 'prepareStackTrace', {
+                writable: false,
+                configurable: false,
+                value: undefined
+            });
+        } catch (e) {}
+    } catch (e) {}
+})();
+`;
+                // Prepend stealth code
+                const newParts = [stealthCode];
+                if (Array.isArray(parts)) {
+                    newParts.push(...parts);
+                } else if (parts && typeof parts[Symbol.iterator] === 'function' && typeof parts !== 'string') {
+                    newParts.push(...parts);
+                } else {
+                     newParts.push(parts);
+                }
+                return new OriginalBlob(newParts, options);
+            }
+            return new OriginalBlob(parts, options);
+        };
+        window.Blob.prototype = OriginalBlob.prototype;
+    } catch(e) {}
+})();
+
+
