@@ -66,6 +66,7 @@ Comprehensive test runner for the project. Supports various test suites and SDKs
 ./bin/test.sh it                         # Run integration tests
 ./bin/test.sh browser4                   # Run all main tests
 ./bin/test.sh python-sdk                 # Run Python SDK tests
+./bin/test.sh nodejs-sdk --coverage      # Run NodeJS SDK tests with coverage
 ```
 
 ### `version.ps1`, `version.sh`
@@ -85,6 +86,8 @@ A text file containing seed URLs for testing or crawling.
 CI/CD related scripts for local and Docker builds.
 - `ci-local.ps1/sh`: Run CI checks locally.
 - `ci-docker-local.ps1/sh`: Run CI checks in Docker.
+- `e2e-local.sh`: Run E2E tests locally (similar to CI workflow).
+- Tag management: `ci-tag-add.ps1`, `ci-tags-rm.ps1/sh`.
 
 ### `legacy/`
 
@@ -95,33 +98,49 @@ Legacy scraping scripts (deprecated but preserved for reference).
 ### `python/`
 
 Python client scripts and examples.
+- `command-sse.py`: Example SSE client.
+- `experimental/`: Experimental scripts.
 
 ### `quality/`
 
 Code quality check scripts.
 - `check-links.sh/ps1`: Check documentation links for validity.
+- `fix-links.py`: Automatically fix broken links.
 - `quality-check.sh/ps1`: Run overall quality checks.
 - See `quality/README.md` for details.
 
 ### `release/`
 
 Release management scripts.
-- Version bumping (`bump-version.ps1/sh`)
-- Creating release notes
-- Maven deployment
+- `bump-version.ps1/sh`: Bump project version (minor/major).
+- `bump-version-patch.ps1/sh`: Bump project version (patch).
+- `update-versions.ps1/sh`: Update version strings across files.
+- `maven-deploy.ps1/sh`: Deploy artifacts to Maven Central.
+- `create-release-notes.sh`: Generate release notes.
+- `update-documentation.ps1/sh`: Update documentation version references.
 
 ### `script-tests/`
 
 Tests for validating the scripts in this directory.
+- `test.sh`: Main test script for bin scripts.
 
 ### `tests/`
 
 End-to-end and integration test helper scripts.
 - `run-e2e-tests.sh`: Helper to run E2E tests.
+- `test-cdp-tracking.sh`: Test for CDP tracking functionality.
 
 ### `tools/`
 
 Utility scripts for development.
-- `install-depends.ps1/sh`: Install dependencies (like Chrome).
+- `install-depends.ps1/sh`: Install dependencies (like Chrome, Maven Wrapper).
 - `kill-browsers.ps1/sh`: Kill lingering browser processes.
-- `cloc.sh`: Count lines of code.
+- `cloc.sh`, `sloc.sh`: Count lines of code.
+- `check-dependencies.ps1/sh`: Check for dependency updates/issues.
+- `dos2unix.sh`: Convert line endings.
+- `git/`: Git helper scripts (e.g., `rm-copilot-branches.ps1`).
+
+### `git/`
+
+Root-level git maintenance scripts.
+- `clean-orphan-tags.ps1`: Clean up orphaned git tags.
