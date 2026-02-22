@@ -34,10 +34,8 @@ if (-not [string]::IsNullOrWhiteSpace($TaskFile)) {
 
 $repoRoot = (git rev-parse --show-toplevel 2>$null)
 if (-not $repoRoot) {
-    $repoRoot = $PSScriptRoot
-    while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot "ROOT.md"))) {
-        $repoRoot = Split-Path $repoRoot -Parent
-    }
+    Write-Host "Repo root not found. Exiting."
+    exit 1
 }
 Set-Location $repoRoot
 
@@ -252,7 +250,7 @@ foreach ($taskRoot in $taskRoots) {
         # 1. Determine the descriptive name based on content (while still in created dir)
         $renameScript = Join-Path $scriptsDir "rename.ps1"
         $descriptiveName = ""
-        
+
         # Read content for fallback title
         $content = Get-Content -Path $file.FullName -Raw
         $safeTitle = $file.BaseName -replace '[\\/*?:"<>|]', '_'
@@ -262,7 +260,7 @@ foreach ($taskRoot in $taskRoots) {
         # User implies "numeric filenames are treated as random filenames... coworker needs to rename these"
         # The current implementation attempts to rename ALL files using gh copilot via rename.ps1.
         # This seems to cover the requirement "1.md, 2.md... are treated as random... rename these".
-        
+
         if (Test-Path $renameScript) {
             # Execute rename.ps1 script
             $generatedName = & $renameScript -FilePath $file.FullName
@@ -277,9 +275,9 @@ foreach ($taskRoot in $taskRoots) {
         if ([string]::IsNullOrWhiteSpace($descriptiveName)) {
              $descriptiveName = $safeTitle
         }
-        
+
         # 2. Rename in place (in created dir) then Move to working directory
-        
+
         # Only rename if the name is different
         if ($descriptiveName -ne $file.BaseName) {
             $renamedPath = Join-Path $createdDir "$descriptiveName$($file.Extension)"
@@ -294,7 +292,7 @@ foreach ($taskRoot in $taskRoots) {
             }
             Move-Item -Path $file.FullName -Destination $renamedPath -Force
             Write-LogMessage "Renamed in created: $($file.Name) -> $(Split-Path $renamedPath -Leaf)" INFO
-            
+
             # Update $file to point to the new location for the next step (move to working)
             $file = Get-Item $renamedPath
         }
@@ -302,7 +300,7 @@ foreach ($taskRoot in $taskRoots) {
         # 3. Move to working directory
         $finalTaskInfo = Resolve-UniquePath -Directory $workingDir -BaseName $file.BaseName -Extension $file.Extension
         $workingPath = $finalTaskInfo.Path
-        
+
         Move-Item -Path $file.FullName -Destination $workingPath -Force
         Write-LogMessage "Moved to working: $workingPath" INFO
 

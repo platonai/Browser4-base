@@ -2,16 +2,16 @@ package ai.platon.pulsar.sdk
 
 import ai.platon.pulsar.sdk.v0.PageEventHandlers
 import ai.platon.pulsar.sdk.v0.detail.OpenApiEvent
+import org.junit.jupiter.api.DisplayName
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import org.junit.jupiter.api.DisplayName
 
 class OpenApiEventsTest {
 
     @Test
-        @DisplayName("should parse OpenApiEvent from json")
+    @DisplayName("should parse OpenApiEvent from json")
     fun shouldParseOpenApiEventFromJson() {
         val json = """
             {"eventId":"e1","eventType":"onLoaded","timestamp":123,"data":{"url":"https://example.com"}}
@@ -26,7 +26,7 @@ class OpenApiEventsTest {
     }
 
     @Test
-        @DisplayName("registeredEventTypes should be distinct across groups")
+    @DisplayName("registeredEventTypes should be distinct across groups")
     fun registeredEventTypesShouldBeDistinctAcrossGroups() {
         val handlers = PageEventHandlers()
         handlers.load.on("onLoaded") { }
@@ -37,7 +37,7 @@ class OpenApiEventsTest {
     }
 
     @Test
-        @DisplayName("onAny should register in all groups")
+    @DisplayName("onAny should register in all groups")
     fun onAnyShouldRegisterInAllGroups() {
         val handlers = PageEventHandlers()
         handlers.onAny("onLoaded") { }

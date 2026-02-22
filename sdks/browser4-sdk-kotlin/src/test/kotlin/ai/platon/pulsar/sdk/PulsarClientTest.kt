@@ -14,11 +14,11 @@ package ai.platon.pulsar.sdk
 
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import org.junit.jupiter.api.DisplayName
 
 /**
  * Unit tests for PulsarClient.
@@ -28,28 +28,28 @@ import org.junit.jupiter.api.DisplayName
 class PulsarClientTest {
 
     @Test
-        @DisplayName("PulsarClient can be created with default settings")
+    @DisplayName("PulsarClient can be created with default settings")
     fun pulsarClientCanBeCreatedWithDefaultSettings() {
         val client = PulsarClient()
         assertNull(client.sessionId)
     }
 
     @Test
-        @DisplayName("PulsarClient can be created with custom base URL")
+    @DisplayName("PulsarClient can be created with custom base URL")
     fun pulsarClientCanBeCreatedWithCustomBaseUrl() {
         val client = PulsarClient(baseUrl = "http://custom-server:9999")
         assertNull(client.sessionId)
     }
 
     @Test
-        @DisplayName("PulsarClient can be created with initial session ID")
+    @DisplayName("PulsarClient can be created with initial session ID")
     fun pulsarClientCanBeCreatedWithInitialSessionId() {
         val client = PulsarClient(sessionId = "test-session-123")
         assertEquals("test-session-123", client.sessionId)
     }
 
     @Test
-        @DisplayName("PulsarClient requires session for session-dependent operations")
+    @DisplayName("PulsarClient requires session for session-dependent operations")
     fun pulsarClientRequiresSessionForSessionDependentOperations() = runTest {
         val client = PulsarClient()
 
@@ -60,7 +60,7 @@ class PulsarClientTest {
     }
 
     @Test
-        @DisplayName("PulsarClient session ID can be updated")
+    @DisplayName("PulsarClient session ID can be updated")
     fun pulsarClientSessionIdCanBeUpdated() {
         val client = PulsarClient()
         assertNull(client.sessionId)
@@ -70,7 +70,7 @@ class PulsarClientTest {
     }
 
     @Test
-        @DisplayName("PulsarClient close does not throw")
+    @DisplayName("PulsarClient close does not throw")
     fun pulsarClientCloseDoesNotThrow() {
         val client = PulsarClient()
         client.close()

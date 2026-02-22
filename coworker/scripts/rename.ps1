@@ -8,6 +8,13 @@ if (-not (Test-Path $FilePath)) {
     exit 1
 }
 
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+if (-not $repoRoot) {
+    Write-Host "Repo root not found. Exiting."
+    exit 1
+}
+Set-Location $repoRoot
+
 $content = Get-Content -Path $FilePath -Raw
 
 # Initialize variables
@@ -48,11 +55,11 @@ if ([string]::IsNullOrWhiteSpace($Fallback)) {
 try {
     $promptEscaped = $namingPrompt -replace '"', '\"'
     $nameArgs = "-p `"$promptEscaped`" --allow-all-tools --allow-all-paths"
-    
+
     # Use temporary files for redirecting output
     $nameStdOut = [System.IO.Path]::GetTempFileName()
     $nameStdErr = [System.IO.Path]::GetTempFileName()
-    
+
     $nameProcess = Start-Process -FilePath "gh" -ArgumentList "copilot $nameArgs" -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
 
     $waited = $false

@@ -16,10 +16,13 @@
 #   If not in structured format, the entire file content is treated as the prompt.
 #
 # Usage:
-#   bash coworker.sh
-#   ./coworker.sh
+#   bash coworker.sh [TaskFile]
+#   ./coworker.sh [TaskFile]
 # ============================================================================
 
+# Configuration
+COPILOT_NAME_TIMEOUT_SECONDS=60
+COPILOT_RUN_TIMEOUT_SECONDS=6000
 
 # Handle optional TaskFile argument
 taskFile="$1"
@@ -31,7 +34,13 @@ while [[ ! -f "$repoRoot/ROOT.md" ]] && [[ "$repoRoot" != "/" ]]; do
     repoRoot="$(dirname "$repoRoot")"
 done
 
-cd "$repoRoot"
+# If ROOT.md not found, fallback to script directory parents
+if [[ ! -f "$repoRoot/ROOT.md" ]]; then
+    # Fallback logic similar to PS1
+    repoRoot="$AppHome/../.."
+fi
+
+cd "$repoRoot" || exit 1
 
 # Define directory paths for task management workflow
 baseDir="$repoRoot/coworker/tasks"
@@ -39,10 +48,9 @@ createdDir="$baseDir/1created"        # Input directory for new tasks
 workingDir="$baseDir/2working"        # Processing directory for current tasks
 finishedDir="$baseDir/3finished"      # Output directory for completed tasks
 logsDir="$baseDir/logs"              # Directory for script and execution logs
-repoRoot="$repoRoot"                  # Repository root for Copilot execution
+scriptsDir="$repoRoot/coworker/scripts"
 
 # Ensure all required directories exist
-# Create them if they don't already exist
 mkdir -p "$createdDir"
 mkdir -p "$workingDir"
 mkdir -p "$finishedDir"
@@ -51,9 +59,16 @@ mkdir -p "$logsDir"
 # Handle specified TaskFile
 if [[ -n "$taskFile" ]]; then
     if [[ -f "$taskFile" ]]; then
-        fileName=$(basename "$taskFile")
+        # Resolve full path
+        if command -v realpath >/dev/null 2>&1; then
+             fullTaskPath=$(realpath "$taskFile")
+        else
+             fullTaskPath="$taskFile"
+        fi
+        
+        fileName=$(basename "$fullTaskPath")
         destPath="$createdDir/$fileName"
-        mv "$taskFile" "$destPath"
+        mv "$fullTaskPath" "$destPath"
         echo "Moved specified task file to: $destPath"
     else
         echo "Error: Specified task file not found: $taskFile" >&2
@@ -107,6 +122,94 @@ log_verbose() {
     echo "$logEntry" >> "$scriptLogPath"
 }
 
+# Function: Get unique path to avoid collisions
+# Usage: resolve_unique_path "directory" "basename" "extension"
+resolve_unique_path() {
+    local dir="$1"
+    local base="$2"
+    local ext="$3"
+    
+    local candidateName="${base}${ext}"
+    local candidatePath="$dir/$candidateName"
+    
+    if [[ ! -e "$candidatePath" ]]; then
+        echo "$candidatePath"
+        return
+    fi
+    
+    local counter=2
+    while true; do
+        local nextName="${base}.${counter}${ext}"
+        local nextPath="$dir/$nextName"
+        if [[ ! -e "$nextPath" ]]; then
+            echo "$nextPath"
+            return
+        fi
+        ((counter++))
+    done
+}
+
+# Function: Generate task name using Copilot
+get_task_basename() {
+    local title="$1"
+    local description="$2"
+    local prompt="$3"
+    local fallback="$4"
+    
+    # Truncate prompt for naming context
+    local promptSample="${prompt:0:600}"
+    
+    # Escape quotes for the prompt content
+    local promptEscaped=$(echo "$promptSample" | sed 's/"/\\"/g')
+    
+    local namingPrompt="Create a short, descriptive task name in kebab-case (3-6 words max). Output only the name.
+Title: $title
+Description: $description
+Prompt: $promptEscaped"
+
+    local nameArgs="-p \"$namingPrompt\" --allow-all-tools --allow-all-paths"
+    
+    # Run gh copilot with timeout
+    # Using timeout command if available, otherwise just run
+    local rawName=""
+    if command -v timeout >/dev/null 2>&1; then
+        rawName=$(timeout "$COPILOT_NAME_TIMEOUT_SECONDS" gh copilot -p "$namingPrompt" --allow-all-tools --allow-all-paths 2>/dev/null | head -n 1)
+        exitCode=$?
+        if [[ $exitCode -eq 124 ]]; then # Timeout exit code
+             return 1 # Fail triggers fallback
+        fi
+    else
+        rawName=$(gh copilot -p "$namingPrompt" --allow-all-tools --allow-all-paths 2>/dev/null | head -n 1)
+    fi
+
+    if [[ -z "$rawName" ]]; then
+        echo "$fallback"
+        return
+    fi
+    
+    # Normalize name
+    # 1. Trim whitespace
+    # 2. Replace whitespace with dashes
+    # 3. Keep only alphanumeric, dot, underscore, dash
+    # 4. Collapse multiple dashes
+    # 5. Trim leading/trailing separators
+    # 6. Truncate to 60 chars
+    
+    local normalized=$(echo "$rawName" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    normalized=$(echo "$normalized" | sed 's/[[:space:]]\+/-/g')
+    normalized=$(echo "$normalized" | sed 's/[^A-Za-z0-9._-]/-/g')
+    normalized=$(echo "$normalized" | sed 's/-\+/-/g')
+    normalized=$(echo "$normalized" | sed -e 's/^[-._]\+//' -e 's/[-._]\+$//')
+    normalized="${normalized:0:60}"
+    normalized=$(echo "$normalized" | sed -e 's/^[-._]\+//' -e 's/[-._]\+$//')
+    
+    if [[ -z "$normalized" ]]; then
+        echo "$fallback"
+    else
+        echo "$normalized"
+    fi
+}
+
 # Log script startup
 log_message "===========================================================================" INFO
 log_message "Coworker Task Runner - Bash Shell Version" INFO
@@ -115,239 +218,243 @@ log_message "Script Log: $scriptLogPath" INFO
 log_message "==========================================================================" INFO
 
 # Process each file in the created directory
-for file in "$createdDir"/*; do
-    # Skip if directory is empty
-    [[ -e "$file" ]] || continue
+# Using nullglob to handle empty directory case safely
+shopt -s nullglob
+files=("$createdDir"/*)
+shopt -u nullglob
+
+for file in "${files[@]}"; do
+    # Skip if it's a directory
+    [[ -f "$file" ]] || continue
 
     log_message "Processing $(basename "$file")..." INFO
 
     # 1. Determine the descriptive name based on content
-    scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    renameScript="$scriptDir/rename.sh"
+    renameScript="$scriptsDir/rename.sh"
     descriptiveName=""
 
-    # Read content for basic info
+    # Read content
     content=$(cat "$file")
-    title="$(basename "$file" | sed 's/\.[^.]*$//')"
-    safeTitle=$(echo "$title" | sed 's/[\/\\*?:"<>|]/_/g')
+    fileName=$(basename "$file")
+    
+    # Extract extension and basename
+    if [[ "$fileName" == *.* ]]; then
+        fileExt=".${fileName##*.}"
+        baseName="${fileName%.*}"
+    else
+        fileExt=""
+        baseName="$fileName"
+    fi
+    
+    safeTitle=$(echo "$baseName" | sed 's/[\/\\*?:"<>|]/_/g')
+    if [[ -z "$safeTitle" ]]; then safeTitle="task"; fi
 
     chmod +x "$renameScript" 2>/dev/null
 
-        if [[ -f "$renameScript" && -x "$renameScript" ]]; then
-            # Execute rename.sh on the file in created dir
-            generatedName=$("$renameScript" "$file")
-            # Check for valid output (not empty, no spaces if possible, not Error)
-            if [[ -n "$generatedName" && "$generatedName" != "Error"* ]]; then
-                 # Basic validation - if it contains spaces, replace with dashes
-                 generatedName=$(echo "$generatedName" | tr ' ' '-')
-                 descriptiveName="$generatedName"
-            fi
-        else
-            # Fallback to internal renaming logic if rename.sh is missing
-            # Extract first 600 chars for prompt context
-            promptSample=$(head -c 600 "$file")
-            
-            # Escape quotes for JSON/shell safety
-            promptEscaped=$(echo "$promptSample" | sed 's/"/\\"/g')
-            
-            namingPrompt="Create a short, descriptive task name in kebab-case (3-6 words max). Output only the name.
-Title: $safeTitle
-Description: Task from $(basename "$file")
-Prompt: $promptEscaped"
-
-            # Call gh copilot directly using the same arguments as the PowerShell script
-            # Assuming 'gh copilot' supports -p based on existing PS1 logic
-            if command -v gh &> /dev/null; then
-                 generatedName=$(gh copilot -p "$namingPrompt" --allow-all-tools --allow-all-paths 2>/dev/null | head -n 1)
-            fi
-            
-            # Clean up the name (remove spaces, special chars, ensure kebab-case)
-            if [[ -n "$generatedName" ]]; then
-                generatedName=$(echo "$generatedName" | tr -d '[:space:]' | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | head -c 60)
-                if [[ -n "$generatedName" ]]; then
-                    descriptiveName="$generatedName"
-                fi
-            fi
+    if [[ -f "$renameScript" && -x "$renameScript" ]]; then
+        # Execute rename.sh script
+        generatedName=$("$renameScript" "$file")
+        if [[ -n "$generatedName" && "$generatedName" != "Error"* ]]; then
+            descriptiveName="$generatedName"
         fi
+    else
+        # Fallback to internal function
+        descriptiveName=$(get_task_basename "$safeTitle" "Task from $fileName" "$content" "$safeTitle")
+    fi
 
     if [[ -z "$descriptiveName" ]]; then
          descriptiveName="$safeTitle"
     fi
     
-    # 2. Rename in place (in created dir)
-    # Only rename if the name is different
-    fileName=$(basename "$file")
+    # 2. Rename in place (in created dir) then Move to working directory
     
-    if [[ "$fileName" == *.* ]]; then
-      fileExt="${fileName##*.}"
-      baseName="${fileName%.*}"
-      dotExt=".$fileExt"
-    else
-      fileExt=""
-      baseName="$fileName"
-      dotExt=""
-    fi
+    currentPath="$file"
     
     if [[ "$descriptiveName" != "$baseName" ]]; then
-        newCreatedName="${descriptiveName}${dotExt}"
-        renamedPath="$createdDir/$newCreatedName"
+        renamedPath=$(resolve_unique_path "$createdDir" "$descriptiveName" "$fileExt")
         
-        # Collision handling in created dir
-        if [[ -e "$renamedPath" ]]; then
-            counter=2
-            while [[ -e "$createdDir/$descriptiveName.$counter$dotExt" ]]; do
-                ((counter++))
-            done
-            newCreatedName="$descriptiveName.$counter$dotExt"
-            renamedPath="$createdDir/$newCreatedName"
-            # Update descriptiveName to reflect the conflict resolution
-            descriptiveName="$descriptiveName.$counter"
+        # If resolve_unique_path returned a path with a counter, update descriptiveName
+        # resolve_unique_path returns full path. extraction needed if we want to update descriptiveName variable correctly for next steps
+        renamedName=$(basename "$renamedPath")
+        if [[ "$renamedName" == *.* ]]; then
+             renamedBase="${renamedName%.*}"
+        else
+             renamedBase="$renamedName"
         fi
         
         mv "$file" "$renamedPath"
-        log_message "Renamed in created: $fileName -> $newCreatedName" INFO
+        log_message "Renamed in created: $fileName -> $renamedName" INFO
         
-        # Update file variable to point to new path
-        file="$renamedPath"
-        # Update content variable re-read is not needed as content didn't change, but variable names did
-        # We need to ensure subsequent logic uses the correct file path
+        currentPath="$renamedPath"
+        fileName="$renamedName"
+        baseName="$renamedBase"
+        descriptiveName="$renamedBase"
     fi
-    
+
     # 3. Move to working directory
-    # Re-calculate basename/ext from the (possibly renamed) file
-    currentFileName=$(basename "$file")
-    
-    if [[ "$currentFileName" == *.* ]]; then
-      currentExt="${currentFileName##*.}"
-      currentBaseName="${currentFileName%.*}"
-      currentDotExt=".$currentExt"
+    workingPath=$(resolve_unique_path "$workingDir" "$baseName" "$fileExt")
+    workingBaseName=$(basename "$workingPath")
+    # remove extension from workingBaseName for log naming
+    if [[ "$workingBaseName" == *.* ]]; then
+        workingBaseNameNoExt="${workingBaseName%.*}"
     else
-      currentExt=""
-      currentBaseName="$currentFileName"
-      currentDotExt=""
-    fi
-
-    workingPath="$workingDir/$currentFileName"
-
-    # Handle filename collision in working dir
-    if [[ -e "$workingPath" ]]; then
-        counter=2
-        while [[ -e "$workingDir/$currentBaseName.$counter$currentDotExt" ]]; do
-            ((counter++))
-        done
-        newWorkingName="$currentBaseName.$counter$currentDotExt"
-        workingPath="$workingDir/$newWorkingName"
+        workingBaseNameNoExt="$workingBaseName"
     fi
     
-    mv "$file" "$workingPath"
+    mv "$currentPath" "$workingPath"
     log_message "Moved to working: $workingPath" INFO
     
-    # Initialize variables for execution
-    description="Task from $(basename "$file")"
+    # 4. Parse content for execution
+    title="$descriptiveName"
+    description="Task from $fileName"
     prompt="$content"
-
-    # Try to parse structured content
-    if [[ $content =~ ^Title:[[:space:]]*([^$'\n']+)$'\n'Description:[[:space:]]*([^$'\n']+)$'\n'Prompt:[[:space:]]*(.*)$ ]]; then
-        title="${BASH_REMATCH[1]}"
-        description="${BASH_REMATCH[2]}"
-        prompt="${BASH_REMATCH[3]}"
+    
+    # Try to parse structured content (simple regex approach)
+    # Using perl for multiline regex support which is more robust than bash regex
+    if command -v perl >/dev/null 2>&1; then
+        parsed_title=$(perl -0777 -ne 'print $1 if /Title:\s*(.*?)(\r\n|\n)/s' "$workingPath")
+        parsed_desc=$(perl -0777 -ne 'print $1 if /Description:\s*(.*?)(\r\n|\n)/s' "$workingPath")
+        parsed_prompt=$(perl -0777 -ne 'print $1 if /Prompt:\s*(.*)$/s' "$workingPath")
+        
+        if [[ -n "$parsed_title" ]]; then title=$(echo "$parsed_title" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
+        if [[ -n "$parsed_desc" ]]; then description=$(echo "$parsed_desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
+        if [[ -n "$parsed_prompt" ]]; then prompt=$(echo "$parsed_prompt" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
     fi
-
-    # Task log path
-    taskLogPath="$logsDir/task_${newFileName}_$(date +%Y%m%d-%H%M%S).log"
-    copilotLogPath="$logsDir/copilot_${newFileName}_$(date +%Y%m%d-%H%M%S).log"
-
+    
+    # Define log file paths
+    # workingBaseNameNoExt was calculated earlier
+    taskLogPath="$logsDir/$workingBaseNameNoExt.task.log"
+    copilotLogPath="$logsDir/$workingBaseNameNoExt.copilot.log"
+    
     log_verbose "Task log will be written to: $taskLogPath"
-
-    # Change to repository root directory for execution
-    pushd "$repoRoot" > /dev/null || exit 1
-
-    log_message "Executing Copilot for task: $descriptiveName" INFO
+    
+    # Change working directory to repository root
+    pushd "$repoRoot" > /dev/null
+    
+    log_message "Executing Copilot for task: $workingBaseNameNoExt" INFO
     log_verbose "Prompt length: ${#prompt} characters"
-
+    
     # Record task execution details to task log
     {
-        echo "Task: $descriptiveName"
+        echo "Task: $title"
         echo "Description: $description"
-        echo "Original File: $(basename "$file")"
+        echo "Original File: $fileName"
         echo "Started: $(date '+%Y-%m-%d %H:%M:%S')"
         echo "Prompt:"
         echo "$prompt"
         echo "---"
         echo "Copilot Execution Output:"
     } > "$taskLogPath"
-
-    # Execute Copilot and handle logging and error handling
-    {
-        # Define paths for temporary output and error logs
-        stdOutLog="${copilotLogPath}.stdout"
-        stdErrLog="${copilotLogPath}.stderr"
-
-        # Execute copilot tool with the task prompt
-        # Capture both standard output and standard error to separate files
-        if gh copilot -p "$prompt" --allow-all-tools --allow-all-paths > "$stdOutLog" 2> "$stdErrLog"; then
-            exitCode=$?
-        else
-            exitCode=$?
-        fi
-
-        # Combine copilot stdout and stderr logs into the copilot-specific log
-        # First append stdout if it exists
+    
+    # Define paths for temporary output and error logs
+    stdOutLog="${copilotLogPath}.stdout"
+    stdErrLog="${copilotLogPath}.stderr"
+    
+    log_message "=== Starting Copilot execution ===" INFO
+    
+    # Start Copilot in background to allow monitoring
+    # We use a subshell to redirect outputs
+    
+    (
+        gh copilot -p "$prompt" --allow-all-tools --allow-all-paths > "$stdOutLog" 2> "$stdErrLog"
+    ) &
+    copilotPid=$!
+    
+    startTime=$(date +%s)
+    lastOutputLineCount=0
+    
+    # Monitor loop
+    while kill -0 "$copilotPid" 2>/dev/null; do
+        sleep 0.5
+        
+        # Check and display new stdout lines
         if [[ -f "$stdOutLog" ]]; then
-            cat "$stdOutLog" >> "$copilotLogPath"
+            # Read new lines. We use wc -l to get line count
+            currentLineCount=$(wc -l < "$stdOutLog")
+            
+            # If we have more lines than before
+            if [[ "$currentLineCount" -gt "$lastOutputLineCount" ]]; then
+                # Print lines from lastOutputLineCount+1 to currentLineCount
+                tail -n +"$((lastOutputLineCount + 1))" "$stdOutLog"
+                lastOutputLineCount=$currentLineCount
+            fi
         fi
-        # Then append stderr if it exists and contains content
-        if [[ -f "$stdErrLog" && -s "$stdErrLog" ]]; then
-            {
-                echo ""
-                echo "=== COPILOT STDERR ==="
-                echo ""
-                cat "$stdErrLog"
-            } >> "$copilotLogPath"
+        
+        # Check timeout
+        currentTime=$(date +%s)
+        elapsed=$((currentTime - startTime))
+        
+        if [[ "$elapsed" -gt "$COPILOT_RUN_TIMEOUT_SECONDS" ]]; then
+            kill -9 "$copilotPid" 2>/dev/null
+            log_message "Copilot timed out after ${COPILOT_RUN_TIMEOUT_SECONDS}s" WARN
+            echo "[TIMEOUT] Copilot execution exceeded ${COPILOT_RUN_TIMEOUT_SECONDS}s timeout"
+            break
         fi
-
-        # Clean up temporary log files
-        rm -f "$stdOutLog"
-        rm -f "$stdErrLog"
-
-        log_message "Copilot execution finished with exit code $exitCode" INFO
-        log_verbose "Copilot external tool log: $copilotLogPath"
-
-        # Append copilot result to task log
+    done
+    
+    # Wait for process to fully exit and get exit code
+    wait "$copilotPid" 2>/dev/null
+    exitCode=$?
+    
+    # Final output capture
+    if [[ -f "$stdOutLog" ]]; then
+        currentLineCount=$(wc -l < "$stdOutLog")
+        if [[ "$currentLineCount" -gt "$lastOutputLineCount" ]]; then
+            tail -n +"$((lastOutputLineCount + 1))" "$stdOutLog"
+        fi
+    fi
+    
+    # Capture stderr output
+    if [[ -f "$stdErrLog" && -s "$stdErrLog" ]]; then
+        echo -e "\n[STDERR OUTPUT]"
+        # Yellow color for stderr
+        while IFS= read -r line; do
+            echo -e "\033[33m$line\033[0m"
+        done < "$stdErrLog"
+    fi
+    
+    # Combine logs
+    if [[ -f "$stdOutLog" ]]; then cat "$stdOutLog" >> "$copilotLogPath"; fi
+    if [[ -f "$stdErrLog" && -s "$stdErrLog" ]]; then
         {
-            echo ""
-            echo "Copilot Exit Code: $exitCode"
-            echo "Copilot Log: $copilotLogPath"
-        } >> "$taskLogPath"
-
-        # Warn if Copilot exited with an error code
-        if [[ $exitCode -ne 0 ]]; then
-            log_message "Warning: Copilot exited with non-zero code. Check log: $copilotLogPath" WARN
-        fi
-    } || {
-        # Handle any errors that occur during script execution
-        log_message "Failed to execute copilot: $?" ERROR
-        {
-            echo ""
-            echo "Error executing copilot"
-        } >> "$taskLogPath"
-    }
-
-    # Return to previous directory from pushd
-    popd > /dev/null || exit 1
-
-    # Move completed task from working directory to finished directory
-    # Create date-based subdirectory: YYYY/MMDD
+            echo -e "\r\n=== COPILOT STDERR ===\r\n"
+            cat "$stdErrLog"
+        } >> "$copilotLogPath"
+    fi
+    
+    # Cleanup temps
+    rm -f "$stdOutLog" "$stdErrLog"
+    
+    log_message "Copilot execution finished with exit code $exitCode" INFO
+    log_message "=== Copilot execution completed ===" INFO
+    log_verbose "Copilot external tool log: $copilotLogPath"
+    
+    # Append result to task log
+    {
+        echo ""
+        echo "Copilot Exit Code: $exitCode"
+        echo "Copilot Log: $copilotLogPath"
+    } >> "$taskLogPath"
+    
+    if [[ $exitCode -ne 0 ]]; then
+        log_message "Warning: Copilot exited with non-zero code. Check log: $copilotLogPath" WARN
+    fi
+    
+    popd > /dev/null
+    
+    # Move to finished
     currentYear=$(date +%Y)
     currentDate=$(date +%m%d)
     finishedSubDir="$finishedDir/$currentYear/$currentDate"
     mkdir -p "$finishedSubDir"
-
-    finishedPath="$finishedSubDir/$newFileName"
-
+    
+    finishedPath=$(resolve_unique_path "$finishedSubDir" "$workingBaseName" "$fileExt")
+    
     mv "$workingPath" "$finishedPath"
     log_message "Task moved to finished: $finishedPath" INFO
+    
     log_message "---" INFO
+    
 done
 
 # Log script completion
@@ -357,4 +464,3 @@ log_message "All tasks completed" INFO
 log_message "Ended at: $scriptEndTime" INFO
 log_message "Script Log: $scriptLogPath" INFO
 log_message "==========================================================================" INFO
-
