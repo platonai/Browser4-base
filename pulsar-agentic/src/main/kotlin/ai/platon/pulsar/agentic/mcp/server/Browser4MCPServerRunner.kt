@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.mcp.server
 
+import ai.platon.pulsar.agentic.common.AgentFileSystem
 import ai.platon.pulsar.agentic.context.AgenticContexts
 import ai.platon.pulsar.common.getLogger
 import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport
@@ -37,11 +38,12 @@ import kotlinx.io.buffered
  *
  * ## Behaviour
  * 1. Creates an [AgenticSession] and acquires a [WebDriver] bound to a real Chrome browser.
- * 2. Wraps it in a [Browser4MCPServer] to register all tools.
- * 3. Creates a [StdioServerTransport] that reads JSON-RPC messages from stdin
+ * 2. Creates an [AgentFileSystem] for file-system tool support.
+ * 3. Wraps everything in a [Browser4MCPServer] to register all tools.
+ * 4. Creates a [StdioServerTransport] that reads JSON-RPC messages from stdin
  *    and writes responses to stdout.
- * 4. Blocks until the MCP client closes the connection (i.e. EOF on stdin).
- * 5. Shuts down the Pulsar context and closes the browser.
+ * 5. Blocks until the MCP client closes the connection (i.e. EOF on stdin).
+ * 6. Shuts down the Pulsar context and closes the browser.
  */
 fun main() {
     val logger = getLogger("Browser4MCPServerRunner")
@@ -49,9 +51,10 @@ fun main() {
 
     val session = AgenticContexts.createSession()
     val driver = session.getOrCreateBoundDriver()
+    val fileSystem = AgentFileSystem()
 
     try {
-        val mcpServer = Browser4MCPServer(driver)
+        val mcpServer = Browser4MCPServer(driver = driver, fileSystem = fileSystem)
 
         val transport = StdioServerTransport(
             inputStream = System.`in`.asSource().buffered(),
