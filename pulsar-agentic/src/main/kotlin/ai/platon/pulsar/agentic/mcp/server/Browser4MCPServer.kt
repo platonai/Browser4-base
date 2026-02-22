@@ -1,6 +1,11 @@
 package ai.platon.pulsar.agentic.mcp.server
 
+import ai.platon.pulsar.agentic.PerceptiveAgent
+import ai.platon.pulsar.agentic.common.AgentFileSystem
+import ai.platon.pulsar.agentic.model.ExtractionSchema
+import ai.platon.pulsar.agentic.tools.specs.ToolSpecification
 import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractBrowser
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
@@ -18,47 +23,42 @@ import kotlinx.serialization.json.JsonPrimitive
  * This server allows external MCP clients (Claude Desktop, Cursor, Windsurf, etc.)
  * to drive a real browser through the Model Context Protocol.
  *
- * ## Tool Design Rationale
+ * The exposed tools are kept in sync with
+ * [ToolSpecification.TOOL_CALL_SPECIFICATION], which is the single source of truth
+ * for every supported domain and method.
  *
- * Tools are grouped into five categories:
+ * ## Tool Domains
  *
- * ### 1. Navigation (navigate_to, go_back, go_forward, reload, current_url)
- * Every useful browser task starts with navigation. These tools give the LLM
- * full control over the URL bar and history, enabling multi-step workflows
- * such as login → menu → form → submit sequences.
+ * ### 1. driver — WebDriver automation (navigate, interact, scroll, wait, read)
+ * Every useful browser task starts with navigation. The driver tools give the LLM
+ * full control over the URL bar, DOM interaction, and page content.
  *
- * ### 2. Element Interaction (click, type, fill, hover, scroll_to, check, uncheck, press)
- * The most frequent actions an agent performs are clicking and typing.
- * Exposing granular interaction primitives instead of a single "do_everything" action
- * keeps tool calls predictable, auditable, and easy to retry on failure.
- * - `fill` clears then types (form reset pattern)
- * - `check`/`uncheck` handle boolean toggles (checkboxes, radio buttons)
- * - `press` sends keyboard keys for hotkeys (Enter, Tab, Escape)
- * - `hover` is required for revealing hover menus and tooltips
+ * ### 2. browser — Tab management (switch_tab, close_tab)
+ * Multi-tab workflows require the ability to switch between and close browser tabs.
  *
- * ### 3. Page Content (get_text, get_html, get_attribute, page_source, screenshot)
- * Agents need to read the page to decide their next action.
- * - `get_text` / `get_html` read specific elements
- * - `get_attribute` reads metadata (href, src, value, data-* attributes)
- * - `page_source` returns the full DOM (useful when element structure is unknown)
- * - `screenshot` provides a visual snapshot for multimodal reasoning
+ * ### 3. fs — File system operations (read/write/manage files)
+ * Agents can persist extracted data, logs, and intermediate results to a sandboxed
+ * file system without leaving the tool-call boundary.
  *
- * ### 4. Waiting & Synchronisation (wait_for_selector, wait_for_navigation)
- * Dynamic pages (SPAs, AJAX, lazy-loading) require explicit waits.
- * Omitting wait tools forces LLMs to insert ad-hoc delays, which are brittle.
- * Correct synchronisation dramatically reduces flakiness.
+ * ### 4. agent — AI-powered extraction and summarisation (optional)
+ * When a [PerceptiveAgent] is supplied, higher-level AI operations become available:
+ * structured data extraction with a JSON schema and natural-language summarisation.
  *
- * ### 5. JavaScript Evaluation (evaluate)
- * A power-user escape hatch. When CSS selectors cannot reach a target
- * (e.g. shadow DOM, canvas overlays, hidden state), `evaluate` lets the
- * agent inject arbitrary JavaScript. Annotated as open-world / non-read-only
- * to signal its elevated risk to the client.
+ * ### 5. system — Help and introspection
+ * Returns human-readable documentation for any tool domain or individual method,
+ * derived directly from [ToolSpecification.TOOL_CALL_SPECIFICATION].
  *
  * @param driver The [WebDriver] instance that will execute browser actions.
+ * @param fileSystem Optional [AgentFileSystem] for file-system tool support.
+ *   When `null` the `fs.*` tools are not registered.
+ * @param agent Optional [PerceptiveAgent] for AI-powered extraction and summarisation.
+ *   When `null` the `agent.*` tools are not registered.
  * @param serverInfo MCP server identification (name and version).
  */
 class Browser4MCPServer(
     private val driver: WebDriver,
+    private val fileSystem: AgentFileSystem? = null,
+    private val agent: PerceptiveAgent? = null,
     serverInfo: Implementation = Implementation(name = "browser4-mcp-server", version = "1.0.0"),
 ) {
 
@@ -74,15 +74,15 @@ class Browser4MCPServer(
         instructions = """
             Browser4 MCP Server gives you full control over a real Chrome browser.
             Use the tools in order: navigate first, then interact, then read content.
-            Always call wait_for_selector or wait_for_navigation after actions that
-            trigger page loads or dynamic updates.
+            Always call wait_for_selector after actions that trigger page loads or dynamic updates.
+            Use the 'help' tool to get detailed documentation for any domain or method.
         """.trimIndent()
     ) {
-        registerNavigationTools()
-        registerInteractionTools()
-        registerContentTools()
-        registerWaitTools()
-        registerJavaScriptTools()
+        registerDriverTools()
+        registerBrowserTools()
+        if (fileSystem != null) registerFileSystemTools(fileSystem)
+        if (agent != null) registerAgentTools(agent)
+        registerSystemTools()
     }
 
     // -------------------------------------------------------------------------
@@ -92,8 +92,14 @@ class Browser4MCPServer(
     private fun stringProp(description: String): JsonObject =
         JsonObject(mapOf("type" to JsonPrimitive("string"), "description" to JsonPrimitive(description)))
 
+    private fun numberProp(description: String): JsonObject =
+        JsonObject(mapOf("type" to JsonPrimitive("number"), "description" to JsonPrimitive(description)))
+
     private fun intProp(description: String): JsonObject =
         JsonObject(mapOf("type" to JsonPrimitive("integer"), "description" to JsonPrimitive(description)))
+
+    private fun boolProp(description: String): JsonObject =
+        JsonObject(mapOf("type" to JsonPrimitive("boolean"), "description" to JsonPrimitive(description)))
 
     private fun schemaOf(vararg props: Pair<String, JsonObject>, required: List<String> = emptyList()): ToolSchema =
         ToolSchema(properties = JsonObject(props.toMap()), required = required)
@@ -118,15 +124,16 @@ class Browser4MCPServer(
     }
 
     // -------------------------------------------------------------------------
-    // Navigation tools
+    // domain: driver
     // -------------------------------------------------------------------------
 
-    private fun Server.registerNavigationTools() {
+    private fun Server.registerDriverTools() {
 
+        // driver.navigateTo(url: String)
         addTool(
             name = "navigate_to",
             description = "Navigate the browser to the given URL. " +
-                "Call wait_for_navigation or wait_for_selector afterwards if the page is dynamic.",
+                "Call wait_for_selector afterwards if the page has dynamic content.",
             inputSchema = schemaOf(
                 "url" to stringProp("The URL to navigate to, e.g. https://example.com"),
                 required = listOf("url")
@@ -137,34 +144,11 @@ class Browser4MCPServer(
             runCatching { driver.navigateTo(url) }
                 .fold(
                     onSuccess = { textResult("Navigated to $url") },
-                    onFailure = { errorResult("Navigation failed: ${it.message}") }
+                    onFailure = { errorResult("navigate_to failed: ${it.message}") }
                 )
         }
 
-        addTool(
-            name = "go_back",
-            description = "Navigate back to the previous page in the browser history.",
-            inputSchema = ToolSchema()
-        ) { _ ->
-            runCatching { driver.goBack() }
-                .fold(
-                    onSuccess = { textResult("Navigated back") },
-                    onFailure = { errorResult("go_back failed: ${it.message}") }
-                )
-        }
-
-        addTool(
-            name = "go_forward",
-            description = "Navigate forward in the browser history.",
-            inputSchema = ToolSchema()
-        ) { _ ->
-            runCatching { driver.goForward() }
-                .fold(
-                    onSuccess = { textResult("Navigated forward") },
-                    onFailure = { errorResult("go_forward failed: ${it.message}") }
-                )
-        }
-
+        // driver.reload()
         addTool(
             name = "reload",
             description = "Reload the current page.",
@@ -177,63 +161,150 @@ class Browser4MCPServer(
                 )
         }
 
+        // driver.goBack()
         addTool(
-            name = "current_url",
-            description = "Return the URL currently loaded in the browser.",
+            name = "go_back",
+            description = "Navigate back to the previous page in the browser history.",
             inputSchema = ToolSchema()
         ) { _ ->
-            runCatching { driver.currentUrl() ?: "" }
+            runCatching { driver.goBack() }
                 .fold(
-                    onSuccess = { url -> textResult(url) },
-                    onFailure = { errorResult("current_url failed: ${it.message}") }
+                    onSuccess = { textResult("Navigated back") },
+                    onFailure = { errorResult("go_back failed: ${it.message}") }
                 )
         }
-    }
 
-    // -------------------------------------------------------------------------
-    // Element interaction tools
-    // -------------------------------------------------------------------------
-
-    private fun Server.registerInteractionTools() {
-
+        // driver.goForward()
         addTool(
-            name = "click",
-            description = "Click the first element that matches the CSS selector.",
+            name = "go_forward",
+            description = "Navigate forward in the browser history.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.goForward() }
+                .fold(
+                    onSuccess = { textResult("Navigated forward") },
+                    onFailure = { errorResult("go_forward failed: ${it.message}") }
+                )
+        }
+
+        // driver.waitForSelector(selector: String, timeoutMillis: Long = 3000)
+        addTool(
+            name = "wait_for_selector",
+            description = "Wait until an element matching the CSS selector appears in the DOM. " +
+                "Call this after actions that trigger dynamic content (AJAX, SPA transitions).",
             inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector for the element to click"),
+                "selector" to stringProp("CSS selector to wait for"),
+                "timeout_ms" to intProp("Maximum time to wait in milliseconds (default: 3000)"),
                 required = listOf("selector")
             )
         ) { request ->
             val selector = arg(request.params.arguments, "selector")
                 ?: return@addTool errorResult("Missing required parameter: selector")
-            runCatching { driver.click(selector) }
+            val timeoutMs = arg(request.params.arguments, "timeout_ms")?.toLongOrNull() ?: 3_000L
+            runCatching { driver.waitForSelector(selector, timeoutMs) }
                 .fold(
-                    onSuccess = { textResult("Clicked '$selector'") },
-                    onFailure = { errorResult("click failed: ${it.message}") }
+                    onSuccess = { textResult("Element '$selector' found") },
+                    onFailure = { errorResult("wait_for_selector failed: ${it.message}") }
                 )
         }
 
+        // driver.exists(selector: String): Boolean
         addTool(
-            name = "type",
-            description = "Type text into the element matching the CSS selector, " +
-                "appending to any existing value.",
+            name = "exists",
+            description = "Return true if at least one element matching the CSS selector exists in the DOM.",
             inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector for the input element"),
-                "text" to stringProp("Text to type"),
-                required = listOf("selector", "text")
+                "selector" to stringProp("CSS selector to check"),
+                required = listOf("selector")
             )
         ) { request ->
             val selector = arg(request.params.arguments, "selector")
                 ?: return@addTool errorResult("Missing required parameter: selector")
-            val text = arg(request.params.arguments, "text")
-                ?: return@addTool errorResult("Missing required parameter: text")
-            runCatching { driver.type(selector, text) }
+            runCatching { driver.exists(selector) }
                 .fold(
-                    onSuccess = { textResult("Typed into '$selector'") },
-                    onFailure = { errorResult("type failed: ${it.message}") }
+                    onSuccess = { textResult(it.toString()) },
+                    onFailure = { errorResult("exists failed: ${it.message}") }
                 )
         }
 
+        // driver.isVisible(selector: String): Boolean
+        addTool(
+            name = "is_visible",
+            description = "Return true if the first element matching the CSS selector is visible in the viewport.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector to check"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.isVisible(selector) }
+                .fold(
+                    onSuccess = { textResult(it.toString()) },
+                    onFailure = { errorResult("is_visible failed: ${it.message}") }
+                )
+        }
+
+        // driver.focus(selector: String)
+        addTool(
+            name = "focus",
+            description = "Move keyboard focus to the first element matching the CSS selector.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the element to focus"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.focus(selector) }
+                .fold(
+                    onSuccess = { textResult("Focused '$selector'") },
+                    onFailure = { errorResult("focus failed: ${it.message}") }
+                )
+        }
+
+        // driver.hover(selector: String)
+        addTool(
+            name = "hover",
+            description = "Move the mouse cursor over the element matching the CSS selector. " +
+                "Use this to reveal dropdown menus, tooltips, and hover-activated UI components.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the element to hover over"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.hover(selector) }
+                .fold(
+                    onSuccess = { textResult("Hovered over '$selector'") },
+                    onFailure = { errorResult("hover failed: ${it.message}") }
+                )
+        }
+
+        // driver.click(selector: String) and driver.click(selector: String, modifier: String)
+        addTool(
+            name = "click",
+            description = "Click the first element matching the CSS selector. " +
+                "Optionally supply a keyboard modifier (e.g. Shift, Control, Alt, Meta) to perform a modified click.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the element to click"),
+                "modifier" to stringProp("Optional keyboard modifier: Shift, Control, Alt, or Meta"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            val modifier = arg(request.params.arguments, "modifier")
+            runCatching {
+                if (modifier != null) driver.click(selector, modifier) else driver.click(selector)
+            }
+                .fold(
+                    onSuccess = { textResult("Clicked '$selector'${if (modifier != null) " with $modifier" else ""}") },
+                    onFailure = { errorResult("click failed: ${it.message}") }
+                )
+        }
+
+        // driver.fill(selector: String, text: String)
         addTool(
             name = "fill",
             description = "Clear the element matching the CSS selector and then type the given text. " +
@@ -255,75 +326,28 @@ class Browser4MCPServer(
                 )
         }
 
+        // driver.type(selector: String, text: String)
         addTool(
-            name = "hover",
-            description = "Move the mouse cursor over the element matching the CSS selector. " +
-                "Use this to reveal dropdown menus, tooltips, and hover-activated UI components.",
+            name = "type",
+            description = "Type text into the element matching the CSS selector, appending to any existing value.",
             inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector for the element to hover over"),
-                required = listOf("selector")
+                "selector" to stringProp("CSS selector for the input element"),
+                "text" to stringProp("Text to type"),
+                required = listOf("selector", "text")
             )
         ) { request ->
             val selector = arg(request.params.arguments, "selector")
                 ?: return@addTool errorResult("Missing required parameter: selector")
-            runCatching { driver.hover(selector) }
+            val text = arg(request.params.arguments, "text")
+                ?: return@addTool errorResult("Missing required parameter: text")
+            runCatching { driver.type(selector, text) }
                 .fold(
-                    onSuccess = { textResult("Hovered over '$selector'") },
-                    onFailure = { errorResult("hover failed: ${it.message}") }
+                    onSuccess = { textResult("Typed into '$selector'") },
+                    onFailure = { errorResult("type failed: ${it.message}") }
                 )
         }
 
-        addTool(
-            name = "scroll_to",
-            description = "Scroll the page until the element matching the CSS selector is visible in the viewport.",
-            inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector of the element to scroll to"),
-                required = listOf("selector")
-            )
-        ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            runCatching { driver.scrollTo(selector) }
-                .fold(
-                    onSuccess = { textResult("Scrolled to '$selector'") },
-                    onFailure = { errorResult("scroll_to failed: ${it.message}") }
-                )
-        }
-
-        addTool(
-            name = "check",
-            description = "Check the checkbox or radio button matching the CSS selector.",
-            inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector for the checkbox or radio button"),
-                required = listOf("selector")
-            )
-        ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            runCatching { driver.check(selector) }
-                .fold(
-                    onSuccess = { textResult("Checked '$selector'") },
-                    onFailure = { errorResult("check failed: ${it.message}") }
-                )
-        }
-
-        addTool(
-            name = "uncheck",
-            description = "Uncheck the checkbox matching the CSS selector.",
-            inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector for the checkbox"),
-                required = listOf("selector")
-            )
-        ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            runCatching { driver.uncheck(selector) }
-                .fold(
-                    onSuccess = { textResult("Unchecked '$selector'") },
-                    onFailure = { errorResult("uncheck failed: ${it.message}") }
-                )
-        }
-
+        // driver.press(selector: String, key: String)
         addTool(
             name = "press",
             description = "Dispatch a keyboard key event on the element matching the CSS selector. " +
@@ -344,17 +368,139 @@ class Browser4MCPServer(
                     onFailure = { errorResult("press failed: ${it.message}") }
                 )
         }
-    }
 
-    // -------------------------------------------------------------------------
-    // Page content tools
-    // -------------------------------------------------------------------------
+        // driver.check(selector: String)
+        addTool(
+            name = "check",
+            description = "Check the checkbox or radio button matching the CSS selector.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the checkbox or radio button"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.check(selector) }
+                .fold(
+                    onSuccess = { textResult("Checked '$selector'") },
+                    onFailure = { errorResult("check failed: ${it.message}") }
+                )
+        }
 
-    private fun Server.registerContentTools() {
+        // driver.uncheck(selector: String)
+        addTool(
+            name = "uncheck",
+            description = "Uncheck the checkbox matching the CSS selector.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the checkbox"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.uncheck(selector) }
+                .fold(
+                    onSuccess = { textResult("Unchecked '$selector'") },
+                    onFailure = { errorResult("uncheck failed: ${it.message}") }
+                )
+        }
 
+        // driver.scrollTo(selector: String)
+        addTool(
+            name = "scroll_to",
+            description = "Scroll the page until the element matching the CSS selector is visible in the viewport.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector of the element to scroll to"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.scrollTo(selector) }
+                .fold(
+                    onSuccess = { textResult("Scrolled to '$selector'") },
+                    onFailure = { errorResult("scroll_to failed: ${it.message}") }
+                )
+        }
+
+        // driver.scrollToTop()
+        addTool(
+            name = "scroll_to_top",
+            description = "Scroll the page to the very top.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.scrollToTop() }
+                .fold(
+                    onSuccess = { textResult("Scrolled to top") },
+                    onFailure = { errorResult("scroll_to_top failed: ${it.message}") }
+                )
+        }
+
+        // driver.scrollToBottom()
+        addTool(
+            name = "scroll_to_bottom",
+            description = "Scroll the page to the very bottom.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.scrollToBottom() }
+                .fold(
+                    onSuccess = { textResult("Scrolled to bottom") },
+                    onFailure = { errorResult("scroll_to_bottom failed: ${it.message}") }
+                )
+        }
+
+        // driver.scrollToMiddle(ratio: Double = 0.5)
+        addTool(
+            name = "scroll_to_middle",
+            description = "Scroll the page to a fractional position. " +
+                "ratio=0.0 is the top, ratio=1.0 is the bottom, ratio=0.5 (default) is the middle.",
+            inputSchema = schemaOf(
+                "ratio" to numberProp("Scroll position as a fraction of page height: 0.0=top, 1.0=bottom (default: 0.5)")
+            )
+        ) { request ->
+            val ratio = arg(request.params.arguments, "ratio")?.toDoubleOrNull() ?: 0.5
+            runCatching { driver.scrollToMiddle(ratio) }
+                .fold(
+                    onSuccess = { textResult("Scrolled to position $ratio") },
+                    onFailure = { errorResult("scroll_to_middle failed: ${it.message}") }
+                )
+        }
+
+        // driver.scrollBy(pixels: Double = 200.0): Double
+        addTool(
+            name = "scroll_by",
+            description = "Scroll the page by the given number of pixels. " +
+                "Positive values scroll down; negative values scroll up.",
+            inputSchema = schemaOf(
+                "pixels" to numberProp("Pixels to scroll (default: 200.0; negative scrolls up)")
+            )
+        ) { request ->
+            val pixels = arg(request.params.arguments, "pixels")?.toDoubleOrNull() ?: 200.0
+            runCatching { driver.scrollBy(pixels) }
+                .fold(
+                    onSuccess = { scrolled -> textResult("Scrolled by $scrolled px") },
+                    onFailure = { errorResult("scroll_by failed: ${it.message}") }
+                )
+        }
+
+        // driver.textContent(): String?  — returns the document's text content (no selector)
+        addTool(
+            name = "text_content",
+            description = "Return the full text content of the current page document.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.textContent() ?: "" }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("text_content failed: ${it.message}") }
+                )
+        }
+
+        // driver.selectFirstTextOrNull(selector: String): String?
         addTool(
             name = "get_text",
-            description = "Return the visible text content of the first element matching the CSS selector.",
+            description = "Return the text content of the first element matching the CSS selector " +
+                "(descendants included). Returns empty string if no element is found.",
             inputSchema = schemaOf(
                 "selector" to stringProp("CSS selector of the target element"),
                 required = listOf("selector")
@@ -369,154 +515,388 @@ class Browser4MCPServer(
                 )
         }
 
+        // driver.delay(millis: Long)
         addTool(
-            name = "get_html",
-            description = "Return the outer HTML of the first element matching the CSS selector. " +
-                "Use page_source to get the full page HTML.",
+            name = "delay",
+            description = "Pause execution for the specified number of milliseconds. " +
+                "Prefer wait_for_selector for synchronising with dynamic content.",
             inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector of the target element"),
-                required = listOf("selector")
+                "millis" to intProp("Duration to wait in milliseconds"),
+                required = listOf("millis")
             )
         ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            runCatching { driver.outerHTML(selector) ?: "" }
+            val millis = arg(request.params.arguments, "millis")?.toLongOrNull()
+                ?: return@addTool errorResult("Missing required parameter: millis")
+            runCatching { driver.delay(millis) }
                 .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("get_html failed: ${it.message}") }
-                )
-        }
-
-        addTool(
-            name = "get_attribute",
-            description = "Return the value of an attribute on the first element matching the CSS selector. " +
-                "Useful for reading href, src, value, data-* attributes, etc.",
-            inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector of the target element"),
-                "attribute" to stringProp("Attribute name, e.g. href, src, value, data-id"),
-                required = listOf("selector", "attribute")
-            )
-        ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            val attribute = arg(request.params.arguments, "attribute")
-                ?: return@addTool errorResult("Missing required parameter: attribute")
-            runCatching { driver.selectFirstAttributeOrNull(selector, attribute) ?: "" }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("get_attribute failed: ${it.message}") }
-                )
-        }
-
-        addTool(
-            name = "page_source",
-            description = "Return the full HTML source of the current page. " +
-                "Use this when you need to understand the full DOM structure. " +
-                "For individual elements prefer get_html to reduce token usage.",
-            inputSchema = ToolSchema()
-        ) { _ ->
-            runCatching { driver.pageSource() ?: "" }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("page_source failed: ${it.message}") }
-                )
-        }
-
-        addTool(
-            name = "screenshot",
-            description = "Capture a screenshot of the current browser viewport and return it as a Base64-encoded PNG. " +
-                "Use this for visual verification or when the page structure is unclear.",
-            inputSchema = ToolSchema()
-        ) { _ ->
-            // captureScreenshot() already returns a Base64-encoded PNG string
-            runCatching { driver.captureScreenshot() }
-                .fold(
-                    onSuccess = { base64 ->
-                        if (base64 == null) {
-                            errorResult("screenshot returned null")
-                        } else {
-                            CallToolResult(
-                                content = listOf(
-                                    io.modelcontextprotocol.kotlin.sdk.types.ImageContent(
-                                        data = base64,
-                                        mimeType = "image/png"
-                                    )
-                                )
-                            )
-                        }
-                    },
-                    onFailure = { errorResult("screenshot failed: ${it.message}") }
+                    onSuccess = { textResult("Waited ${millis}ms") },
+                    onFailure = { errorResult("delay failed: ${it.message}") }
                 )
         }
     }
 
     // -------------------------------------------------------------------------
-    // Wait / synchronisation tools
+    // domain: browser
     // -------------------------------------------------------------------------
 
-    private fun Server.registerWaitTools() {
+    private fun Server.registerBrowserTools() {
 
+        // browser.switchTab(tabId: String): Int
         addTool(
-            name = "wait_for_selector",
-            description = "Wait until an element matching the CSS selector appears in the DOM. " +
-                "Call this after actions that trigger dynamic content (AJAX, SPA transitions).",
+            name = "switch_tab",
+            description = "Switch the active browser tab to the tab identified by tabId. " +
+                "tabId may be a numeric driver ID or a driver GUID.",
             inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector to wait for"),
-                "timeout_ms" to intProp("Maximum time to wait in milliseconds (default: 30000)"),
-                required = listOf("selector")
+                "tab_id" to stringProp("Numeric driver ID or GUID of the tab to activate"),
+                required = listOf("tab_id")
             )
         ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            val timeoutMs = arg(request.params.arguments, "timeout_ms")?.toLongOrNull() ?: 30_000L
-            runCatching { driver.waitForSelector(selector, timeoutMs) }
+            val tabId = arg(request.params.arguments, "tab_id")
+                ?: return@addTool errorResult("Missing required parameter: tab_id")
+            runCatching {
+                val browser = driver.browser as? AbstractBrowser
+                    ?: throw IllegalStateException("Browser does not support tab management")
+                val target = tabId.toIntOrNull()?.let { browser.findDriverById(it) }
+                    ?: browser.findDriverByGUID(tabId)
+                    ?: throw IllegalArgumentException("Tab '$tabId' not found")
+                target.bringToFront()
+                target.id
+            }
                 .fold(
-                    onSuccess = { textResult("Element '$selector' found") },
-                    onFailure = { errorResult("wait_for_selector failed: ${it.message}") }
+                    onSuccess = { id -> textResult("Switched to tab $tabId (driver id: $id)") },
+                    onFailure = { errorResult("switch_tab failed: ${it.message}") }
                 )
         }
 
+        // browser.closeTab(tabId: String)
         addTool(
-            name = "wait_for_navigation",
-            description = "Wait for a page navigation to complete. " +
-                "Call this after clicking a link or submitting a form that navigates to a new URL.",
+            name = "close_tab",
+            description = "Close the browser tab identified by tabId. " +
+                "tabId may be a numeric driver ID or a driver GUID.",
             inputSchema = schemaOf(
-                "timeout_ms" to intProp("Maximum time to wait in milliseconds (default: 30000)")
+                "tab_id" to stringProp("Numeric driver ID or GUID of the tab to close"),
+                required = listOf("tab_id")
             )
         ) { request ->
-            val timeoutMs = arg(request.params.arguments, "timeout_ms")?.toLongOrNull() ?: 30_000L
-            runCatching { driver.waitForNavigation(timeoutMillis = timeoutMs) }
+            val tabId = arg(request.params.arguments, "tab_id")
+                ?: return@addTool errorResult("Missing required parameter: tab_id")
+            runCatching {
+                val browser = driver.browser as? AbstractBrowser
+                    ?: throw IllegalStateException("Browser does not support tab management")
+                val target = tabId.toIntOrNull()?.let { browser.findDriverById(it) }
+                    ?: browser.findDriverByGUID(tabId)
+                    ?: throw IllegalArgumentException("Tab '$tabId' not found")
+                browser.destroyDriver(target)
+            }
                 .fold(
-                    onSuccess = { textResult("Navigation completed") },
-                    onFailure = { errorResult("wait_for_navigation failed: ${it.message}") }
+                    onSuccess = { textResult("Closed tab $tabId") },
+                    onFailure = { errorResult("close_tab failed: ${it.message}") }
                 )
         }
     }
 
     // -------------------------------------------------------------------------
-    // JavaScript evaluation tools
+    // domain: fs
     // -------------------------------------------------------------------------
 
-    private fun Server.registerJavaScriptTools() {
+    private fun Server.registerFileSystemTools(fs: AgentFileSystem) {
 
+        // fs.writeString(filename: String, content: String)
         addTool(
-            name = "evaluate",
-            description = "Execute a JavaScript expression in the browser and return the result as a string. " +
-                "Use this as an escape hatch when CSS selectors cannot reach the target " +
-                "(shadow DOM, canvas, hidden state). " +
-                "Warning: arbitrary code execution — use only when necessary.",
+            name = "write_string",
+            description = "Write content to a file in the agent file system, creating or overwriting it.",
             inputSchema = schemaOf(
-                "expression" to stringProp("JavaScript expression to evaluate, e.g. document.title"),
-                required = listOf("expression")
+                "filename" to stringProp("File name with extension, e.g. output.md"),
+                "content" to stringProp("Content to write"),
+                required = listOf("filename", "content")
             )
         ) { request ->
-            val expression = arg(request.params.arguments, "expression")
-                ?: return@addTool errorResult("Missing required parameter: expression")
-            runCatching { driver.evaluate(expression) }
+            val filename = arg(request.params.arguments, "filename")
+                ?: return@addTool errorResult("Missing required parameter: filename")
+            val content = arg(request.params.arguments, "content") ?: ""
+            runCatching { fs.writeString(filename, content) }
                 .fold(
-                    onSuccess = { result -> textResult(result?.toString() ?: "null") },
-                    onFailure = { errorResult("evaluate failed: ${it.message}") }
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("write_string failed: ${it.message}") }
                 )
+        }
+
+        // fs.readString(filename: String): String
+        addTool(
+            name = "read_string",
+            description = "Read the content of a file from the agent file system.",
+            inputSchema = schemaOf(
+                "filename" to stringProp("File name with extension, e.g. output.md"),
+                required = listOf("filename")
+            )
+        ) { request ->
+            val filename = arg(request.params.arguments, "filename")
+                ?: return@addTool errorResult("Missing required parameter: filename")
+            runCatching { fs.readString(filename) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("read_string failed: ${it.message}") }
+                )
+        }
+
+        // fs.append(filename: String, content: String)
+        addTool(
+            name = "append",
+            description = "Append content to an existing file in the agent file system.",
+            inputSchema = schemaOf(
+                "filename" to stringProp("File name with extension"),
+                "content" to stringProp("Content to append"),
+                required = listOf("filename", "content")
+            )
+        ) { request ->
+            val filename = arg(request.params.arguments, "filename")
+                ?: return@addTool errorResult("Missing required parameter: filename")
+            val content = arg(request.params.arguments, "content")
+                ?: return@addTool errorResult("Missing required parameter: content")
+            runCatching { fs.append(filename, content) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("append failed: ${it.message}") }
+                )
+        }
+
+        // fs.replaceContent(filename: String, oldStr: String, newStr: String): String
+        addTool(
+            name = "replace_content",
+            description = "Replace all occurrences of a string in a file with a new string.",
+            inputSchema = schemaOf(
+                "filename" to stringProp("File name with extension"),
+                "old_str" to stringProp("String to replace"),
+                "new_str" to stringProp("Replacement string"),
+                required = listOf("filename", "old_str", "new_str")
+            )
+        ) { request ->
+            val filename = arg(request.params.arguments, "filename")
+                ?: return@addTool errorResult("Missing required parameter: filename")
+            val oldStr = arg(request.params.arguments, "old_str")
+                ?: return@addTool errorResult("Missing required parameter: old_str")
+            val newStr = arg(request.params.arguments, "new_str")
+                ?: return@addTool errorResult("Missing required parameter: new_str")
+            runCatching { fs.replaceContent(filename, oldStr, newStr) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("replace_content failed: ${it.message}") }
+                )
+        }
+
+        // fs.fileExists(filename: String): String
+        addTool(
+            name = "file_exists",
+            description = "Check whether a file exists in the agent file system.",
+            inputSchema = schemaOf(
+                "filename" to stringProp("File name with extension"),
+                required = listOf("filename")
+            )
+        ) { request ->
+            val filename = arg(request.params.arguments, "filename")
+                ?: return@addTool errorResult("Missing required parameter: filename")
+            runCatching { fs.fileExists(filename) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("file_exists failed: ${it.message}") }
+                )
+        }
+
+        // fs.getFileInfo(filename: String): String
+        addTool(
+            name = "get_file_info",
+            description = "Get metadata about a file (size, line count, extension).",
+            inputSchema = schemaOf(
+                "filename" to stringProp("File name with extension"),
+                required = listOf("filename")
+            )
+        ) { request ->
+            val filename = arg(request.params.arguments, "filename")
+                ?: return@addTool errorResult("Missing required parameter: filename")
+            runCatching { fs.getFileInfo(filename) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("get_file_info failed: ${it.message}") }
+                )
+        }
+
+        // fs.deleteFile(filename: String): String
+        addTool(
+            name = "delete_file",
+            description = "Delete a file from the agent file system.",
+            inputSchema = schemaOf(
+                "filename" to stringProp("File name with extension"),
+                required = listOf("filename")
+            )
+        ) { request ->
+            val filename = arg(request.params.arguments, "filename")
+                ?: return@addTool errorResult("Missing required parameter: filename")
+            runCatching { fs.deleteFile(filename) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("delete_file failed: ${it.message}") }
+                )
+        }
+
+        // fs.copyFile(source: String, dest: String): String
+        addTool(
+            name = "copy_file",
+            description = "Copy a file to a new location within the agent file system.",
+            inputSchema = schemaOf(
+                "source" to stringProp("Source file name with extension"),
+                "dest" to stringProp("Destination file name with extension"),
+                required = listOf("source", "dest")
+            )
+        ) { request ->
+            val source = arg(request.params.arguments, "source")
+                ?: return@addTool errorResult("Missing required parameter: source")
+            val dest = arg(request.params.arguments, "dest")
+                ?: return@addTool errorResult("Missing required parameter: dest")
+            runCatching { fs.copyFile(source, dest) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("copy_file failed: ${it.message}") }
+                )
+        }
+
+        // fs.moveFile(source: String, dest: String): String
+        addTool(
+            name = "move_file",
+            description = "Move or rename a file within the agent file system.",
+            inputSchema = schemaOf(
+                "source" to stringProp("Source file name with extension"),
+                "dest" to stringProp("Destination file name with extension"),
+                required = listOf("source", "dest")
+            )
+        ) { request ->
+            val source = arg(request.params.arguments, "source")
+                ?: return@addTool errorResult("Missing required parameter: source")
+            val dest = arg(request.params.arguments, "dest")
+                ?: return@addTool errorResult("Missing required parameter: dest")
+            runCatching { fs.moveFile(source, dest) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("move_file failed: ${it.message}") }
+                )
+        }
+
+        // fs.listFiles(): String
+        addTool(
+            name = "list_files",
+            description = "List all files in the agent file system with size and line-count information.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { fs.listFilesInfo() }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("list_files failed: ${it.message}") }
+                )
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // domain: agent
+    // -------------------------------------------------------------------------
+
+    private fun Server.registerAgentTools(agent: PerceptiveAgent) {
+
+        // agent.extract(instruction: String, schema: String): String
+        addTool(
+            name = "agent_extract",
+            description = "Extract structured data from the current page using a JSON schema. " +
+                "Supply the extraction goal in 'instruction' and the expected output shape in 'schema'.",
+            inputSchema = schemaOf(
+                "instruction" to stringProp("Natural-language description of what data to extract"),
+                "schema" to stringProp("JSON schema string describing the expected output structure"),
+                required = listOf("instruction", "schema")
+            )
+        ) { request ->
+            val instruction = arg(request.params.arguments, "instruction")
+                ?: return@addTool errorResult("Missing required parameter: instruction")
+            val schema = arg(request.params.arguments, "schema")
+                ?: return@addTool errorResult("Missing required parameter: schema")
+            runCatching {
+                val parsedSchema = ExtractionSchema.parse(schema)
+                agent.extract(instruction, parsedSchema)
+            }
+                .fold(
+                    onSuccess = { textResult(it.toString()) },
+                    onFailure = { errorResult("agent_extract failed: ${it.message}") }
+                )
+        }
+
+        // agent.summarize(instruction: String?, selector: String?): String
+        addTool(
+            name = "agent_summarize",
+            description = "Generate a natural-language summary of the page or a specific element. " +
+                "Optionally provide a CSS selector to scope the content and a custom instruction.",
+            inputSchema = schemaOf(
+                "instruction" to stringProp("Optional instruction for how to summarize the content"),
+                "selector" to stringProp("Optional CSS selector to scope the content being summarized")
+            )
+        ) { request ->
+            val instruction = arg(request.params.arguments, "instruction")
+            val selector = arg(request.params.arguments, "selector")
+            runCatching { agent.summarize(instruction, selector) }
+                .fold(
+                    onSuccess = { textResult(it.toString()) },
+                    onFailure = { errorResult("agent_summarize failed: ${it.message}") }
+                )
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // domain: system
+    // -------------------------------------------------------------------------
+
+    private fun Server.registerSystemTools() {
+
+        // system.help(domain: String): String  and  system.help(domain: String, method: String): String
+        addTool(
+            name = "help",
+            description = "Return documentation for a tool domain or a specific method. " +
+                "Call with only 'domain' to list all methods in that domain. " +
+                "Call with both 'domain' and 'method' to get details for a single method.",
+            inputSchema = schemaOf(
+                "domain" to stringProp("Tool domain: driver, browser, fs, agent, or system"),
+                "method" to stringProp("Optional method name within the domain"),
+                required = listOf("domain")
+            )
+        ) { request ->
+            val domain = arg(request.params.arguments, "domain")
+                ?: return@addTool errorResult("Missing required parameter: domain")
+            val method = arg(request.params.arguments, "method")
+            runCatching { lookupHelp(domain, method) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("help failed: ${it.message}") }
+                )
+        }
+    }
+
+    /**
+     * Return help text for [domain] (and optionally [method]) by filtering
+     * [ToolSpecification.TOOL_CALL_SPECIFICATION].
+     */
+    private fun lookupHelp(domain: String, method: String?): String {
+        val lines = ToolSpecification.TOOL_CALL_SPECIFICATION.lines()
+        val domainPrefix = "$domain."
+        val domainLines = lines.filter { line ->
+            val trimmed = line.trim()
+            trimmed.startsWith(domainPrefix) || trimmed.startsWith("// domain: $domain")
+        }
+        if (domainLines.isEmpty()) {
+            return "Unknown domain '$domain'. Available domains: driver, browser, fs, agent, system."
+        }
+        if (method == null) {
+            return domainLines.joinToString("\n")
+        }
+        val methodPrefix = "$domain.$method("
+        val methodLines = domainLines.filter { it.trim().startsWith(methodPrefix) }
+        return if (methodLines.isEmpty()) {
+            "Unknown method '$method' in domain '$domain'."
+        } else {
+            methodLines.joinToString("\n")
         }
     }
 }
