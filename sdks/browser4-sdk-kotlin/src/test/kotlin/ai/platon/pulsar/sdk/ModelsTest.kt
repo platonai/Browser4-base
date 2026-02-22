@@ -12,25 +12,13 @@
  */
 package ai.platon.pulsar.sdk
 
-import ai.platon.pulsar.sdk.v0.ActionDescription
-import ai.platon.pulsar.sdk.v0.AgentActResult
-import ai.platon.pulsar.sdk.v0.AgentObservation
-import ai.platon.pulsar.sdk.v0.AgentRunResult
-import ai.platon.pulsar.sdk.v0.ElementRef
-import ai.platon.pulsar.sdk.v0.ExtractionResult
-import ai.platon.pulsar.sdk.v0.FieldsExtraction
-import ai.platon.pulsar.sdk.v0.NormURL
-import ai.platon.pulsar.sdk.v0.ObserveResult
-import ai.platon.pulsar.sdk.v0.PageEventHandlers
-import ai.platon.pulsar.sdk.v0.PageSnapshot
-import ai.platon.pulsar.sdk.v0.ToolCallResult
-import ai.platon.pulsar.sdk.v0.WebPage
+import ai.platon.pulsar.sdk.v0.*
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import org.junit.jupiter.api.DisplayName
 
 /**
  * Unit tests for the SDK data models.
@@ -39,8 +27,8 @@ import org.junit.jupiter.api.DisplayName
 class ModelsTest {
 
     @Test
-        @DisplayName("WebPage fromMap creates instance correctly")
-    fun webpageFrommapCreatesInstanceCorrectly() {
+    @DisplayName("WebPage fromMap creates instance correctly")
+    fun webPageFromMapCreatesInstanceCorrectly() {
         val data = mapOf(
             "url" to "https://example.com",
             "location" to "https://example.com/page",
@@ -63,8 +51,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("WebPage fromMap handles missing optional fields")
-    fun webpageFrommapHandlesMissingOptionalFields() {
+    @DisplayName("WebPage fromMap handles missing optional fields")
+    fun webPageFromMapHandlesMissingOptionalFields() {
         val data = mapOf<String, Any?>(
             "url" to "https://example.com"
         )
@@ -79,8 +67,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("NormURL fromMap creates instance correctly")
-    fun normurlFrommapCreatesInstanceCorrectly() {
+    @DisplayName("NormURL fromMap creates instance correctly")
+    fun normURLFromMapCreatesInstanceCorrectly() {
         val data = mapOf(
             "urlSpec" to "https://example.com -expire 1d",
             "url" to "https://example.com",
@@ -97,8 +85,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("AgentRunResult fromMap creates instance correctly")
-    fun agentrunresultFrommapCreatesInstanceCorrectly() {
+    @DisplayName("AgentRunResult fromMap creates instance correctly")
+    fun agentRunResultFromMapCreatesInstanceCorrectly() {
         val data = mapOf(
             "success" to true,
             "message" to "Task completed",
@@ -119,8 +107,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("AgentActResult fromMap creates instance correctly")
-    fun agentactresultFrommapCreatesInstanceCorrectly() {
+    @DisplayName("AgentActResult fromMap creates instance correctly")
+    fun agentActResultFromMapCreatesInstanceCorrectly() {
         val data = mapOf(
             "success" to true,
             "message" to "Action executed",
@@ -139,8 +127,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("ObserveResult fromMap creates instance correctly")
-    fun observeresultFrommapCreatesInstanceCorrectly() {
+    @DisplayName("ObserveResult fromMap creates instance correctly")
+    fun observeResultFromMapCreatesInstanceCorrectly() {
         val data = mapOf(
             "locator" to "0,123",
             "domain" to "driver",
@@ -163,8 +151,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("AgentObservation fromAny handles list correctly")
-    fun agentobservationFromanyHandlesListCorrectly() {
+    @DisplayName("AgentObservation fromAny handles list correctly")
+    fun agentObservationFromAnyHandlesListCorrectly() {
         val data = listOf(
             mapOf(
                 "locator" to "0,1",
@@ -186,15 +174,15 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("AgentObservation fromAny handles null correctly")
-    fun agentobservationFromanyHandlesNullCorrectly() {
+    @DisplayName("AgentObservation fromAny handles null correctly")
+    fun agentObservationFromAnyHandlesNullCorrectly() {
         val observation = AgentObservation.fromAny(null)
         assertTrue(observation.observations.isEmpty())
     }
 
     @Test
-        @DisplayName("ExtractionResult fromMap creates instance correctly")
-    fun extractionresultFrommapCreatesInstanceCorrectly() {
+    @DisplayName("ExtractionResult fromMap creates instance correctly")
+    fun extractionResultFromMapCreatesInstanceCorrectly() {
         val data = mapOf(
             "success" to true,
             "message" to "Extraction successful",
@@ -209,8 +197,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("ToolCallResult fromMap creates instance correctly")
-    fun toolcallresultFrommapCreatesInstanceCorrectly() {
+    @DisplayName("ToolCallResult fromMap creates instance correctly")
+    fun toolCallResultFromMapCreatesInstanceCorrectly() {
         val data = mapOf(
             "success" to true,
             "message" to "Tool executed",
@@ -225,8 +213,8 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("PageSnapshot creation works correctly")
-    fun pagesnapshotCreationWorksCorrectly() {
+    @DisplayName("PageSnapshot creation works correctly")
+    fun pageSnapshotCreationWorksCorrectly() {
         val snapshot = PageSnapshot(
             url = "https://example.com",
             html = "<html><body>Hello</body></html>"
@@ -237,22 +225,22 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("ElementRef creation works correctly")
-    fun elementrefCreationWorksCorrectly() {
+    @DisplayName("ElementRef creation works correctly")
+    fun elementRefCreationWorksCorrectly() {
         val ref = ElementRef(elementId = "element-123")
         assertEquals("element-123", ref.elementId)
     }
 
     @Test
-        @DisplayName("FieldsExtraction default is empty")
-    fun fieldsextractionDefaultIsEmpty() {
+    @DisplayName("FieldsExtraction default is empty")
+    fun fieldsExtractionDefaultIsEmpty() {
         val extraction = FieldsExtraction()
         assertTrue(extraction.fields.isEmpty())
     }
 
     @Test
-        @DisplayName("ActionDescription creation works correctly")
-    fun actiondescriptionCreationWorksCorrectly() {
+    @DisplayName("ActionDescription creation works correctly")
+    fun actionDescriptionCreationWorksCorrectly() {
         val action = ActionDescription(
             description = "Click the button",
             parameters = mapOf("selector" to "button.submit")
@@ -263,15 +251,15 @@ class ModelsTest {
     }
 
     @Test
-        @DisplayName("PageEventHandlers has no handlers by default")
-    fun pageeventhandlersHasNoHandlersByDefault() {
+    @DisplayName("PageEventHandlers has no handlers by default")
+    fun pageEventHandlersHasNoHandlersByDefault() {
         val handlers = PageEventHandlers()
         assertTrue(handlers.registeredEventTypes().isEmpty())
     }
 
     @Test
-        @DisplayName("PageEventHandlers can register handlers")
-    fun pageeventhandlersCanRegisterHandlers() {
+    @DisplayName("PageEventHandlers can register handlers")
+    fun pageEventHandlersCanRegisterHandlers() {
         val handlers = PageEventHandlers()
 
         handlers.load.on("onLoaded") { }

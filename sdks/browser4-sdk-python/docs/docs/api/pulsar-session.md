@@ -23,7 +23,7 @@ class PulsarSession:
     """
     PulsarSession provides methods for loading pages from storage or internet,
     parsing them, and extracting data.
-    
+
     Args:
         client: PulsarClient instance for API communication
     """
@@ -404,7 +404,7 @@ Extract fields from a document using CSS selectors.
 **Parameters:**
 
 - **document** (`Any`): BeautifulSoup document (from `parse()`) or WebPage
-- **field_selectors** (`Union[Mapping[str, str], Iterable[str]]`): 
+- **field_selectors** (`Union[Mapping[str, str], Iterable[str]]`):
   - Dict mapping field names to CSS selectors
   - Or iterable of selectors (selector becomes field name)
 
@@ -764,5 +764,5 @@ page = session.load(url, "-expire 7d -requireSize 10k")
 - [AgenticSession](agentic-session.md) - AI-powered session (extends PulsarSession)
 - [WebDriver](webdriver.md) - Low-level browser control
 - [WebPage Model](models.md#webpage) - Page data structure
-- [NormURL Model](models.md#normurl) - Normalized URL structure
+- [NormURL Model](models.md#normUrl) - Normalized URL structure
 - [API Overview](overview.md) - Complete API reference

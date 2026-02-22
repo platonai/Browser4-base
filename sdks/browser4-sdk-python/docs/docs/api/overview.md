@@ -21,11 +21,11 @@ The SDK includes comprehensive data models for working with API responses:
 | Model | Purpose | Module |
 |-------|---------|--------|
 | [**WebPage**](models.md#webpage) | Represents a loaded web page | `browser4.models` |
-| [**NormURL**](models.md#normurl) | Normalized URL with load arguments | `browser4.models` |
-| [**AgentRunResult**](models.md#agentrunresult) | Result from agent run operation | `browser4.models` |
-| [**AgentActResult**](models.md#agentactresult) | Result from agent act operation | `browser4.models` |
-| [**AgentObservation**](models.md#agentobservation) | Page observation results | `browser4.models` |
-| [**ExtractionResult**](models.md#extractionresult) | AI-powered extraction results | `browser4.models` |
+| [**NormURL**](models.md#normUrl) | Normalized URL with load arguments | `browser4.models` |
+| [**AgentRunResult**](models.md#agentRunResult) | Result from agent run operation | `browser4.models` |
+| [**AgentActResult**](models.md#agentActResult) | Result from agent act operation | `browser4.models` |
+| [**AgentObservation**](models.md#agentObservation) | Page observation results | `browser4.models` |
+| [**ExtractionResult**](models.md#extractionResult) | AI-powered extraction results | `browser4.models` |
 
 See the [Models Reference](models.md) for a complete list of all data models.
 
@@ -80,11 +80,11 @@ with Browser4Driver() as driver:
     client = PulsarClient(base_url=driver.base_url)
     session_id = client.create_session()
     session = AgenticSession(client)
-    
+
     # Use the session
     page = session.open("https://example.com")
     result = session.act("click the search button")
-    
+
     # Cleanup
     session.close()
 ```
@@ -102,11 +102,11 @@ try:
     client = PulsarClient(base_url=driver.base_url)
     session_id = client.create_session()
     session = PulsarSession(client)
-    
+
     # Load and parse pages
     page = session.load("https://example.com", "-expire 1d")
     document = session.parse(page)
-    
+
 finally:
     driver.stop()
 ```

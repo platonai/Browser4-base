@@ -22,10 +22,10 @@
 class AgenticSession(PulsarSession):
     """
     AgenticSession extends PulsarSession with AI-powered browser automation.
-    
+
     Provides methods for intelligent browser interaction using natural language
     instructions, combining data extraction with AI-powered agent functionality.
-    
+
     Args:
         client: PulsarClient instance for API communication
     """
@@ -539,21 +539,21 @@ with Browser4Driver() as driver:
     client = PulsarClient(base_url=driver.base_url)
     client.create_session()
     session = AgenticSession(client)
-    
+
     # Let agent handle the entire workflow
     result = session.run(
         "go to example.com, search for 'python tutorial', "
         "and extract the titles of the top 3 results"
     )
-    
+
     if result.success:
         print(f"Results: {result.final_result}")
         print(f"Took {result.history_size} steps")
-    
+
     # View execution trace
     for trace in session.process_trace:
         print(trace)
-    
+
     session.close()
 ```
 
@@ -721,22 +721,22 @@ session = AgenticSession(client)
 try:
     # Attempt action
     result = session.act("click the non-existent button")
-    
+
     if not result.success:
         print(f"Action failed: {result.message}")
-        
+
         # Check history for context
         if session.state_history.has_errors:
             print("Previous errors detected in history")
-        
+
         # Retry with different approach
         result = session.run(
             "find and click any visible button"
         )
-        
+
 except Exception as e:
     print(f"Unexpected error: {e}")
-    
+
 finally:
     session.close()
 ```
@@ -754,7 +754,7 @@ finally:
 
 - [PulsarSession](pulsar-session.md) - Base class with loading and extraction
 - [WebDriver](webdriver.md) - Low-level browser control
-- [AgentRunResult](models.md#agentrunresult) - Task execution result
-- [AgentActResult](models.md#agentactresult) - Action execution result
+- [AgentRunResult](models.md#agentRunResult) - Task execution result
+- [AgentActResult](models.md#agentActResult) - Action execution result
 - [AgentHistory](models.md#agenthistory) - Execution history tracking
 - [API Overview](overview.md) - Complete API reference

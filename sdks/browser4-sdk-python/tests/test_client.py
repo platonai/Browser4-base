@@ -491,7 +491,7 @@ def test_webpage_from_dict():
     assert not page.is_nil
 
 
-def test_normurl_from_dict():
+def test_normUrl_from_dict():
     """Test NormURL creation from dictionary."""
     data = {
         "spec": "https://example.com -expire 1d",

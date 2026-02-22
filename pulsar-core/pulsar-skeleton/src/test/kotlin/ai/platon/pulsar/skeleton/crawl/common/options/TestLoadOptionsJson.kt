@@ -163,7 +163,7 @@ class TestLoadOptionsJson {
 
     @Test
         @DisplayName("test fromMap")
-    fun testFrommap() {
+    fun testFromMap() {
         val map = mapOf(
             "expires" to "1d",
             "ignoreFailure" to true,

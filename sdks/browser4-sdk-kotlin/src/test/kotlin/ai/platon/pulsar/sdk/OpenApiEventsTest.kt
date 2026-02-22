@@ -12,7 +12,7 @@ class OpenApiEventsTest {
 
     @Test
         @DisplayName("should parse OpenApiEvent from json")
-    fun shouldParseOpenapieventFromJson() {
+    fun shouldParseOpenApiEventFromJson() {
         val json = """
             {"eventId":"e1","eventType":"onLoaded","timestamp":123,"data":{"url":"https://example.com"}}
         """.trimIndent()
@@ -27,7 +27,7 @@ class OpenApiEventsTest {
 
     @Test
         @DisplayName("registeredEventTypes should be distinct across groups")
-    fun registeredeventtypesShouldBeDistinctAcrossGroups() {
+    fun registeredEventTypesShouldBeDistinctAcrossGroups() {
         val handlers = PageEventHandlers()
         handlers.load.on("onLoaded") { }
         handlers.browse.on("onWillFetch") { }
@@ -38,7 +38,7 @@ class OpenApiEventsTest {
 
     @Test
         @DisplayName("onAny should register in all groups")
-    fun onanyShouldRegisterInAllGroups() {
+    fun onAnyShouldRegisterInAllGroups() {
         val handlers = PageEventHandlers()
         handlers.onAny("onLoaded") { }
 
