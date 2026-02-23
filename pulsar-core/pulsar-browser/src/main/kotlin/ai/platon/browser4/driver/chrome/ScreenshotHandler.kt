@@ -24,7 +24,7 @@ class ScreenshotHandler(
      * */
     suspend fun screenshot(fullPage: Boolean): String? {
         if (!fullPage) {
-            return page?.screenshot()
+            return page?.captureScreenshot()
         }
 
         val metrics = page?.getLayoutMetrics() ?: return null
@@ -45,7 +45,7 @@ class ScreenshotHandler(
         // PNG = Crisp, precise, lossless, and supports transparency (ideal for testing and UI design)
         // JPEG = Compact, softly detailed, lossy, and opaque (suitable for presentation and archiving)
         val format = CaptureScreenshotFormat.JPEG
-        val result = page?.screenshot(
+        val result = page?.captureScreenshot(
             format = format,
             captureBeyondViewport = true,
         )
@@ -114,7 +114,7 @@ class ScreenshotHandler(
             return null
         }
 
-        return page?.screenshot(
+        return page?.captureScreenshot(
             format, quality, viewport,
             fromSurface = true,
             captureBeyondViewport = false

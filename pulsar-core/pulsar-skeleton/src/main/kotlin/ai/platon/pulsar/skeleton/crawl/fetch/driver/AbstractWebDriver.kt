@@ -327,7 +327,7 @@ abstract class AbstractWebDriver(
     @Throws(WebDriverException::class)
     override suspend fun ariaSnapshot(selector: String): String {
         val buState = domService?.getBrowserUseState(PageTarget(), SnapshotOptions()) ?: return ""
-        return buState.domState.nanoTreeLazyJson
+        return buState.domState.nanoTreeLazyYaml
     }
 
     @Throws(WebDriverException::class)
