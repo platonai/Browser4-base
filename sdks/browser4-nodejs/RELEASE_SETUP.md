@@ -22,7 +22,7 @@ Added comprehensive scripts for package management:
   "prepack": "npm run rebuild",
   "pack:check": "npm pack --dry-run",
   "version:patch": "npm version patch",
-  "version:minor": "npm version minor", 
+  "version:minor": "npm version minor",
   "version:major": "npm version major",
   "publish:test": "npm publish --dry-run",
   "publish:public": "npm publish --access public",
@@ -61,7 +61,7 @@ Automated publishing workflow:
 #### nodejs-sdk-test.yml
 Automated testing workflow:
 - **Triggers**: PR or push to main/master
-- **Matrix**: 
+- **Matrix**:
   - OS: Ubuntu, macOS, Windows
   - Node: 16, 18, 20
 - **Tests**: lint → test → build → verify → install
@@ -72,7 +72,7 @@ Enhanced package.json with:
 ```json
 {
   "bugs": "https://github.com/platonai/Browser4/issues",
-  "homepage": "https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-nodejs",
+  "homepage": "https://github.com/platonai/Browser4/tree/main/sdks/browser4-nodejs",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=7.0.0"
@@ -169,7 +169,7 @@ npm run version:major
 ## 📚 Documentation Structure
 
 ```
-sdks/browser4-sdk-nodejs/
+sdks/browser4-nodejs/
 ├── README.md              - Main documentation & API overview
 ├── INSTALLATION.md        - Installation guide for users
 ├── PUBLISHING.md          - Publishing guide for maintainers
@@ -182,7 +182,7 @@ sdks/browser4-sdk-nodejs/
 ## 🔧 Configuration Files
 
 ```
-sdks/browser4-sdk-nodejs/
+sdks/browser4-nodejs/
 ├── .npmignore            - Exclude files from npm package
 ├── .npmrc                - NPM registry configuration
 ├── .gitignore            - Exclude from git (existing)
@@ -250,7 +250,7 @@ await driver.use(async (d) => {
 ## 🔗 Links
 
 - **Repository**: https://github.com/platonai/Browser4
-- **SDK Directory**: https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-nodejs
+- **SDK Directory**: https://github.com/platonai/Browser4/tree/main/sdks/browser4-nodejs
 - **npm Package**: https://www.npmjs.com/package/@platonai/browser4-sdk (when published)
 - **Issues**: https://github.com/platonai/Browser4/issues
 

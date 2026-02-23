@@ -391,7 +391,7 @@ for TestType in "${SDKTests[@]}"; do
         ;;
       nodejs-sdk)
         echo "Running NodeJS SDK tests..."
-        NodejsSdkDir="$repoRoot/sdks/browser4-sdk-nodejs"
+        NodejsSdkDir="$repoRoot/sdks/browser4-nodejs"
 
         if [[ ! -d "$NodejsSdkDir" ]]; then
           echo "Error: NodeJS SDK directory not found at $NodejsSdkDir"

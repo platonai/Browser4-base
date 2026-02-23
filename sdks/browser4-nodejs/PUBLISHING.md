@@ -31,7 +31,7 @@ Before each release, verify:
 Install dependencies and build:
 
 ```bash
-cd /path/to/Browser4/sdks/browser4-sdk-nodejs
+cd /path/to/Browser4/sdks/browser4-nodejs
 npm install
 npm run build
 ```
@@ -193,7 +193,7 @@ Automatically tests the SDK on pull requests and pushes.
 1. Create an npm access token:
    - Go to npmjs.com → Account → Access Tokens
    - Create an "Automation" token
-   
+
 2. Add token to GitHub secrets:
    - Repository Settings → Secrets → New repository secret
    - Name: `NPM_TOKEN`
@@ -207,7 +207,7 @@ Automatically tests the SDK on pull requests and pushes.
 
 The workflow will automatically:
 - Run tests
-- Build the package  
+- Build the package
 - Publish to npm
 - Create a GitHub release
 

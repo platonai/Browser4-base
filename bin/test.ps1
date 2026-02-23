@@ -229,7 +229,7 @@ foreach ($TestType in $SDKTests) {
         }
         "nodejs-sdk" {
           Write-Host "Running NodeJS SDK tests..."
-          $NodejsSdkDir = Join-Path $repoRoot "sdks\browser4-sdk-nodejs"
+          $NodejsSdkDir = Join-Path $repoRoot "sdks\browser4-nodejs"
 
           if (!(Test-Path $NodejsSdkDir)) {
             Write-Error "NodeJS SDK directory not found at $NodejsSdkDir"

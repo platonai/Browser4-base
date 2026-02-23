@@ -37,12 +37,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/platonai/Browser4.git",
-    "directory": "sdks/browser4-sdk-nodejs"
+    "directory": "sdks/browser4-nodejs"
   },
   "bugs": {
     "url": "https://github.com/platonai/Browser4/issues"
   },
-  "homepage": "https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-nodejs",
+  "homepage": "https://github.com/platonai/Browser4/tree/main/sdks/browser4-nodejs",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=7.0.0"

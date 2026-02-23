@@ -16,7 +16,7 @@ This document provides a summary of the NodeJS SDK implementation for Browser4.
 ## File Structure
 
 ```
-sdks/browser4-sdk-nodejs/
+sdks/browser4-nodejs/
 ├── src/
 │   ├── index.ts              # Main entry point and exports
 │   ├── client.ts             # PulsarClient - HTTP API client

@@ -115,10 +115,10 @@ async function main() {
     const client = new PulsarClient({ baseUrl: d.baseUrl });
     await client.createSession();
     const session = new AgenticSession(client);
-    
+
     const page = await session.open('https://example.com');
     console.log(page.url);
-    
+
     await session.close();
   });
 }
@@ -137,10 +137,10 @@ async function main(): Promise<void> {
     const client = new PulsarClient({ baseUrl: d.baseUrl });
     await client.createSession();
     const session = new AgenticSession(client);
-    
+
     const page = await session.open('https://example.com');
     console.log(page.url);
-    
+
     await session.close();
   });
 }
@@ -159,13 +159,13 @@ async function scrape() {
     const client = new PulsarClient({ baseUrl: d.baseUrl });
     await client.createSession();
     const session = new PulsarSession(client);
-    
+
     const data = await session.scrape('https://example.com', {
       title: 'h1',
       description: 'meta[name="description"]::attr(content)',
       links: 'a::attr(href)'
     });
-    
+
     console.log(data);
     await session.close();
   });
@@ -185,15 +185,15 @@ async function automate() {
     const client = new PulsarClient({ baseUrl: d.baseUrl });
     await client.createSession();
     const session = new AgenticSession(client);
-    
+
     await session.open('https://example.com');
-    
+
     // Single action
     await session.act('click the login button');
-    
+
     // Multi-step task
     await session.run('search for "nodejs" and click the first result');
-    
+
     await session.close();
   });
 }
@@ -248,7 +248,7 @@ export BROWSER4_PORT=8183
 ## File Structure
 
 ```
-browser4-sdk-nodejs/
+browser4-nodejs/
 ├── dist/              # Compiled JavaScript and type definitions
 ├── src/               # TypeScript source code
 ├── tests/             # Test files
@@ -272,7 +272,7 @@ browser4-sdk-nodejs/
 ## Links
 
 - **Repository**: https://github.com/platonai/Browser4
-- **SDK Directory**: https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-nodejs
+- **SDK Directory**: https://github.com/platonai/Browser4/tree/main/sdks/browser4-nodejs
 - **npm Package**: https://www.npmjs.com/package/@platonai/browser4-sdk (when published)
 - **Issues**: https://github.com/platonai/Browser4/issues
 - **Documentation**: https://github.com/platonai/Browser4/tree/main/docs

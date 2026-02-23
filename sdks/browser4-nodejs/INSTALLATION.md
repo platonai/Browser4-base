@@ -85,7 +85,7 @@ For contributors or advanced users:
 ```bash
 # Clone the repository
 git clone https://github.com/platonai/Browser4.git
-cd Browser4/sdks/browser4-sdk-nodejs
+cd Browser4/sdks/browser4-nodejs
 
 # Install dependencies
 npm install
@@ -130,7 +130,7 @@ console.log('Testing @platonai/browser4-sdk installation...\n');
 // Check main exports
 const exports = [
   'PulsarClient',
-  'Browser4Driver', 
+  'Browser4Driver',
   'PulsarSession',
   'AgenticSession',
   'WebDriver'
@@ -195,15 +195,15 @@ const { Browser4Driver, PulsarClient, AgenticSession } = require('@platonai/brow
 
 async function main() {
   const driver = new Browser4Driver();
-  
+
   await driver.use(async (d) => {
     const client = new PulsarClient({ baseUrl: d.baseUrl });
     await client.createSession();
     const session = new AgenticSession(client);
-    
+
     await session.open('https://example.com');
     console.log('✅ Successfully opened page!');
-    
+
     await session.close();
   });
 }
@@ -235,15 +235,15 @@ import { Browser4Driver, PulsarClient, AgenticSession } from '@platonai/browser4
 
 async function main(): Promise<void> {
   const driver = new Browser4Driver();
-  
+
   await driver.use(async (d) => {
     const client = new PulsarClient({ baseUrl: d.baseUrl });
     await client.createSession();
     const session = new AgenticSession(client);
-    
+
     const page = await session.open('https://example.com');
     console.log(`✅ Opened: ${page.url}`);
-    
+
     await session.close();
   });
 }

@@ -62,36 +62,36 @@ jobs:
           echo "📦 Publishing version: $VERSION with tag: $NPM_TAG"
       
       - name: Install dependencies
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm ci
       
       - name: Run lint
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm run lint
       
       - name: Run tests
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm test
       
       - name: Build
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm run build
       
       - name: Verify build
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm run verify:build
       
       - name: Update version in package.json
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: |
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version
       
       - name: Check package contents
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm pack --dry-run
       
       - name: Publish to npm
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: |
           npm publish --access public --tag ${{ steps.version.outputs.npm_tag }}
         env:
@@ -114,13 +114,13 @@ jobs:
             
             ## Changes
             
-            See [CHANGELOG.md](https://github.com/platonai/Browser4/blob/main/sdks/browser4-sdk-nodejs/CHANGELOG.md) for details.
+            See [CHANGELOG.md](https://github.com/platonai/Browser4/blob/main/sdks/browser4-nodejs/CHANGELOG.md) for details.
             
             ## Documentation
             
-            - [README](https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-nodejs/README.md)
-            - [Installation Guide](https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-nodejs/INSTALLATION.md)
-            - [Quick Reference](https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-nodejs/QUICKREF.md)
+            - [README](https://github.com/platonai/Browser4/tree/main/sdks/browser4-nodejs/README.md)
+            - [Installation Guide](https://github.com/platonai/Browser4/tree/main/sdks/browser4-nodejs/INSTALLATION.md)
+            - [Quick Reference](https://github.com/platonai/Browser4/tree/main/sdks/browser4-nodejs/QUICKREF.md)
           draft: false
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
         env:

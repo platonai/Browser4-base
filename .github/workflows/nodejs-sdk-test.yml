@@ -3,14 +3,14 @@ name: NodeJS SDK Tests
 on:
   pull_request:
     paths:
-      - 'sdks/browser4-sdk-nodejs/**'
+      - 'sdks/browser4-nodejs/**'
       - '.github/workflows/nodejs-sdk-test.yml'
   push:
     branches:
       - main
       - master
     paths:
-      - 'sdks/browser4-sdk-nodejs/**'
+      - 'sdks/browser4-nodejs/**'
       - '.github/workflows/nodejs-sdk-test.yml'
   workflow_dispatch:
 
@@ -33,37 +33,37 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          cache-dependency-path: sdks/browser4-sdk-nodejs/package-lock.json
+          cache-dependency-path: sdks/browser4-nodejs/package-lock.json
       
       - name: Install dependencies
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm ci
       
       - name: Run lint
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm run lint
       
       - name: Run tests
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm test
       
       - name: Build
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm run build
       
       - name: Verify build
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm run verify:build
       
       - name: Test package creation
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm pack --dry-run
       
       - name: Upload coverage (ubuntu-latest, node 18 only)
         if: matrix.os == 'ubuntu-latest' && matrix.node-version == 18
         uses: codecov/codecov-action@v3
         with:
-          directory: sdks/browser4-sdk-nodejs/coverage
+          directory: sdks/browser4-nodejs/coverage
           flags: nodejs-sdk
           name: nodejs-sdk-coverage
   
@@ -82,13 +82,13 @@ jobs:
           node-version: '18'
       
       - name: Install dependencies and build
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: |
           npm ci
           npm run build
       
       - name: Create package
-        working-directory: sdks/browser4-sdk-nodejs
+        working-directory: sdks/browser4-nodejs
         run: npm pack
       
       - name: Test installation
@@ -97,7 +97,7 @@ jobs:
           mkdir test-install
           cd test-install
           npm init -y
-          npm install $GITHUB_WORKSPACE/sdks/browser4-sdk-nodejs/*.tgz
+          npm install $GITHUB_WORKSPACE/sdks/browser4-nodejs/*.tgz
           
           # Create test file
           cat > test.js << 'EOF'
