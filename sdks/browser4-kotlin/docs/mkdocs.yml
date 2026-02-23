@@ -5,7 +5,7 @@ site_url: https://browser4.io
 
 repo_name: platonai/Browser4
 repo_url: https://github.com/platonai/Browser4
-edit_uri: edit/main/sdks/browser4-sdk-kotlin/docs/
+edit_uri: edit/main/sdks/browser4-kotlin/docs/
 
 theme:
   name: material

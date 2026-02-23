@@ -21,7 +21,7 @@
 ### 测试结构（模块分离）
 ```
 sdks/
-├── browser4-sdk-kotlin/                     # SDK 模块（保持干净）
+├── browser4-kotlin/                     # SDK 模块（保持干净）
 │   ├── pom.xml                              # groupId: io.browser4
 │   └── src/
 │       ├── main/kotlin/                     # SDK 源码
@@ -152,7 +152,7 @@ abstract class KotlinSdkIntegrationTestBase {
     <!-- SDK 依赖 -->
     <dependency>
         <groupId>io.browser4</groupId>
-        <artifactId>browser4-sdk-kotlin</artifactId>
+        <artifactId>browser4-kotlin</artifactId>
         <version>${browser4.sdk.version}</version>
     </dependency>
     <!-- 测试服务器依赖 -->

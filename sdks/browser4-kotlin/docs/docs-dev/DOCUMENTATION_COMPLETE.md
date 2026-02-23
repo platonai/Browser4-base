@@ -107,7 +107,7 @@ The documentation is ready for:
 If using MkDocs (as configured in mkdocs.yml):
 
 ```bash
-cd sdks/browser4-sdk-kotlin/docs
+cd sdks/browser4-kotlin/docs
 mkdocs build
 mkdocs serve  # View at http://localhost:8000
 ```

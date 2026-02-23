@@ -1,7 +1,7 @@
 # Browser4 Kotlin SDK Coverage Matrix (Integration Tests)
 
 Scope: sdks/kotlin-sdk-tests/src/test/kotlin/ai/platon/pulsar/sdk/integration
-Target SDK: sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0
+Target SDK: sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0
 
 Legend:
 - Yes: covered by a test in the integration suite
@@ -10,7 +10,7 @@ Legend:
 
 ## PulsarSession
 
-Source: sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/PulsarSession.kt
+Source: sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/PulsarSession.kt
 
 | Method | Coverage | Tests | Notes |
 | --- | --- | --- | --- |
@@ -33,7 +33,7 @@ Source: sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/PulsarS
 
 ## WebDriver
 
-Source: sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt
+Source: sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt
 
 | Method | Coverage | Tests | Notes |
 | --- | --- | --- | --- |
@@ -83,7 +83,7 @@ Source: sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriv
 
 ## AgenticSession
 
-Source: sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/AgenticSession.kt
+Source: sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/AgenticSession.kt
 
 | Method/Capability | Coverage | Tests | Notes |
 | --- | --- | --- | --- |
@@ -101,9 +101,9 @@ Source: sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/Agentic
 ## AgenticContexts / PerceptiveAgent / Models
 
 Sources:
-- sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/AgenticContexts.kt
-- sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/PerceptiveAgent.kt
-- sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/Models.kt
+- sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/AgenticContexts.kt
+- sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/PerceptiveAgent.kt
+- sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/Models.kt
 
 | Module | Coverage | Notes |
 | --- | --- | --- |

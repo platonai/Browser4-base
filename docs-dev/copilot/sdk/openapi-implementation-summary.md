@@ -42,7 +42,7 @@
 ### Phase 2: SDK WebDriver Alignment (27 methods added to each SDK)
 
 #### 2.1 Kotlin SDK Enhancements
-Added 27 methods to `sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt`:
+Added 27 methods to `sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt`:
 
 **Cookie Operations (4 methods)**
 - `getCookies()` - Get all cookies
@@ -172,7 +172,7 @@ Verified that both Kotlin and Python SDKs have all required methods:
 1. `pulsar-rest/src/main/kotlin/ai/platon/pulsar/rest/openapi/controller/NavigationController.kt` - Added pageSource endpoint
 2. `pulsar-rest/src/main/kotlin/ai/platon/pulsar/rest/openapi/controller/ElementController.kt` - Added 11 element endpoints
 3. `pulsar-rest/src/main/kotlin/ai/platon/pulsar/rest/openapi/dto/ApiDtos.kt` - Added Cookie DTOs
-4. `sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt` - Added 27 methods
+4. `sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt` - Added 27 methods
 5. `sdks/browser4-python/browser4/webdriver.py` - Added 27 methods
 
 ## Testing Recommendations

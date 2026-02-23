@@ -145,7 +145,7 @@ The documentation is complete and ready for:
 To build and view the documentation:
 
 ```bash
-cd sdks/browser4-sdk-kotlin/docs
+cd sdks/browser4-kotlin/docs
 mkdocs build
 mkdocs serve  # View at http://localhost:8000
 ```

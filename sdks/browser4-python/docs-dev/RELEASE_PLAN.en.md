@@ -44,7 +44,7 @@ browser4-python follows an **independent versioning** strategy, **decoupled** fr
 | Component | Current Version | Version Strategy |
 |-----------|-----------------|------------------|
 | Browser4 (main project) | 4.5.0           | Maven semantic versioning |
-| browser4-sdk-kotlin | Follows main    | Synced with main project |
+| browser4-kotlin | Follows main    | Synced with main project |
 | browser4-python | 0.1.0           | Independent versioning |
 | browser4-sdk-nodejs | TBD             | Independent versioning |
 | browser4-sdk-rust | TBD             | Independent versioning |

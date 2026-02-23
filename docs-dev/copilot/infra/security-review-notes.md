@@ -10,7 +10,7 @@ Code review identified JavaScript injection vulnerabilities in SDK WebDriver met
 ### 1. JavaScript Injection in SDK Methods
 **Severity**: Medium to High
 **Files Affected**:
-- `sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt`
+- `sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt`
 - `sdks/browser4-python/browser4/webdriver.py`
 - `pulsar-rest/src/main/kotlin/ai/platon/pulsar/rest/openapi/controller/ElementController.kt`
 - `pulsar-rest/src/main/kotlin/ai/platon/pulsar/rest/openapi/controller/CookieController.kt`
@@ -62,7 +62,7 @@ If `selector` contains `'); alert('XSS'); //`, it could execute arbitrary JavaSc
 2. **Use JSON Encoding**:
    ```kotlin
    import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-   
+
    val mapper = jacksonObjectMapper()
    val safeValue = mapper.writeValueAsString(attrValue)
    executeScript("document.querySelector($safeSelector).setAttribute($safeAttrName, $safeValue)")
@@ -121,8 +121,8 @@ private val cookieDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z").a
 }
 
 // Usage:
-cookie.expires?.let { 
-    append("; expires=${cookieDateFormat.format(java.util.Date(it))}") 
+cookie.expires?.let {
+    append("; expires=${cookieDateFormat.format(java.util.Date(it))}")
 }
 ```
 

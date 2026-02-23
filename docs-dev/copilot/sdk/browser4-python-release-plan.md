@@ -146,7 +146,7 @@ git push origin python-sdk-v0.2.0
 
 ### 参考文档
 - **主项目发布流程**：[bin/release/README.md](../../../bin/release/README.md)
-- **Kotlin SDK**：`sdks/browser4-sdk-kotlin/`
+- **Kotlin SDK**：`sdks/browser4-kotlin/`
 - **CI/CD 工作流**：`.github/workflows/release.yml`
 
 ### 外部资源

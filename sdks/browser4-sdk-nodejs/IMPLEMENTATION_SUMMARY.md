@@ -85,7 +85,7 @@ Coverage:    50%+ across all metrics
 
 The SDK maintains full API compatibility with:
 - ✅ Python SDK (browser4-python)
-- ✅ Kotlin SDK (browser4-sdk-kotlin)
+- ✅ Kotlin SDK (browser4-kotlin)
 
 ### Consistency Measures
 

@@ -144,7 +144,7 @@ These methods continue to work with elementIds but now properly encode them:
 
 ## Files Changed
 
-1. `sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt`
+1. `sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt`
    - Added `URLEncoder` import
    - Added `encodePathSegment()` helper method
    - Changed `sendKeys()` to accept selector instead of elementId
@@ -156,7 +156,7 @@ These methods continue to work with elementIds but now properly encode them:
    - Changed `send_keys()` to accept selector instead of element_id
    - Fixed `click_element()`, `get_attribute()`, `get_text()` to use URL encoding
 
-3. `sdks/browser4-sdk-kotlin/src/test/kotlin/ai/platon/pulsar/sdk/UrlEncodingTest.kt` (new)
+3. `sdks/browser4-kotlin/src/test/kotlin/ai/platon/pulsar/sdk/UrlEncodingTest.kt` (new)
    - Comprehensive URL encoding verification tests
 
 ## Related Issues
@@ -169,8 +169,8 @@ To verify the fix works:
 
 ```bash
 # Build the SDK
-./mvnw -Psdk -pl sdks/browser4-sdk-kotlin clean install -DskipTests
+./mvnw -Psdk -pl sdks/browser4-kotlin clean install -DskipTests
 
 # Run URL encoding tests
-./mvnw -Psdk -pl sdks/browser4-sdk-kotlin test -Dtest=UrlEncodingTest
+./mvnw -Psdk -pl sdks/browser4-kotlin test -Dtest=UrlEncodingTest
 ```

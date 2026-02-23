@@ -170,4 +170,4 @@ Integration tests are slower than unit tests. Use:
 
 ## Related Documentation
 
-- Kotlin SDK README: `sdks/browser4-sdk-kotlin/README.md`
+- Kotlin SDK README: `sdks/browser4-kotlin/README.md`

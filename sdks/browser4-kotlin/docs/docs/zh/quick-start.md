@@ -15,7 +15,7 @@
 ```xml
 <dependency>
     <groupId>io.browser4</groupId>
-    <artifactId>browser4-sdk-kotlin</artifactId>
+    <artifactId>browser4-kotlin</artifactId>
     <version>4.6.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -23,7 +23,7 @@
 ### Gradle
 
 ```kotlin
-implementation("io.browser4:browser4-sdk-kotlin:4.6.0-SNAPSHOT")
+implementation("io.browser4:browser4-kotlin:4.6.0-SNAPSHOT")
 ```
 
 ## 第一个示例

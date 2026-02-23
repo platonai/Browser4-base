@@ -85,7 +85,7 @@
 │                                                                           │
 │  sdks/                                                                    │
 │  │                                                                        │
-│  ├── browser4-sdk-kotlin/              # Kotlin SDK (prod code + unit tests)│
+│  ├── browser4-kotlin/              # Kotlin SDK (prod code + unit tests)│
 │  │   ├── pom.xml                       # groupId: io.browser4              │
 │  │   └── src/                                                               │
 │  │       ├── main/kotlin/                                                   │

@@ -353,4 +353,4 @@ Apache-2.0
 - [GitHub Repository](https://github.com/platonai/Browser4)
 - [Documentation](https://github.com/platonai/Browser4/tree/main/docs)
 - [Python SDK](https://github.com/platonai/Browser4/tree/main/sdks/browser4-python)
-- [Kotlin SDK](https://github.com/platonai/Browser4/tree/main/sdks/browser4-sdk-kotlin)
+- [Kotlin SDK](https://github.com/platonai/Browser4/tree/main/sdks/browser4-kotlin)

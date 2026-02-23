@@ -28,7 +28,7 @@
     </build>
 
     <modules>
-        <module>browser4-sdk-kotlin</module>
+        <module>browser4-kotlin</module>
         <module>kotlin-sdk-tests</module>
         <module>kotlin-sdk-examples</module>
     </modules>

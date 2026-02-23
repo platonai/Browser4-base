@@ -41,7 +41,7 @@
 ### 模块结构
 ```
 sdks/
-├── browser4-sdk-kotlin/                          # SDK 模块（保持干净）
+├── browser4-kotlin/                          # SDK 模块（保持干净）
 │   ├── pom.xml                                   # groupId: io.browser4
 │   └── src/
 │       ├── main/kotlin/io/browser4/sdk/          # SDK 源码
@@ -963,7 +963,7 @@ mvn test -pl sdks/kotlin-sdk-tests -Dgroups="IntegrationTest,!Slow"
         <!-- SDK 依赖 -->
         <dependency>
             <groupId>io.browser4</groupId>
-            <artifactId>browser4-sdk-kotlin</artifactId>
+            <artifactId>browser4-kotlin</artifactId>
             <version>${browser4.sdk.version}</version>
         </dependency>
 
@@ -1149,14 +1149,14 @@ on:
   push:
     branches: [ main, master, develop ]
     paths:
-      - 'sdks/browser4-sdk-kotlin/**'
+      - 'sdks/browser4-kotlin/**'
       - 'sdks/kotlin-sdk-tests/**'
       - 'pulsar-rest/**'
       - '.github/workflows/kotlin-sdk-test.yml'
   pull_request:
     branches: [ main, master, develop ]
     paths:
-      - 'sdks/browser4-sdk-kotlin/**'
+      - 'sdks/browser4-kotlin/**'
       - 'sdks/kotlin-sdk-tests/**'
       - 'pulsar-rest/**'
   schedule:
@@ -1181,7 +1181,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          cd sdks/browser4-sdk-kotlin
+          cd sdks/browser4-kotlin
           # Run fast unit tests only (test-strategy.md)
           mvn test
 
@@ -1190,7 +1190,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-results
-          path: sdks/browser4-sdk-kotlin/target/surefire-reports/
+          path: sdks/browser4-kotlin/target/surefire-reports/
 
   integration-tests:
     name: Integration Tests

@@ -9,7 +9,7 @@
 检查客户端还有没有其他类似 bug。
 
 ## Problem Translation
-In the test `testShouldUseSendKeysWithSpecialKeys`, when calling `driver.sendKeys("#username", "Hello")`, 
+In the test `testShouldUseSendKeysWithSpecialKeys`, when calling `driver.sendKeys("#username", "Hello")`,
 the generated URL is: `/session/0ee8ac05-5a70-4430-a2a3-22ef6c7ed011/element/#username/value`
 
 This URL contains `#`, which conflicts with the intended semantics of "#username" and needs escaping.
@@ -30,7 +30,7 @@ Need to check if there are other similar bugs in the client code.
 // Before
 suspend fun sendKeys(elementId: String, text: String): Any?
 
-// After  
+// After
 suspend fun sendKeys(selector: String, text: String, strategy: String = "css"): Any?
 ```
 
@@ -66,7 +66,7 @@ def _encode_path_segment(value: str) -> str:
 ```
 
 **Applied to:**
-- `clickElement(elementId)` 
+- `clickElement(elementId)`
 - `getAttribute(elementId, name)` - both parameters
 - `getText(elementId)`
 
@@ -105,7 +105,7 @@ def _encode_path_segment(value: str) -> str:
 
 ## Files Modified
 
-1. **sdks/browser4-sdk-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt**
+1. **sdks/browser4-kotlin/src/main/kotlin/ai/platon/pulsar/sdk/v0/WebDriver.kt**
    - Added URL encoding helper
    - Changed `sendKeys()` signature
    - Fixed element-based methods
@@ -115,7 +115,7 @@ def _encode_path_segment(value: str) -> str:
    - Changed `send_keys()` signature
    - Fixed element-based methods
 
-3. **sdks/browser4-sdk-kotlin/src/test/kotlin/ai/platon/pulsar/sdk/UrlEncodingTest.kt** (new)
+3. **sdks/browser4-kotlin/src/test/kotlin/ai/platon/pulsar/sdk/UrlEncodingTest.kt** (new)
    - Comprehensive URL encoding tests
    - Verification of encoding behavior
 
@@ -155,13 +155,13 @@ To verify the fix:
 
 ```bash
 # Build SDK
-./mvnw -Psdk -pl sdks/browser4-sdk-kotlin clean install -DskipTests
+./mvnw -Psdk -pl sdks/browser4-kotlin clean install -DskipTests
 
 # Run URL encoding tests
-./mvnw -Psdk -pl sdks/browser4-sdk-kotlin test -Dtest=UrlEncodingTest
+./mvnw -Psdk -pl sdks/browser4-kotlin test -Dtest=UrlEncodingTest
 
 # Run all SDK unit tests
-./mvnw -Psdk -pl sdks/browser4-sdk-kotlin test
+./mvnw -Psdk -pl sdks/browser4-kotlin test
 ```
 
 ## Impact Assessment

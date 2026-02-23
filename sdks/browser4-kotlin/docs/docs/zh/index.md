@@ -107,7 +107,7 @@ PulsarClient (底层 HTTP 通信)
 ```xml
 <dependency>
     <groupId>io.browser4</groupId>
-    <artifactId>browser4-sdk-kotlin</artifactId>
+    <artifactId>browser4-kotlin</artifactId>
     <version>4.6.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -116,7 +116,7 @@ PulsarClient (底层 HTTP 通信)
 
 ```kotlin
 dependencies {
-    implementation("io.browser4:browser4-sdk-kotlin:4.6.0-SNAPSHOT")
+    implementation("io.browser4:browser4-kotlin:4.6.0-SNAPSHOT")
 }
 ```
 
@@ -124,7 +124,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.browser4:browser4-sdk-kotlin:4.6.0-SNAPSHOT'
+    implementation 'io.browser4:browser4-kotlin:4.6.0-SNAPSHOT'
 }
 ```
 
