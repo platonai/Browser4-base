@@ -497,6 +497,17 @@ class PlaywrightDriver(
         page.dblclick(selector, Page.DblclickOptions().setModifiers(listOf(modifier)))
     }
 
+    override suspend fun selectOption(selector: String, values: List<String>): List<String> {
+        return try {
+            rpc.invokeDeferred("selectOption") {
+                page.selectOption(selector, values.toTypedArray())
+            } ?: listOf()
+        } catch (e: Exception) {
+            rpc.handleWebDriverException(e, "selectOption", "selector: $selector, values: $values")
+            listOf()
+        }
+    }
+
     override suspend fun clickTextMatches(selector: String, pattern: String, count: Int) {
         try {
             rpc.invokeDeferred("clickTextMatches") {

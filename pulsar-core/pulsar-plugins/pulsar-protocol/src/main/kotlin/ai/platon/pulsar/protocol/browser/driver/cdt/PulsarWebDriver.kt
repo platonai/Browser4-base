@@ -17,6 +17,7 @@ import ai.platon.cdt.kt.protocol.types.fetch.RequestPattern
 import ai.platon.cdt.kt.protocol.types.network.ErrorReason
 import ai.platon.cdt.kt.protocol.types.network.LoadNetworkResourceOptions
 import ai.platon.cdt.kt.protocol.types.network.ResourceType
+import ai.platon.cdt.kt.protocol.types.runtime.CallArgument
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.math.geometric.OffsetD
@@ -393,6 +394,100 @@ class PulsarWebDriver(
             waitForScrollSettled(selector)
             emulator.click(node, 1, position = "center", modifier = modifier, delayMillis = delayMillis)
         }
+    }
+
+    @Throws(WebDriverException::class)
+    override suspend fun selectOption(selector: String, values: List<String>): List<String> {
+        val mapper = jacksonObjectMapper()
+        val jsonValues = mapper.writeValueAsString(values)
+        
+        val functionDeclaration = """
+            function(jsonValues) {
+                const values = JSON.parse(jsonValues);
+                const element = this;
+                if (!element || element.tagName !== 'SELECT') {
+                    throw new Error('Element is not a <select> element');
+                }
+
+                const optionsToSelect = new Set(values);
+                const selectedValues = [];
+                let hasChanged = false;
+
+                // Handle single select: only select the first match
+                if (!element.multiple) {
+                    for (let i = 0; i < element.options.length; i++) {
+                        const option = element.options[i];
+                        if (optionsToSelect.has(option.value) || optionsToSelect.has(option.label) || optionsToSelect.has(option.text)) {
+                            if (!option.selected) {
+                                option.selected = true;
+                                hasChanged = true;
+                            }
+                            selectedValues.push(option.value);
+                            break;
+                        }
+                    }
+                } else {
+                    // Handle multiple select
+                    // Deselect all, then select specified ones.
+                    for (let i = 0; i < element.options.length; i++) {
+                        const option = element.options[i];
+                        const shouldSelect = optionsToSelect.has(option.value) || optionsToSelect.has(option.label) || optionsToSelect.has(option.text);
+                        
+                        if (shouldSelect != option.selected) {
+                            option.selected = shouldSelect;
+                            hasChanged = true;
+                        }
+                        
+                        if (shouldSelect) {
+                            selectedValues.push(option.value);
+                        }
+                    }
+                }
+                
+                if (hasChanged) {
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                
+                return selectedValues;
+            }
+        """.trimIndent()
+
+        val result = driverHelper.invokeOnElement(selector, "selectOption") { node ->
+            // node.objectId is likely null here because querySelector doesn't resolve object.
+            // We must resolve it manually.
+            val remoteObject = domAPI?.resolveNode(nodeId = node.nodeId)
+            val objectId = remoteObject?.objectId ?: node.objectId
+
+            if (objectId == null) {
+                return@invokeOnElement listOf<String>()
+            }
+
+            if (runtimeAPI == null) {
+                throw WebDriverException("runtimeAPI is null")
+            }
+
+            val res = runtimeAPI?.callFunctionOn(
+                functionDeclaration,
+                objectId = objectId,
+                arguments = listOf(CallArgument(value = jsonValues)),
+                returnByValue = true
+            )
+
+            if (res?.exceptionDetails != null) {
+                throw WebDriverException("JS Error in selectOption: " + res.exceptionDetails?.exception?.description)
+            }
+
+            val resultValue = res?.result?.value
+            
+            if (resultValue is List<*>) {
+                resultValue.filterIsInstance<String>()
+            } else {
+                listOf()
+            }
+        }
+        
+        return result ?: listOf()
     }
 
     @Throws(WebDriverException::class)

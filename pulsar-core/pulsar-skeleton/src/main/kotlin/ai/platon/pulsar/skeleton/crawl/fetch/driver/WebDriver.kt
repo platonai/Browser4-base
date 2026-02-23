@@ -899,6 +899,27 @@ interface WebDriver : Closeable {
     suspend fun clickMatches(selector: String, attrName: String, pattern: String, count: Int = 1)
 
     /**
+     * Selects one or more options in a <select> element.
+     *
+     * @param selector A selector to query the element
+     * @param values The values or labels of the options to select
+     * @return The list of selected option values
+     */
+    suspend fun selectOption(selector: String, values: List<String>): List<String>
+
+    /**
+     * Selects an option in a <select> element.
+     *
+     * @param selector A selector to query the element
+     * @param value The value or label of the option to select
+     * @return The selected option value, or null if not found
+     */
+    suspend fun selectOption(selector: String, value: String): String? {
+        val selected = selectOption(selector, listOf(value))
+        return selected.firstOrNull()
+    }
+
+    /**
      * Clicks the nth anchor element in the DOM.
      *
      * This function searches for all anchor (`<a>`) elements within the specified root element,

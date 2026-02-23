@@ -103,72 +103,6 @@ browser4-cli tab-close 2
 browser4-cli tab-select 0
 ```
 
-### Storage
-
-```bash
-browser4-cli state-save
-browser4-cli state-save auth.json
-browser4-cli state-load auth.json
-
-# Cookies
-browser4-cli cookie-list
-browser4-cli cookie-list --domain=example.com
-browser4-cli cookie-get session_id
-browser4-cli cookie-set session_id abc123
-browser4-cli cookie-set session_id abc123 --domain=example.com --httpOnly --secure
-browser4-cli cookie-delete session_id
-browser4-cli cookie-clear
-
-# LocalStorage
-browser4-cli localstorage-list
-browser4-cli localstorage-get theme
-browser4-cli localstorage-set theme dark
-browser4-cli localstorage-delete theme
-browser4-cli localstorage-clear
-
-# SessionStorage
-browser4-cli sessionstorage-list
-browser4-cli sessionstorage-get step
-browser4-cli sessionstorage-set step 3
-browser4-cli sessionstorage-delete step
-browser4-cli sessionstorage-clear
-```
-
-### Network
-
-```bash
-browser4-cli route "**/*.jpg" --status=404
-browser4-cli route "https://api.example.com/**" --body='{"mock": true}'
-browser4-cli route-list
-browser4-cli unroute "**/*.jpg"
-browser4-cli unroute
-```
-
-### DevTools
-
-```bash
-browser4-cli console
-browser4-cli console warning
-browser4-cli network
-browser4-cli run-code "async page => await page.context().grantPermissions(['geolocation'])"
-browser4-cli tracing-start
-browser4-cli tracing-stop
-browser4-cli video-start
-browser4-cli video-stop video.webm
-```
-
-## Open parameters
-```bash
-# Use persistent profile with custom directory
-browser4-cli open --profile=/path/to/profile
-
-# Start with config file
-browser4-cli open --config=my-config.json
-
-# Close the browser
-browser4-cli close
-```
-
 ## Snapshots
 
 After each command, browser4-cli provides a snapshot of the current browser state.
@@ -204,15 +138,6 @@ browser4-cli close-all
 browser4-cli kill-all
 ```
 
-## Local installation
-
-In some cases user might want to install browser4-cli locally. If running globally available `browser4-cli` binary fails, use `npx browser4-cli` to run the commands. For example:
-
-```bash
-npx browser4-cli open https://example.com
-npx browser4-cli click e1
-```
-
 ## Example: Form submission
 
 ```bash
@@ -236,28 +161,3 @@ browser4-cli tab-select 0
 browser4-cli snapshot
 browser4-cli close
 ```
-
-## Example: Debugging with DevTools
-
-```bash
-browser4-cli open https://example.com
-browser4-cli click e4
-browser4-cli fill e7 "test"
-browser4-cli console
-browser4-cli network
-browser4-cli close
-```
-
-```bash
-browser4-cli open https://example.com
-browser4-cli tracing-start
-browser4-cli click e4
-browser4-cli fill e7 "test"
-browser4-cli tracing-stop
-browser4-cli close
-```
-
-## Specific tasks
-
-* **Browser session management** [references/session-management.md](references/session-management.md)
-* **Storage state (cookies, localStorage)** [references/storage-state.md](references/storage-state.md)
