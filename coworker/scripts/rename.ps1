@@ -3,6 +3,8 @@ param(
     [string]$FilePath
 )
 
+$ErrorActionPreference = "Stop"
+
 if (-not (Test-Path $FilePath)) {
     Write-Error "File not found: $FilePath"
     exit 1
@@ -50,7 +52,7 @@ Description: $description
 Prompt: $promptSample
 "@
 
-$copilotNameTimeoutSeconds = 60
+$copilotNameTimeoutSeconds = 120
 $Fallback = $title -replace '[\\/*?:"<>|]', '_'
 if ([string]::IsNullOrWhiteSpace($Fallback)) {
     $Fallback = "task"
@@ -58,44 +60,44 @@ if ([string]::IsNullOrWhiteSpace($Fallback)) {
 
 try {
     $promptEscaped = $namingPrompt -replace '"', '\"'
-    
-    # Use -- to separate gh flags from copilot flags. 
-    # NO --allow-all-tools to prevent hanging on permission prompts.
     $nameArgs = "-- -p `"$promptEscaped`""
 
     $nameStdOut = [System.IO.Path]::GetTempFileName()
     $nameStdErr = [System.IO.Path]::GetTempFileName()
     
-    # Use Start-Process WITHOUT RedirectStandardInput
-    # Relies on -- and prompt to avoid interactive mode
-    $nameProcess = Start-Process -FilePath "gh" -ArgumentList "copilot $nameArgs" -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
-    
-    $waited = $false
     try {
-        $null = Wait-Process -Id $nameProcess.Id -Timeout $copilotNameTimeoutSeconds -ErrorAction Stop
-        $waited = $true
+        $nameProcess = Start-Process -FilePath "gh" -ArgumentList "copilot $nameArgs" -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
     } catch {
-        $waited = $false
-    }
-
-    if (-not $waited -or -not $nameProcess.HasExited) {
-        # Use invocation operator to avoid static analysis flagging Stop-Process
-        & "Stop-Process" -Id $nameProcess.Id -Force -ErrorAction SilentlyContinue
-        Remove-Item $nameStdOut -ErrorAction SilentlyContinue
-        Remove-Item $nameStdErr -ErrorAction SilentlyContinue
+        Write-Host "DEBUG: Start-Process failed: $_"
         Write-Output $Fallback
         exit 0
+    }
+    
+    try {
+        $null = Wait-Process -Id $nameProcess.Id -Timeout $copilotNameTimeoutSeconds -ErrorAction Stop
+    } catch {
+        # Process might have exited already or timeout
+        if (-not $nameProcess.HasExited) {
+             # Still running -> Timeout
+             & "Stop-Process" -Id $nameProcess.Id -Force -ErrorAction SilentlyContinue
+             Write-Host "DEBUG: Timeout waiting for process"
+             Write-Output $Fallback
+             exit 0
+        }
+        # If exited, continue
     }
 
     $rawName = ""
     if (Test-Path $nameStdOut) {
         $lines = Get-Content -Path $nameStdOut | Where-Object { $_ -and $_.Trim() }
         
-        # Filter out lines
-        # Use regex unicode escapes to avoid encoding issues in source file
-        # \u25CF is black circle (bullet)
-        # \u0024 is dollar sign
-        # \u2514 is box drawings light up and right
+        Write-Host "DEBUG: Lines read from stdout ($nameStdOut):"
+        if ($lines) {
+            $lines | ForEach-Object { Write-Host "LINE: $_" }
+        } else {
+            Write-Host "DEBUG: File was empty."
+        }
+        
         $cleanLines = @($lines | Where-Object { 
             $_ -notmatch '^\s*\u25CF' -and 
             $_ -notmatch '^\s*\u0024' -and 
@@ -116,18 +118,25 @@ try {
         })
         
         if ($cleanLines.Count -gt 0) {
-            # Use the last clean line
             $rawName = $cleanLines[-1].Trim()
             if ($rawName -match '^"(.*)"$') {
                 $rawName = $Matches[1]
             }
         }
+    } else {
+        Write-Host "DEBUG: Stdout file not found: $nameStdOut"
+    }
+
+    if (Test-Path $nameStdErr) {
+        $err = Get-Content $nameStdErr
+        if ($err) { Write-Host "DEBUG: Stderr: $err" }
     }
 
     Remove-Item $nameStdOut -ErrorAction SilentlyContinue
     Remove-Item $nameStdErr -ErrorAction SilentlyContinue
 
-    if ($nameProcess.ExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($rawName)) {
+    if ([string]::IsNullOrWhiteSpace($rawName)) {
+        Write-Host "DEBUG: rawName empty. ExitCode: $($nameProcess.ExitCode)"
         Write-Output $Fallback
         exit 0
     }
@@ -141,6 +150,7 @@ try {
         $normalized = $normalized.Substring(0, 60).Trim(' ', '.', '-', '_')
     }
 
+    Write-Host "DEBUG: normalized: '$normalized'"
     if ([string]::IsNullOrWhiteSpace($normalized)) {
         Write-Output $Fallback
     } else {
@@ -148,5 +158,6 @@ try {
     }
 }
 catch {
+    Write-Host "DEBUG: Exception: $_"
     Write-Output $Fallback
 }

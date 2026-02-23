@@ -99,7 +99,7 @@ class PulsarWebDriver(
      * */
     override val implementation: Any get() = devTools
 
-    override val domService: DomService get() = ChromeCdpDomService(devTools)
+    override val domService: DomService get() = page.domService
 
     init {
         fingerprintApplier?.invoke(this)
@@ -396,6 +396,19 @@ class PulsarWebDriver(
     }
 
     @Throws(WebDriverException::class)
+    override suspend fun dblclick(selector: String) {
+        TODO()
+    }
+
+    /**
+     * focus on an element with [selector] and dblclick it with [modifier] pressed
+     * */
+    @Throws(WebDriverException::class)
+    override suspend fun dblclick(selector: String, modifier: String) {
+        TODO()
+    }
+
+    @Throws(WebDriverException::class)
     override suspend fun focus(selector: String) {
         // we can return false if the element is not focusable
         rpc.invokeDeferredSilently("focus") { page.focusOnSelector(selector) }
@@ -511,6 +524,11 @@ class PulsarWebDriver(
                 else -> domAPI?.getOuterHTML(node.nodeId, node.backendNodeId, node.objectId)
             }
         }
+    }
+
+    @Throws(WebDriverException::class)
+    override suspend fun ariaSnapshot(): String {
+        return rpc.invokeDeferredSilently("ariaSnapshot") { page.ariaSnapshot() } ?: ""
     }
 
     /**

@@ -63,7 +63,7 @@ import java.util.jar.JarFile
 @Tag("Slow")
 @Tag("ManualOnly")
 @Tag("agent")
-// // @Disabled("ManualOnly")
+@Disabled("ManualOnly")
 class AgentE2ETest {
 
     private val logger = getLogger(this)

@@ -853,6 +853,15 @@ interface WebDriver : Closeable {
     @Throws(WebDriverException::class)
     suspend fun click(selector: String, modifier: String)
 
+    @Throws(WebDriverException::class)
+    suspend fun dblclick(selector: String)
+
+    /**
+     * focus on an element with [selector] and dblclick it with [modifier] pressed
+     * */
+    @Throws(WebDriverException::class)
+    suspend fun dblclick(selector: String, modifier: String)
+
     /**
      * This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.
      * If there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.
@@ -1497,7 +1506,7 @@ interface WebDriver : Closeable {
     suspend fun captureScreenshot(rect: RectD): String? = screenshot(rect)
 
     @Throws(WebDriverException::class)
-    suspend fun ariaSnapshot(selector: String = ":root"): String
+    suspend fun ariaSnapshot(): String
 
     /**
      * Calculate the clickable point of an element located by [selector].

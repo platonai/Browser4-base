@@ -326,12 +326,6 @@ abstract class AbstractWebDriver(
     override suspend fun referrer() = evaluate("document.referrer", "")
 
     @Throws(WebDriverException::class)
-    override suspend fun ariaSnapshot(selector: String): String {
-        val buState = domService?.getBrowserUseState(PageTarget(), SnapshotOptions()) ?: return ""
-        return buState.domState.nanoTreeLazyYaml
-    }
-
-    @Throws(WebDriverException::class)
     override suspend fun chat(prompt: String, selector: String): ModelResponse {
         val chatModel = chatModel ?: return ModelResponse.LLM_NOT_AVAILABLE
         val textContent = selectFirstTextOrNull(selector) ?: return ModelResponse.EMPTY

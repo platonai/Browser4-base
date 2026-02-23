@@ -51,21 +51,3 @@ data class ElementRefCriteria(
     val elementHash: String? = null,
     val backendNodeId: Int? = null
 )
-
-/**
- * Current page targets information.
- */
-data class CurrentPageTargets(
-    val pageSession: Map<String, Any>,
-    val iframeSessions: List<Map<String, Any>> = emptyList()
-)
-
-/**
- * Propagating bounds for filtering children in serialization.
- */
-data class PropagatingBounds(
-    val tag: String,
-    val bounds: DOMRect,
-    val nodeId: Int,
-    val depth: Int
-)

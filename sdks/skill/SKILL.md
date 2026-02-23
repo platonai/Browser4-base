@@ -13,11 +13,13 @@ allowed-tools: Bash(browser4-cli:*)
 browser4-cli open
 # navigate to a page
 browser4-cli goto https://browser4.io/
+# take a snapshot
+browser4-cli snapshot
 # interact with the page using refs from the snapshot
 browser4-cli click e15
 browser4-cli type "page.click"
 browser4-cli press Enter
-# take a screenshot (rarely used, as snapshot is more common)
+# take a screenshot
 browser4-cli screenshot
 # close the browser
 browser4-cli close
@@ -31,7 +33,7 @@ browser4-cli close
 browser4-cli open
 # open and navigate right away
 browser4-cli open https://example.com/
-browser4-cli goto https://playwright.dev/
+browser4-cli goto https://browser4.io/
 browser4-cli type "search query"
 browser4-cli click e3
 browser4-cli dblclick e7

@@ -467,12 +467,6 @@ class PlaywrightDriver(
         }
     }
 
-    /**
-     * Clicks on an element matching the selector.
-     * @param selector The CSS selector of the element to click
-     * @param count The number of times to click
-     * @throws RuntimeException if clicking fails
-     */
     override suspend fun click(selector: String, count: Int) {
         try {
             rpc.invokeDeferred("click") {
@@ -486,6 +480,21 @@ class PlaywrightDriver(
     override suspend fun click(selector: String, modifier: String) {
         val modifier = KeyboardModifier.valueOf(modifier.uppercase())
         page.click(selector, Page.ClickOptions().setModifiers(listOf(modifier)))
+    }
+
+    override suspend fun dblclick(selector: String) {
+        try {
+            rpc.invokeDeferred("click") {
+                page.querySelector(selector).dblclick(ElementHandle.DblclickOptions())
+            }
+        } catch (e: Exception) {
+            rpc.handleWebDriverException(e, "click", "selector: $selector")
+        }
+    }
+
+    override suspend fun dblclick(selector: String, modifier: String) {
+        val modifier = KeyboardModifier.valueOf(modifier.uppercase())
+        page.dblclick(selector, Page.DblclickOptions().setModifiers(listOf(modifier)))
     }
 
     override suspend fun clickTextMatches(selector: String, pattern: String, count: Int) {
@@ -734,6 +743,10 @@ class PlaywrightDriver(
             rpc.handleWebDriverException(e, "outerHTML", selector)
             null
         }
+    }
+
+    override suspend fun ariaSnapshot(): String {
+        TODO("Not supported by PlaywrightDriver currently")
     }
 
     override suspend fun querySelectorAll(selector: String): List<NodeRef> {

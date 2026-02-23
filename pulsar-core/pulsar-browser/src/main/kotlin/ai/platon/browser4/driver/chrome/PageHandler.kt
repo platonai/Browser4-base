@@ -1,6 +1,11 @@
 package ai.platon.browser4.driver.chrome
 
+import ai.platon.browser4.driver.chrome.dom.ChromeCdpDomService
+import ai.platon.browser4.driver.chrome.dom.DomService
 import ai.platon.browser4.driver.chrome.dom.Locator
+import ai.platon.browser4.driver.chrome.dom.model.BrowserUseState
+import ai.platon.browser4.driver.chrome.dom.model.PageTarget
+import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
 import ai.platon.browser4.driver.chrome.util.CDPReturnError
 import ai.platon.browser4.driver.chrome.util.ChromeDriverException
 import ai.platon.browser4.driver.chrome.util.ChromeRPCException
@@ -34,7 +39,12 @@ class PageHandler(
     private val cssAPI get() = devTools.css.takeIf { isActive }
     private val runtimeAPI get() = devTools.runtime.takeIf { isActive }
 
-    val jsHandler = JsHandler(devTools, this, isolatedWorldManager)
+    private var lastBrowserUseState: BrowserUseState? = null
+    private var lastAriaSnapshot: String? = null
+
+    val domService: DomService by lazy { ChromeCdpDomService(devTools) }
+
+    val jsHandler: JsHandler = JsHandler(devTools, this, isolatedWorldManager)
 
     val mouse = Mouse(devTools)
     val keyboard = Keyboard(devTools)
@@ -46,11 +56,11 @@ class PageHandler(
 
     @Throws(ChromeDriverException::class)
     suspend fun navigate(
-        @ParamName("url") url: String,
-        @Optional @ParamName("referrer") referrer: String? = null,
-        @Optional @ParamName("transitionType") transitionType: TransitionType? = null,
-        @Optional @ParamName("frameId") frameId: String? = null,
-        @Experimental @Optional @ParamName("referrerPolicy") referrerPolicy: ReferrerPolicy? = null
+        url: String,
+        referrer: String? = null,
+        transitionType: TransitionType? = null,
+        frameId: String? = null,
+        referrerPolicy: ReferrerPolicy? = null
     ): Navigate? {
         return pageAPI?.navigate(url, referrer, transitionType, frameId, referrerPolicy)
     }
@@ -106,6 +116,16 @@ class PageHandler(
     @Throws(ChromeDriverException::class)
     suspend fun querySelectorAll(selector: String): List<NodeRef>? {
         return resolveSelectorAll(selector)
+    }
+
+    /**
+     * Fetches the current ARIA snapshot of the page, which is a YAML representation of the accessibility tree.
+     * */
+    suspend fun ariaSnapshot(): String {
+        val buState = domService.getBrowserUseState(PageTarget(), SnapshotOptions())
+        val snapshot = buState.domState.nanoTreeLazyYaml
+        lastBrowserUseState = buState
+        return snapshot
     }
 
     @Throws(ChromeDriverException::class)
@@ -656,7 +676,7 @@ class PageHandler(
             // This is crucial when we started with a backendNodeId.
             // When started with nodeId, it should return the same nodeId.
             val resolvedNodeId = domAPI?.requestNode(tempObjectId) ?: 0
-            
+
             // Release the remote object to avoid memory leaks
             try {
                 runtimeAPI?.releaseObject(tempObjectId)
