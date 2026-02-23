@@ -39,6 +39,11 @@ if (-not $repoRoot) {
 }
 Set-Location $repoRoot
 
+# Import common utility script
+. $repoRoot\bin\common\Util.ps1
+
+Fix-Encoding-UTF8
+
 $tasksRoot = Join-Path $repoRoot "coworker\tasks"
 $scriptsDir = Join-Path $repoRoot "coworker\scripts"
 $taskRoots = @(

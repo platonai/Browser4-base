@@ -142,8 +142,20 @@ class PageHandler(
 
             // For BACKEND_NODE_ID and FRAME_BACKEND_NODE_ID types, use the single resolver and wrap in list.
             Locator.Type.BACKEND_NODE_ID, Locator.Type.FRAME_BACKEND_NODE_ID -> {
-                val nodeRef = resolveSelector0(selector)
-                if (nodeRef != null) listOf(nodeRef) else null
+                // Optimized: handle BACKEND_NODE_ID directly to avoid re-parsing in resolveSelector0
+                if (locator.type == Locator.Type.BACKEND_NODE_ID) {
+                    val backendNodeId = locator.selector.toIntOrNull()
+                    if (backendNodeId != null) {
+                        val node = resolveByBackendNodeId(backendNodeId)
+                        if (node != null) listOf(node) else null
+                    } else {
+                        null
+                    }
+                } else {
+                    // Fallback to resolveSelector0 for complex types like FRAME_BACKEND_NODE_ID
+                    val nodeRef = resolveSelector0(selector)
+                    if (nodeRef != null) listOf(nodeRef) else null
+                }
             }
 
             else -> throw UnsupportedOperationException("Unsupported selector $selector")
@@ -176,8 +188,16 @@ class PageHandler(
         return nodeIds.mapNotNull { nodeId ->
             try {
                 val node = domAPI?.describeNode(nodeId, null, null, null, null)
-                if (node != null && (node.nodeId > 0 || node.backendNodeId > 0)) {
-                    resolveNode(node.nodeId, node.backendNodeId)
+                if (node != null) {
+                    val nId = if (node.nodeId > 0) node.nodeId else nodeId
+                    val bnId = node.backendNodeId
+                    if (nId > 0) {
+                        NodeRef(nId, bnId, null)
+                    } else if (bnId > 0) {
+                        resolveNode(null, bnId)
+                    } else {
+                        null
+                    }
                 } else {
                     null
                 }
@@ -216,8 +236,16 @@ class PageHandler(
             nodeIds.mapNotNull { nodeId ->
                 try {
                     val node = domAPI?.describeNode(nodeId, null, null, null, null)
-                    if (node != null && (node.nodeId > 0 || node.backendNodeId > 0)) {
-                        resolveNode(node.nodeId, node.backendNodeId)
+                    if (node != null) {
+                        val nId = if (node.nodeId > 0) node.nodeId else nodeId
+                        val bnId = node.backendNodeId
+                        if (nId > 0) {
+                            NodeRef(nId, bnId, null)
+                        } else if (bnId > 0) {
+                            resolveNode(null, bnId)
+                        } else {
+                            null
+                        }
                     } else {
                         null
                     }
@@ -464,7 +492,7 @@ class PageHandler(
 
     /**
      * Scrolls the specified rect of the given node into view if not already visible.
-     * Note: exactly one between nodeId, backendNodeId and objectId should be passed
+     * Note: exactly one of nodeId, backendNodeId and objectId should be passed
      * to identify the node.
      * - nodeId Identifier of the node.
      * - backendNodeId Identifier of the backend node.
@@ -582,8 +610,17 @@ class PageHandler(
             logger.info("Both nodeId and backendNodeId are not found (value: 0)")
             return null
         }
-
-        return resolveNode(node.nodeId, node.backendNodeId)
+        
+        val nId = if (node.nodeId > 0) node.nodeId else nodeId
+        val bnId = node.backendNodeId
+        
+        return if (nId > 0) {
+            NodeRef(nId, bnId, null)
+        } else if (bnId > 0) {
+            resolveNode(null, bnId)
+        } else {
+            null
+        }
     }
 
     /**
@@ -598,27 +635,6 @@ class PageHandler(
      */
     @Throws(ChromeDriverException::class)
     private suspend fun resolveXPath(xpath: String): NodeRef? {
-//        val selector = "#preferencesSection"
-//        val r = domAPI?.performSearch(selector)
-//        println("resultCount for selector: " + r?.resultCount)
-//
-//        val xpath2 = "//*[@id='preferencesSection']/h2"
-//        val r2 = domAPI?.performSearch(xpath2, true)
-//        println("resultCount for xpath2: " + r2?.resultCount)
-//
-//        val xpath3 = "//*[@id=preferencesSection]/h2"
-//        val r3 = domAPI?.performSearch(xpath3, true)
-//        println("resultCount for xpath3: " + r3?.resultCount)
-
-        var node = resolveXPath1(xpath)
-
-        // println("nodeId: " + node?.nodeId)
-
-        return node
-    }
-
-    @Throws(ChromeDriverException::class)
-    private suspend fun resolveXPath1(xpath: String): NodeRef? {
         require(xpath.startsWith("//"))
 
         val nodeId = try {
@@ -673,7 +689,16 @@ class PageHandler(
             return null
         }
 
-        return resolveNode(node.nodeId, node.backendNodeId)
+        val nId = if (node.nodeId > 0) node.nodeId else nodeId
+        val bnId = node.backendNodeId
+
+        return if (nId > 0) {
+            NodeRef(nId, bnId, null)
+        } else if (bnId > 0) {
+            resolveNode(null, bnId)
+        } else {
+            null
+        }
     }
 
     @Throws(ChromeDriverException::class)
@@ -687,11 +712,19 @@ class PageHandler(
      */
     @Throws(ChromeDriverException::class)
     private suspend fun resolveNode(nodeId: Int?, backendNodeId: Int?): NodeRef? {
+        // If we already have a nodeId, verify it's valid or just use it.
+        // However, we need to return a NodeRef which might need backendNodeId if not provided.
+        // Usually, resolveNode is called when we want to ensure we have a valid nodeId for a backendNodeId,
+        // or we have a nodeId and want to get a stable reference.
+
         return try {
             // Protocol return error: "-32000/Either nodeId or backendNodeId must be specified."
-            val remoteObject = if (nodeId != null) {
+            val remoteObject = if (nodeId != null && nodeId > 0) {
+                // If nodeId is provided, we might not need to resolve it again unless we want to verify it exists
+                // But the original code resolved it. Let's keep the behavior but check if it's necessary.
+                // Resolving a nodeId returns a RemoteObject.
                 domAPI?.resolveNode(nodeId, null, null, null)
-            } else if (backendNodeId != null) {
+            } else if (backendNodeId != null && backendNodeId > 0) {
                 domAPI?.resolveNode(null, backendNodeId, null, null)
             } else {
                 return null
@@ -703,52 +736,23 @@ class PageHandler(
                 return null
             }
 
-            // Use DOM.requestNode to get the nodeId from the runtime object
+            // Use DOM.requestNode to get the nodeId from the runtime object.
+            // This is crucial when we started with a backendNodeId.
+            // When started with nodeId, it should return the same nodeId.
             val resolvedNodeId = domAPI?.requestNode(tempObjectId) ?: 0
+            
             // Release the remote object to avoid memory leaks
             try {
                 runtimeAPI?.releaseObject(tempObjectId)
             } catch (_: Exception) {
+            }
+
+            if (resolvedNodeId == 0) {
+                return null
             }
 
             // Do NOT cache objectId; return only ids that are stable across calls
             NodeRef(resolvedNodeId, backendNodeId ?: 0, null)
-        } catch (e: Exception) {
-            logger.warn("Exception resolving backend node ID {}: {}", backendNodeId, e.message)
-            null
-        }
-    }
-
-    /**
-     * Resolves a backend node ID to a regular node ID.
-     *
-     * @param backendNodeId The backend node ID
-     * @return nodeId or null if resolution fails
-     */
-    @Throws(ChromeDriverException::class)
-    private suspend fun resolveBackendNodeId(backendNodeId: Int?): Int? {
-        backendNodeId ?: return null
-
-        return try {
-            // Use DOM.resolveNode to convert backendNodeId to a runtime object
-            val remoteObject = domAPI?.resolveNode(null, backendNodeId, null, null)
-
-            val tempObjectId = remoteObject?.objectId
-            if (tempObjectId == null) {
-                logger.warn("Failed to resolve backend node ID: {}", backendNodeId)
-                return null
-            }
-
-            // Use DOM.requestNode to get the nodeId from the runtime object
-            val nodeId = domAPI?.requestNode(tempObjectId)
-
-            // Release the remote object to avoid memory leaks
-            try {
-                runtimeAPI?.releaseObject(tempObjectId)
-            } catch (_: Exception) {
-            }
-
-            nodeId
         } catch (e: Exception) {
             logger.warn("Exception resolving backend node ID {}: {}", backendNodeId, e.message)
             null
