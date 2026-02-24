@@ -1,19 +1,18 @@
 package ai.platon.pulsar.rest.openapi.controller
 
 import ai.platon.pulsar.external.ChatModelFactory
+import ai.platon.pulsar.rest.api.service.CommandService
 import ai.platon.pulsar.rest.openapi.dto.*
 import ai.platon.pulsar.rest.openapi.service.SessionManager
 import ai.platon.pulsar.skeleton.context.PulsarContext
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import kotlin.time.Duration.Companion.minutes
 
 /**
  * Controller for PerceptiveAgent operations.
@@ -29,6 +28,7 @@ import kotlin.time.Duration.Companion.minutes
 class AgentController(
     private val sessionManager: SessionManager,
     private val pulsarContext: PulsarContext,
+    private val commandService: CommandService,
     @param:Value($$"${pulsar.stub.mode:false}")
     private val stubMode: Boolean = false
 ) {
@@ -65,7 +65,9 @@ class AgentController(
         val result = try {
             // Use real PerceptiveAgent.run, protected by mutex for serial execution
             session.mutex.withLock {
-                val history = session.agent.run(request.task)
+                // val history = session.agent.run(request.task)
+                val status = commandService.executePlainCommandSync(request.task)
+                val history = status.agentHistory ?: throw IllegalStateException("Agent history is null")
 
                 AgentRunResult(
                     success = !history.hasErrors,

@@ -200,18 +200,4 @@ class CommandService(
     suspend fun executePageVisitCommand(request: PageVisitRequest): PageVisitStatus {
         return statefulPageVisitor.visit(request)
     }
-
-    @PreDestroy
-    fun close() {
-        commanderScope.cancel()
-        scrapingExecutor.shutdown()
-        try {
-            if (!scrapingExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                scrapingExecutor.shutdownNow()
-            }
-        } catch (e: InterruptedException) {
-            scrapingExecutor.shutdownNow()
-            Thread.currentThread().interrupt()
-        }
-    }
 }
