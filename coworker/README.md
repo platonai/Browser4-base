@@ -1,32 +1,41 @@
 # Builtin AI Coworker
 
-## Coworker
+## Coworker Workflow
 
-Put you tasks in `copilot/tasks/1created` and run `coworker.ps1`/`coworker.sh` to do the job.
+1. **Draft**: Create your task files in `coworker/tasks/0prepare`.
+2. **Queue**: Move the task files to `coworker/tasks/1created` when ready.
+3. **Execute**: Run `coworker.ps1` (Windows) or `coworker.sh` (Linux/macOS) to process the task.
+4. **Review**: The task moves to `coworker/tasks/3complete` after execution. Review the changes.
+5. **Approve**: Move the task to `coworker/tasks/5approved` if you want it to be automatically committed/pushed by the periodic runner.
 
-Best practice:
+## Periodical Runner
 
-1. Write your draft in 0prepare
-2. Once you are satisfied with the draft, move it to 1created and run coworker to execute the task
-3. Once the task is done, you can find the result in 3complete, and then you can execute `commit.ps1` to commit and push the changes to your repository.
+The periodic runner monitors `1created` and `5approved` folders and executes tasks automatically.
 
-You can also run coworker periodically:
+**Windows (PowerShell):**
 
-Windows:
-
-```shell
-coworker/scripts/run_coworker_periodically.ps1
+```powershell
+.\coworker\scripts\run_coworker_periodically.ps1
 ```
 
-Linux:
-```shell
-coworker/scripts/run_coworker_periodically.sh
+**Linux/macOS (Bash):**
+
+```bash
+./coworker/scripts/run_coworker_periodically.sh
 ```
 
 ## Commit and Push
 
-After coworker finishes the tasks, you can commit and push the changes to your repository:
+After tasks are completed, you can use the commit scripts to push changes to your repository.
 
-```shell
-coworker/scripts/commit.ps1
+**Windows (PowerShell):**
+
+```powershell
+.\coworker\scripts\commit.ps1
+```
+
+**Linux/macOS (Bash):**
+
+```bash
+./coworker/scripts/commit.sh
 ```
