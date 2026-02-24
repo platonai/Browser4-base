@@ -66,7 +66,7 @@ class EventDispatcher : Consumer<String>, AutoCloseable {
     private val eventListeners: ConcurrentHashMap<String, ConcurrentSkipListSet<DevToolsEventListener>> =
         ConcurrentHashMap()
 
-    private val eventDispatcherScope = CoroutineScope(Dispatchers.Default) + CoroutineName("EventDispatcher")
+    private val eventDispatcherScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("EventDispatcher"))
 
     val isActive get() = !closed.get()
 
@@ -232,6 +232,7 @@ class EventDispatcher : Consumer<String>, AutoCloseable {
         if (closed.compareAndSet(false, true)) {
             unsubscribeAll()
             removeAllListeners()
+            eventDispatcherScope.cancel()
         }
     }
 

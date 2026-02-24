@@ -65,7 +65,7 @@ class StatefulAgentRunner(
             status.serverSideAgentEventHandlers = serverSideAgentEventHandlers
 
             // Start a background job to collect events and update status
-            val eventCollectorJob = CoroutineScope(Dispatchers.Default + SupervisorJob()).launch {
+            val eventCollectorJob = commanderScope.launch {
                 try {
                     serverSideAgentEventHandlers.eventFlow.collect { event ->
                         status.emitEvent(event.eventType)

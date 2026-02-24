@@ -4,8 +4,8 @@ package ai.platon.pulsar.sdk.v0
 import ai.platon.pulsar.sdk.v0.detail.OpenApiEvent
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
 import ai.platon.pulsar.sdk.v0.detail.SseClient
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -187,42 +187,44 @@ open class PulsarSession(
 
         val stopFlag = AtomicBoolean(false)
 
-        // Start listener in a coroutine scope tied to the current operation
-        val listenerJob = CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val base = client.resolvedBaseUrl.trimEnd('/')
-                val sessionId = client.sessionId ?: return@launch
-                val query = if (!subscription.isNullOrBlank()) {
-                    "?subscriptionId=$subscription"
-                } else {
-                    ""
-                }
-                val url = "$base/session/$sessionId/events/stream$query"
-
-                val sse = SseClient(client.rawHttpClient)
-                sse.connect(
-                    url = url,
-                    headers = client.resolvedDefaultHeaders.filterKeys { it.lowercase() != "content-type" },
-                    shouldStop = { stopFlag.get() }
-                ) { evt ->
-                    // Server sends json string as data (we serialize Event DTO as JSON).
-                    val oe = OpenApiEvent.fromJson(evt.data)
-                    if (oe != null) {
-                        // Dispatch to SDK-side handlers.
-                        eventHandlers.dispatch(oe)
+        // Start listener using structured concurrency tied to the current coroutine
+        return coroutineScope {
+            val listenerJob = launch(Dispatchers.IO) {
+                try {
+                    val base = client.resolvedBaseUrl.trimEnd('/')
+                    val sessionId = client.sessionId ?: return@launch
+                    val query = if (!subscription.isNullOrBlank()) {
+                        "?subscriptionId=$subscription"
+                    } else {
+                        ""
                     }
-                    // else: ignore malformed frames (best-effort)
-                }
-            } catch (_: Exception) {
-                // Swallow listener errors to avoid breaking open(); users can still load the page.
-            }
-        }
+                    val url = "$base/session/$sessionId/events/stream$query"
 
-        return try {
-            open(url, args)
-        } finally {
-            stopFlag.set(true)
-            listenerJob.cancel()
+                    val sse = SseClient(client.rawHttpClient)
+                    sse.connect(
+                        url = url,
+                        headers = client.resolvedDefaultHeaders.filterKeys { it.lowercase() != "content-type" },
+                        shouldStop = { stopFlag.get() }
+                    ) { evt ->
+                        // Server sends json string as data (we serialize Event DTO as JSON).
+                        val oe = OpenApiEvent.fromJson(evt.data)
+                        if (oe != null) {
+                            // Dispatch to SDK-side handlers.
+                            eventHandlers.dispatch(oe)
+                        }
+                        // else: ignore malformed frames (best-effort)
+                    }
+                } catch (_: Exception) {
+                    // Swallow listener errors to avoid breaking open(); users can still load the page.
+                }
+            }
+
+            try {
+                open(url, args)
+            } finally {
+                stopFlag.set(true)
+                listenerJob.cancel()
+            }
         }
     }
 

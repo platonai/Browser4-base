@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentSkipListMap
     produces = [MediaType.APPLICATION_JSON_VALUE]
 )
 class ConversationController(
-    val conversationService: ConversationService
+    val conversationService: ConversationService,
+    val applicationScope: CoroutineScope,
 ) {
     private val conversationsCache = ConcurrentSkipListMap<String, String>()
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     @GetMapping("")
     suspend fun conversations(@RequestParam(value = "prompt") prompt: String): String {
@@ -30,7 +30,7 @@ class ConversationController(
     @GetMapping("/async")
     fun conversationsAsync(@RequestParam(value = "prompt") prompt: String): String {
         val id = UUID.randomUUID().toString()
-        scope.launch {
+        applicationScope.launch {
             conversationsCache[id] = conversationService.chat(prompt)
         }
         return id
@@ -45,7 +45,7 @@ class ConversationController(
     @PostMapping("/async")
     fun conversationsPostAsync(@RequestBody prompt: String): String {
         val id = UUID.randomUUID().toString()
-        scope.launch {
+        applicationScope.launch {
             conversationsCache[id] = conversationService.chat(prompt)
         }
         return id
@@ -59,7 +59,7 @@ class ConversationController(
     @PostMapping("/about/async")
     fun conversationsAboutAsync(@RequestBody request: PromptRequest): String {
         val id = UUID.randomUUID().toString()
-        scope.launch {
+        applicationScope.launch {
             conversationsCache[id] = conversationService.chat(request)
         }
         return id
@@ -82,7 +82,7 @@ class ConversationController(
     @GetMapping("/{id}/stream")
     fun conversationStream(@PathVariable id: String): SseEmitter {
         val emitter = SseEmitter()
-        scope.launch {
+        applicationScope.launch {
             try {
                 val result = conversationsCache[id]
                 if (result != null) {

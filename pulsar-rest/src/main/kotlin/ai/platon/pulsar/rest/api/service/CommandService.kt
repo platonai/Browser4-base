@@ -200,4 +200,9 @@ class CommandService(
     suspend fun executePageVisitCommand(request: PageVisitRequest): PageVisitStatus {
         return statefulPageVisitor.visit(request)
     }
+
+    @PreDestroy
+    fun destroy() {
+        commanderScope.cancel()
+    }
 }

@@ -4,14 +4,14 @@ import ai.platon.pulsar.common.math.geometric.RectD
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.future.future
-import kotlinx.coroutines.plus
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
 abstract class AbstractJvmWebDriver: JvmWebDriver, WebDriver {
-    private val interopScope = CoroutineScope(Dispatchers.Default) + CoroutineName("interop")
+    private val interopScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("interop"))
 
     override fun addInitScriptAsync(script: String) = interopScope.future { addInitScript(script) }
     override fun addBlockedURLsAsync(urls: List<String>) = interopScope.future { addBlockedURLs(urls) }

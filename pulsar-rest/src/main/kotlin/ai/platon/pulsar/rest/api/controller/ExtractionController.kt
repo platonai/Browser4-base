@@ -19,11 +19,11 @@ import java.util.concurrent.ConcurrentSkipListMap
 )
 class ExtractionController(
     val extractService: ExtractService,
+    val applicationScope: CoroutineScope,
 ) {
     private val extractionsCache = ConcurrentSkipListMap<String, String>()
     // Track tasks that are still being processed
     private val inProgress = ConcurrentHashMap.newKeySet<String>()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     @PostMapping("")
     suspend fun executeExtraction(@RequestBody request: PromptRequest): String {
@@ -34,7 +34,7 @@ class ExtractionController(
     suspend fun executeExtractionAsync(@RequestBody request: PromptRequest): String {
         val uuid = UUID.randomUUID().toString()
         inProgress.add(uuid)
-        coroutineScope.launch {
+        applicationScope.launch {
             try {
                 val result = extractService.extract(request)
                 extractionsCache[uuid] = result
@@ -65,7 +65,7 @@ class ExtractionController(
     fun extractionStream(@PathVariable uuid: String): SseEmitter {
         // 0L -> no timeout; consider a sensible timeout in production
         val emitter = SseEmitter(0L)
-        coroutineScope.launch {
+        applicationScope.launch {
             try {
                 while (isActive) {
                     val result = extractionsCache[uuid]

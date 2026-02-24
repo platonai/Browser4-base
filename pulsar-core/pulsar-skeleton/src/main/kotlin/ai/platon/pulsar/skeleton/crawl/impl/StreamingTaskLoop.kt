@@ -26,7 +26,7 @@ open class StreamingTaskLoop(
 ) : AbstractTaskLoop(name, configuration) {
     private val logger = LoggerFactory.getLogger(StreamingTaskLoop::class.java)
 
-    private val scope = CoroutineScope(Dispatchers.Default) + CoroutineName("sc")
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("sc"))
     private var crawlJob: Job? = null
     private val started = CountDownLatch(1)
 

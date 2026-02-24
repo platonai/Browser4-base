@@ -4,6 +4,7 @@ import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.context.AgenticContext
 import ai.platon.pulsar.skeleton.context.PulsarContext
+import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -219,6 +220,7 @@ class SessionManager(
     /**
      * Cleanup method called on shutdown.
      */
+    @PreDestroy
     fun shutdown() {
         logger.info("Shutting down SessionManager, closing {} active sessions", sessions.size)
         sessions.keys.toList().forEach { sessionId ->

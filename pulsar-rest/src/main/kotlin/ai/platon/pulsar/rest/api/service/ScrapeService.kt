@@ -13,6 +13,7 @@ import ai.platon.pulsar.common.ResourceStatus
 import ai.platon.pulsar.persist.metadata.ProtocolStatusCodes
 import ai.platon.pulsar.rest.api.entities.ScrapeStatusRequest
 import ai.platon.pulsar.rest.api.service.CommandService.Companion.FLOW_POLLING_INTERVAL
+import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.apache.commons.collections4.MultiMapUtils
@@ -154,5 +155,10 @@ class ScrapeService(
         }
 
         return link
+    }
+
+    @PreDestroy
+    fun destroy() {
+        scrapingScope.cancel()
     }
 }

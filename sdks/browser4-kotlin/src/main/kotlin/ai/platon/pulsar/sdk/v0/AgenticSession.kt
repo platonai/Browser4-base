@@ -2,8 +2,8 @@
 package ai.platon.pulsar.sdk.v0
 
 import ai.platon.pulsar.sdk.v0.detail.PulsarClient
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.atomic.AtomicBoolean
@@ -650,39 +650,41 @@ class AgenticSession(
             null
         }
 
-        // Start SSE listener
-        val listenerJob = CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val base = client.resolvedBaseUrl.trimEnd('/')
-                val sessionId = client.sessionId ?: return@launch
-                val query = if (!subscription.isNullOrBlank()) {
-                    "?subscriptionId=$subscription"
-                } else {
-                    ""
-                }
-                val streamUrl = "$base/session/$sessionId/events/stream$query"
-
-                val sse = ai.platon.pulsar.sdk.v0.detail.SseClient(client.rawHttpClient)
-                sse.connect(
-                    url = streamUrl,
-                    headers = client.resolvedDefaultHeaders.filterKeys { it.lowercase() != "content-type" },
-                    shouldStop = { stopFlag.get() }
-                ) { evt ->
-                    val oe = ai.platon.pulsar.sdk.v0.detail.OpenApiEvent.fromJson(evt.data)
-                    if (oe != null) {
-                        agentEventHandlers.dispatchFromOpenApi(oe)
+        // Start SSE listener using structured concurrency tied to the current coroutine
+        return coroutineScope {
+            val listenerJob = launch(Dispatchers.IO) {
+                try {
+                    val base = client.resolvedBaseUrl.trimEnd('/')
+                    val sessionId = client.sessionId ?: return@launch
+                    val query = if (!subscription.isNullOrBlank()) {
+                        "?subscriptionId=$subscription"
+                    } else {
+                        ""
                     }
-                }
-            } catch (_: Exception) {
-                // Swallow listener errors
-            }
-        }
+                    val streamUrl = "$base/session/$sessionId/events/stream$query"
 
-        return try {
-            block()
-        } finally {
-            stopFlag.set(true)
-            listenerJob.cancel()
+                    val sse = ai.platon.pulsar.sdk.v0.detail.SseClient(client.rawHttpClient)
+                    sse.connect(
+                        url = streamUrl,
+                        headers = client.resolvedDefaultHeaders.filterKeys { it.lowercase() != "content-type" },
+                        shouldStop = { stopFlag.get() }
+                    ) { evt ->
+                        val oe = ai.platon.pulsar.sdk.v0.detail.OpenApiEvent.fromJson(evt.data)
+                        if (oe != null) {
+                            agentEventHandlers.dispatchFromOpenApi(oe)
+                        }
+                    }
+                } catch (_: Exception) {
+                    // Swallow listener errors
+                }
+            }
+
+            try {
+                block()
+            } finally {
+                stopFlag.set(true)
+                listenerJob.cancel()
+            }
         }
     }
 

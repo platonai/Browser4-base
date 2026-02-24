@@ -20,7 +20,7 @@ import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.KVariance
 
 open class SuspendAwareHandler(private val impl: Any) : InvocationHandler {
-    private val eventHandlerScope = CoroutineScope(Dispatchers.Default) + CoroutineName("CDTHandler")
+    private val eventHandlerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("CDTHandler"))
 
     @Suppress("UNCHECKED_CAST")
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
