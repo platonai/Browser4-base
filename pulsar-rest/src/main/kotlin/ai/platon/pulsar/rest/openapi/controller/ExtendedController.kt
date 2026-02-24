@@ -220,9 +220,7 @@ class ExtendedController(
 
         return try {
             managed.withLock {
-                val mapper = com.fasterxml.jackson.databind.ObjectMapper()
-                val encodedText = mapper.writeValueAsString(request?.promptText ?: "")
-                driver.evaluate("window.__browser4DialogResult = true; window.__browser4DialogText = $encodedText")
+                driver.dialogAccept(request?.promptText)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: Exception) {
@@ -247,7 +245,7 @@ class ExtendedController(
 
         return try {
             managed.withLock {
-                driver.evaluate("window.__browser4DialogResult = false")
+                driver.dialogDismiss()
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: Exception) {
@@ -277,13 +275,7 @@ class ExtendedController(
 
         return try {
             managed.withLock {
-                // Use CDP-level Emulation.setDeviceMetricsOverride via evaluate
-                driver.evaluate("""
-                    (() => {
-                        window.resizeTo(${request.width}, ${request.height});
-                        return true;
-                    })()
-                """.trimIndent())
+                driver.resize(request.width, request.height)
             }
             ResponseEntity.ok(WebDriverResponse<Any?>(value = null))
         } catch (e: Exception) {

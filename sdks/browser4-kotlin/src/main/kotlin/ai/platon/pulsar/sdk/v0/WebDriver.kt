@@ -362,10 +362,56 @@ class WebDriver(
      * @return Click result
      */
     suspend fun click(selector: String, count: Int = 1, strategy: String = "css"): Any? {
+        if (count == 2) {
+            return dblclick(selector)
+        }
         return client.post(
             "/session/{sessionId}/selectors/click",
             mapOf("selector" to selector, "strategy" to strategy)
         )
+    }
+
+    /**
+     * Double-clicks an element identified by selector.
+     *
+     * @param selector CSS selector
+     * @return Double-click result
+     */
+    suspend fun dblclick(selector: String): Any? {
+        return client.post(
+            "/session/{sessionId}/selectors/dblclick",
+            mapOf("selector" to selector)
+        )
+    }
+
+    /**
+     * Resizes the browser window.
+     *
+     * @param width Width in pixels
+     * @param height Height in pixels
+     */
+    suspend fun resize(width: Int, height: Int): Any? {
+        return client.post(
+            "/session/{sessionId}/resize",
+            mapOf("width" to width, "height" to height)
+        )
+    }
+
+    /**
+     * Accepts the current dialog.
+     *
+     * @param promptText Text to enter for prompt dialogs
+     */
+    suspend fun dialogAccept(promptText: String? = null): Any? {
+        val body = if (promptText != null) mapOf("promptText" to promptText) else emptyMap()
+        return client.post("/session/{sessionId}/dialog/accept", body)
+    }
+
+    /**
+     * Dismisses the current dialog.
+     */
+    suspend fun dialogDismiss(): Any? {
+        return client.post("/session/{sessionId}/dialog/dismiss", emptyMap())
     }
 
     /**

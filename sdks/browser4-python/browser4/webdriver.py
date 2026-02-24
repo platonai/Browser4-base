@@ -375,10 +375,67 @@ class WebDriver:
         Returns:
             Click result.
         """
+        if count == 2:
+            return self.dblclick(selector, strategy)
+        
         return self.client.post(
             "/session/{sessionId}/selectors/click",
             {"selector": selector, "strategy": strategy, "count": count}
         )
+    
+    def dblclick(self, selector: str, strategy: str = "css") -> Any:
+        """
+        Double-click an element identified by selector.
+
+        Args:
+            selector: CSS selector or XPath expression.
+            strategy: Selector strategy.
+
+        Returns:
+            Double-click result.
+        """
+        return self.client.post(
+            "/session/{sessionId}/selectors/dblclick",
+            {"selector": selector, "strategy": strategy}
+        )
+
+    def resize(self, width: int, height: int) -> Any:
+        """
+        Resize the browser window.
+
+        Args:
+            width: Width in pixels.
+            height: Height in pixels.
+
+        Returns:
+            Resize result.
+        """
+        return self.client.post(
+            "/session/{sessionId}/resize",
+            {"width": width, "height": height}
+        )
+
+    def dialog_accept(self, prompt_text: Optional[str] = None) -> Any:
+        """
+        Accept the current dialog (alert, confirm, prompt).
+
+        Args:
+            prompt_text: Text to enter into prompt dialog.
+
+        Returns:
+            Result.
+        """
+        body = {"promptText": prompt_text} if prompt_text is not None else {}
+        return self.client.post("/session/{sessionId}/dialog/accept", body)
+
+    def dialog_dismiss(self) -> Any:
+        """
+        Dismiss the current dialog (alert, confirm, prompt).
+
+        Returns:
+            Result.
+        """
+        return self.client.post("/session/{sessionId}/dialog/dismiss", {})
 
     def click_element(self, element_id: str) -> Any:
         """

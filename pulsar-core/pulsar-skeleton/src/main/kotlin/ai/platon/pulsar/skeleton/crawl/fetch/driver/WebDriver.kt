@@ -862,6 +862,12 @@ interface WebDriver : Closeable {
     @Throws(WebDriverException::class)
     suspend fun dblclick(selector: String, modifier: String)
 
+    suspend fun resize(width: Int, height: Int)
+
+    suspend fun dialogAccept(promptText: String? = null)
+
+    suspend fun dialogDismiss()
+
     /**
      * This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.
      * If there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.

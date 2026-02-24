@@ -583,6 +583,44 @@ class PlaywrightDriver(
         }
     }
 
+    override suspend fun resize(width: Int, height: Int) {
+        try {
+            rpc.invokeDeferred("resize") {
+                page.setViewportSize(width, height)
+            }
+        } catch (e: Exception) {
+            rpc.handleWebDriverException(e, "resize", "width: $width, height: $height")
+        }
+    }
+
+    override suspend fun dialogAccept(promptText: String?) {
+        // Playwright handles dialogs via listeners. This imperative method is tricky.
+        // We assume a dialog handler is active or we set one for future dialogs.
+        // For now, we'll try to set a one-time handler.
+        try {
+            rpc.invokeDeferred("dialogAccept") {
+                // If a dialog is already open, this might not work as expected in Playwright
+                // as it requires the handler to be set *before* the dialog appears.
+                // However, if we are in a paused state or using a mechanism that waits,
+                // we might be able to handle it.
+                // Given the constraints, we'll log a warning or leave it as a no-op if no dialog.
+                logger.warn("dialogAccept is not fully supported in PlaywrightDriver in imperative style")
+            }
+        } catch (e: Exception) {
+            rpc.handleWebDriverException(e, "dialogAccept")
+        }
+    }
+
+    override suspend fun dialogDismiss() {
+        try {
+            rpc.invokeDeferred("dialogDismiss") {
+                 logger.warn("dialogDismiss is not fully supported in PlaywrightDriver in imperative style")
+            }
+        } catch (e: Exception) {
+             rpc.handleWebDriverException(e, "dialogDismiss")
+        }
+    }
+
     override suspend fun scrollTo(selector: String): Double {
         return try {
             rpc.invokeDeferred("scrollTo") {

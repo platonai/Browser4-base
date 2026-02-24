@@ -490,9 +490,8 @@ class PulsarWebDriver(
         return result ?: listOf()
     }
 
-    @Throws(WebDriverException::class)
     override suspend fun dblclick(selector: String) {
-        TODO()
+        dblclick(selector, "")
     }
 
     /**
@@ -500,7 +499,37 @@ class PulsarWebDriver(
      * */
     @Throws(WebDriverException::class)
     override suspend fun dblclick(selector: String, modifier: String) {
-        TODO()
+        driverHelper.invokeOnElement(selector, "dblclick") {
+            val node = page.focusOnSelector(selector) ?: return@invokeOnElement
+            emulator.click(node, 2)
+            gap("dblclick")
+        }
+    }
+
+    @Throws(WebDriverException::class)
+    override suspend fun resize(width: Int, height: Int) {
+        driverHelper.invokeOnPage("resize") {
+            emulationAPI?.setDeviceMetricsOverride(
+                width = width,
+                height = height,
+                deviceScaleFactor = 0.0,
+                mobile = false
+            )
+        }
+    }
+
+    @Throws(WebDriverException::class)
+    override suspend fun dialogAccept(promptText: String?) {
+        driverHelper.invokeOnPage("dialogAccept") {
+            pageAPI?.handleJavaScriptDialog(accept = true, promptText = promptText)
+        }
+    }
+
+    @Throws(WebDriverException::class)
+    override suspend fun dialogDismiss() {
+        driverHelper.invokeOnPage("dialogDismiss") {
+            pageAPI?.handleJavaScriptDialog(accept = false)
+        }
     }
 
     @Throws(WebDriverException::class)
