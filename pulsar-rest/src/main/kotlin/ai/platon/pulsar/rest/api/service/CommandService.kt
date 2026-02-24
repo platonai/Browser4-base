@@ -5,11 +5,13 @@ import ai.platon.pulsar.agentic.tools.agent.StatefulAgentRunner
 import ai.platon.pulsar.agentic.tools.crawl.PageVisitRequest
 import ai.platon.pulsar.agentic.tools.crawl.PageVisitStatus
 import ai.platon.pulsar.agentic.tools.crawl.StatefulPageVisitor
+import ai.platon.pulsar.agentic.tools.crawl.failed
 import ai.platon.pulsar.common.ResourceStatus
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.rest.api.entities.*
 import ai.platon.pulsar.skeleton.crawl.PageEventHandlers
 import ai.platon.pulsar.skeleton.crawl.event.impl.PageEventHandlersFactory
+import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.springframework.http.codec.ServerSentEvent
@@ -18,6 +20,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.FluxSink
 import java.time.Instant
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Service
 class CommandService(
@@ -65,6 +68,10 @@ class CommandService(
      * @return CommandStatus containing the execution result.
      */
     suspend fun executePlainCommandSync(plainCommand: String): CommandStatus {
+        if (plainCommand.isBlank()) {
+            return CommandStatus.failed(ResourceStatus.SC_BAD_REQUEST)
+        }
+
         val request = conversationService.normalizePlainCommand(plainCommand)
         return if (request != null) {
             // Page visit execution
@@ -91,6 +98,12 @@ class CommandService(
      * @return The command status ID for tracking execution progress.
      */
     suspend fun submitPlainCommandAsync(plainCommand: String): String {
+        if (plainCommand.isBlank()) {
+            val status = statefulPageVisitor.create()
+            status.failed(ResourceStatus.SC_BAD_REQUEST)
+            return status.id
+        }
+
         val request = conversationService.normalizePlainCommand(plainCommand)
         return if (request != null) {
             // Standard URL-based async command execution
@@ -116,9 +129,9 @@ class CommandService(
         return status.toCommandStatus()
     }
 
-    suspend fun submitAgentTaskAsync(plainCommand: String): String {
+    fun submitAgentTaskAsync(plainCommand: String): String {
         val status = statefulAgentRunner.create()
-        statefulAgentRunner.execute(plainCommand, status)
+        commanderScope.launch { statefulAgentRunner.execute(plainCommand, status) }
         return status.id
     }
 
@@ -189,5 +202,19 @@ class CommandService(
 
     suspend fun executePageVisitCommand(request: PageVisitRequest): PageVisitStatus {
         return statefulPageVisitor.visit(request)
+    }
+
+    @PreDestroy
+    fun close() {
+        commanderScope.cancel()
+        scrapingExecutor.shutdown()
+        try {
+            if (!scrapingExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                scrapingExecutor.shutdownNow()
+            }
+        } catch (e: InterruptedException) {
+            scrapingExecutor.shutdownNow()
+            Thread.currentThread().interrupt()
+        }
     }
 }
