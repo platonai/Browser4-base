@@ -47,10 +47,10 @@ baseDir="$repoRoot/coworker/tasks"
 prepareDir="$baseDir/0prepare"
 createdDir="$baseDir/1created"        # Input directory for new tasks
 workingDir="$baseDir/2working"        # Processing directory for current tasks
-finishedDir="$baseDir/3code-complete"      # Output directory for completed tasks
+finishedDir="$baseDir/3complete"      # Output directory for completed tasks
 reviewDir="$baseDir/4review"
 approvedDir="$baseDir/5approved"
-pushedDir="$baseDir/6pushed"
+pushedDir="$baseDir/6git-pushed"
 logsDir="$baseDir/logs"              # Directory for script and execution logs
 scriptsDir="$repoRoot/coworker/scripts"
 
@@ -284,7 +284,7 @@ if [[ ${#approved_files[@]} -gt 0 ]]; then
     fi
 fi
 
-# 4. Process 6pushed (last 2 days)
+# 4. Process 6git-pushed (last 2 days)
 # Use find to locate files modified in the last 2 days
 # -mtime -2 means modified less than 2 days ago
 if command -v find >/dev/null 2>&1; then

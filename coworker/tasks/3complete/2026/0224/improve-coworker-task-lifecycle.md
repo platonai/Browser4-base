@@ -13,7 +13,7 @@ Each stage has a corresponding directory under the task directory, e.g. 0prepare
 The scripts should scan each task directory and perform a corresponding action based on the stage of the task.
 
 1. tasks in 0prepare: no action, just print the task name and stage.
-2. tasks in 1created, 2working, 3code-complete: the current script logic is OK.
+2. tasks in 1created, 2working, 3complete: the current script logic is OK.
 3. tasks in 4review: print the task name and stage.
 4. tasks in 5approved: call commit script to commit & push the task to git.
-5. tasks in 6pushed: print the task name and stage, only report the tasks that have been pushed in the last 2 days if any.
+5. tasks in 6git-pushed: print the task name and stage, only report the tasks that have been pushed in the last 2 days if any.

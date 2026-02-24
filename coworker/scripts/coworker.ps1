@@ -51,10 +51,10 @@ $taskRoots = @(
         Prepare = (Join-Path $tasksRoot "0prepare")
         Created = (Join-Path $tasksRoot "1created")
         Working = (Join-Path $tasksRoot "2working")
-        Finished = (Join-Path $tasksRoot "3code-complete")
+        Finished = (Join-Path $tasksRoot "3complete")
         Review = (Join-Path $tasksRoot "4review")
         Approved = (Join-Path $tasksRoot "5approved")
-        Pushed = (Join-Path $tasksRoot "6pushed")
+        Pushed = (Join-Path $tasksRoot "6git-pushed")
         Logs = (Join-Path $tasksRoot "logs")
         Label = "tasks"
     }
@@ -325,8 +325,8 @@ foreach ($taskRoot in $taskRoots) {
         }
     }
 
-    # 4. Process 6pushed (last 2 days)
-    # Recursively find files in 6pushed
+    # 4. Process 6git-pushed (last 2 days)
+    # Recursively find files in 6git-pushed
     if (Test-Path $pushedDir) {
         $pushedFiles = Get-ChildItem -Path $pushedDir -Recurse -File
         $twoDaysAgo = (Get-Date).AddDays(-2)
