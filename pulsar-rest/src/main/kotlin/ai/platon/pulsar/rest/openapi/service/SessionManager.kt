@@ -4,6 +4,7 @@ import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.context.AgenticContext
 import ai.platon.pulsar.skeleton.context.PulsarContext
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
@@ -11,8 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Manages WebDriver sessions with real PulsarSession and AgenticSession instances.
@@ -55,17 +55,17 @@ class SessionManager(
 
     private val sessions = ConcurrentHashMap<String, ManagedSession>()
 
-    // Cleanup executor for removing stale sessions
-    private val cleanupExecutor = Executors.newSingleThreadScheduledExecutor { r ->
-        Thread(r, "session-cleanup").apply { isDaemon = true }
-    }
+    // Coroutine scope for periodic cleanup of idle sessions
+    private val cleanupScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
         // Schedule periodic cleanup of idle sessions (every 5 minutes)
-        cleanupExecutor.scheduleAtFixedRate(
-            ::cleanupIdleSessions,
-            5, 5, TimeUnit.MINUTES
-        )
+        cleanupScope.launch {
+            while (isActive) {
+                delay(5.minutes)
+                cleanupIdleSessions()
+            }
+        }
     }
 
     /**
@@ -203,7 +203,7 @@ class SessionManager(
      * Cleans up idle sessions that haven't been accessed for more than 30 minutes.
      */
     private fun cleanupIdleSessions() {
-        val idleThreshold = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30)
+        val idleThreshold = System.currentTimeMillis() - 30.minutes.inWholeMilliseconds
         val idleSessions = sessions.entries.filter { (_, session) ->
             session.lastAccessedAt < idleThreshold
         }
@@ -224,14 +224,6 @@ class SessionManager(
         sessions.keys.toList().forEach { sessionId ->
             deleteSession(sessionId)
         }
-        cleanupExecutor.shutdown()
-        try {
-            if (!cleanupExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                cleanupExecutor.shutdownNow()
-            }
-        } catch (e: InterruptedException) {
-            cleanupExecutor.shutdownNow()
-            Thread.currentThread().interrupt()
-        }
+        cleanupScope.cancel()
     }
 }

@@ -19,8 +19,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.FluxSink
 import java.time.Instant
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 @Service
 class CommandService(
@@ -34,8 +32,7 @@ class CommandService(
     private val logger = getLogger(CommandService::class)
 
     // Create a dedicated dispatcher for long-running command operations
-    private val scrapingExecutor = Executors.newFixedThreadPool(10)
-    private val commandDispatcher = scrapingExecutor.asCoroutineDispatcher()
+    private val commandDispatcher = Dispatchers.IO.limitedParallelism(10)
 
     private val commanderScope: CoroutineScope = CoroutineScope(
         commandDispatcher + SupervisorJob() + CoroutineName("commander")

@@ -10,11 +10,10 @@ import ai.platon.pulsar.skeleton.crawl.fetch.FetchResult
 import ai.platon.pulsar.skeleton.crawl.fetch.FetchTask
 import ai.platon.pulsar.skeleton.crawl.fetch.WebDriverFetcher
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
+import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -72,9 +71,9 @@ abstract class AbstractPrivacyManager(
     private val closeStrategy get() = conf.get(PRIVACY_CONTEXT_CLOSE_LAZY, CloseStrategy.ASAP.name)
 
     /**
-     * Executor service used to schedule context cleaning tasks.
+     * Coroutine scope used to schedule context cleaning tasks.
      */
-    private val cleaningService = Executors.newSingleThreadScheduledExecutor()
+    private val cleaningScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     /**
      * Factory for generating privacy agents.
@@ -214,7 +213,7 @@ abstract class AbstractPrivacyManager(
             temporaryContexts.clear()
             closeDyingContexts()
 
-            cleaningService.runCatching { shutdown() }.onFailure { warnForClose(this, it) }
+            cleaningScope.runCatching { cancel() }.onFailure { warnForClose(this, it) }
         }
     }
 
@@ -253,7 +252,10 @@ abstract class AbstractPrivacyManager(
      * Closes zombie contexts lazily, delaying the resource release.
      */
     private fun closeZombieContextsLazily() {
-        cleaningService.schedule({ closeDyingContexts() }, 5, TimeUnit.SECONDS)
+        cleaningScope.launch {
+            delay(5_000)
+            closeDyingContexts()
+        }
     }
 
     /**

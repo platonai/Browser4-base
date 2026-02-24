@@ -2,17 +2,13 @@ package ai.platon.pulsar.rest.api.controller
 
 import ai.platon.pulsar.rest.api.entities.PromptRequest
 import ai.platon.pulsar.rest.api.service.ExtractService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListMap
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @RestController
 @CrossOrigin
@@ -27,9 +23,7 @@ class ExtractionController(
     private val extractionsCache = ConcurrentSkipListMap<String, String>()
     // Track tasks that are still being processed
     private val inProgress = ConcurrentHashMap.newKeySet<String>()
-    private val executor: ExecutorService = Executors.newCachedThreadPool()
-    private val coroutineDispatcher = executor.asCoroutineDispatcher()
-    private val coroutineScope = CoroutineScope(coroutineDispatcher)
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     @PostMapping("")
     suspend fun executeExtraction(@RequestBody request: PromptRequest): String {
@@ -71,9 +65,9 @@ class ExtractionController(
     fun extractionStream(@PathVariable uuid: String): SseEmitter {
         // 0L -> no timeout; consider a sensible timeout in production
         val emitter = SseEmitter(0L)
-        executor.submit {
+        coroutineScope.launch {
             try {
-                while (true) {
+                while (isActive) {
                     val result = extractionsCache[uuid]
                     if (result != null) {
                         emitter.send(result)
@@ -87,7 +81,7 @@ class ExtractionController(
 
                     // Send a heartbeat/status update while processing
                     emitter.send(SseEmitter.event().name("status").data("Processing").reconnectTime(1000))
-                    Thread.sleep(1000)
+                    delay(1000)
                 }
             } catch (e: Exception) {
                 try {
@@ -95,7 +89,7 @@ class ExtractionController(
                 } catch (_: Exception) {
                 }
                 emitter.completeWithError(e)
-                return@submit
+                return@launch
             } finally {
                 emitter.complete()
             }

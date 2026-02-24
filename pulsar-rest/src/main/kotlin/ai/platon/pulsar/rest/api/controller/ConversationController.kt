@@ -2,14 +2,12 @@ package ai.platon.pulsar.rest.api.controller
 
 import ai.platon.pulsar.rest.api.entities.PromptRequest
 import ai.platon.pulsar.rest.api.service.ConversationService
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.*
 import java.util.concurrent.ConcurrentSkipListMap
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @RestController
 @CrossOrigin
@@ -22,7 +20,7 @@ class ConversationController(
     val conversationService: ConversationService
 ) {
     private val conversationsCache = ConcurrentSkipListMap<String, String>()
-    private val executor: ExecutorService = Executors.newCachedThreadPool()
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     @GetMapping("")
     suspend fun conversations(@RequestParam(value = "prompt") prompt: String): String {
@@ -32,8 +30,8 @@ class ConversationController(
     @GetMapping("/async")
     fun conversationsAsync(@RequestParam(value = "prompt") prompt: String): String {
         val id = UUID.randomUUID().toString()
-        executor.submit {
-            conversationsCache[id] = runBlocking { conversationService.chat(prompt) }
+        scope.launch {
+            conversationsCache[id] = conversationService.chat(prompt)
         }
         return id
     }
@@ -47,8 +45,8 @@ class ConversationController(
     @PostMapping("/async")
     fun conversationsPostAsync(@RequestBody prompt: String): String {
         val id = UUID.randomUUID().toString()
-        executor.submit {
-            conversationsCache[id] = runBlocking { conversationService.chat(prompt) }
+        scope.launch {
+            conversationsCache[id] = conversationService.chat(prompt)
         }
         return id
     }
@@ -61,8 +59,8 @@ class ConversationController(
     @PostMapping("/about/async")
     fun conversationsAboutAsync(@RequestBody request: PromptRequest): String {
         val id = UUID.randomUUID().toString()
-        executor.submit {
-            conversationsCache[id] = runBlocking { conversationService.chat(request) }
+        scope.launch {
+            conversationsCache[id] = conversationService.chat(request)
         }
         return id
     }
@@ -84,7 +82,7 @@ class ConversationController(
     @GetMapping("/{id}/stream")
     fun conversationStream(@PathVariable id: String): SseEmitter {
         val emitter = SseEmitter()
-        executor.submit {
+        scope.launch {
             try {
                 val result = conversationsCache[id]
                 if (result != null) {

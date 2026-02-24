@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import java.time.Instant
 import java.util.concurrent.ConcurrentSkipListMap
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -43,8 +42,7 @@ class ScrapeService(
     private val responseStatusIndex = MultiMapUtils.newListValuedHashMap<Int, String>()
 
     // Create a dedicated dispatcher for long-running command operations
-    private val scrapingExecutor = Executors.newFixedThreadPool(10)
-    private val scrapingDispatcher = scrapingExecutor.asCoroutineDispatcher()
+    private val scrapingDispatcher = Dispatchers.IO.limitedParallelism(10)
 
     private val scrapingScope: CoroutineScope = CoroutineScope(
         scrapingDispatcher + SupervisorJob() + CoroutineName("scraping")

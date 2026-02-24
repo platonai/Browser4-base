@@ -8,7 +8,6 @@ import ai.platon.pulsar.common.concurrent.ConcurrentExpiringLRUCache
 import ai.platon.pulsar.common.getLogger
 import kotlinx.coroutines.*
 import java.time.Duration
-import java.util.concurrent.Executors
 
 class StatefulAgentRunner(
     val session: AgenticSession
@@ -16,8 +15,7 @@ class StatefulAgentRunner(
     private val logger = getLogger(StatefulAgentRunner::class)
 
     // Create a dedicated dispatcher for long-running command operations
-    private val scrapingExecutor = Executors.newFixedThreadPool(10)
-    private val commandDispatcher = scrapingExecutor.asCoroutineDispatcher()
+    private val commandDispatcher = Dispatchers.IO.limitedParallelism(10)
     private val commanderScope: CoroutineScope = CoroutineScope(
         commandDispatcher + SupervisorJob() + CoroutineName("commander")
     )
