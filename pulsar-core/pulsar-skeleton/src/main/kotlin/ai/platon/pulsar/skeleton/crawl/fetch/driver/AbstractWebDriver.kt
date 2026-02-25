@@ -1,11 +1,7 @@
 package ai.platon.pulsar.skeleton.crawl.fetch.driver
 
 import ai.platon.browser4.driver.chrome.NetworkResourceResponse
-import ai.platon.browser4.driver.chrome.NodeRef
 import ai.platon.browser4.driver.chrome.dom.DomService
-import ai.platon.browser4.driver.chrome.dom.model.PageTarget
-import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
-import ai.platon.browser4.driver.chrome.dom.util.DomDebug
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.URLUtils
@@ -18,6 +14,7 @@ import com.google.common.annotations.Beta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import java.io.IOException
@@ -317,7 +314,6 @@ abstract class AbstractWebDriver(
     @Throws(WebDriverException::class)
     override suspend fun baseURI() = evaluate("document.baseURI", "")
 
-    @Throws(WebDriverException::class)
     override suspend fun title(): String {
         return evaluate("document.title")?.toString() ?: ""
     }
@@ -677,24 +673,23 @@ abstract class AbstractWebDriver(
 
     protected suspend fun waitUntil(timeMillis: Long, timeout: Duration, predicate: suspend () -> Boolean): Duration {
         val startTime = Instant.now()
-        var elapsedTime = Duration.ZERO
-        while (elapsedTime < timeout && !predicate()) {
-            delay(timeMillis)
-            elapsedTime = DateTimes.elapsedTime(startTime)
+        withTimeoutOrNull(timeout.toMillis()) {
+            while (!predicate()) {
+                delay(timeMillis)
+            }
         }
-        return timeout - elapsedTime
+        return timeout - DateTimes.elapsedTime(startTime)
     }
 
     protected suspend fun <T> waitFor(type: String, timeout: Duration, supplier: suspend () -> T): T? {
-        val startTime = Instant.now()
-        var elapsedTime = Duration.ZERO
-        var result: T? = supplier()
-        while (elapsedTime < timeout && result == null) {
-            gap(type)
-            result = supplier()
-            elapsedTime = DateTimes.elapsedTime(startTime)
+        return withTimeoutOrNull(timeout.toMillis()) {
+            var result: T? = supplier()
+            while (result == null) {
+                gap(type)
+                result = supplier()
+            }
+            result
         }
-        return result
     }
 
     @Throws(WebDriverException::class)

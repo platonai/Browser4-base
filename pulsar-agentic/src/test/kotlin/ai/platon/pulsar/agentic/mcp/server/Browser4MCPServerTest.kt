@@ -50,9 +50,16 @@ class Browser4MCPServerTest {
         assertTrue(names.contains("reload"), "Expected reload")
         assertTrue(names.contains("go_back"), "Expected go_back")
         assertTrue(names.contains("go_forward"), "Expected go_forward")
-        assertTrue(names.contains("current_url"), "Expected current_url")
         assertTrue(names.contains("wait_for_selector"), "Expected wait_for_selector")
-        assertTrue(names.contains("wait_for_navigation"), "Expected wait_for_navigation")
+    }
+
+    @Test
+    @DisplayName("registers all expected driver status tools")
+    fun registersDriverStatusTools() {
+        val names = mcpServer.server.tools.keys
+        assertTrue(names.contains("exists"), "Expected exists")
+        assertTrue(names.contains("is_visible"), "Expected is_visible")
+        assertTrue(names.contains("focus"), "Expected focus")
     }
 
     @Test
@@ -70,15 +77,34 @@ class Browser4MCPServerTest {
     }
 
     @Test
+    @DisplayName("registers all expected driver scrolling tools")
+    fun registersDriverScrollingTools() {
+        val names = mcpServer.server.tools.keys
+        assertTrue(names.contains("scroll_to_top"), "Expected scroll_to_top")
+        assertTrue(names.contains("scroll_to_bottom"), "Expected scroll_to_bottom")
+        assertTrue(names.contains("scroll_to_middle"), "Expected scroll_to_middle")
+        assertTrue(names.contains("scroll_by"), "Expected scroll_by")
+    }
+
+    @Test
     @DisplayName("registers all expected driver content tools")
     fun registersDriverContentTools() {
         val names = mcpServer.server.tools.keys
+        assertTrue(names.contains("text_content"), "Expected text_content")
         assertTrue(names.contains("get_text"), "Expected get_text")
-        assertTrue(names.contains("get_html"), "Expected get_html")
-        assertTrue(names.contains("get_attribute"), "Expected get_attribute")
-        assertTrue(names.contains("page_source"), "Expected page_source")
-        assertTrue(names.contains("screenshot"), "Expected screenshot")
-        assertTrue(names.contains("evaluate"), "Expected evaluate")
+        assertTrue(names.contains("delay"), "Expected delay")
+    }
+
+    // -------------------------------------------------------------------------
+    // Tool registration — domain: browser
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("registers all expected browser tab tools")
+    fun registersBrowserTabTools() {
+        val names = mcpServer.server.tools.keys
+        assertTrue(names.contains("switch_tab"), "Expected switch_tab")
+        assertTrue(names.contains("close_tab"), "Expected close_tab")
     }
 
     // -------------------------------------------------------------------------
@@ -119,20 +145,26 @@ class Browser4MCPServerTest {
     // Tool registration — domain: system
     // -------------------------------------------------------------------------
 
+    @Test
+    @DisplayName("registers the help tool")
+    fun registersHelpTool() {
+        assertTrue(mcpServer.server.tools.keys.contains("help"), "Expected help")
+    }
+
     // -------------------------------------------------------------------------
     // Tool count
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("exposes exactly 31 tools when fileSystem is provided and agent is null")
+    @DisplayName("exposes exactly 36 tools when fileSystem is provided and agent is null")
     fun registersCorrectToolCount() {
-        // driver(21) + fs(10) = 31
-        assertEquals(31, mcpServer.server.tools.size,
-            "Expected exactly 31 registered tools, got: ${mcpServer.server.tools.keys}")
+        // driver(23) + browser(2) + fs(10) + system(1) = 36
+        assertEquals(36, mcpServer.server.tools.size,
+            "Expected exactly 36 registered tools, got: ${mcpServer.server.tools.keys}")
     }
 
     @Test
-    @DisplayName("exposes exactly 21 tools when fileSystem and agent are both null")
+    @DisplayName("exposes exactly 26 tools when fileSystem and agent are both null")
     fun registersCorrectToolCountWithoutOptionals() {
         val serverNoOptionals = Browser4MCPServer(
             driver = driver,
@@ -140,9 +172,9 @@ class Browser4MCPServerTest {
             agent = null,
             serverInfo = Implementation(name = "browser4-test-min", version = "0.0.0")
         )
-        // driver(21)
-        assertEquals(21, serverNoOptionals.server.tools.size,
-            "Expected exactly 21 registered tools, got: ${serverNoOptionals.server.tools.keys}")
+        // driver(23) + browser(2) + system(1) = 26
+        assertEquals(26, serverNoOptionals.server.tools.size,
+            "Expected exactly 26 registered tools, got: ${serverNoOptionals.server.tools.keys}")
     }
 
     // -------------------------------------------------------------------------
@@ -178,6 +210,20 @@ class Browser4MCPServerTest {
     }
 
     @Test
+    @DisplayName("exists returns true when WebDriver reports element exists")
+    fun existsReturnsTrueWhenElementFound() = runBlocking {
+        coEvery { driver.exists("#btn") } returns true
+
+        val tool = mcpServer.server.tools["exists"]!!
+        val request = buildRequest("exists", mapOf("selector" to "#btn"))
+        val result = tool.handler(request)
+
+        assertFalse(result.isError == true)
+        val text = (result.content.firstOrNull() as? io.modelcontextprotocol.kotlin.sdk.types.TextContent)?.text
+        assertEquals("true", text)
+    }
+
+    @Test
     @DisplayName("click with modifier passes modifier to WebDriver")
     fun clickWithModifierPassesModifier() = runBlocking {
         coEvery { driver.click("#btn", "Shift") } returns Unit
@@ -189,6 +235,52 @@ class Browser4MCPServerTest {
         assertFalse(result.isError == true)
         val text = (result.content.firstOrNull() as? io.modelcontextprotocol.kotlin.sdk.types.TextContent)?.text
         assertTrue(text?.contains("Shift") == true)
+    }
+
+    @Test
+    @DisplayName("scroll_to_top returns success when WebDriver succeeds")
+    fun scrollToTopReturnsSuccess() = runBlocking {
+        coEvery { driver.scrollToTop() } returns 0.0
+
+        val tool = mcpServer.server.tools["scroll_to_top"]!!
+        val result = tool.handler(buildRequest("scroll_to_top", emptyMap()))
+
+        assertFalse(result.isError == true)
+    }
+
+    @Test
+    @DisplayName("delay waits the specified number of milliseconds")
+    fun delayWaitsSpecifiedMillis() = runBlocking {
+        coEvery { driver.delay(any<Long>()) } returns Unit
+
+        val tool = mcpServer.server.tools["delay"]!!
+        val result = tool.handler(buildRequest("delay", mapOf("millis" to "100")))
+
+        assertFalse(result.isError == true)
+        val text = (result.content.firstOrNull() as? io.modelcontextprotocol.kotlin.sdk.types.TextContent)?.text
+        assertTrue(text?.contains("100") == true)
+    }
+
+    @Test
+    @DisplayName("help returns documentation for a known domain")
+    fun helpReturnsDomainDocumentation() = runBlocking {
+        val tool = mcpServer.server.tools["help"]!!
+        val result = tool.handler(buildRequest("help", mapOf("domain" to "driver")))
+
+        assertFalse(result.isError == true)
+        val text = (result.content.firstOrNull() as? io.modelcontextprotocol.kotlin.sdk.types.TextContent)?.text
+        assertTrue(text?.contains("driver.") == true, "Expected driver tool specs in help output")
+    }
+
+    @Test
+    @DisplayName("help returns documentation for a specific method")
+    fun helpReturnsMethodDocumentation() = runBlocking {
+        val tool = mcpServer.server.tools["help"]!!
+        val result = tool.handler(buildRequest("help", mapOf("domain" to "driver", "method" to "navigateTo")))
+
+        assertFalse(result.isError == true)
+        val text = (result.content.firstOrNull() as? io.modelcontextprotocol.kotlin.sdk.types.TextContent)?.text
+        assertTrue(text?.contains("navigateTo") == true, "Expected navigateTo in help output")
     }
 
     // -------------------------------------------------------------------------
@@ -263,10 +355,23 @@ class Browser4MCPServerTest {
     }
 
     @Test
+    @DisplayName("delay returns error when millis parameter is missing")
+    fun delayMissingMillisReturnsError() = runBlocking {
+        val tool = mcpServer.server.tools["delay"]!!
+        val result = tool.handler(buildRequest("delay", emptyMap()))
+
+        assertTrue(result.isError == true)
+    }
+
+    @Test
     @DisplayName("help returns error for unknown domain")
     fun helpReturnsErrorForUnknownDomain() = runBlocking {
-        // help tool has been removed; test that it is no longer registered
-        assertFalse(mcpServer.server.tools.keys.contains("help"), "help tool should not be registered")
+        val tool = mcpServer.server.tools["help"]!!
+        val result = tool.handler(buildRequest("help", mapOf("domain" to "nonexistent")))
+
+        assertFalse(result.isError == true)
+        val text = (result.content.firstOrNull() as? io.modelcontextprotocol.kotlin.sdk.types.TextContent)?.text
+        assertTrue(text?.contains("Unknown domain") == true)
     }
 
     // -------------------------------------------------------------------------

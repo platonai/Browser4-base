@@ -3,7 +3,9 @@ package ai.platon.pulsar.agentic.mcp.server
 import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.common.AgentFileSystem
 import ai.platon.pulsar.agentic.model.ExtractionSchema
+import ai.platon.pulsar.agentic.tools.specs.ToolSpecification
 import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractBrowser
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
@@ -73,11 +75,14 @@ class Browser4MCPServer(
             Browser4 MCP Server gives you full control over a real Chrome browser.
             Use the tools in order: navigate first, then interact, then read content.
             Always call wait_for_selector after actions that trigger page loads or dynamic updates.
+            Use the 'help' tool to get detailed documentation for any domain or method.
         """.trimIndent()
     ) {
         registerDriverTools()
+        registerBrowserTools()
         if (fileSystem != null) registerFileSystemTools(fileSystem)
         if (agent != null) registerAgentTools(agent)
+        registerSystemTools()
     }
 
     // -------------------------------------------------------------------------
@@ -128,7 +133,7 @@ class Browser4MCPServer(
         addTool(
             name = "navigate_to",
             description = "Navigate the browser to the given URL. " +
-                "Call wait_for_selector afterwards if the page has dynamic content.",
+                    "Call wait_for_selector afterwards if the page has dynamic content.",
             inputSchema = schemaOf(
                 "url" to stringProp("The URL to navigate to, e.g. https://example.com"),
                 required = listOf("url")
@@ -186,7 +191,7 @@ class Browser4MCPServer(
         addTool(
             name = "wait_for_selector",
             description = "Wait until an element matching the CSS selector appears in the DOM. " +
-                "Call this after actions that trigger dynamic content (AJAX, SPA transitions).",
+                    "Call this after actions that trigger dynamic content (AJAX, SPA transitions).",
             inputSchema = schemaOf(
                 "selector" to stringProp("CSS selector to wait for"),
                 "timeout_ms" to intProp("Maximum time to wait in milliseconds (default: 3000)"),
@@ -203,11 +208,65 @@ class Browser4MCPServer(
                 )
         }
 
+        // driver.exists(selector: String): Boolean
+        addTool(
+            name = "exists",
+            description = "Return true if at least one element matching the CSS selector exists in the DOM.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector to check"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.exists(selector) }
+                .fold(
+                    onSuccess = { textResult(it.toString()) },
+                    onFailure = { errorResult("exists failed: ${it.message}") }
+                )
+        }
+
+        // driver.isVisible(selector: String): Boolean
+        addTool(
+            name = "is_visible",
+            description = "Return true if the first element matching the CSS selector is visible in the viewport.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector to check"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.isVisible(selector) }
+                .fold(
+                    onSuccess = { textResult(it.toString()) },
+                    onFailure = { errorResult("is_visible failed: ${it.message}") }
+                )
+        }
+
+        // driver.focus(selector: String)
+        addTool(
+            name = "focus",
+            description = "Move keyboard focus to the first element matching the CSS selector.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the element to focus"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.focus(selector) }
+                .fold(
+                    onSuccess = { textResult("Focused '$selector'") },
+                    onFailure = { errorResult("focus failed: ${it.message}") }
+                )
+        }
+
         // driver.hover(selector: String)
         addTool(
             name = "hover",
             description = "Move the mouse cursor over the element matching the CSS selector. " +
-                "Use this to reveal dropdown menus, tooltips, and hover-activated UI components.",
+                    "Use this to reveal dropdown menus, tooltips, and hover-activated UI components.",
             inputSchema = schemaOf(
                 "selector" to stringProp("CSS selector for the element to hover over"),
                 required = listOf("selector")
@@ -226,7 +285,7 @@ class Browser4MCPServer(
         addTool(
             name = "click",
             description = "Click the first element matching the CSS selector. " +
-                "Optionally supply a keyboard modifier (e.g. Shift, Control, Alt, Meta) to perform a modified click.",
+                    "Optionally supply a keyboard modifier (e.g. Shift, Control, Alt, Meta) to perform a modified click.",
             inputSchema = schemaOf(
                 "selector" to stringProp("CSS selector for the element to click"),
                 "modifier" to stringProp("Optional keyboard modifier: Shift, Control, Alt, or Meta"),
@@ -249,7 +308,7 @@ class Browser4MCPServer(
         addTool(
             name = "fill",
             description = "Clear the element matching the CSS selector and then type the given text. " +
-                "Preferred over 'type' when you need to replace an existing value.",
+                    "Preferred over 'type' when you need to replace an existing value.",
             inputSchema = schemaOf(
                 "selector" to stringProp("CSS selector for the input element"),
                 "text" to stringProp("Text to fill"),
@@ -292,7 +351,7 @@ class Browser4MCPServer(
         addTool(
             name = "press",
             description = "Dispatch a keyboard key event on the element matching the CSS selector. " +
-                "Common keys: Enter, Tab, Escape, ArrowDown, ArrowUp, Space.",
+                    "Common keys: Enter, Tab, Escape, ArrowDown, ArrowUp, Space.",
             inputSchema = schemaOf(
                 "selector" to stringProp("CSS selector of the focused element"),
                 "key" to stringProp("Key name, e.g. Enter, Tab, Escape, ArrowDown"),
@@ -346,122 +405,6 @@ class Browser4MCPServer(
                 )
         }
 
-        // driver.currentUrl(): String
-        addTool(
-            name = "current_url",
-            description = "Return the current URL of the browser.",
-            inputSchema = ToolSchema()
-        ) { _ ->
-            runCatching { driver.currentUrl() }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("current_url failed: ${it.message}") }
-                )
-        }
-
-        // driver.waitForNavigation(oldUrl: String)
-        addTool(
-            name = "wait_for_navigation",
-            description = "Wait until the browser has navigated away from the current URL. " +
-                "Call this after actions that trigger a page load.",
-            inputSchema = schemaOf(
-                "old_url" to stringProp("The URL to wait for navigation away from (default: current URL)")
-            )
-        ) { request ->
-            val oldUrl = arg(request.params.arguments, "old_url") ?: ""
-            runCatching { driver.waitForNavigation(oldUrl) }
-                .fold(
-                    onSuccess = { textResult("Navigation completed") },
-                    onFailure = { errorResult("wait_for_navigation failed: ${it.message}") }
-                )
-        }
-
-        // driver.selectFirstAttributeOrNull(selector: String, attrName: String): String?
-        addTool(
-            name = "get_attribute",
-            description = "Return the value of the specified attribute on the first element matching the CSS selector.",
-            inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector of the target element"),
-                "attribute" to stringProp("Attribute name, e.g. href, src, value"),
-                required = listOf("selector", "attribute")
-            )
-        ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            val attribute = arg(request.params.arguments, "attribute")
-                ?: return@addTool errorResult("Missing required parameter: attribute")
-            runCatching { driver.selectFirstAttributeOrNull(selector, attribute) ?: "" }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("get_attribute failed: ${it.message}") }
-                )
-        }
-
-        // driver.outerHTML(selector: String): String?
-        addTool(
-            name = "get_html",
-            description = "Return the outer HTML of the first element matching the CSS selector.",
-            inputSchema = schemaOf(
-                "selector" to stringProp("CSS selector of the target element"),
-                required = listOf("selector")
-            )
-        ) { request ->
-            val selector = arg(request.params.arguments, "selector")
-                ?: return@addTool errorResult("Missing required parameter: selector")
-            runCatching { driver.outerHTML(selector) ?: "" }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("get_html failed: ${it.message}") }
-                )
-        }
-
-        // driver.pageSource(): String?
-        addTool(
-            name = "page_source",
-            description = "Return the full HTML source of the current page.",
-            inputSchema = ToolSchema()
-        ) { _ ->
-            runCatching { driver.pageSource() ?: "" }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("page_source failed: ${it.message}") }
-                )
-        }
-
-        // driver.screenshot(fullPage: Boolean): String?
-        addTool(
-            name = "screenshot",
-            description = "Capture a screenshot of the current page and return it as a base64-encoded PNG.",
-            inputSchema = schemaOf(
-                "full_page" to boolProp("When true, captures the full scrollable page (default: false)")
-            )
-        ) { request ->
-            val fullPage = arg(request.params.arguments, "full_page")?.toBooleanStrictOrNull() ?: false
-            runCatching { driver.screenshot(fullPage) ?: "" }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("screenshot failed: ${it.message}") }
-                )
-        }
-
-        // driver.evaluate(expression: String): Any?
-        addTool(
-            name = "evaluate",
-            description = "Execute a JavaScript expression in the page context and return its result as a string.",
-            inputSchema = schemaOf(
-                "expression" to stringProp("JavaScript expression to evaluate, e.g. document.title"),
-                required = listOf("expression")
-            )
-        ) { request ->
-            val expression = arg(request.params.arguments, "expression")
-                ?: return@addTool errorResult("Missing required parameter: expression")
-            runCatching { driver.evaluate(expression)?.toString() ?: "" }
-                .fold(
-                    onSuccess = { textResult(it) },
-                    onFailure = { errorResult("evaluate failed: ${it.message}") }
-                )
-        }
-
         // driver.scrollTo(selector: String)
         addTool(
             name = "scroll_to",
@@ -480,11 +423,84 @@ class Browser4MCPServer(
                 )
         }
 
+        // driver.scrollToTop()
+        addTool(
+            name = "scroll_to_top",
+            description = "Scroll the page to the very top.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.scrollToTop() }
+                .fold(
+                    onSuccess = { textResult("Scrolled to top") },
+                    onFailure = { errorResult("scroll_to_top failed: ${it.message}") }
+                )
+        }
+
+        // driver.scrollToBottom()
+        addTool(
+            name = "scroll_to_bottom",
+            description = "Scroll the page to the very bottom.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.scrollToBottom() }
+                .fold(
+                    onSuccess = { textResult("Scrolled to bottom") },
+                    onFailure = { errorResult("scroll_to_bottom failed: ${it.message}") }
+                )
+        }
+
+        // driver.scrollToMiddle(ratio: Double = 0.5)
+        addTool(
+            name = "scroll_to_middle",
+            description = "Scroll the page to a fractional position. " +
+                    "ratio=0.0 is the top, ratio=1.0 is the bottom, ratio=0.5 (default) is the middle.",
+            inputSchema = schemaOf(
+                "ratio" to numberProp("Scroll position as a fraction of page height: 0.0=top, 1.0=bottom (default: 0.5)")
+            )
+        ) { request ->
+            val ratio = arg(request.params.arguments, "ratio")?.toDoubleOrNull() ?: 0.5
+            runCatching { driver.scrollToMiddle(ratio) }
+                .fold(
+                    onSuccess = { textResult("Scrolled to position $ratio") },
+                    onFailure = { errorResult("scroll_to_middle failed: ${it.message}") }
+                )
+        }
+
+        // driver.scrollBy(pixels: Double = 200.0): Double
+        addTool(
+            name = "scroll_by",
+            description = "Scroll the page by the given number of pixels. " +
+                    "Positive values scroll down; negative values scroll up.",
+            inputSchema = schemaOf(
+                "pixels" to numberProp("Pixels to scroll (default: 200.0; negative scrolls up)")
+            )
+        ) { request ->
+            val pixels = arg(request.params.arguments, "pixels")?.toDoubleOrNull() ?: 200.0
+            runCatching { driver.scrollBy(pixels) }
+                .fold(
+                    onSuccess = { scrolled -> textResult("Scrolled by $scrolled px") },
+                    onFailure = { errorResult("scroll_by failed: ${it.message}") }
+                )
+        }
+
+        // driver.textContent(): String?  — returns the document's text content (no selector)
+        addTool(
+            name = "text_content",
+            description = "Return the full text content of the current page document.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.textContent() ?: "" }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("text_content failed: ${it.message}") }
+                )
+        }
+
         // driver.selectFirstTextOrNull(selector: String): String?
         addTool(
             name = "get_text",
             description = "Return the text content of the first element matching the CSS selector " +
-                "(descendants included). Returns empty string if no element is found.",
+                    "(descendants included). Returns empty string if no element is found.",
             inputSchema = schemaOf(
                 "selector" to stringProp("CSS selector of the target element"),
                 required = listOf("selector")
@@ -496,6 +512,85 @@ class Browser4MCPServer(
                 .fold(
                     onSuccess = { textResult(it) },
                     onFailure = { errorResult("get_text failed: ${it.message}") }
+                )
+        }
+
+        // driver.delay(millis: Long)
+        addTool(
+            name = "delay",
+            description = "Pause execution for the specified number of milliseconds. " +
+                    "Prefer wait_for_selector for synchronising with dynamic content.",
+            inputSchema = schemaOf(
+                "millis" to intProp("Duration to wait in milliseconds"),
+                required = listOf("millis")
+            )
+        ) { request ->
+            val millis = arg(request.params.arguments, "millis")?.toLongOrNull()
+                ?: return@addTool errorResult("Missing required parameter: millis")
+            runCatching { driver.delay(millis) }
+                .fold(
+                    onSuccess = { textResult("Waited ${millis}ms") },
+                    onFailure = { errorResult("delay failed: ${it.message}") }
+                )
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // domain: browser
+    // -------------------------------------------------------------------------
+
+    private fun Server.registerBrowserTools() {
+
+        // browser.switchTab(tabId: String): Int
+        addTool(
+            name = "switch_tab",
+            description = "Switch the active browser tab to the tab identified by tabId. " +
+                    "tabId may be a numeric driver ID or a driver GUID.",
+            inputSchema = schemaOf(
+                "tab_id" to stringProp("Numeric driver ID or GUID of the tab to activate"),
+                required = listOf("tab_id")
+            )
+        ) { request ->
+            val tabId = arg(request.params.arguments, "tab_id")
+                ?: return@addTool errorResult("Missing required parameter: tab_id")
+            runCatching {
+                val browser = driver.browser as? AbstractBrowser
+                    ?: throw IllegalStateException("Browser does not support tab management")
+                val target = tabId.toIntOrNull()?.let { browser.findDriverById(it) }
+                    ?: browser.findDriverByGUID(tabId)
+                    ?: throw IllegalArgumentException("Tab '$tabId' not found")
+                target.bringToFront()
+                target.id
+            }
+                .fold(
+                    onSuccess = { id -> textResult("Switched to tab $tabId (driver id: $id)") },
+                    onFailure = { errorResult("switch_tab failed: ${it.message}") }
+                )
+        }
+
+        // browser.closeTab(tabId: String)
+        addTool(
+            name = "close_tab",
+            description = "Close the browser tab identified by tabId. " +
+                    "tabId may be a numeric driver ID or a driver GUID.",
+            inputSchema = schemaOf(
+                "tab_id" to stringProp("Numeric driver ID or GUID of the tab to close"),
+                required = listOf("tab_id")
+            )
+        ) { request ->
+            val tabId = arg(request.params.arguments, "tab_id")
+                ?: return@addTool errorResult("Missing required parameter: tab_id")
+            runCatching {
+                val browser = driver.browser as? AbstractBrowser
+                    ?: throw IllegalStateException("Browser does not support tab management")
+                val target = tabId.toIntOrNull()?.let { browser.findDriverById(it) }
+                    ?: browser.findDriverByGUID(tabId)
+                    ?: throw IllegalArgumentException("Tab '$tabId' not found")
+                browser.destroyDriver(target)
+            }
+                .fold(
+                    onSuccess = { textResult("Closed tab $tabId") },
+                    onFailure = { errorResult("close_tab failed: ${it.message}") }
                 )
         }
     }
@@ -709,7 +804,7 @@ class Browser4MCPServer(
         addTool(
             name = "agent_extract",
             description = "Extract structured data from the current page using a JSON schema. " +
-                "Supply the extraction goal in 'instruction' and the expected output shape in 'schema'.",
+                    "Supply the extraction goal in 'instruction' and the expected output shape in 'schema'.",
             inputSchema = schemaOf(
                 "instruction" to stringProp("Natural-language description of what data to extract"),
                 "schema" to stringProp("JSON schema string describing the expected output structure"),
@@ -734,7 +829,7 @@ class Browser4MCPServer(
         addTool(
             name = "agent_summarize",
             description = "Generate a natural-language summary of the page or a specific element. " +
-                "Optionally provide a CSS selector to scope the content and a custom instruction.",
+                    "Optionally provide a CSS selector to scope the content and a custom instruction.",
             inputSchema = schemaOf(
                 "instruction" to stringProp("Optional instruction for how to summarize the content"),
                 "selector" to stringProp("Optional CSS selector to scope the content being summarized")
@@ -750,4 +845,58 @@ class Browser4MCPServer(
         }
     }
 
+    // -------------------------------------------------------------------------
+    // domain: system
+    // -------------------------------------------------------------------------
+
+    private fun Server.registerSystemTools() {
+
+        // system.help(domain: String): String  and  system.help(domain: String, method: String): String
+        addTool(
+            name = "help",
+            description = "Return documentation for a tool domain or a specific method. " +
+                    "Call with only 'domain' to list all methods in that domain. " +
+                    "Call with both 'domain' and 'method' to get details for a single method.",
+            inputSchema = schemaOf(
+                "domain" to stringProp("Tool domain: driver, browser, fs, agent, or system"),
+                "method" to stringProp("Optional method name within the domain"),
+                required = listOf("domain")
+            )
+        ) { request ->
+            val domain = arg(request.params.arguments, "domain")
+                ?: return@addTool errorResult("Missing required parameter: domain")
+            val method = arg(request.params.arguments, "method")
+            runCatching { lookupHelp(domain, method) }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("help failed: ${it.message}") }
+                )
+        }
+    }
+
+    /**
+     * Return help text for [domain] (and optionally [method]) by filtering
+     * [ToolSpecification.TOOL_CALL_SPECIFICATION].
+     */
+    private fun lookupHelp(domain: String, method: String?): String {
+        val lines = ToolSpecification.TOOL_CALL_SPECIFICATION.lines()
+        val domainPrefix = "$domain."
+        val domainLines = lines.filter { line ->
+            val trimmed = line.trim()
+            trimmed.startsWith(domainPrefix) || trimmed.startsWith("// domain: $domain")
+        }
+        if (domainLines.isEmpty()) {
+            return "Unknown domain '$domain'. Available domains: driver, browser, fs, agent, system."
+        }
+        if (method == null) {
+            return domainLines.joinToString("\n")
+        }
+        val methodPrefix = "$domain.$method("
+        val methodLines = domainLines.filter { it.trim().startsWith(methodPrefix) }
+        return if (methodLines.isEmpty()) {
+            "Unknown method '$method' in domain '$domain'."
+        } else {
+            methodLines.joinToString("\n")
+        }
+    }
 }
