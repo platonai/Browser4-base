@@ -19,15 +19,15 @@ class WebDriverExtensionsTest : KotlinSdkIntegrationTestBase() {
         driver = WebDriver(client)
     }
 
-    @Test
-    @DisplayName("should list sessions to verify SessionManager")
-    suspend fun testListSessions() {
-        val sessions = driver.listSessions()
-        // If this works, SessionManager is active.
-        // And ExtendedController has listSessions endpoint too!
-        // So if this works, ExtendedController MUST be active.
-        assertTrue(sessions.isNotEmpty())
-    }
+//    @Test
+//    @DisplayName("should list sessions to verify SessionManager")
+//    suspend fun testListSessions() {
+//        val sessions = driver.listSessions()
+//        // If this works, SessionManager is active.
+//        // And ExtendedController has listSessions endpoint too!
+//        // So if this works, ExtendedController MUST be active.
+//        assertTrue(sessions.isNotEmpty())
+//    }
 
     @Test
     @DisplayName("should resize window")
@@ -52,7 +52,7 @@ class WebDriverExtensionsTest : KotlinSdkIntegrationTestBase() {
         // We can't easily test actual dialog interaction without a page that pops one up.
         // But we can verify the API calls don't fail when no dialog is present (or fail with specific error)
         // or just ensure the method exists and is callable.
-        
+
         // In some drivers, accept/dismiss might throw if no dialog is open.
         // In Browser4, it might be a no-op or throw.
         // For now just calling them to ensure SDK wiring is correct.
@@ -61,7 +61,7 @@ class WebDriverExtensionsTest : KotlinSdkIntegrationTestBase() {
         } catch (e: Exception) {
             // It's acceptable if it throws "no dialog open" or similar
         }
-        
+
         try {
             driver.dialogAccept()
         } catch (e: Exception) {

@@ -141,7 +141,7 @@ class PulsarWebDriver(
             val targetIndex = currentIndex - 1
             if (targetIndex >= 0 && targetIndex < entries.size) {
                 val entryId = entries[targetIndex].id
-                pageAPI?.navigateHistoryEntry(entryId)
+                pageAPI?.navigateToHistoryEntry(entryId)
             }
         }
     }
@@ -154,7 +154,7 @@ class PulsarWebDriver(
             val targetIndex = currentIndex + 1
             if (targetIndex >= 0 && targetIndex < entries.size) {
                 val entryId = entries[targetIndex].id
-                pageAPI?.navigateHistoryEntry(entryId)
+                pageAPI?.navigateToHistoryEntry(entryId)
             }
         }
     }
