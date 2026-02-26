@@ -68,11 +68,11 @@ interface JvmWebDriver {
 
     @Deprecated("Use navigateAsync instead", ReplaceWith("navigateAsync(url)"))
     @Throws(WebDriverException::class)
-    fun navigateAsync(url: String): CompletableFuture<Unit> = navigateAsync(url)
+    fun navigateToAsync(url: String): CompletableFuture<Unit> = navigateAsync(url)
 
     @Deprecated("Use navigateAsync instead", ReplaceWith("navigateAsync(url)"))
     @Throws(WebDriverException::class)
-    fun navigateAsync(entry: NavigateEntry): CompletableFuture<Unit> = navigateAsync(entry)
+    fun navigateToAsync(entry: NavigateEntry): CompletableFuture<Unit> = navigateAsync(entry)
 
     /**
      * Returns a string representing the current URL that the browser is looking at.
