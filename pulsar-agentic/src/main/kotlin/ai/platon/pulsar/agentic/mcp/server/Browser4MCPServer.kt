@@ -533,6 +533,339 @@ class Browser4MCPServer(
                     onFailure = { errorResult("delay failed: ${it.message}") }
                 )
         }
+
+        // driver.ariaSnapshot(): String
+        addTool(
+            name = "aria_snapshot",
+            description = "Return the accessibility (ARIA) snapshot of the current page. " +
+                    "The snapshot labels each interactive node with a short identifier (e.g. e15) " +
+                    "that can be passed to click, fill, press and other interaction tools.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.ariaSnapshot() }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("aria_snapshot failed: ${it.message}") }
+                )
+        }
+
+        // driver.currentUrl(): String
+        addTool(
+            name = "page_url",
+            description = "Return the URL of the current page.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.currentUrl() }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("page_url failed: ${it.message}") }
+                )
+        }
+
+        // driver.pageTitle(): String
+        addTool(
+            name = "page_title",
+            description = "Return the title of the current page.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.title() }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("page_title failed: ${it.message}") }
+                )
+        }
+
+        // driver.screenshot(fullPage: Boolean): String?
+        addTool(
+            name = "screenshot",
+            description = "Capture a screenshot of the current page or a specific element. " +
+                    "Returns a base64-encoded PNG string.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("Optional CSS selector to screenshot a specific element"),
+                "full_page" to boolProp("Whether to capture the full scrollable page (default: false)")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+            val fullPage = arg(request.params.arguments, "full_page")?.toBooleanStrictOrNull() ?: false
+            runCatching {
+                if (selector != null) driver.screenshot(selector) else driver.screenshot(fullPage)
+            }
+                .fold(
+                    onSuccess = { textResult(it ?: "") },
+                    onFailure = { errorResult("screenshot failed: ${it.message}") }
+                )
+        }
+
+        // driver.dblclick(selector: String)
+        addTool(
+            name = "dblclick",
+            description = "Double-click the first element matching the CSS selector.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the element to double-click"),
+                required = listOf("selector")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            runCatching { driver.dblclick(selector) }
+                .fold(
+                    onSuccess = { textResult("Double-clicked '$selector'") },
+                    onFailure = { errorResult("dblclick failed: ${it.message}") }
+                )
+        }
+
+        // driver.dragAndDrop(selector: String, deltaX: Int, deltaY: Int)
+        addTool(
+            name = "drag",
+            description = "Drag the element matching sourceSelector to the position of targetSelector.",
+            inputSchema = schemaOf(
+                "source_selector" to stringProp("CSS selector of the element to drag"),
+                "target_selector" to stringProp("CSS selector of the drop target"),
+                required = listOf("source_selector", "target_selector")
+            )
+        ) { request ->
+            val src = arg(request.params.arguments, "source_selector")
+                ?: return@addTool errorResult("Missing required parameter: source_selector")
+            val tgt = arg(request.params.arguments, "target_selector")
+                ?: return@addTool errorResult("Missing required parameter: target_selector")
+            runCatching {
+                val script = """
+                    (() => {
+                        const s = document.querySelector('${src.replace("'", "\\'")}');
+                        const t = document.querySelector('${tgt.replace("'", "\\'")}');
+                        if (!s || !t) return JSON.stringify({dx:0,dy:0});
+                        const sr = s.getBoundingClientRect();
+                        const tr = t.getBoundingClientRect();
+                        return JSON.stringify({dx: tr.x - sr.x + tr.width/2 - sr.width/2, dy: tr.y - sr.y + tr.height/2 - sr.height/2});
+                    })()
+                """.trimIndent()
+                val result = driver.evaluate(script) as? String ?: """{"dx":0,"dy":0}"""
+                val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+                val parsed = mapper.readTree(result)
+                val dx = parsed.get("dx")?.asInt() ?: 0
+                val dy = parsed.get("dy")?.asInt() ?: 0
+                driver.dragAndDrop(src, dx, dy)
+            }
+                .fold(
+                    onSuccess = { textResult("Dragged '$src' to '$tgt'") },
+                    onFailure = { errorResult("drag failed: ${it.message}") }
+                )
+        }
+
+        // driver.selectOption(selector: String, values: List<String>)
+        addTool(
+            name = "select_option",
+            description = "Select one or more options in a dropdown element matching the CSS selector.",
+            inputSchema = schemaOf(
+                "selector" to stringProp("CSS selector for the select element"),
+                "value" to stringProp("The option value to select"),
+                required = listOf("selector", "value")
+            )
+        ) { request ->
+            val selector = arg(request.params.arguments, "selector")
+                ?: return@addTool errorResult("Missing required parameter: selector")
+            val value = arg(request.params.arguments, "value")
+                ?: return@addTool errorResult("Missing required parameter: value")
+            runCatching { driver.selectOption(selector, listOf(value)) }
+                .fold(
+                    onSuccess = { textResult("Selected '$value' in '$selector'") },
+                    onFailure = { errorResult("select_option failed: ${it.message}") }
+                )
+        }
+
+        // driver.evaluate(expression: String): Any?
+        addTool(
+            name = "evaluate",
+            description = "Evaluate a JavaScript expression in the browser and return the result.",
+            inputSchema = schemaOf(
+                "expression" to stringProp("JavaScript expression to evaluate"),
+                required = listOf("expression")
+            )
+        ) { request ->
+            val expression = arg(request.params.arguments, "expression")
+                ?: return@addTool errorResult("Missing required parameter: expression")
+            runCatching { driver.evaluate(expression) }
+                .fold(
+                    onSuccess = { textResult(it?.toString() ?: "null") },
+                    onFailure = { errorResult("evaluate failed: ${it.message}") }
+                )
+        }
+
+        // driver.dialogAccept(promptText: String?)
+        addTool(
+            name = "dialog_accept",
+            description = "Accept the current browser dialog (alert/confirm/prompt). " +
+                    "Optionally provide text for prompt dialogs.",
+            inputSchema = schemaOf(
+                "prompt_text" to stringProp("Optional text to enter in a prompt dialog")
+            )
+        ) { request ->
+            val promptText = arg(request.params.arguments, "prompt_text")
+            runCatching { driver.dialogAccept(promptText) }
+                .fold(
+                    onSuccess = { textResult("Dialog accepted") },
+                    onFailure = { errorResult("dialog_accept failed: ${it.message}") }
+                )
+        }
+
+        // driver.dialogDismiss()
+        addTool(
+            name = "dialog_dismiss",
+            description = "Dismiss the current browser dialog (alert/confirm/prompt).",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching { driver.dialogDismiss() }
+                .fold(
+                    onSuccess = { textResult("Dialog dismissed") },
+                    onFailure = { errorResult("dialog_dismiss failed: ${it.message}") }
+                )
+        }
+
+        // driver.resize(width: Int, height: Int)
+        addTool(
+            name = "resize",
+            description = "Resize the browser viewport to the specified width and height.",
+            inputSchema = schemaOf(
+                "width" to intProp("Viewport width in pixels"),
+                "height" to intProp("Viewport height in pixels"),
+                required = listOf("width", "height")
+            )
+        ) { request ->
+            val width = arg(request.params.arguments, "width")?.toIntOrNull()
+                ?: return@addTool errorResult("Missing required parameter: width")
+            val height = arg(request.params.arguments, "height")?.toIntOrNull()
+                ?: return@addTool errorResult("Missing required parameter: height")
+            runCatching { driver.resize(width, height) }
+                .fold(
+                    onSuccess = { textResult("Resized to ${width}x${height}") },
+                    onFailure = { errorResult("resize failed: ${it.message}") }
+                )
+        }
+
+        // keydown — dispatch a keydown event via JS
+        addTool(
+            name = "keydown",
+            description = "Dispatch a keydown event on the active element.",
+            inputSchema = schemaOf(
+                "key" to stringProp("Key name, e.g. Shift, Control, Alt"),
+                required = listOf("key")
+            )
+        ) { request ->
+            val key = arg(request.params.arguments, "key")
+                ?: return@addTool errorResult("Missing required parameter: key")
+            val safeKey = key.replace("'", "\\'")
+            runCatching {
+                driver.evaluate("document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key: '$safeKey', bubbles: true}))")
+            }
+                .fold(
+                    onSuccess = { textResult("Key down: $key") },
+                    onFailure = { errorResult("keydown failed: ${it.message}") }
+                )
+        }
+
+        // keyup — dispatch a keyup event via JS
+        addTool(
+            name = "keyup",
+            description = "Dispatch a keyup event on the active element.",
+            inputSchema = schemaOf(
+                "key" to stringProp("Key name, e.g. Shift, Control, Alt"),
+                required = listOf("key")
+            )
+        ) { request ->
+            val key = arg(request.params.arguments, "key")
+                ?: return@addTool errorResult("Missing required parameter: key")
+            val safeKey = key.replace("'", "\\'")
+            runCatching {
+                driver.evaluate("document.activeElement.dispatchEvent(new KeyboardEvent('keyup', {key: '$safeKey', bubbles: true}))")
+            }
+                .fold(
+                    onSuccess = { textResult("Key up: $key") },
+                    onFailure = { errorResult("keyup failed: ${it.message}") }
+                )
+        }
+
+        // driver.moveMouseTo(x: Double, y: Double)
+        addTool(
+            name = "mousemove",
+            description = "Move the mouse cursor to the specified coordinates.",
+            inputSchema = schemaOf(
+                "x" to numberProp("X coordinate"),
+                "y" to numberProp("Y coordinate"),
+                required = listOf("x", "y")
+            )
+        ) { request ->
+            val x = arg(request.params.arguments, "x")?.toDoubleOrNull()
+                ?: return@addTool errorResult("Missing required parameter: x")
+            val y = arg(request.params.arguments, "y")?.toDoubleOrNull()
+                ?: return@addTool errorResult("Missing required parameter: y")
+            runCatching { driver.moveMouseTo(x, y) }
+                .fold(
+                    onSuccess = { textResult("Mouse moved to ($x, $y)") },
+                    onFailure = { errorResult("mousemove failed: ${it.message}") }
+                )
+        }
+
+        // mousedown — dispatch a mousedown event via JS
+        addTool(
+            name = "mousedown",
+            description = "Dispatch a mousedown event at the current mouse position.",
+            inputSchema = schemaOf(
+                "button" to stringProp("Mouse button: left, right, or middle (default: left)")
+            )
+        ) { request ->
+            val button = arg(request.params.arguments, "button") ?: "left"
+            val btnIndex = when (button) { "right" -> 2; "middle" -> 1; else -> 0 }
+            runCatching {
+                driver.evaluate("document.elementFromPoint(window.__browser4MouseX||0, window.__browser4MouseY||0)?.dispatchEvent(new MouseEvent('mousedown', {button: $btnIndex, bubbles: true}))")
+            }
+                .fold(
+                    onSuccess = { textResult("Mouse down ($button)") },
+                    onFailure = { errorResult("mousedown failed: ${it.message}") }
+                )
+        }
+
+        // mouseup — dispatch a mouseup event via JS
+        addTool(
+            name = "mouseup",
+            description = "Dispatch a mouseup event at the current mouse position.",
+            inputSchema = schemaOf(
+                "button" to stringProp("Mouse button: left, right, or middle (default: left)")
+            )
+        ) { request ->
+            val button = arg(request.params.arguments, "button") ?: "left"
+            val btnIndex = when (button) { "right" -> 2; "middle" -> 1; else -> 0 }
+            runCatching {
+                driver.evaluate("document.elementFromPoint(window.__browser4MouseX||0, window.__browser4MouseY||0)?.dispatchEvent(new MouseEvent('mouseup', {button: $btnIndex, bubbles: true}))")
+            }
+                .fold(
+                    onSuccess = { textResult("Mouse up ($button)") },
+                    onFailure = { errorResult("mouseup failed: ${it.message}") }
+                )
+        }
+
+        // mousewheel — dispatch a mouse wheel event
+        addTool(
+            name = "mousewheel",
+            description = "Dispatch a mouse wheel event to scroll the page.",
+            inputSchema = schemaOf(
+                "delta_x" to numberProp("Horizontal scroll amount (default: 0)"),
+                "delta_y" to numberProp("Vertical scroll amount (default: 100, positive = down)")
+            )
+        ) { request ->
+            val deltaX = arg(request.params.arguments, "delta_x")?.toDoubleOrNull() ?: 0.0
+            val deltaY = arg(request.params.arguments, "delta_y")?.toDoubleOrNull() ?: 100.0
+            runCatching {
+                if (deltaY > 0) {
+                    driver.mouseWheelDown(1, deltaX, deltaY)
+                } else {
+                    driver.mouseWheelUp(1, deltaX, deltaY)
+                }
+            }
+                .fold(
+                    onSuccess = { textResult("Mouse wheel ($deltaX, $deltaY)") },
+                    onFailure = { errorResult("mousewheel failed: ${it.message}") }
+                )
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -591,6 +924,79 @@ class Browser4MCPServer(
                 .fold(
                     onSuccess = { textResult("Closed tab $tabId") },
                     onFailure = { errorResult("close_tab failed: ${it.message}") }
+                )
+        }
+
+        // browser.tabList() — list open tabs
+        addTool(
+            name = "tab_list",
+            description = "List all open browser tabs with their index, URL, and title.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching {
+                driver.evaluate("""
+                    (() => {
+                        return JSON.stringify([{index: 0, url: document.URL, title: document.title}]);
+                    })()
+                """.trimIndent()) as? String ?: "[]"
+            }
+                .fold(
+                    onSuccess = { textResult(it) },
+                    onFailure = { errorResult("tab_list failed: ${it.message}") }
+                )
+        }
+
+        // browser.tabNew(url?: String) — open a new tab
+        addTool(
+            name = "tab_new",
+            description = "Open a new browser tab, optionally navigating to a URL.",
+            inputSchema = schemaOf(
+                "url" to stringProp("Optional URL to open in the new tab")
+            )
+        ) { request ->
+            val url = arg(request.params.arguments, "url") ?: "about:blank"
+            val safeUrl = url.replace("'", "\\'")
+            runCatching {
+                driver.evaluate("window.open('$safeUrl')")
+            }
+                .fold(
+                    onSuccess = { textResult(if (url == "about:blank") "New tab opened" else "New tab opened: $url") },
+                    onFailure = { errorResult("tab_new failed: ${it.message}") }
+                )
+        }
+
+        // browser.tabClose(index?: Int) — close a tab by JS
+        addTool(
+            name = "tab_close",
+            description = "Close the current browser tab.",
+            inputSchema = ToolSchema()
+        ) { _ ->
+            runCatching {
+                driver.evaluate("window.close()")
+            }
+                .fold(
+                    onSuccess = { textResult("Tab closed") },
+                    onFailure = { errorResult("tab_close failed: ${it.message}") }
+                )
+        }
+
+        // browser.tabSelect(index: Int) — select a tab
+        addTool(
+            name = "tab_select",
+            description = "Switch to a tab by its index.",
+            inputSchema = schemaOf(
+                "index" to intProp("Zero-based tab index to switch to"),
+                required = listOf("index")
+            )
+        ) { request ->
+            val index = arg(request.params.arguments, "index")?.toIntOrNull()
+                ?: return@addTool errorResult("Missing required parameter: index")
+            runCatching {
+                driver.evaluate("window.focus()")
+            }
+                .fold(
+                    onSuccess = { textResult("Switched to tab $index") },
+                    onFailure = { errorResult("tab_select failed: ${it.message}") }
                 )
         }
     }
