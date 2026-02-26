@@ -25,9 +25,9 @@ while ($true) {
     }
 
     $Running = Get-CimInstance Win32_Process | Where-Object {
-        ($_.Name -eq 'pwsh.exe' -or $_.Name -eq 'powershell.exe') -and
-        $_.CommandLine -like "*$ScriptName*" -and
-        $_.CommandLine -notlike "*run_coworker_periodically.ps1*" -and
+        $_.Name -match 'pwsh|powershell' -and
+        $_.CommandLine -match [regex]::Escape($ScriptName) -and
+        $_.CommandLine -notmatch [regex]::Escape("run_coworker_periodically.ps1") -and
         $_.ProcessId -ne $PID
     }
 
@@ -37,9 +37,9 @@ while ($true) {
     } else {
         Write-Host "$timestamp - $ScriptName is NOT running. Starting it..."
         try {
-            # Start the process
-            Start-Process pwsh -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`"" -WorkingDirectory (Split-Path $ScriptPath)
-            Write-Host "Started $ScriptName."
+            # Start the process synchronously to avoid spawning multiple checks
+            & $ScriptPath
+            Write-Host "Finished $ScriptName."
         } catch {
             Write-Error "Failed to start ${ScriptName}: $_"
         }

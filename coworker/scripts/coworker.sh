@@ -241,7 +241,17 @@ for file in "${prepare_files[@]}"; do
     log_message "[PREPARE] Task: $(basename "$file")" INFO
 done
 
-# 2. Process 4review
+# 2. Process 3complete (newly added to show pending reviews)
+if [[ -d "$finishedDir" ]]; then
+    # Use find to locate files modified in the last 24 hours
+    if command -v find >/dev/null 2>&1; then
+        find "$finishedDir" -type f -mtime -1 -print0 | while IFS= read -r -d '' file; do
+            log_message "[COMPLETE] Task waiting for review: $(basename "$file")" INFO
+        done
+    fi
+fi
+
+# 3. Process 4review
 shopt -s nullglob
 review_files=("$reviewDir"/*)
 shopt -u nullglob
@@ -288,6 +298,12 @@ if [[ -d "$approvedDir" ]]; then
             if [[ -f "$commitScript" ]]; then
                 log_message "Executing commit script for approved tasks..." INFO
                 bash "$commitScript"
+                gitExitCode=$?
+                if [[ $gitExitCode -eq 0 ]]; then
+                    log_message "Git sync executed successfully." INFO
+                else
+                    log_message "Git sync failed with exit code $gitExitCode." ERROR
+                fi
             else
                 log_message "Commit script not found at $commitScript" WARN
             fi

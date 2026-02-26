@@ -29,7 +29,8 @@ Find all links containing /dp/.
 
 ## Implementation Notes
 
-
+- 当执行长时间任务时，需要提供实时反馈和进度更新，以便用户了解任务的执行状态
+  - agent.run()
 
 ## Acceptance Criteria
 

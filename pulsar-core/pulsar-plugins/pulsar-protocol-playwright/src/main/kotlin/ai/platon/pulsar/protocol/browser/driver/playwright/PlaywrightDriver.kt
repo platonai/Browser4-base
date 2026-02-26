@@ -614,10 +614,13 @@ class PlaywrightDriver(
     override suspend fun dialogDismiss() {
         try {
             rpc.invokeDeferred("dialogDismiss") {
-                 logger.warn("dialogDismiss is not fully supported in PlaywrightDriver in imperative style")
+//                page.onceDialog { dialog ->
+//                    dialog.dismiss()
+//                }
+                logger.warn("dialogDismiss is not fully supported in PlaywrightDriver in imperative style")
             }
         } catch (e: Exception) {
-             rpc.handleWebDriverException(e, "dialogDismiss")
+            rpc.handleWebDriverException(e, "dialogDismiss")
         }
     }
 

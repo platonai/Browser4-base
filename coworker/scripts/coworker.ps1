@@ -296,7 +296,18 @@ foreach ($taskRoot in $taskRoots) {
         Write-LogMessage "[PREPARE] Task: $($file.Name)" INFO
     }
 
-    # 2. Process 4review
+    # 2. Process 3complete (newly added to show pending reviews)
+    if (Test-Path $finishedDir) {
+        $finishedFiles = Get-ChildItem -Path $finishedDir -Recurse -File
+        foreach ($file in $finishedFiles) {
+             # Only show files from the last 24 hours to avoid noise
+             if ($file.LastWriteTime -ge (Get-Date).AddDays(-1)) {
+                Write-LogMessage "[COMPLETE] Task waiting for review: $($file.Name)" INFO
+             }
+        }
+    }
+
+    # 3. Process 4review
     $reviewFiles = Get-ChildItem -Path $reviewDir -File
     foreach ($file in $reviewFiles) {
         Write-LogMessage "[REVIEW] Task: $($file.Name)" INFO
@@ -329,6 +340,11 @@ foreach ($taskRoot in $taskRoots) {
             if (Test-Path $commitScript) {
                  Write-LogMessage "Executing commit script for approved tasks..." INFO
                  & $commitScript
+                 if ($LASTEXITCODE -eq 0) {
+                     Write-LogMessage "Git sync executed successfully." INFO
+                 } else {
+                     Write-LogMessage "Git sync failed with exit code $LASTEXITCODE." ERROR
+                 }
             } else {
                  Write-LogMessage "Commit script not found at $commitScript" WARN
             }

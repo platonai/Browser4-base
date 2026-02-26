@@ -25,12 +25,6 @@ class StatefulAgentRunner(
         return createCachedStatus()
     }
 
-    fun submit(plainCommand: String): AgentTaskStatus {
-        val status = createCachedStatus()
-        commanderScope.launch { execute(plainCommand, status) }
-        return status
-    }
-
     /**
      * Execute a plain command using the agent's run method.
      *
