@@ -89,6 +89,9 @@ open class BasicBrowserAgent(
             }
         }
     }
+
+    /** The [AgentToolManager] used by this agent for tool discovery and execution. */
+    val toolManager: AgentToolManager get() = toolExecutor
     protected val fs get() = toolExecutor.fs
 
     protected val pageStateTracker = PageStateTracker(session, config)

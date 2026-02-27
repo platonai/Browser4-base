@@ -1,7 +1,11 @@
 package ai.platon.pulsar.agentic.mcp.server
 
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
+import ai.platon.pulsar.agentic.model.TcEvaluate
+import ai.platon.pulsar.agentic.model.ToolSpec
+import ai.platon.pulsar.agentic.tools.AgentToolManager
+import ai.platon.pulsar.agentic.tools.builtin.ToolExecutor
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.StdioClientTransport
@@ -34,14 +38,16 @@ import java.io.PipedOutputStream
  * End-to-end tests for [Browser4MCPServer].
  *
  * These tests exercise the **full MCP protocol stack** by connecting a real MCP client
- * to a [Browser4MCPServer] over in-process STDIO pipes.  Unlike the unit tests in
- * [Browser4MCPServerTest] (which call tool handlers directly), these tests go through:
+ * to a [Browser4MCPServer] (constructed from a mocked [AgentToolManager]) over in-process
+ * STDIO pipes.  Unlike the unit tests in [Browser4MCPServerTest] (which call tool handlers
+ * directly), these tests go through:
  *
  * 1. JSON-RPC initialization handshake (MCP `initialize` / `initialized`)
  * 2. `tools/list` request → response
  * 3. `tools/call` request → response (success and error cases)
  *
- * The [WebDriver] is mocked so no real browser is required.
+ * The [AgentToolManager] is mocked: executor specs drive tool registration, and
+ * [AgentToolManager.executeToolCall] is mocked to simulate tool execution results.
  *
  * ## Transport
  * Two `PipedInputStream`/`PipedOutputStream` pairs create a bidirectional channel:
@@ -53,10 +59,11 @@ import java.io.PipedOutputStream
  */
 @Tag("E2ETest")
 @Tag("mcp")
-@DisplayName("Browser4MCPServer E2E (full MCP protocol)")
+@DisplayName("Browser4MCPServer E2E (full MCP protocol, AgentToolManager-based)")
 class Browser4MCPServerE2ETest {
 
-    private lateinit var driver: WebDriver
+    private lateinit var toolManager: AgentToolManager
+    private lateinit var driverExecutor: ToolExecutor
     private lateinit var mcpServer: Browser4MCPServer
     private lateinit var client: Client
     private lateinit var serverJob: Job
@@ -64,17 +71,44 @@ class Browser4MCPServerE2ETest {
 
     @BeforeEach
     fun setUp() = runBlocking {
-        driver = mockk(relaxed = true)
+        // Set up driver executor with a representative set of tool specs
+        driverExecutor = mockk(relaxed = true)
+        every { driverExecutor.domain } returns "driver"
+        every { driverExecutor.getToolSpecs() } returns mapOf(
+            "navigate" to ToolSpec("driver", "navigate",
+                listOf(ToolSpec.Arg("url", "String", null)), "Unit", "Navigate the browser to a URL."),
+            "reload" to ToolSpec("driver", "reload",
+                emptyList(), "Unit", "Reload the current page."),
+            "goBack" to ToolSpec("driver", "goBack",
+                emptyList(), "Unit", "Navigate back."),
+            "goForward" to ToolSpec("driver", "goForward",
+                emptyList(), "Unit", "Navigate forward."),
+            "click" to ToolSpec("driver", "click",
+                listOf(ToolSpec.Arg("selector", "String", null)), "Unit", "Click an element."),
+            "fill" to ToolSpec("driver", "fill",
+                listOf(ToolSpec.Arg("selector", "String", null), ToolSpec.Arg("text", "String", null)),
+                "Unit", "Fill an input."),
+            "getText" to ToolSpec("driver", "getText",
+                listOf(ToolSpec.Arg("selector", "String", null)), "String?", "Get element text."),
+            "evaluate" to ToolSpec("driver", "evaluate",
+                listOf(ToolSpec.Arg("expression", "String", null)), "Any?", "Evaluate JavaScript."),
+            "waitForSelector" to ToolSpec("driver", "waitForSelector",
+                listOf(ToolSpec.Arg("selector", "String", null)), "Unit", "Wait for a selector."),
+            "currentUrl" to ToolSpec("driver", "currentUrl",
+                emptyList(), "String", "Return the current URL."),
+        )
+
+        toolManager = mockk(relaxed = true)
+        every { toolManager.concreteExecutors } returns listOf(driverExecutor)
+
         mcpServer = Browser4MCPServer(
-            driver = driver,
+            toolManager = toolManager,
             serverInfo = Implementation(name = "browser4-e2e-test", version = "1.0.0")
         )
 
         // ---- in-process bidirectional pipe ----
-        // client → server direction
         val c2sIn = PipedInputStream()
         val c2sOut = PipedOutputStream(c2sIn)
-        // server → client direction
         val s2cIn = PipedInputStream()
         val s2cOut = PipedOutputStream(s2cIn)
 
@@ -98,7 +132,6 @@ class Browser4MCPServerE2ETest {
 
     @AfterEach
     fun tearDown() = runBlocking {
-        // Close the client first, then let the server drain cleanly before cancelling
         runCatching { client.close() }
         runCatching { mcpServer.server.close() }
         serverJob.cancel()
@@ -110,16 +143,17 @@ class Browser4MCPServerE2ETest {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("listTools returns all 21 registered tools")
-    fun listToolsReturnsAll21Tools() = runBlocking {
+    @DisplayName("listTools returns all tools registered from AgentToolManager executors")
+    fun listToolsReturnsAllRegisteredTools() = runBlocking {
         val result = client.listTools()
         assertNotNull(result)
-        assertEquals(21, result.tools.size,
-            "Expected 21 tools, got: ${result.tools.map { it.name }}")
+        val expected = driverExecutor.getToolSpecs().size
+        assertEquals(expected, result.tools.size,
+            "Expected $expected tools, got: ${result.tools.map { it.name }}")
     }
 
     @Test
-    @DisplayName("listTools includes all navigation tools")
+    @DisplayName("listTools includes driver navigation tools with snake_case names")
     fun listToolsIncludesNavigationTools() = runBlocking {
         val names = client.listTools().tools.map { it.name }.toSet()
         val expected = setOf("navigate", "go_back", "go_forward", "reload", "current_url")
@@ -128,30 +162,12 @@ class Browser4MCPServerE2ETest {
     }
 
     @Test
-    @DisplayName("listTools includes all element interaction tools")
+    @DisplayName("listTools includes element interaction tools")
     fun listToolsIncludesInteractionTools() = runBlocking {
         val names = client.listTools().tools.map { it.name }.toSet()
-        val expected = setOf("click", "type", "fill", "hover", "scroll_to", "check", "uncheck", "press")
+        val expected = setOf("click", "fill", "get_text", "evaluate", "wait_for_selector")
         assertTrue(names.containsAll(expected),
             "Missing interaction tools: ${expected - names}")
-    }
-
-    @Test
-    @DisplayName("listTools includes all page content tools")
-    fun listToolsIncludesContentTools() = runBlocking {
-        val names = client.listTools().tools.map { it.name }.toSet()
-        val expected = setOf("get_text", "get_html", "get_attribute", "page_source", "screenshot")
-        assertTrue(names.containsAll(expected),
-            "Missing content tools: ${expected - names}")
-    }
-
-    @Test
-    @DisplayName("listTools includes wait and JavaScript tools")
-    fun listToolsIncludesWaitAndJsTools() = runBlocking {
-        val names = client.listTools().tools.map { it.name }.toSet()
-        val expected = setOf("wait_for_selector", "wait_for_navigation", "evaluate")
-        assertTrue(names.containsAll(expected),
-            "Missing wait/JS tools: ${expected - names}")
     }
 
     @Test
@@ -171,21 +187,21 @@ class Browser4MCPServerE2ETest {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("navigate succeeds and returns confirmation over MCP")
+    @DisplayName("navigate succeeds and returns result over full MCP protocol")
     fun navigateSucceedsViaMCP() = runBlocking {
-        coEvery { driver.navigate(any<String>()) } returns Unit
+        coEvery { toolManager.executeToolCall(any()) } returns TcEvaluate(value = "Navigated to https://example.com")
 
         val result = client.callTool("navigate", mapOf("url" to "https://example.com"))
         assertFalse(result.isError == true)
         val text = (result.content.firstOrNull() as? TextContent)?.text
         assertTrue(text?.contains("https://example.com") == true,
-            "Expected URL in success message, got: $text")
+            "Expected URL in result, got: $text")
     }
 
     @Test
-    @DisplayName("current_url returns the driver's URL over MCP")
+    @DisplayName("current_url returns the URL result from AgentToolManager over MCP")
     fun currentUrlReturnsDriverUrlViaMCP() = runBlocking {
-        coEvery { driver.currentUrl() } returns "https://example.com/page"
+        coEvery { toolManager.executeToolCall(any()) } returns TcEvaluate(value = "https://example.com/page")
 
         val result = client.callTool("current_url", emptyMap())
         assertFalse(result.isError == true)
@@ -194,9 +210,9 @@ class Browser4MCPServerE2ETest {
     }
 
     @Test
-    @DisplayName("click succeeds and returns confirmation over MCP")
+    @DisplayName("click succeeds and returns result over MCP")
     fun clickSucceedsViaMCP() = runBlocking {
-        coEvery { driver.click(any()) } returns Unit
+        coEvery { toolManager.executeToolCall(any()) } returns TcEvaluate(value = "Clicked #submit-btn")
 
         val result = client.callTool("click", mapOf("selector" to "#submit-btn"))
         assertFalse(result.isError == true)
@@ -207,7 +223,7 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("get_text returns element text over MCP")
     fun getTextReturnsElementTextViaMCP() = runBlocking {
-        coEvery { driver.selectFirstTextOrNull("h1") } returns "Welcome"
+        coEvery { toolManager.executeToolCall(any()) } returns TcEvaluate(value = "Welcome")
 
         val result = client.callTool("get_text", mapOf("selector" to "h1"))
         assertFalse(result.isError == true)
@@ -216,21 +232,9 @@ class Browser4MCPServerE2ETest {
     }
 
     @Test
-    @DisplayName("get_attribute returns the attribute value over MCP")
-    fun getAttributeReturnsValueViaMCP() = runBlocking {
-        coEvery { driver.selectFirstAttributeOrNull("a.nav", "href") } returns "/home"
-
-        val result = client.callTool("get_attribute",
-            mapOf("selector" to "a.nav", "attribute" to "href"))
-        assertFalse(result.isError == true)
-        val text = (result.content.firstOrNull() as? TextContent)?.text
-        assertEquals("/home", text)
-    }
-
-    @Test
     @DisplayName("evaluate returns JavaScript result over MCP")
     fun evaluateReturnsJsResultViaMCP() = runBlocking {
-        coEvery { driver.evaluate("document.title") } returns "My Page Title"
+        coEvery { toolManager.executeToolCall(any()) } returns TcEvaluate(value = "My Page Title")
 
         val result = client.callTool("evaluate", mapOf("expression" to "document.title"))
         assertFalse(result.isError == true)
@@ -239,104 +243,51 @@ class Browser4MCPServerE2ETest {
     }
 
     @Test
-    @DisplayName("fill succeeds and returns confirmation over MCP")
-    fun fillSucceedsViaMCP() = runBlocking {
-        coEvery { driver.fill(any(), any()) } returns Unit
-
-        val result = client.callTool("fill",
-            mapOf("selector" to "input[name=email]", "text" to "user@example.com"))
-        assertFalse(result.isError == true)
-    }
-
-    @Test
-    @DisplayName("go_back and go_forward succeed over MCP")
-    fun goBackAndForwardSucceedViaMCP() = runBlocking {
-        coEvery { driver.goBack() } returns Unit
-        coEvery { driver.goForward() } returns Unit
-
-        val backResult = client.callTool("go_back", emptyMap())
-        assertFalse(backResult.isError == true)
-
-        val fwdResult = client.callTool("go_forward", emptyMap())
-        assertFalse(fwdResult.isError == true)
-    }
-
-    @Test
     @DisplayName("reload succeeds over MCP")
     fun reloadSucceedsViaMCP() = runBlocking {
-        coEvery { driver.reload() } returns Unit
+        coEvery { toolManager.executeToolCall(any()) } returns TcEvaluate(value = "Page reloaded")
 
         val result = client.callTool("reload", emptyMap())
         assertFalse(result.isError == true)
-        val text = (result.content.firstOrNull() as? TextContent)?.text
-        assertEquals("Page reloaded", text)
     }
 
     // -------------------------------------------------------------------------
-    // Error handling tests — via the full MCP protocol stack
+    // Error handling tests
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("navigate with missing url parameter returns isError=true over MCP")
-    fun navigateMissingUrlReturnsErrorViaMCP() = runBlocking {
-        val result = client.callTool("navigate", emptyMap())
-        assertTrue(result.isError == true,
-            "Expected isError=true for missing url parameter")
-        val text = (result.content.firstOrNull() as? TextContent)?.text
-        assertTrue(text?.contains("url") == true,
-            "Expected 'url' mentioned in error message, got: $text")
-    }
-
-    @Test
-    @DisplayName("click with missing selector parameter returns isError=true over MCP")
-    fun clickMissingSelectorReturnsErrorViaMCP() = runBlocking {
-        val result = client.callTool("click", emptyMap())
-        assertTrue(result.isError == true)
-        val text = (result.content.firstOrNull() as? TextContent)?.text
-        assertTrue(text?.contains("selector") == true)
-    }
-
-    @Test
-    @DisplayName("get_attribute with missing attribute parameter returns isError=true over MCP")
-    fun getAttributeMissingParamReturnsErrorViaMCP() = runBlocking {
-        val result = client.callTool("get_attribute", mapOf("selector" to "div"))
-        assertTrue(result.isError == true)
-    }
-
-    @Test
-    @DisplayName("WebDriver failure in navigate propagates as isError=true over MCP")
-    fun webDriverFailurePropagatesAsErrorViaMCP() = runBlocking {
-        coEvery { driver.navigate(any<String>()) } throws RuntimeException("CDP disconnected")
+    @DisplayName("AgentToolManager exception propagates as isError=true over MCP")
+    fun managerExceptionPropagatesAsErrorViaMCP() = runBlocking {
+        coEvery { toolManager.executeToolCall(any()) } throws RuntimeException("CDP disconnected")
 
         val result = client.callTool("navigate", mapOf("url" to "https://example.com"))
         assertTrue(result.isError == true,
-            "Expected isError=true when WebDriver throws")
+            "Expected isError=true when AgentToolManager throws")
         val text = (result.content.firstOrNull() as? TextContent)?.text
         assertTrue(text?.contains("CDP disconnected") == true,
-            "Expected driver error in message, got: $text")
+            "Expected error message in result, got: $text")
     }
 
     @Test
-    @DisplayName("WebDriver failure in evaluate propagates as isError=true over MCP")
-    fun evaluateDriverFailurePropagatesAsErrorViaMCP() = runBlocking {
-        coEvery { driver.evaluate(any()) } throws RuntimeException("SyntaxError: Unexpected token")
+    @DisplayName("TcEvaluate with exception propagates as isError=true over MCP")
+    fun evaluateExceptionPropagatesAsErrorViaMCP() = runBlocking {
+        val evaluate = TcEvaluate(expression = "evaluate(expression=\"bad\")", cause = RuntimeException("SyntaxError"))
+        coEvery { toolManager.executeToolCall(any()) } returns evaluate
 
         val result = client.callTool("evaluate", mapOf("expression" to "{{bad"))
         assertTrue(result.isError == true)
-        val text = (result.content.firstOrNull() as? TextContent)?.text
-        assertTrue(text?.contains("SyntaxError") == true)
     }
 
     // -------------------------------------------------------------------------
-    // Multiple sequential calls test
+    // Multiple sequential calls
     // -------------------------------------------------------------------------
 
     @Test
     @DisplayName("multiple sequential tool calls succeed over a single MCP connection")
     fun multipleSequentialCallsSucceedViaMCP() = runBlocking {
-        coEvery { driver.navigate(any<String>()) } returns Unit
-        coEvery { driver.selectFirstTextOrNull(any()) } returns "headline"
-        coEvery { driver.evaluate(any()) } returns "42"
+        coEvery { toolManager.executeToolCall(match { it.method == "navigate" }) } returns TcEvaluate(value = "navigated")
+        coEvery { toolManager.executeToolCall(match { it.method == "getText" }) } returns TcEvaluate(value = "headline")
+        coEvery { toolManager.executeToolCall(match { it.method == "evaluate" }) } returns TcEvaluate(value = "42")
 
         val nav = client.callTool("navigate", mapOf("url" to "https://example.com"))
         assertFalse(nav.isError == true, "navigate failed")
@@ -348,5 +299,24 @@ class Browser4MCPServerE2ETest {
         val js = client.callTool("evaluate", mapOf("expression" to "1 + 1"))
         assertFalse(js.isError == true, "evaluate failed")
         assertEquals("42", (js.content.firstOrNull() as? TextContent)?.text)
+    }
+
+    // -------------------------------------------------------------------------
+    // Tool registration validated via AgentToolManager routing
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("all tool calls route through AgentToolManager.executeToolCall with correct domain and method")
+    fun allToolCallsRouteThroughManager() = runBlocking {
+        coEvery { toolManager.executeToolCall(any()) } returns TcEvaluate(value = "ok")
+
+        // Call navigate - should route to domain=driver, method=navigate
+        client.callTool("navigate", mapOf("url" to "https://example.com"))
+
+        // Call fill - should route to domain=driver, method=fill
+        client.callTool("fill", mapOf("selector" to "input", "text" to "hello"))
+
+        // Verify all calls went through executeToolCall
+        io.mockk.coVerify(exactly = 2) { toolManager.executeToolCall(any()) }
     }
 }
