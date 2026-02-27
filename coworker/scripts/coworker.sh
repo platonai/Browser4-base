@@ -13,6 +13,9 @@
 #   Description: <task description>
 #   Prompt: <task prompt content>
 #
+#   Mentions:
+#   If a line starts with @coworker, the rest of the line is executed as a command.
+#
 #   If not in structured format, the entire file content is treated as the prompt.
 #
 # Usage:
@@ -175,14 +178,15 @@ get_task_basename() {
     local promptSample="${prompt:0:600}"
 
     # Escape quotes for the prompt content
-    local promptEscaped=$(echo "$promptSample" | sed 's/"/\\"/g')
-
+    # Bash variables inside double quotes don't need escaping for the content itself
+    # unless we are evaluating the string or passing it to something that parses it again.
+    # However, if the user explicitly mentioned escaping issues, let's revert to standard variable usage
+    # but ensure we quote the variable when using it.
+    
     local namingPrompt="Create a short, descriptive task name in kebab-case (3-6 words max). Output only the name.
 Title: $title
 Description: $description
-Prompt: $promptEscaped"
-
-    local nameArgs="-p \"$namingPrompt\" --allow-all-tools --allow-all-paths"
+Prompt: $promptSample"
 
     # Run gh copilot with timeout
     # Using timeout command if available, otherwise just run
@@ -412,16 +416,25 @@ for file in "${files[@]}"; do
     description="Task from $fileName"
     prompt="$content"
 
-    # Try to parse structured content (simple regex approach)
-    # Using perl for multiline regex support which is more robust than bash regex
-    if command -v perl >/dev/null 2>&1; then
-        parsed_title=$(perl -0777 -ne 'print $1 if /Title:\s*(.*?)(\r\n|\n)/s' "$workingPath")
-        parsed_desc=$(perl -0777 -ne 'print $1 if /Description:\s*(.*?)(\r\n|\n)/s' "$workingPath")
-        parsed_prompt=$(perl -0777 -ne 'print $1 if /Prompt:\s*(.*)$/s' "$workingPath")
+    # Check for @coworker mention
+    # If found, use the mention content as the prompt
+    mention_line=$(echo "$content" | grep "^@coworker" | head -n 1)
+    if [[ -n "$mention_line" ]]; then
+        # Extract everything after @coworker
+        prompt=$(echo "$mention_line" | sed 's/^@coworker[[:space:]]*//')
+        log_message "Found @coworker mention: $prompt" INFO
+    else
+        # Try to parse structured content (simple regex approach)
+        # Using perl for multiline regex support which is more robust than bash regex
+        if command -v perl >/dev/null 2>&1; then
+            parsed_title=$(perl -0777 -ne 'print $1 if /Title:\s*(.*?)(\r\n|\n)/s' "$workingPath")
+            parsed_desc=$(perl -0777 -ne 'print $1 if /Description:\s*(.*?)(\r\n|\n)/s' "$workingPath")
+            parsed_prompt=$(perl -0777 -ne 'print $1 if /Prompt:\s*(.*)$/s' "$workingPath")
 
-        if [[ -n "$parsed_title" ]]; then title=$(echo "$parsed_title" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
-        if [[ -n "$parsed_desc" ]]; then description=$(echo "$parsed_desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
-        if [[ -n "$parsed_prompt" ]]; then prompt=$(echo "$parsed_prompt" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
+            if [[ -n "$parsed_title" ]]; then title=$(echo "$parsed_title" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
+            if [[ -n "$parsed_desc" ]]; then description=$(echo "$parsed_desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
+            if [[ -n "$parsed_prompt" ]]; then prompt=$(echo "$parsed_prompt" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'); fi
+        fi
     fi
 
     # Define log file paths

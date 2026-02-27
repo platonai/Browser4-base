@@ -24,7 +24,7 @@ import * as os from 'os';
 import { spawn, ChildProcess } from 'child_process';
 import * as https from 'https';
 import axios, { AxiosInstance } from 'axios';
-import { readState, writeState, clearState, resolveRef, CliState } from './state';
+import { readState, writeState, clearState, CliState } from './state';
 
 // ---------------------------------------------------------------------------
 // Server Management
@@ -370,7 +370,7 @@ async function cmdClick(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli click <ref>');
   }
 
-  const selector = resolveRef(rawRef);
+  const selector = rawRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'click', { sessionId: state.sessionId, selector });
@@ -390,7 +390,7 @@ async function cmdDblclick(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli dblclick <ref>');
   }
 
-  const selector = resolveRef(rawRef);
+  const selector = rawRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'dblclick', { sessionId: state.sessionId, selector });
@@ -411,7 +411,7 @@ async function cmdFill(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli fill <ref> <text>');
   }
 
-  const selector = resolveRef(rawRef);
+  const selector = rawRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'fill', { sessionId: state.sessionId, selector, text });
@@ -432,8 +432,8 @@ async function cmdDrag(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli drag <sourceRef> <targetRef>');
   }
 
-  const sourceSelector = resolveRef(srcRef);
-  const targetSelector = resolveRef(tgtRef);
+  const sourceSelector = srcRef;
+  const targetSelector = tgtRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'drag', {
@@ -454,7 +454,7 @@ async function cmdHover(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli hover <ref>');
   }
 
-  const selector = resolveRef(rawRef);
+  const selector = rawRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'hover', { sessionId: state.sessionId, selector });
@@ -472,7 +472,7 @@ async function cmdSelect(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli select <ref> <value>');
   }
 
-  const selector = resolveRef(rawRef);
+  const selector = rawRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'select_option', { sessionId: state.sessionId, selector, value });
@@ -493,7 +493,7 @@ async function cmdUpload(args: string[]): Promise<void> {
   } else if (args.length >= 2) {
     // browser4-cli upload <ref> <file> [file2...]
     const rawRef = args[0];
-    selector = resolveRef(rawRef);
+    selector = rawRef;
     filePaths = args.slice(1);
   } else {
     throw new Error('Usage: browser4-cli upload [<ref>] <filePath> [filePath2...]');
@@ -521,7 +521,7 @@ async function cmdCheck(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli check <ref>');
   }
 
-  const selector = resolveRef(rawRef);
+  const selector = rawRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'check', { sessionId: state.sessionId, selector });
@@ -538,7 +538,7 @@ async function cmdUncheck(args: string[]): Promise<void> {
     throw new Error('Usage: browser4-cli uncheck <ref>');
   }
 
-  const selector = resolveRef(rawRef);
+  const selector = rawRef;
   const state = requireSession();
   const ax = makeAxios(state.baseUrl);
   await callTool(ax, 'uncheck', { sessionId: state.sessionId, selector });
@@ -707,7 +707,7 @@ async function cmdScreenshot(args: string[]): Promise<void> {
   const ref = rest[0];
   const toolArgs: Record<string, unknown> = { sessionId: state.sessionId };
   if (ref) {
-    toolArgs.selector = resolveRef(ref);
+    toolArgs.selector = ref;
   }
 
   const base64 = await callTool(ax, 'screenshot', toolArgs);
@@ -809,7 +809,7 @@ async function cmdEval(args: string[]): Promise<void> {
   let script: string;
   const rawRef = args[1];
   if (rawRef) {
-    const selector = resolveRef(rawRef);
+    const selector = rawRef;
     const safeSelector = JSON.stringify(selector);
     script = `(function() { var el = document.querySelector(${safeSelector}); return (${expression})(el); })()`;
   } else {

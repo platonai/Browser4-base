@@ -62,25 +62,3 @@ export function clearState(stateDir: string = DEFAULT_STATE_DIR): void {
     // Nothing to clear.
   }
 }
-
-/**
- * Convert a user-facing element reference to a server selector string.
- *
- * The CLI accepts the compact notation `e<N>` (e.g. `e15`) that the
- * accessibility snapshot uses to label nodes.  These map directly to
- * browser backend node IDs and must be sent to the server as
- * `backend:<N>` (e.g. `backend:15`).
- *
- * Any other string is returned unchanged so that callers can also pass
- * plain CSS selectors, `backend:N` refs, or locator strings directly.
- *
- * @param ref - The element reference from the user (e.g. `e15`).
- * @returns The selector string understood by the Browser4 server.
- */
-export function resolveRef(ref: string): string {
-  const m = /^e(\d+)$/.exec(ref);
-  if (m) {
-    return `backend:${m[1]}`;
-  }
-  return ref;
-}

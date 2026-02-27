@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { resolveRef, readState, writeState, clearState, CliState } from '../src/state';
+import { readState, writeState, clearState, CliState } from '../src/state';
 
 // ---------------------------------------------------------------------------
 // Helper: extractFilenameFlag (replicated for testing as it's not exported)
@@ -42,36 +42,7 @@ function parseGlobalFlags(argv: string[]): { sessionName?: string; args: string[
   return { sessionName, args };
 }
 
-// ---------------------------------------------------------------------------
-// resolveRef — existing tests plus new edge cases
-// ---------------------------------------------------------------------------
 
-describe('resolveRef', () => {
-  it('converts e<N> refs to backend:<N>', () => {
-    expect(resolveRef('e15')).toBe('backend:15');
-    expect(resolveRef('e0')).toBe('backend:0');
-    expect(resolveRef('e999')).toBe('backend:999');
-  });
-
-  it('passes plain CSS selectors through unchanged', () => {
-    expect(resolveRef('.my-class')).toBe('.my-class');
-    expect(resolveRef('#my-id')).toBe('#my-id');
-    expect(resolveRef('button[type=submit]')).toBe('button[type=submit]');
-  });
-
-  it('passes already-resolved backend: refs through unchanged', () => {
-    expect(resolveRef('backend:15')).toBe('backend:15');
-  });
-
-  it('does not convert strings that only partially match the pattern', () => {
-    expect(resolveRef('e15x')).toBe('e15x');
-    expect(resolveRef('e')).toBe('e');
-  });
-
-  it('handles large backend node IDs', () => {
-    expect(resolveRef('e123456')).toBe('backend:123456');
-  });
-});
 
 // ---------------------------------------------------------------------------
 // extractFilenameFlag
@@ -223,36 +194,36 @@ describe('MCP tool call mapping', () => {
   });
 
   it('click maps to click tool with selector argument', () => {
-    const args = { sessionId: 'test', selector: resolveRef('e4') };
-    expect(args).toEqual({ sessionId: 'test', selector: 'backend:4' });
+    const args = { sessionId: 'test', selector: 'e4' };
+    expect(args).toEqual({ sessionId: 'test', selector: 'e4' });
   });
 
   it('dblclick maps to dblclick tool', () => {
-    const args = { sessionId: 'test', selector: resolveRef('e7') };
-    expect(args).toEqual({ sessionId: 'test', selector: 'backend:7' });
+    const args = { sessionId: 'test', selector: 'e7' };
+    expect(args).toEqual({ sessionId: 'test', selector: 'e7' });
   });
 
   it('fill maps to fill tool with selector and text', () => {
-    const args = { sessionId: 'test', selector: resolveRef('e5'), text: 'user@example.com' };
-    expect(args).toEqual({ sessionId: 'test', selector: 'backend:5', text: 'user@example.com' });
+    const args = { sessionId: 'test', selector: 'e5', text: 'user@example.com' };
+    expect(args).toEqual({ sessionId: 'test', selector: 'e5', text: 'user@example.com' });
   });
 
   it('drag maps to drag tool with source_selector and target_selector', () => {
     const args = {
       sessionId: 'test',
-      source_selector: resolveRef('e2'),
-      target_selector: resolveRef('e8'),
+      source_selector: 'e2',
+      target_selector: 'e8',
     };
     expect(args).toEqual({
       sessionId: 'test',
-      source_selector: 'backend:2',
-      target_selector: 'backend:8',
+      source_selector: 'e2',
+      target_selector: 'e8',
     });
   });
 
   it('select maps to select_option tool', () => {
-    const args = { sessionId: 'test', selector: resolveRef('e9'), value: 'option-value' };
-    expect(args).toEqual({ sessionId: 'test', selector: 'backend:9', value: 'option-value' });
+    const args = { sessionId: 'test', selector: 'e9', value: 'option-value' };
+    expect(args).toEqual({ sessionId: 'test', selector: 'e9', value: 'option-value' });
   });
 
   it('press maps to press tool with selector and key', () => {

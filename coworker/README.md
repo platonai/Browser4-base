@@ -8,7 +8,21 @@
 4. **Review**: The task moves to `coworker/tasks/3complete` after execution. Review the changes.
 5. **Approve**: Move the task to `coworker/tasks/5approved` if you want it to be automatically committed/pushed by the periodic runner.
 
-## Commit and Push
+## Mentions
+
+You can use mentions in task files to notify the agent.
+
+When you mention `@coworker` in a task file, the agent will be notified to process the task.
+
+## Tags
+
+You can use tags in task files to provide additional information about the task.
+
+Supported tags:
+
+- `#auto-approve`: Automatically approve the task after completion, moving it to `4approved` instead of `3complete`.
+
+## Syncing with Git
 
 After tasks are completed, you can use the commit scripts to push changes to your repository.
 

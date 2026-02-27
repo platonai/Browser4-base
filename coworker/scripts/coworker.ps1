@@ -189,8 +189,8 @@ Prompt: $promptSample
             Stop-Process -Id $nameProcess.Id -Force -ErrorAction SilentlyContinue
 
             if (Test-Path $nameStdErr) {
-                 $errContent = Get-Content $nameStdErr
-                 Write-LogVerbose "Naming Copilot STDERR (Timeout): $errContent"
+                $errContent = Get-Content $nameStdErr
+                Write-LogVerbose "Naming Copilot STDERR (Timeout): $errContent"
             }
 
             Remove-Item $nameStdOut -ErrorAction SilentlyContinue
@@ -203,14 +203,14 @@ Prompt: $promptSample
             $rawName = (Get-Content -Path $nameStdOut -Encoding UTF8 | Where-Object { $_ -and $_.Trim() } | Select-Object -First 1)
             Write-LogVerbose "Naming Copilot STDOUT: $rawName"
         } else {
-             Write-LogVerbose "Naming Copilot STDOUT file not found"
+            Write-LogVerbose "Naming Copilot STDOUT file not found"
         }
 
         if (Test-Path $nameStdErr) {
-             $errContent = Get-Content $nameStdErr -Encoding UTF8
-             if ($errContent) {
+            $errContent = Get-Content $nameStdErr -Encoding UTF8
+            if ($errContent) {
                 Write-LogVerbose "Naming Copilot STDERR: $errContent"
-             }
+            }
         }
 
         Remove-Item $nameStdOut -ErrorAction SilentlyContinue
@@ -290,6 +290,11 @@ foreach ($taskRoot in $taskRoots) {
     $pushedDir = $taskRoot.Pushed
     $logsDir = $taskRoot.Logs
 
+    $currentYear = Get-Date -Format "yyyy"
+    $currentMonth = Get-Date -Format "MM"
+    $currentDay = Get-Date -Format "dd"
+    $currentTime = Get-Date -Format "HHmmss"
+
     # 1. Process 0prepare
     $prepareFiles = Get-ChildItem -Path $prepareDir -File
     foreach ($file in $prepareFiles) {
@@ -300,10 +305,10 @@ foreach ($taskRoot in $taskRoots) {
     if (Test-Path $finishedDir) {
         $finishedFiles = Get-ChildItem -Path $finishedDir -Recurse -File
         foreach ($file in $finishedFiles) {
-             # Only show files from the last 24 hours to avoid noise
-             if ($file.LastWriteTime -ge (Get-Date).AddDays(-1)) {
+            # Only show files from the last 24 hours to avoid noise
+            if ($file.LastWriteTime -ge (Get-Date).AddDays(-1)) {
                 Write-LogMessage "[COMPLETE] Task waiting for review: $($file.Name)" INFO
-             }
+            }
         }
     }
 
@@ -323,8 +328,6 @@ foreach ($taskRoot in $taskRoots) {
                 Write-Host "Moving approved task to pushed: $($file.FullName)" -ForegroundColor Green
 
                 # Create date-based subdirectory: YYYY/MMDD
-                $currentYear = Get-Date -Format "yyyy"
-                $currentDate = Get-Date -Format "MMdd"
                 $pushedSubDir = Join-Path $pushedDir "$currentYear\$currentDate"
                 if (!(Test-Path $pushedSubDir)) {
                     New-Item -ItemType Directory -Path $pushedSubDir | Out-Null
@@ -338,15 +341,15 @@ foreach ($taskRoot in $taskRoots) {
             # Call commit script
             $commitScript = Join-Path $scriptsDir "git-sync.ps1"
             if (Test-Path $commitScript) {
-                 Write-LogMessage "Executing commit script for approved tasks..." INFO
-                 & $commitScript
-                 if ($LASTEXITCODE -eq 0) {
-                     Write-LogMessage "Git sync executed successfully." INFO
-                 } else {
-                     Write-LogMessage "Git sync failed with exit code $LASTEXITCODE." ERROR
-                 }
+                Write-LogMessage "Executing commit script for approved tasks..." INFO
+                & $commitScript
+                if ($LASTEXITCODE -eq 0) {
+                    Write-LogMessage "Git sync executed successfully." INFO
+                } else {
+                    Write-LogMessage "Git sync failed with exit code $LASTEXITCODE." ERROR
+                }
             } else {
-                 Write-LogMessage "Commit script not found at $commitScript" WARN
+                Write-LogMessage "Commit script not found at $commitScript" WARN
             }
         }
     }
@@ -396,7 +399,7 @@ foreach ($taskRoot in $taskRoots) {
         }
 
         if ([string]::IsNullOrWhiteSpace($descriptiveName)) {
-             $descriptiveName = $safeTitle
+            $descriptiveName = $safeTitle
         }
 
         # 2. Rename in place (in created dir) then Move to working directory
@@ -405,13 +408,13 @@ foreach ($taskRoot in $taskRoots) {
         if ($descriptiveName -ne $file.BaseName) {
             $renamedPath = Join-Path $createdDir "$descriptiveName$($file.Extension)"
             if (Test-Path $renamedPath) {
-                 # Collision handling in created dir
-                 $counter = 2
-                 while (Test-Path (Join-Path $createdDir "$descriptiveName.$counter$($file.Extension)")) {
-                     $counter++
-                 }
-                 $renamedPath = Join-Path $createdDir "$descriptiveName.$counter$($file.Extension)"
-                 $descriptiveName = "$descriptiveName.$counter"
+                # Collision handling in created dir
+                $counter = 2
+                while (Test-Path (Join-Path $createdDir "$descriptiveName.$counter$($file.Extension)")) {
+                    $counter++
+                }
+                $renamedPath = Join-Path $createdDir "$descriptiveName.$counter$($file.Extension)"
+                $descriptiveName = "$descriptiveName.$counter"
             }
             Move-Item -Path $file.FullName -Destination $renamedPath -Force
             Write-LogMessage "Renamed in created: $($file.Name) -> $(Split-Path $renamedPath -Leaf)" INFO
@@ -442,10 +445,6 @@ foreach ($taskRoot in $taskRoots) {
         # Define log file paths
         $workingBaseName = $finalTaskInfo.FileName -replace [regex]::Escape($file.Extension), ''
 
-        $currentYear = Get-Date -Format "yyyy"
-        $currentMonth = Get-Date -Format "MM"
-        $currentDay = Get-Date -Format "dd"
-        $currentTime = Get-Date -Format "HHmmss"
         $logsSubDir = Join-Path $logsDir "$currentYear\$currentMonth\$currentDay"
         if (!(Test-Path $logsSubDir)) { New-Item -ItemType Directory -Path $logsSubDir | Out-Null }
 
