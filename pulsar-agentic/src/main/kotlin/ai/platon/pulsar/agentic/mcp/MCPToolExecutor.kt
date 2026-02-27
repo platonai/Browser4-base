@@ -36,7 +36,7 @@ class MCPToolExecutor(
     override val targetClass: KClass<*>
         get() = MCPClientManager::class
 
-    private val toolSpecs: Map<String, ToolSpec> by lazy {
+    private val _toolSpecs: Map<String, ToolSpec> by lazy {
         buildToolSpecs()
     }
 
@@ -150,13 +150,13 @@ class MCPToolExecutor(
     }
 
     override fun help(): String {
-        return toolSpecs.values.mapNotNull { spec ->
+        return _toolSpecs.values.mapNotNull { spec ->
             spec.description?.let { "${spec.expression}\n  $it" }
         }.joinToString("\n\n")
     }
 
     override fun help(method: String): String {
-        val spec = toolSpecs[method] ?: return "Tool '$method' not found in MCP server '${clientManager.getServerName()}'"
+        val spec = _toolSpecs[method] ?: return "Tool '$method' not found in MCP server '${clientManager.getServerName()}'"
         return buildString {
             spec.description?.let { appendLine(it) }
             appendLine(spec.expression)
@@ -171,6 +171,8 @@ class MCPToolExecutor(
     fun getAvailableToolNames(): List<String> {
         return clientManager.availableTools.map { it.name }
     }
+
+    override fun getToolSpecs(): Map<String, ToolSpec> = _toolSpecs
 
     private fun buildToolSpecs(): Map<String, ToolSpec> {
         return clientManager.availableTools.associate { tool ->

@@ -19,6 +19,11 @@ interface ToolExecutor {
 
     fun help(): String
     fun help(method: String): String
+
+    /**
+     * Returns all tool specifications registered in this executor, keyed by method name.
+     */
+    fun getToolSpecs(): Map<String, ToolSpec>
 }
 
 abstract class AbstractToolExecutor : ToolExecutor {
@@ -26,6 +31,8 @@ abstract class AbstractToolExecutor : ToolExecutor {
     private val logger = getLogger(this)
 
     protected val toolSpec = mutableMapOf<String, ToolSpec>()
+
+    override fun getToolSpecs(): Map<String, ToolSpec> = toolSpec.toMap()
 
     override fun help(): String {
         return toolSpec.values.mapNotNull { it.description }.joinToString("\n")

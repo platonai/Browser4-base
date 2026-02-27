@@ -3,6 +3,9 @@ package ai.platon.pulsar.agentic.mcp.server
 import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.common.AgentFileSystem
 import ai.platon.pulsar.agentic.model.ExtractionSchema
+import ai.platon.pulsar.agentic.model.ToolCall
+import ai.platon.pulsar.agentic.model.ToolSpec
+import ai.platon.pulsar.agentic.tools.AgentToolManager
 import ai.platon.pulsar.agentic.tools.specs.ToolSpecification
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractBrowser
@@ -23,9 +26,17 @@ import kotlinx.serialization.json.JsonPrimitive
  * This server allows external MCP clients (Claude Desktop, Cursor, Windsurf, etc.)
  * to drive a real browser through the Model Context Protocol.
  *
- * The exposed tools are kept in sync with
- * [ToolSpecification.TOOL_CALL_SPECIFICATION], which is the single source of truth
- * for every supported domain and method.
+ * Tools can be registered in two ways:
+ *
+ * 1. **Direct constructor** — supply a [WebDriver] (and optionally [AgentFileSystem] / [PerceptiveAgent]).
+ *    Tools are registered from hard-coded schema definitions.
+ *
+ * 2. **[AgentToolManager] constructor** — supply an [AgentToolManager].
+ *    Tools are discovered dynamically from the manager's registered executors and their
+ *    [ai.platon.pulsar.agentic.model.ToolSpec] metadata, keeping registration in sync with the
+ *    internal agent tool-call infrastructure
+ *    ([ai.platon.pulsar.agentic.agents.BrowserPerceptiveAgent.executeToolCall] →
+ *    [AgentToolManager.execute]).
  *
  * ## Tool Domains
  *
@@ -53,14 +64,40 @@ import kotlinx.serialization.json.JsonPrimitive
  *   When `null` the `fs.*` tools are not registered.
  * @param agent Optional [PerceptiveAgent] for AI-powered extraction and summarisation.
  *   When `null` the `agent.*` tools are not registered.
+ * @param toolManager Optional [AgentToolManager]. When provided, tool discovery and
+ *   registration are delegated to the manager, and MCP tool handlers route their
+ *   calls through [AgentToolManager.executeToolCall].
  * @param serverInfo MCP server identification (name and version).
  */
 class Browser4MCPServer(
     private val driver: WebDriver,
     private val fileSystem: AgentFileSystem? = null,
     private val agent: PerceptiveAgent? = null,
+    private val toolManager: AgentToolManager? = null,
     serverInfo: Implementation = Implementation(name = "browser4-mcp-server", version = "1.0.0"),
 ) {
+
+    /**
+     * Convenience constructor that initialises the server from an [AgentToolManager].
+     *
+     * Tools are discovered from the manager's registered executors and their
+     * [ai.platon.pulsar.agentic.model.ToolSpec] metadata. Every MCP tool handler
+     * routes its call through [AgentToolManager.executeToolCall], keeping the MCP
+     * server consistent with the internal agent execution path.
+     *
+     * @param toolManager The [AgentToolManager] to use for tool discovery and execution.
+     * @param serverInfo MCP server identification (name and version).
+     */
+    constructor(
+        toolManager: AgentToolManager,
+        serverInfo: Implementation = Implementation(name = "browser4-mcp-server", version = "1.0.0"),
+    ) : this(
+        driver = toolManager.driver,
+        fileSystem = toolManager.fs,
+        agent = null,
+        toolManager = toolManager,
+        serverInfo = serverInfo,
+    )
 
     private val logger = getLogger(this)
     private val objectMapper = com.fasterxml.jackson.databind.ObjectMapper()
@@ -79,11 +116,15 @@ class Browser4MCPServer(
             Use the 'help' tool to get detailed documentation for any domain or method.
         """.trimIndent()
     ) {
-        registerDriverTools()
-        registerBrowserTools()
-        if (fileSystem != null) registerFileSystemTools(fileSystem)
-        if (agent != null) registerAgentTools(agent)
-        registerSystemTools()
+        if (toolManager != null) {
+            registerToolsFromManager(toolManager)
+        } else {
+            registerDriverTools()
+            registerBrowserTools()
+            if (fileSystem != null) registerFileSystemTools(fileSystem)
+            if (agent != null) registerAgentTools(agent)
+            registerSystemTools()
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -131,6 +172,120 @@ class Browser4MCPServer(
     private fun errorResult(message: String): CallToolResult {
         logger.warn("MCP tool error: {}", message)
         return CallToolResult(content = listOf(TextContent(text = "ERROR: $message")), isError = true)
+    }
+
+    // -------------------------------------------------------------------------
+    // AgentToolManager-based dynamic tool registration
+    // -------------------------------------------------------------------------
+
+    /**
+     * Register all MCP tools by discovering executors and their [ToolSpec] metadata
+     * from [toolManager]. Every tool handler routes its call through
+     * [AgentToolManager.executeToolCall], matching the internal agent execution path.
+     */
+    private fun Server.registerToolsFromManager(toolManager: AgentToolManager) {
+        for (executor in toolManager.concreteExecutors) {
+            val specs = executor.getToolSpecs()
+            if (specs.isEmpty()) continue
+            for ((method, spec) in specs) {
+                val mcpName = toMcpToolName(executor.domain, method)
+                val description = spec.description?.trim()?.ifBlank { null }
+                    ?: "${executor.domain}.$method"
+                val inputSchema = buildSchemaFromSpec(spec)
+                addTool(name = mcpName, description = description, inputSchema = inputSchema) { request ->
+                    val args = buildArgsMap(request.params.arguments, spec)
+                    val tc = ToolCall(
+                        domain = executor.domain,
+                        method = method,
+                        arguments = args.toMutableMap(),
+                    )
+                    runCatching { toolManager.executeToolCall(tc) }
+                        .fold(
+                            onSuccess = { evaluate ->
+                                val exc = evaluate.exception
+                                if (exc != null) {
+                                    errorResult("$mcpName failed: ${exc.cause?.message ?: exc.expression}")
+                                } else {
+                                    textResult(evaluate.value?.toString() ?: "")
+                                }
+                            },
+                            onFailure = { errorResult("$mcpName failed: ${it.message}") }
+                        )
+                }
+            }
+        }
+        logger.info("Registered {} MCP tools from AgentToolManager", toolManager.concreteExecutors.sumOf { it.getToolSpecs().size })
+    }
+
+    /**
+     * Convert a domain + camelCase method name to a snake_case MCP tool name.
+     *
+     * Driver and system domains use just the snake_case method name (no prefix).
+     * All other domains prepend `{domain}_` to disambiguate.
+     *
+     * Examples:
+     * - driver.goBack     -> go_back
+     * - browser.switchTab -> browser_switch_tab
+     * - fs.writeString    -> fs_write_string
+     * - agent.extract     -> agent_extract
+     * - system.help       -> help
+     */
+    private fun toMcpToolName(domain: String, method: String): String {
+        val snake = method.replace(Regex("([A-Z])")) { "_${it.groupValues[1].lowercase()}" }
+        return when (domain) {
+            "driver", "system" -> snake
+            else -> "${domain}_$snake"
+        }
+    }
+
+    /**
+     * Build a [ToolSchema] from a [ToolSpec], mapping Kotlin type names to JSON Schema types.
+     */
+    private fun buildSchemaFromSpec(spec: ToolSpec): ToolSchema {
+        val props = spec.arguments.associate { arg ->
+            arg.name to typeToJsonProp(arg.type, arg.name)
+        }
+        val required = spec.arguments
+            .filter { it.defaultValue.isNullOrEmpty() }
+            .map { it.name }
+        return ToolSchema(
+            properties = if (props.isEmpty()) null else JsonObject(props),
+            required = required.ifEmpty { null },
+        )
+    }
+
+    /**
+     * Map a Kotlin type string to a JSON Schema property descriptor.
+     */
+    private fun typeToJsonProp(type: String, name: String): JsonObject {
+        val normalised = type.trimEnd('?').trim()
+        return when {
+            normalised.startsWith("List<") || normalised.startsWith("Array<") -> arrayProp(name)
+            normalised.lowercase() in setOf("string") -> stringProp(name)
+            normalised.lowercase() in setOf("int", "integer", "long", "short") -> intProp(name)
+            normalised.lowercase() in setOf("double", "float", "number") -> numberProp(name)
+            normalised.lowercase() in setOf("boolean", "bool") -> boolProp(name)
+            else -> stringProp(name)
+        }
+    }
+
+    /**
+     * Extract all argument values from the MCP request's JSON arguments object into
+     * a plain [Map] suitable for [ToolCall.arguments].
+     */
+    private fun buildArgsMap(arguments: JsonObject?, spec: ToolSpec): Map<String, Any?> {
+        if (arguments == null) return emptyMap()
+        return spec.arguments.mapNotNull { argSpec ->
+            val raw = arg(arguments, argSpec.name) ?: return@mapNotNull null
+            val value: Any? = when {
+                argSpec.type.trimEnd('?').lowercase() in setOf("int", "integer") -> raw.toIntOrNull() ?: raw
+                argSpec.type.trimEnd('?').lowercase() == "long" -> raw.toLongOrNull() ?: raw
+                argSpec.type.trimEnd('?').lowercase() in setOf("double", "float") -> raw.toDoubleOrNull() ?: raw
+                argSpec.type.trimEnd('?').lowercase() in setOf("boolean", "bool") -> raw.toBooleanStrictOrNull() ?: raw
+                else -> raw
+            }
+            argSpec.name to value
+        }.toMap()
     }
 
     // -------------------------------------------------------------------------
