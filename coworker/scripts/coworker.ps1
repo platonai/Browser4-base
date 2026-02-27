@@ -166,15 +166,19 @@ Prompt: $promptSample
 "@
 
     try {
-        $promptEscaped = $namingPrompt -replace '"', '\"'
-        # Remove --allow-all-tools --allow-all-paths for naming to prevent tool execution delays/output
-        $nameArgs = "-p `"$promptEscaped`""
+        # Pass arguments as an array to avoid fragile manual escaping/quoting.
+        # This is more reliable on Windows PowerShell when prompts contain quotes or newlines.
+        $nameArgList = @(
+            'copilot'
+            '-p'
+            $namingPrompt
+        )
 
-        Write-LogVerbose "Executing GH Copilot for naming: gh copilot $nameArgs"
+        Write-LogVerbose ("Executing GH Copilot for naming: gh {0}" -f ($nameArgList -join ' '))
 
         $nameStdOut = [System.IO.Path]::GetTempFileName()
         $nameStdErr = [System.IO.Path]::GetTempFileName()
-        $nameProcess = Start-Process -FilePath "gh" -ArgumentList "copilot $nameArgs" -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
+        $nameProcess = Start-Process -FilePath 'gh' -ArgumentList $nameArgList -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
 
         $waited = $false
         try {
@@ -472,11 +476,15 @@ Copilot Execution Output:
 "@ | Out-File -FilePath $taskLogPath -Encoding UTF8
 
         try {
-            # Escape double quotes in prompt for safe argument passing
-            $promptEscaped = $prompt -replace '"', '\"'
-
-            # Construct Copilot command arguments
-            $copilotArgs = "-p `"$promptEscaped`" --allow-all-tools --allow-all-paths"
+            # Pass arguments as an array to avoid fragile manual escaping/quoting.
+            # This keeps quotes/newlines intact in the -p prompt.
+            $copilotArgList = @(
+                'copilot'
+                '-p'
+                $prompt
+                '--allow-all-tools'
+                '--allow-all-paths'
+            )
 
             # Define paths for temporary output and error logs (for copilot external tool)
             $stdOutLog = $copilotLogPath + ".stdout"
@@ -486,7 +494,7 @@ Copilot Execution Output:
 
             # Execute Copilot tool with the task prompt
             # Capture both standard output and error output to separate files
-            $process = Start-Process -FilePath "gh" -ArgumentList "copilot $copilotArgs" -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
+            $process = Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
 
             $runWaited = $false
             $lastOutputLineCount = 0
