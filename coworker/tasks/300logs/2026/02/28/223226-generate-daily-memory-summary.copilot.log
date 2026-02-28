@@ -1,0 +1,22 @@
+● Read coworker\tasks\2working\generate-daily-memory-summary.md
+  └ 13 lines read
+
+● list_powershell
+  └ <no active shell sessions>
+
+● Read docs-dev\copilot\coworker\memory-specification.md
+  └ 303 lines read
+
+● list_powershell
+  └ <no active shell sessions>
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         19s
+Total session time:     29s
+Total code changes:     +0 -0
+Breakdown by AI model:
+ gemini-3-pro-preview    78.4k in, 123 out, 55.3k cached (Est. 1 Premium request)
