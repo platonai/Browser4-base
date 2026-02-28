@@ -104,7 +104,7 @@ export class PulsarClient {
       body: { capabilities: capabilities || {} }
     });
 
-    const sessionId = typeof value === 'object' && value.sessionId ? value.sessionId : null;
+    const sessionId = value && typeof value === 'object' && value.sessionId ? value.sessionId : null;
     if (!sessionId) {
       throw new Error('createSession response missing sessionId');
     }

@@ -1,0 +1,78 @@
+● Glob "**/WebDriver.kt"
+  └ 2 files found
+
+● Read pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDr
+  iver.kt
+  └ 1 line read
+
+● Read pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDr
+  iver.kt lines 1-100
+  └ 100 lines read
+
+● Get line count
+  $ wc -l /home/vincent/workspace/Browser4-4.6/pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon
+  /pulsar/skeleton/crawl/fetch/driver/WebDriver.kt
+  └ 2 lines...
+
+● Find all KDoc and function definitions
+  $ grep -n "^\s*/\*\*\|^ \* @\|^\s*suspend fun \|^\s*fun " /home/vincent/workspace/Browser4-4.6/pul
+  sar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDriver.kt
+   | head -200
+  └ 201 lines...
+
+● Find remaining KDoc and function definitions
+  $ grep -n "^\s*/\*\*\|^ \* @\|^\s*suspend fun \|^\s*fun " /home/vincent/workspace/Browser4-4.6/pul
+  sar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDriver.kt
+   | tail -100
+  └ 101 lines...
+
+● Read pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDr
+  iver.kt lines 126-300
+  └ 175 lines read
+
+Let me read the full file to understand all existing patterns:
+
+● Find all existing mcp annotations
+  $ grep -n "#mcp\|@mcp" /home/vincent/workspace/Browser4-4.6/pulsar-core/pulsar-skeleton/src/main/k
+  otlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDriver.kt
+  └ 111 lines...
+
+Now I understand the full picture. I need to:
+1. Replace `#mcp` with `@mcp` in all method KDoc first paragraphs (excluding class-level comment at line 20)
+2. For `jvm()`, add `@mcp` to the first paragraph (it currently has it as a standalone tag)
+
+● Read pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDr
+  iver.kt lines 208-218
+  └ 11 lines read
+
+● Replace #mcp with @mcp in all method KDocs
+  $ cd /home/vincent/workspace/Browser4-4.6/pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon/
+  pulsar/skeleton/crawl/fetch/driver/
+
+  # Replace #mcp with @mcp in all lines except line 20 (class-level comment)
+  awk 'NR==20 { print; next } { gsub(/ #mcp/, " @mcp"); print }' WebDriver.kt > WebDriver.kt.tmp...
+  └ 116 lines...
+
+All `#mcp` in method KDoc have been replaced with `@mcp`. Now I need to handle `jvm()` (line 209): it has `@mcp` as a standalone tag but the first paragraph doesn't have it. Let me add `@mcp` to the first paragraph line:
+
+● Edit pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDr
+  iver.kt (+1 -2)
+
+Now let me verify the `jvm()` method and do a quick sanity check:
+
+● Read pulsar-core/pulsar-skeleton/src/main/kotlin/ai/platon/pulsar/skeleton/crawl/fetch/driver/WebDr
+  iver.kt lines 208-240
+  └ 33 lines read
+
+All method KDoc comments now have `@mcp` in the first paragraph. The class-level comment at line 20 retains `#mcp` as it's not a method. The `jvm()` method's standalone `@mcp` tag has been removed and `@mcp` added to its first paragraph instead.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         2m 3s
+Total session time:     2m 21s
+Total code changes:     +1 -2
+Breakdown by AI model:
+ claude-sonnet-4.6       368.7k in, 6.6k out, 287.7k cached (Est. 1 Premium request)

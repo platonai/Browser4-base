@@ -1,0 +1,13 @@
+Task: optimize-webdriver-mcp-kdoc
+Description: Task from optimize-webdriver-mcp-kdoc.md
+Original File: optimize-webdriver-mcp-kdoc.md
+Started: 2026-02-28 13:48:01
+Prompt:
+# 优化 WebDriver 的注释
+
+- 在所有 method 的 KDoc 注释的第一段加入 @mcp 注解，表示这需要被暴露为一个 MCP 工具。
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: /home/vincent/workspace/Browser4-4.6/coworker/tasks/300logs/2026/02/28/134801-optimize-webdriver-mcp-kdoc.copilot.log

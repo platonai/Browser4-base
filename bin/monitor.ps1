@@ -1,0 +1,128 @@
+# monitor.ps1 — Monitor GitHub issues and a specified URL, dispatch tasks to coworker workflow.
+#
+# Usage:
+#   .\bin\monitor.ps1 [options]
+#
+# Options:
+#   -Repo      GitHub repository in "owner/repo" format  (default: platonai/Browser4)
+#   -Assignee  GitHub username to filter issues by       (default: galaxyeye)
+#   -Url       URL to poll every minute                  (default: "")
+#   -Keyword   Keyword to search for in URL response     (default: @galaxyeye)
+#   -Interval  Polling interval in seconds               (default: 60)
+#   -Once      Run once and exit (no loop)
+#
+# Examples:
+#   .\bin\monitor.ps1 -Repo platonai/Browser4 -Url https://example.com/tasks
+#   .\bin\monitor.ps1 -Once
+
+param(
+    [string]$Repo     = "platonai/Browser4",
+    [string]$Assignee = "galaxyeye",
+    [string]$Url      = "",
+    [string]$Keyword  = "@galaxyeye",
+    [int]   $Interval = 60,
+    [switch]$Once
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+# ── resolve repo root ──────────────────────────────────────────────────────────
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot  = $ScriptDir
+while (-not (Test-Path (Join-Path $RepoRoot "VERSION")) -and $RepoRoot -ne [System.IO.Path]::GetPathRoot($RepoRoot)) {
+    $RepoRoot = Split-Path -Parent $RepoRoot
+}
+if (-not (Test-Path (Join-Path $RepoRoot "VERSION"))) {
+    Write-Error "ERROR: cannot find repo root"; exit 1
+}
+
+$TasksDir = Join-Path $RepoRoot "coworker\tasks\2working"
+New-Item -ItemType Directory -Force -Path $TasksDir | Out-Null
+
+# ── helpers ────────────────────────────────────────────────────────────────────
+function Get-Timestamp {
+    # Millisecond-precision unix timestamp (pure digits)
+    [long]([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())
+}
+
+function Dispatch-Task {
+    param([string]$Content)
+    $ts  = Get-Timestamp
+    $dst = Join-Path $TasksDir "$ts"
+    # Write to a temp file first, then move atomically
+    $tmp = [System.IO.Path]::GetTempFileName()
+    [System.IO.File]::WriteAllText($tmp, $Content, [System.Text.Encoding]::UTF8)
+    Move-Item -Path $tmp -Destination $dst -Force
+    Write-Host "[$([DateTime]::Now.ToString('o'))] Dispatched task file: $dst"
+}
+
+# ── GitHub issues monitor ──────────────────────────────────────────────────────
+function Fetch-GitHubIssues {
+    Write-Host "[$([DateTime]::Now.ToString('o'))] Fetching latest issues from $Repo assigned to $Assignee ..."
+
+    $ghAvailable = $null -ne (Get-Command gh -ErrorAction SilentlyContinue)
+
+    if ($ghAvailable) {
+        # Use gh CLI
+        $jsonText = gh issue list `
+            --repo $Repo `
+            --assignee $Assignee `
+            --limit 20 `
+            --json number,title,body,url,createdAt,state 2>$null
+    } elseif ($env:GITHUB_TOKEN) {
+        # Fall back to REST API via Invoke-RestMethod
+        $headers  = @{
+            Authorization = "Bearer $($env:GITHUB_TOKEN)"
+            Accept        = "application/vnd.github+json"
+        }
+        $apiUrl   = "https://api.github.com/repos/$Repo/issues?assignee=$Assignee&per_page=20&state=open"
+        $jsonText = (Invoke-RestMethod -Uri $apiUrl -Headers $headers -Method Get) | ConvertTo-Json -Depth 10
+    } else {
+        Write-Warning "Neither 'gh' CLI nor GITHUB_TOKEN is available; skipping GitHub monitor."
+        return
+    }
+
+    if ([string]::IsNullOrWhiteSpace($jsonText)) { return }
+
+    $issues = $jsonText | ConvertFrom-Json
+    if ($issues -isnot [System.Array]) { $issues = @($issues) }
+
+    foreach ($issue in $issues) {
+        $content = $issue | ConvertTo-Json -Depth 10 -Compress
+        Dispatch-Task -Content $content
+    }
+}
+
+# ── URL monitor ────────────────────────────────────────────────────────────────
+function Fetch-Url {
+    if ([string]::IsNullOrWhiteSpace($Url)) { return }
+    Write-Host "[$([DateTime]::Now.ToString('o'))] Polling URL: $Url ..."
+
+    try {
+        $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
+        $body     = $response.Content
+    } catch {
+        Write-Warning "Failed to fetch ${Url}: $_"
+        return
+    }
+
+    if ($body -like "*$Keyword*") {
+        Write-Host "[$([DateTime]::Now.ToString('o'))] Keyword '$Keyword' found in URL response."
+        Dispatch-Task -Content $body
+    } else {
+        Write-Host "[$([DateTime]::Now.ToString('o'))] Keyword '$Keyword' not found; nothing to dispatch."
+    }
+}
+
+# ── main loop ──────────────────────────────────────────────────────────────────
+Write-Host "[$([DateTime]::Now.ToString('o'))] Monitor started. repo=$Repo assignee=$Assignee url=$(if ($Url) { $Url } else { '<none>' }) keyword=$Keyword interval=${Interval}s"
+
+do {
+    Fetch-GitHubIssues
+    Fetch-Url
+    if (-not $Once) {
+        Write-Host "[$([DateTime]::Now.ToString('o'))] Sleeping ${Interval}s ..."
+        Start-Sleep -Seconds $Interval
+    }
+} while (-not $Once)

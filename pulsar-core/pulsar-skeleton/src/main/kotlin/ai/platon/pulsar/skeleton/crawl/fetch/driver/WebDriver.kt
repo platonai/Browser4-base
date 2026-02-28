@@ -206,17 +206,16 @@ interface WebDriver : Closeable {
     val timeoutPolicy: Map<String, Duration>
 
     /**
-     * Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on.
+     * Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on. @mcp
      *
      * JvmWebDriver is not recommended, use Kotlin native suspend methods instead, or use SDK instead.
      *
      * @see JvmWebDriver
-     * @mcp
      * */
     fun jvm(): JvmWebDriver
 
     /**
-     * Adds a script which would be evaluated whenever the page is navigated. #mcp
+     * Adds a script which would be evaluated whenever the page is navigated. @mcp
      *
      * The script is evaluated after the document was created but before any of
      * its scripts were run. This is useful to amend the JavaScript environment, e.g.
@@ -231,7 +230,7 @@ interface WebDriver : Closeable {
     suspend fun addInitScript(script: String)
 
     /**
-     * Blocks resource URLs from loading. #mcp
+     * Blocks resource URLs from loading. @mcp
      *
      * @param urlPatterns URL patterns to block. Wildcards ('*') are allowed.
      */
@@ -239,7 +238,7 @@ interface WebDriver : Closeable {
     suspend fun addBlockedURLs(urlPatterns: List<String>)
 
     /**
-     * Opens the specified URL in the web driver. #mcp
+     * Opens the specified URL in the web driver. @mcp
      *
      * This function navigates the web driver to the provided URL and waits for the navigation to complete.
      * It is a suspend function, meaning it can be used within coroutines for asynchronous execution.
@@ -261,7 +260,7 @@ interface WebDriver : Closeable {
     }
 
     /**
-     * Navigates current page to the given URL. #mcp
+     * Navigates current page to the given URL. @mcp
      *
      * ```kotlin
      * driver.navigate("https://www.example.com")
@@ -278,7 +277,7 @@ interface WebDriver : Closeable {
     suspend fun navigateTo(url: String) = navigate(url)
 
     /**
-     * Navigates current page to the given URL. #mcp
+     * Navigates current page to the given URL. @mcp
      *
      * ```kotlin
      * val entry = NavigateEntry("https://www.example.com?timestamp=11712067353", pageUrl = "https://www.example.com")
@@ -296,7 +295,7 @@ interface WebDriver : Closeable {
     suspend fun navigateTo(entry: NavigateEntry) = navigate(entry)
 
     /**
-     * Reloads the current page. #mcp
+     * Reloads the current page. @mcp
      *
      * This method should trigger a reload of the current page, similar to how a user would refresh the page in a browser.
      * */
@@ -304,7 +303,7 @@ interface WebDriver : Closeable {
     suspend fun reload()
 
     /**
-     * Navigates the browser to the previous page in the navigation history. #mcp
+     * Navigates the browser to the previous page in the navigation history. @mcp
      *
      * This method is expected to use the browser's navigation history to move back to the previous page.
      * It should handle any exceptions that may occur during the navigation process.
@@ -315,7 +314,7 @@ interface WebDriver : Closeable {
     suspend fun goBack()
 
     /**
-     * Navigates the browser to the next page in the navigation history. #mcp
+     * Navigates the browser to the next page in the navigation history. @mcp
      *
      * This method is expected to use the browser's navigation history to move forward to the next page.
      * It should handle any exceptions that may occur during the navigation process.
@@ -326,7 +325,7 @@ interface WebDriver : Closeable {
     suspend fun goForward()
 
     /**
-     * Returns a string representing the current URL that the browser is looking at. #mcp
+     * Returns a string representing the current URL that the browser is looking at. @mcp
      *
      * The current url is always the main frame's `document.documentURI` if the browser succeed to return it, and is displayed in the browser's
      * address bar.
@@ -347,7 +346,7 @@ interface WebDriver : Closeable {
     suspend fun currentUrl(): String
 
     /**
-     * The URL read-only property of the Document interface returns the document location as a string. #mcp
+     * The URL read-only property of the Document interface returns the document location as a string. @mcp
      *
      * This property equals to javascript `document.URL`.
      * The `document.URL` property returns the same value. The `document.documentURI` property can be used on
@@ -361,7 +360,7 @@ interface WebDriver : Closeable {
     suspend fun url(): String
 
     /**
-     * Returns the document location as a string. #mcp
+     * Returns the document location as a string. @mcp
      *
      * This property equals to javascript `document.documentURI`.
      *
@@ -375,7 +374,7 @@ interface WebDriver : Closeable {
     suspend fun documentURI(): String
 
     /**
-     * Returns the document's baseURI. #mcp
+     * Returns the document's baseURI. @mcp
      *
      * The baseURI is a property of Node, it's the absolute base URL of the
      * document containing the node. A baseURI is used to resolve relative URLs.
@@ -390,7 +389,7 @@ interface WebDriver : Closeable {
     suspend fun baseURI(): String
 
     /**
-     * The referrer property returns the URI of the page that linked to this page. #mcp
+     * The referrer property returns the URI of the page that linked to this page. @mcp
      *
      * The value is an empty string if the user navigated to the page directly (not through a link, but, for example,
      * by using a bookmark).
@@ -404,7 +403,7 @@ interface WebDriver : Closeable {
     suspend fun referrer(): String
 
     /**
-     * Returns the source of the last loaded page. #mcp
+     * Returns the source of the last loaded page. @mcp
      *
      * If the page has been modified after loading (for
      * example, by JavaScript) there is no guarantee that the returned text is that of the modified
@@ -425,13 +424,13 @@ interface WebDriver : Closeable {
     suspend fun pageSource(): String?
 
     /**
-     * Returns the title of the current page. #mcp
+     * Returns the title of the current page. @mcp
      * */
     @Throws(WebDriverException::class)
     suspend fun title(): String
 
     /**
-     * Retrieve a nano version of the DOM tree, which is based on the accessibility tree, enhanced by DOM and document snapshot. #mcp
+     * Retrieve a nano version of the DOM tree, which is based on the accessibility tree, enhanced by DOM and document snapshot. @mcp
      *
      * References:
      *
@@ -442,7 +441,7 @@ interface WebDriver : Closeable {
     suspend fun nanoDOMTree(): NanoDOMTree?
 
     /**
-     * Chat with the AI model about the specified element. #mcp
+     * Chat with the AI model about the specified element. @mcp
      *
      * @param prompt The prompt to chat with
      * @param selector The selector to find the element
@@ -451,7 +450,7 @@ interface WebDriver : Closeable {
     suspend fun chat(prompt: String, selector: String): ModelResponse
 
     /**
-     * Returns the cookies of the current page. #mcp
+     * Returns the cookies of the current page. @mcp
      *
      * ```kotlin
      * val cookies = driver.getCookies()
@@ -463,7 +462,7 @@ interface WebDriver : Closeable {
     suspend fun getCookies(): List<Map<String, String>>
 
     /**
-     * Deletes browser cookies with matching name and url or domain/path pair. #mcp
+     * Deletes browser cookies with matching name and url or domain/path pair. @mcp
      *
      * ```kotlin
      * driver.deleteCookies("name", "https://www.example.com")
@@ -481,7 +480,7 @@ interface WebDriver : Closeable {
     suspend fun deleteCookies(name: String, url: String? = null, domain: String? = null, path: String? = null)
 
     /**
-     * Clears browser cookies. #mcp
+     * Clears browser cookies. @mcp
      *
      * ```kotlin
      * driver.clearBrowserCookies()
@@ -493,7 +492,7 @@ interface WebDriver : Closeable {
     suspend fun clearBrowserCookies()
 
     /**
-     * Wait until the element identified by the selector becomes present in the DOM or timeout. #mcp
+     * Wait until the element identified by the selector becomes present in the DOM or timeout. @mcp
      *
      * ```kotlin
      * val remainingTime = driver.waitForSelector("h2.title")
@@ -506,7 +505,7 @@ interface WebDriver : Closeable {
     suspend fun waitForSelector(selector: String): Duration = waitForSelector(selector) {}
 
     /**
-     * Wait until the element identified by the selector becomes present in the DOM or timeout. #mcp
+     * Wait until the element identified by the selector becomes present in the DOM or timeout. @mcp
      *
      * ```kotlin
      * val remainingTime = driver.waitForSelector("h2.title", 30000)
@@ -520,7 +519,7 @@ interface WebDriver : Closeable {
         waitForSelector(selector, timeoutMillis) {}
 
     /**
-     * Wait for the element identified by the selector to become present in the DOM, or until timeout. #mcp
+     * Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp
      *
      * ```kotlin
      * val remainingTime = driver.waitForSelector("h2.title", Duration.ofSeconds(30))
@@ -533,7 +532,7 @@ interface WebDriver : Closeable {
     suspend fun waitForSelector(selector: String, timeout: Duration): Duration = waitForSelector(selector, timeout) {}
 
     /**
-     * Wait for the element identified by the selector to become present in the DOM, or until timeout. #mcp
+     * Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp
      *
      * This method periodically checks for the existence of the element. If the element is not found during a check,
      * the action will be executed, such as scrolling the page down.
@@ -550,7 +549,7 @@ interface WebDriver : Closeable {
     suspend fun waitForSelector(selector: String, action: suspend () -> Unit): Duration
 
     /**
-     * Wait for the element identified by the selector to become present in the DOM, or until timeout. #mcp
+     * Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp
      *
      * This method periodically checks for the existence of the element. If the element is not found during a check,
      * the action will be executed, such as scrolling the page down.
@@ -570,7 +569,7 @@ interface WebDriver : Closeable {
         waitForSelector(selector, Duration.ofMillis(timeoutMillis), action).toMillis()
 
     /**
-     * Wait for the element identified by the selector to become present in the DOM, or until timeout. #mcp
+     * Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp
      *
      * This method periodically checks for the existence of the element. If the element is not found during a check,
      * the action will be executed, such as scrolling the page down.
@@ -589,7 +588,7 @@ interface WebDriver : Closeable {
     suspend fun waitForSelector(selector: String, timeout: Duration, action: suspend () -> Unit): Duration
 
     /**
-     * Wait until the current url changes or timeout. #mcp
+     * Wait until the current url changes or timeout. @mcp
      *
      * ```kotlin
      * val url = "https://www.example.com"
@@ -605,7 +604,7 @@ interface WebDriver : Closeable {
     suspend fun waitForNavigation(oldUrl: String = ""): Duration
 
     /**
-     * Wait until the current url changes or timeout. #mcp
+     * Wait until the current url changes or timeout. @mcp
      *
      * ```kotlin
      * val url = "https://www.example.com"
@@ -624,7 +623,7 @@ interface WebDriver : Closeable {
         waitForNavigation(oldUrl, Duration.ofMillis(timeoutMillis)).toMillis()
 
     /**
-     * Wait until the current url changes or timeout. #mcp
+     * Wait until the current url changes or timeout. @mcp
      *
      * ```kotlin
      * val timeout = Duration.ofSeconds(30)
@@ -643,7 +642,7 @@ interface WebDriver : Closeable {
     suspend fun waitForNavigation(oldUrl: String = "", timeout: Duration): Duration
 
     /**
-     * Await navigation to the specified URL page or timeout if necessary. #mcp
+     * Await navigation to the specified URL page or timeout if necessary. @mcp
      *
      * ```kotlin
      * val newDriver = driver.waitForPage("https://www.example.com", Duration.ofSeconds(30))
@@ -656,7 +655,7 @@ interface WebDriver : Closeable {
     suspend fun waitForPage(url: String, timeout: Duration): WebDriver?
 
     /**
-     * Wait until the predicate returns true. #mcp
+     * Wait until the predicate returns true. @mcp
      *
      * ```kotlin
      * val remainingTime = driver.waitUntil {
@@ -671,7 +670,7 @@ interface WebDriver : Closeable {
     suspend fun waitUntil(predicate: suspend () -> Boolean): Duration
 
     /**
-     * Wait until the predicate returns true. #mcp
+     * Wait until the predicate returns true. @mcp
      *
      * ```kotlin
      * val remainingTime = driver.waitUntil(10000) {
@@ -688,7 +687,7 @@ interface WebDriver : Closeable {
         waitUntil(Duration.ofMillis(timeoutMillis), predicate).toMillis()
 
     /**
-     * Wait until the predicate returns true. #mcp
+     * Wait until the predicate returns true. @mcp
      *
      * ```kotlin
      * val remainingTime = driver.waitUntil(Duration.ofSeconds(10)) {
@@ -708,7 +707,7 @@ interface WebDriver : Closeable {
     //
 
     /**
-     * Returns whether the element exists. #mcp
+     * Returns whether the element exists. @mcp
      *
      * ```kotlin
      * driver.exists("h2.title")
@@ -721,7 +720,7 @@ interface WebDriver : Closeable {
     suspend fun exists(selector: String): Boolean
 
     /**
-     * Returns whether the element is hidden. #mcp
+     * Returns whether the element is hidden. @mcp
      *
      * ```kotlin
      * driver.isHidden("input[name='q']")
@@ -734,7 +733,7 @@ interface WebDriver : Closeable {
     suspend fun isHidden(selector: String): Boolean = !isVisible(selector)
 
     /**
-     * Returns whether the element is visible. #mcp
+     * Returns whether the element is visible. @mcp
      *
      * ```kotlin
      * driver.isVisible("input[name='q']")
@@ -747,7 +746,7 @@ interface WebDriver : Closeable {
     suspend fun isVisible(selector: String): Boolean
 
     /**
-     * Returns whether the element is checked. #mcp
+     * Returns whether the element is checked. @mcp
      *
      * ```kotlin
      * driver.isChecked("input[name='agree']")
@@ -763,7 +762,7 @@ interface WebDriver : Closeable {
     // Interacts with the Webpage
 
     /**
-     * Brings the browser window to the front. #mcp
+     * Brings the browser window to the front. @mcp
      *
      * ```kotlin
      * driver.bringToFront()
@@ -773,7 +772,7 @@ interface WebDriver : Closeable {
     suspend fun bringToFront()
 
     /**
-     * This method hovers over the element. #mcp
+     * This method hovers over the element. @mcp
      *
      * 1. Scroll the element into view if needed.
      * 2. Move mouse to hover over a random position near the center of the element.
@@ -786,7 +785,7 @@ interface WebDriver : Closeable {
     suspend fun hover(selector: String)
 
     /**
-     * This method fetches an element with `selector` and focuses it. #mcp
+     * This method fetches an element with `selector` and focuses it. @mcp
      *
      * If there's no element matching `selector`, nothing to do.
      *
@@ -801,7 +800,7 @@ interface WebDriver : Closeable {
     suspend fun focus(selector: String)
 
     /**
-     * This method emulates inserting text that doesn't come from a key press. #mcp
+     * This method emulates inserting text that doesn't come from a key press. @mcp
      *
      * ```kotlin
      * driver.type("input[name='q']", "Hello, World!")
@@ -816,7 +815,7 @@ interface WebDriver : Closeable {
     suspend fun type(selector: String, text: String)
 
     /**
-     * This method emulates inserting text that doesn't come from a key press. #mcp
+     * This method emulates inserting text that doesn't come from a key press. @mcp
      *
      * Unlike [type], this method clears the existing value before typing.
      *
@@ -833,7 +832,7 @@ interface WebDriver : Closeable {
     suspend fun fill(selector: String, text: String)
 
     /**
-     * Shortcut for keyboard down and keyboard up. #mcp
+     * Shortcut for keyboard down and keyboard up. @mcp
      *
      * The key is specified as a string, which can be a single character, a key name, or a combination of both.
      * For example, 'a', 'A', 'KeyA', 'Enter', 'Shift+A', and 'Control+Shift+Tab' are all valid keys.
@@ -852,7 +851,7 @@ interface WebDriver : Closeable {
     suspend fun press(selector: String, key: String)
 
     /**
-     * This method focuses an element with [selector] and clicks it. #mcp
+     * This method focuses an element with [selector] and clicks it. @mcp
      *
      * If there's no element matching `selector`, nothing to do.
      *
@@ -869,7 +868,7 @@ interface WebDriver : Closeable {
     suspend fun click(selector: String, count: Int = 1)
 
     /**
-     * Focus on an element with [selector] and click it with [modifier] pressed. #mcp
+     * Focus on an element with [selector] and click it with [modifier] pressed. @mcp
      * */
     @Throws(WebDriverException::class)
     suspend fun click(selector: String, modifier: String)
@@ -878,28 +877,28 @@ interface WebDriver : Closeable {
     suspend fun dblclick(selector: String)
 
     /**
-     * Focus on an element with [selector] and dblclick it with [modifier] pressed. #mcp
+     * Focus on an element with [selector] and dblclick it with [modifier] pressed. @mcp
      * */
     @Throws(WebDriverException::class)
     suspend fun dblclick(selector: String, modifier: String)
 
     /**
-     * Resizes the viewport to the specified width and height. #mcp
+     * Resizes the viewport to the specified width and height. @mcp
      * */
     suspend fun resize(width: Int, height: Int)
 
     /**
-     * Accepts the dialog. #mcp
+     * Accepts the dialog. @mcp
      * */
     suspend fun dialogAccept(promptText: String? = null)
 
     /**
-     * Dismisses the dialog. #mcp
+     * Dismisses the dialog. @mcp
      * */
     suspend fun dialogDismiss()
 
     /**
-     * This method clicks an element with [selector] whose text content matches [pattern], and then focuses it. #mcp
+     * This method clicks an element with [selector] whose text content matches [pattern], and then focuses it. @mcp
      *
      * If there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.
      *
@@ -917,7 +916,7 @@ interface WebDriver : Closeable {
     suspend fun clickTextMatches(selector: String, pattern: String, count: Int = 1)
 
     /**
-     * This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it. #mcp
+     * This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it. @mcp
      *
      * If there's no element matching [selector], or the element has no attribute [attrName],
      * or the element's attribute value doesn't match [pattern], nothing to do.
@@ -937,7 +936,7 @@ interface WebDriver : Closeable {
     suspend fun clickMatches(selector: String, attrName: String, pattern: String, count: Int = 1)
 
     /**
-     * Selects one or more options in a <select> element. #mcp
+     * Selects one or more options in a <select> element. @mcp
      *
      * @param selector A selector to query the element
      * @param values The values or labels of the options to select
@@ -946,7 +945,7 @@ interface WebDriver : Closeable {
     suspend fun selectOption(selector: String, values: List<String>): List<String>
 
     /**
-     * Selects an option in a <select> element. #mcp
+     * Selects an option in a <select> element. @mcp
      *
      * @param selector A selector to query the element
      * @param value The value or label of the option to select
@@ -958,7 +957,7 @@ interface WebDriver : Closeable {
     }
 
     /**
-     * Clicks the nth anchor element in the DOM. #mcp
+     * Clicks the nth anchor element in the DOM. @mcp
      *
      * This function searches for all anchor (`<a>`) elements within the specified root element,
      * and clicks the nth anchor element (0-based index). If the anchor element exists, it returns
@@ -977,7 +976,7 @@ interface WebDriver : Closeable {
     suspend fun clickNthAnchor(n: Int, rootSelector: String = "body"): String?
 
     /**
-     * This method check an element with [selector]. If there's no element matching [selector], nothing to do. #mcp
+     * This method check an element with [selector]. If there's no element matching [selector], nothing to do. @mcp
      *
      * @param selector - A
      * [selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors)
@@ -988,7 +987,7 @@ interface WebDriver : Closeable {
     suspend fun check(selector: String)
 
     /**
-     * This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do. #mcp
+     * This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do. @mcp
      *
      * @param selector - A
      * [selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors)
@@ -999,7 +998,7 @@ interface WebDriver : Closeable {
     suspend fun uncheck(selector: String)
 
     /**
-     * This method fetches an element with [selector], scrolls it into view if needed. #mcp
+     * This method fetches an element with [selector], scrolls it into view if needed. @mcp
      *
      * If there's no element matching [selector], the method does nothing.
      *
@@ -1014,7 +1013,7 @@ interface WebDriver : Closeable {
     suspend fun scrollTo(selector: String): Double
 
     /**
-     * The current page frame scrolls down for [count] times. #mcp
+     * The current page frame scrolls down for [count] times. @mcp
      *
      * ```kotlin
      * driver.scrollDown(3)
@@ -1026,7 +1025,7 @@ interface WebDriver : Closeable {
     suspend fun scrollDown(count: Int = 1): Double
 
     /**
-     * The current page frame scrolls up for [count] times. #mcp
+     * The current page frame scrolls up for [count] times. @mcp
      *
      * ```kotlin
      * driver.scrollUp(3)
@@ -1038,7 +1037,7 @@ interface WebDriver : Closeable {
     suspend fun scrollUp(count: Int = 1): Double
 
     /**
-     * Scrolls the current page frame vertically by the given number of pixels. #mcp
+     * Scrolls the current page frame vertically by the given number of pixels. @mcp
      *
      * Positive values scroll down, negative values scroll up. The target position is clamped to the
      * scrollable range [0, scrollHeight - viewportHeight].
@@ -1069,7 +1068,7 @@ interface WebDriver : Closeable {
     suspend fun scrollBy(pixels: Double = 200.0, smooth: Boolean = true): Double
 
     /**
-     * The current page frame scrolls to the top. #mcp
+     * The current page frame scrolls to the top. @mcp
      *
      * ```kotlin
      * driver.scrollToTop()
@@ -1079,7 +1078,7 @@ interface WebDriver : Closeable {
     suspend fun scrollToTop(): Double
 
     /**
-     * The current page frame scrolls to the bottom. #mcp
+     * The current page frame scrolls to the bottom. @mcp
      *
      * ```kotlin
      * driver.scrollToBottom()
@@ -1089,7 +1088,7 @@ interface WebDriver : Closeable {
     suspend fun scrollToBottom(): Double
 
     /**
-     * The current page frame scrolls to the middle. #mcp
+     * The current page frame scrolls to the middle. @mcp
      *
      * ```kotlin
      * driver.scrollToMiddle(0.2)
@@ -1103,7 +1102,7 @@ interface WebDriver : Closeable {
     suspend fun scrollToMiddle(ratio: Double): Double
 
     /**
-     * Scroll to the 2.5th viewport position. #mcp
+     * Scroll to the 2.5th viewport position. @mcp
      *
      * ```kotlin
      * driver.scrollToViewport(1.0)
@@ -1119,7 +1118,7 @@ interface WebDriver : Closeable {
     suspend fun scrollToViewport(n: Double, smooth: Boolean = true): Double
 
     /**
-     * The mouse wheels down for [count] times. #mcp
+     * The mouse wheels down for [count] times. @mcp
      *
      * ```kotlin
      * driver.mouseWheelDown(3)
@@ -1134,7 +1133,7 @@ interface WebDriver : Closeable {
     suspend fun mouseWheelDown(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = 150.0, delayMillis: Long = 0)
 
     /**
-     * The mouse wheels up for [count] times. #mcp
+     * The mouse wheels up for [count] times. @mcp
      *
      * ```kotlin
      * driver.mouseWheelUp(3)
@@ -1149,7 +1148,7 @@ interface WebDriver : Closeable {
     suspend fun mouseWheelUp(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = -150.0, delayMillis: Long = 0)
 
     /**
-     * The mouse moves to the position specified by [x] and [y]. #mcp
+     * The mouse moves to the position specified by [x] and [y]. @mcp
      *
      * ```kotlin
      * driver.moveMouseTo(100.0, 200.0)
@@ -1162,7 +1161,7 @@ interface WebDriver : Closeable {
     suspend fun moveMouseTo(x: Double, y: Double)
 
     /**
-     * The mouse moves to the element with [selector]. #mcp
+     * The mouse moves to the element with [selector]. @mcp
      *
      * ```kotlin
      * driver.moveMouseTo("h2.title")
@@ -1175,7 +1174,7 @@ interface WebDriver : Closeable {
     suspend fun moveMouseTo(selector: String, deltaX: Int, deltaY: Int = 0)
 
     /**
-     * Performs a drag, dragenter, dragover, and drop in sequence. #mcp
+     * Performs a drag, dragenter, dragover, and drop in sequence. @mcp
      *
      * @param selector - selector of the element to drag from.
      * @param deltaX The distance to drag horizontally.
@@ -1185,7 +1184,7 @@ interface WebDriver : Closeable {
     suspend fun dragAndDrop(selector: String, deltaX: Int, deltaY: Int = 0)
 
     /**
-     * Returns the document's HTML markup. #mcp
+     * Returns the document's HTML markup. @mcp
      *
      * ```kotlin
      * val html = driver.outerHTML()
@@ -1199,7 +1198,7 @@ interface WebDriver : Closeable {
     suspend fun outerHTML(): String?
 
     /**
-     * Returns the node's HTML markup, the node is located by [selector]. #mcp
+     * Returns the node's HTML markup, the node is located by [selector]. @mcp
      *
      * If the node does not exist, returns null.
      *
@@ -1214,7 +1213,7 @@ interface WebDriver : Closeable {
     suspend fun outerHTML(selector: String): String?
 
     /**
-     * Returns the document's text content. #mcp
+     * Returns the document's text content. @mcp
      *
      * If the document does not exist, returns null.
      *
@@ -1227,12 +1226,12 @@ interface WebDriver : Closeable {
     suspend fun textContent(selector: String? = null): String?
 
     /**
-     * Extracts fields from the page. #mcp
+     * Extracts fields from the page. @mcp
      * */
     suspend fun extract(fields: Map<String, String>): Map<String, String?>
 
     /**
-     * Use querySelectorAll to get all matched elements, and then return their NodeRefs. #mcp
+     * Use querySelectorAll to get all matched elements, and then return their NodeRefs. @mcp
      *
      * Note that the NodeRefs may become stale after certain operations, so they should be used immediately after selection.
      *
@@ -1246,7 +1245,7 @@ interface WebDriver : Closeable {
     suspend fun querySelectorAll(selector: String): List<NodeRef>
 
     /**
-     * Returns the node's text content, the node is located by [selector]. #mcp
+     * Returns the node's text content, the node is located by [selector]. @mcp
      *
      * If the node does not exist, returns null.
      *
@@ -1261,7 +1260,7 @@ interface WebDriver : Closeable {
     suspend fun selectFirstTextOrNull(selector: String): String?
 
     /**
-     * Returns a list of text contents of all the elements matching the specified selector within the page. #mcp
+     * Returns a list of text contents of all the elements matching the specified selector within the page. @mcp
      *
      * If no elements match the selector, returns an empty list.
      *
@@ -1276,7 +1275,7 @@ interface WebDriver : Closeable {
     suspend fun selectTextAll(selector: String): List<String>
 
     /**
-     * Returns the node's attribute value, the node is located by [selector], the attribute is [attrName]. #mcp
+     * Returns the node's attribute value, the node is located by [selector], the attribute is [attrName]. @mcp
      *
      * If the node does not exist, or the attribute does not exist, returns null.
      *
@@ -1292,7 +1291,7 @@ interface WebDriver : Closeable {
     suspend fun selectFirstAttributeOrNull(selector: String, attrName: String): String?
 
     /**
-     * Returns the node's attribute values, the node is located by [selector]. #mcp
+     * Returns the node's attribute values, the node is located by [selector]. @mcp
      *
      * If the node do not exist, or the attribute does not exist, returns an empty list.
      *
@@ -1307,7 +1306,7 @@ interface WebDriver : Closeable {
     suspend fun selectAttributes(selector: String): Map<String, String>
 
     /**
-     * Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName]. #mcp
+     * Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName]. @mcp
      *
      * If the nodes do not exist, or the attribute does not exist, returns an empty list.
      *
@@ -1325,7 +1324,7 @@ interface WebDriver : Closeable {
     suspend fun selectAttributeAll(selector: String, attrName: String, start: Int = 0, limit: Int = 10000): List<String>
 
     /**
-     * Set the attribute of an element located by [selector]. #mcp
+     * Set the attribute of an element located by [selector]. @mcp
      *
      * ```kotlin
      * driver.setAttribute("h2.title", "class", "header")
@@ -1339,7 +1338,7 @@ interface WebDriver : Closeable {
     suspend fun setAttribute(selector: String, attrName: String, attrValue: String)
 
     /**
-     * Set the attribute of all elements matching the CSS query. #mcp
+     * Set the attribute of all elements matching the CSS query. @mcp
      *
      * ```kotlin
      * driver.setAttributeAll("h2.title", "class", "header")
@@ -1354,7 +1353,7 @@ interface WebDriver : Closeable {
 
 
     /**
-     * Returns the node's property value, the node is located by [selector], the property is [propName]. #mcp
+     * Returns the node's property value, the node is located by [selector], the property is [propName]. @mcp
      *
      * If the node does not exist, or the property does not exist, returns null.
      *
@@ -1370,7 +1369,7 @@ interface WebDriver : Closeable {
     suspend fun selectFirstPropertyValueOrNull(selector: String, propName: String): String?
 
     /**
-     * Returns the nodes' property values, the nodes are located by [selector], the property is [propName]. #mcp
+     * Returns the nodes' property values, the nodes are located by [selector], the property is [propName]. @mcp
      *
      * If the nodes do not exist, or the property does not exist, returns an empty list.
      *
@@ -1393,7 +1392,7 @@ interface WebDriver : Closeable {
     ): List<String>
 
     /**
-     * Set the property of an element located by [selector]. #mcp
+     * Set the property of an element located by [selector]. @mcp
      *
      * ```kotlin
      * driver.setProperty("input#input", "value")
@@ -1407,7 +1406,7 @@ interface WebDriver : Closeable {
     suspend fun setProperty(selector: String, propName: String, propValue: String)
 
     /**
-     * Set the property of all elements matching the CSS query. #mcp
+     * Set the property of all elements matching the CSS query. @mcp
      *
      * ```kotlin
      * driver.setPropertyAll("input#input", "value")
@@ -1422,7 +1421,7 @@ interface WebDriver : Closeable {
 
 
     /**
-     * Find hyperlinks in elements matching the CSS query. #mcp
+     * Find hyperlinks in elements matching the CSS query. @mcp
      *
      * ```kotlin
      * val hyperlinks = driver.selectHyperlinks("a.product-link")
@@ -1437,7 +1436,7 @@ interface WebDriver : Closeable {
     suspend fun selectHyperlinks(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<Hyperlink>
 
     /**
-     * Find anchor elements matching the CSS query. #mcp
+     * Find anchor elements matching the CSS query. @mcp
      *
      * ```kotlin
      * val anchors = driver.selectAnchors("a.product-link")
@@ -1452,7 +1451,7 @@ interface WebDriver : Closeable {
     suspend fun selectAnchors(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<GeoAnchor>
 
     /**
-     * Find image elements matching the CSS query. #mcp
+     * Find image elements matching the CSS query. @mcp
      *
      * ```kotlin
      * val images = driver.selectImages("img.product-image")
@@ -1467,7 +1466,7 @@ interface WebDriver : Closeable {
     suspend fun selectImages(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<String>
 
     /**
-     * Executes JavaScript in the context of the currently selected frame or window. #mcp
+     * Executes JavaScript in the context of the currently selected frame or window. @mcp
      *
      * If the result is not JavaScript object, it is not returned.
      *
@@ -1502,31 +1501,31 @@ interface WebDriver : Closeable {
     suspend fun evaluate(expression: String): Any?
 
     /**
-     * Executes JavaScript and returns the result or [defaultValue] if evaluation returns null or incompatible type. #mcp
+     * Executes JavaScript and returns the result or [defaultValue] if evaluation returns null or incompatible type. @mcp
      */
     @Throws(WebDriverException::class)
     suspend fun <T> evaluate(expression: String, defaultValue: T): T
 
     /**
-     * Detailed evaluation metadata (beta). #mcp
+     * Detailed evaluation metadata (beta). @mcp
      * */
     @Throws(WebDriverException::class)
     suspend fun evaluateDetail(expression: String): JsEvaluation?
 
     /**
-     * Executes JavaScript returning JSON if available value if possible (objects serialized), else primitive/string/null. #mcp
+     * Executes JavaScript returning JSON if available value if possible (objects serialized), else primitive/string/null. @mcp
      */
     @Throws(WebDriverException::class)
     suspend fun evaluateValue(expression: String): Any?
 
     /**
-     * Executes JS returning JSONifiable value or [defaultValue] if null/incompatible. #mcp
+     * Executes JS returning JSONifiable value or [defaultValue] if null/incompatible. @mcp
      * */
     @Throws(WebDriverException::class)
     suspend fun <T> evaluateValue(expression: String, defaultValue: T): T
 
     /**
-     * Detailed value evaluation metadata (beta). #mcp
+     * Detailed value evaluation metadata (beta). @mcp
      * */
     @Throws(WebDriverException::class)
     suspend fun evaluateValueDetail(expression: String): JsEvaluation?
@@ -1540,7 +1539,7 @@ interface WebDriver : Closeable {
     suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation?
 
     /**
-     * Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout. #mcp
+     * Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout. @mcp
      *
      * If the backend supports element-centric capture this may represent the full page; implementation specific.
      *
@@ -1555,7 +1554,7 @@ interface WebDriver : Closeable {
     suspend fun screenshot(fullPage: Boolean = false): String?
 
     /**
-     * Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box. #mcp
+     * Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box. @mcp
      *
      * Returns a Base64 encoded image (implementation usually PNG/JPEG), PNG by default.
      */
@@ -1563,7 +1562,7 @@ interface WebDriver : Closeable {
     suspend fun screenshot(selector: String): String?
 
     /**
-     * Take a screenshot of the rectangle specified by [rect] in the current page coordinate space. #mcp
+     * Take a screenshot of the rectangle specified by [rect] in the current page coordinate space. @mcp
      *
      * Caller is responsible for ensuring the rectangle is visible or scrolled into view if the implementation requires it.
      */
@@ -1583,7 +1582,7 @@ interface WebDriver : Closeable {
     suspend fun ariaSnapshot(): String
 
     /**
-     * Calculate the clickable point of an element located by [selector]. #mcp
+     * Calculate the clickable point of an element located by [selector]. @mcp
      *
      * If the element does not exist, or is not clickable, returns null.
      *
@@ -1594,7 +1593,7 @@ interface WebDriver : Closeable {
     suspend fun clickablePoint(selector: String): PointD?
 
     /**
-     * Return the bounding box of an element located by [selector]. #mcp
+     * Return the bounding box of an element located by [selector]. @mcp
      *
      * If the element does not exist, returns null.
      *
@@ -1605,7 +1604,7 @@ interface WebDriver : Closeable {
     suspend fun boundingBox(selector: String): RectD?
 
     /**
-     * Create a new Jsoup session with the last page's context, which means, the same headers and cookies. #mcp
+     * Create a new Jsoup session with the last page's context, which means, the same headers and cookies. @mcp
      *
      * @return The Jsoup session.
      * */
@@ -1613,7 +1612,7 @@ interface WebDriver : Closeable {
     suspend fun newJsoupSession(): Connection
 
     /**
-     * Load the url as a resource with Jsoup rather than browser rendering, with the last page's context. #mcp
+     * Load the url as a resource with Jsoup rather than browser rendering, with the last page's context. @mcp
      *
      * This means, the same headers and cookies.
      *
@@ -1624,7 +1623,7 @@ interface WebDriver : Closeable {
     suspend fun loadJsoupResource(url: String): Connection.Response
 
     /**
-     * Load the url as a resource without browser rendering, with the last page's context. #mcp
+     * Load the url as a resource without browser rendering, with the last page's context. @mcp
      *
      * This means, the same headers and cookies.
      *
@@ -1635,28 +1634,28 @@ interface WebDriver : Closeable {
     suspend fun loadResource(url: String): NetworkResourceResponse
 
     /**
-     * Delay for a given amount of time. #mcp
+     * Delay for a given amount of time. @mcp
      *
      * @param millis The amount of time to delay, in milliseconds.
      * */
     suspend fun delay(millis: Long = 1000) = kotlinx.coroutines.delay(millis)
 
     /**
-     * Delay for a given amount of time. #mcp
+     * Delay for a given amount of time. @mcp
      *
      * @param duration The amount of time to delay.
      * */
     suspend fun delay(duration: Duration) = kotlinx.coroutines.delay(duration.toMillis())
 
     /**
-     * Delay for a given amount of time. #mcp
+     * Delay for a given amount of time. @mcp
      *
      * @param duration The amount of time to delay.
      * */
     suspend fun delay(duration: kotlin.time.Duration) = kotlinx.coroutines.delay(duration.inWholeMilliseconds)
 
     /**
-     * Upload files to the element located by [selector]. #mcp
+     * Upload files to the element located by [selector]. @mcp
      *
      * @param selector The selector of the file input element.
      * @param paths The list of file paths to upload.
@@ -1665,7 +1664,7 @@ interface WebDriver : Closeable {
     suspend fun upload(selector: String, paths: List<String>)
 
     /**
-     * Force the page pauses all navigations and PENDING resource fetches. #mcp
+     * Force the page pauses all navigations and PENDING resource fetches. @mcp
      *
      * If the page loading pauses, the user can still interact with the page,
      * and therefore resources can continue to load.
@@ -1674,7 +1673,7 @@ interface WebDriver : Closeable {
     suspend fun pause()
 
     /**
-     * Force the page stop all navigations and RELEASES all resources. #mcp
+     * Force the page stop all navigations and RELEASES all resources. @mcp
      *
      * Interaction with the stop page results in undefined behavior and the results should not be trusted.
      *
