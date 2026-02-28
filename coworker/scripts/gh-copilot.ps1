@@ -1,29 +1,17 @@
-# Fix copilot command argument parsing
+#!/usr/bin/env pwsh
 
-## Problem
+param(
+    [Parameter(Position=0)]
+    [string]$Task
+)
 
-Multiple scripts in coworker/scripts/ call `gh copilot` with a prompt that includes newlines and double quotes.
-This causes the command to fail with `error: unknown option '---`.
+$repoRoot = (git rev-parse --show-toplevel 2>$null)
+if (-not $repoRoot) {
+    Write-Host "Repo root not found. Exiting."
+    exit 1
+}
+Set-Location $repoRoot
 
-Error message:
-```
-Calling gh copilot...
-error: unknown option '---
-#'
-
-Try 'copilot --help' for more information.
-Memory generation task completed.
-```
-
-## Solution
-
-- Escape double quotes in the prompt and wrap in quotes to ensure correct argument parsing
-- Pass arguments as an array to avoid fragile manual escaping/quoting.
-- Write the prompt to a temporary file and use `-p  "Finish the task described in file: $promptFilePath."` to avoid issues with newlines and quotes in the prompt.
-- Search for all occurrences of `copilot` in the scripts and update the argument handling accordingly.
-
-```shell
-$taskDescription = "..."
 # Write the task description to a temporary file to avoid issues with newlines and quotes in the prompt
 # The temporary file name to make it easier to identify and clean up later if needed.
 # - located in $env:TEMP/browser4/coworker/
@@ -43,13 +31,11 @@ $safePrompt = $prompt.Replace('"', '\"')
 # This keeps quotes/newlines intact in the -p prompt.
 $copilotArgList = @(
     'copilot'
+    '--'
     '-p'
     "`"$safePrompt`""
     '--allow-all-tools'
     '--allow-all-paths'
 )
 
-$process = Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
-```
-
-#auto-approve
+$process = Start-Process -FilePath 'gh' -ArgumentList $copilotArgList

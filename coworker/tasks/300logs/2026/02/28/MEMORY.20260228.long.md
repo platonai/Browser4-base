@@ -2,60 +2,84 @@
 ## Daily Memory - 2026-02-28
 
 ### Tasks Executed
-- **optimize-webdriver-kdoc-for-mcp**: Updated `WebDriver` KDoc to make the first paragraph concise and appended `#mcp` tag for better tool description extraction.
-- **optimize-tool-spec-description-extraction**: Enhanced `SourceCodeToToolCallSpec` to prioritize paragraphs with `#mcp` tag as the tool description, falling back to the first paragraph.
-- **extract-kdoc-to-toolspec-help**: Updated `SourceCodeToToolCallSpec` to populate `ToolSpec.help` with the full KDoc content while keeping `description` concise.
-- **coworker-auto-approve-support**: Attempted to implement auto-approval logic for tasks tagged with `#auto-approve` (Failed).
-- **optimize-webdriver-mcp-kdoc**: Refined `WebDriver` KDoc by ensuring `@mcp` annotations are present in the first paragraph of methods.
-- **refine-coworker-readme**: Updated `coworker/README.md` with complete pipeline stages, accurate script paths, and better formatting.
-- **build-browser4-nodejs-sdk**: Built `browser4-nodejs` SDK, fixed a critical null handling bug in `src/client.ts`, and added 163 new tests (total 197) covering all major components (`PulsarClient`, `Session`, `WebDriver`, etc.).
-- **monitor-github-and-url-tasks**: Created `bin/monitor.sh` and `bin/monitor.ps1` to automatically fetch tasks from GitHub issues (assigned to `@galaxyeye`) or specific URLs and dispatch them to the `2working` directory.
-- **optimize-task-source-monitor**: Improved the monitoring scripts to filter for unprocessed issues using `gh search` and automatically label dispatched tasks as "processed" to prevent duplication.
-- **improve-coworker-daily-memory-generator**: Optimized the daily memory generator script to use a "Head 10 + Tail 300" strategy for reading logs, significantly reducing token usage for large log files.
-- **task-source-monitor-deduplication**: Implemented MD5-based deduplication in `task-source-monitor` scripts to prevent re-dispatching identical tasks from URLs.
-- **implement-coworker-memory-system**: Integrated a hierarchical memory system (Global/Yearly/Monthly/Daily) into `coworker.ps1/sh`, injecting context into prompts and instructing agents to update daily memory.
-- **implement-coworker-loop-detection**: Added loop detection in `run_coworker_periodically` scripts to kill processes with low activity (<5% over 3 mins) and move stuck tasks to `3_5aborted`.
-- **coworker-daily-memory-generator**: Created `coworker/scripts/coworker-daily-memory-generator.{ps1,sh}` to aggregate daily logs and generate summaries using `gh copilot explain`.
-- **fix-coworker-memory-generator-script**: Fixed a critical argument parsing bug (`error: unknown option '---#'`) in the generator script by using `Start-Process -ArgumentList` to safely handle complex prompts.
-- **fix-gh-copilot-argument-parsing**: Applied robust argument parsing (using `--` separator and proper quoting) for `gh copilot` calls across all coworker scripts (`coworker.ps1`, `git-sync.ps1`, etc.) to handle newlines and quotes correctly.
-- **implement-daily-memory-batching**: Enhanced the memory generator to process logs in batches (approx. 15k chars) to avoid token limits, merging results into the daily memory file.
-- **optimize-coworker-memory-generator**: Further optimized the generator to target `*.task.log`, filter out boilerplate instructions, include `*.copilot.log` output, and truncate excessive content.
-- **improve-timezone-handling-coworker-scripts**: Updated 8 coworker scripts (`.ps1`/`.sh`) to enforce UTC for all date/time operations, replacing `Get-Date` with `(Get-Date).ToUniversalTime()` and `date` with `date -u`.
-- **count-total-token-usage**: Created `coworker/scripts/count-total-token-usage.py` (and wrappers) to aggregate token usage stats from `*.copilot.log` files. The tool calculates total API time, session time, code changes, and estimated costs (Total Est: $135.36 for Feb 25-28).
-- **implement-daily-memory-compression**: implemented logic in `coworker.ps1` and `coworker.sh` to automatically compress daily memory files exceeding 3000 characters using `gh copilot`. The original file is backed up as `MEMORY.YYYYMMDD.long.md`.
+- **MCP Documentation Optimization**:
+    - Updated `WebDriver` KDoc to be more concise and suitable for LLM tool descriptions.
+    - Implemented logic in `SourceCodeToToolCallSpec` to extract specific paragraphs tagged with `#mcp` (or `@mcp`) as the tool description.
+    - Populated `ToolSpec.help` with the full KDoc content while keeping `ToolSpec.description` concise.
+- **Coworker Documentation**: Refined `coworker/README.md` to accurately reflect the 9-stage task pipeline and script paths.
+- **Coworker Automation**: Attempted to implement auto-approval logic for tasks tagged with `#auto-approve`.
+- **Browser4 Node.js SDK**:
+    - Built `browser4-nodejs` SDK and added 163 new tests (197 total), covering `PulsarClient`, `PulsarSession`, `AgenticSession`, and `WebDriver`.
+    - Fixed a critical bug in `createSession` where `typeof null === 'object'` caused a crash.
+- **Task Monitoring System**:
+    - Created `bin/monitor.sh` and `bin/monitor.ps1` to monitor GitHub issues assigned to `@galaxyeye` and dispatch them to `coworker/tasks/2working`.
+    - Implemented URL monitoring for keyword detection.
+    - Optimized the monitor to prevent duplicate processing by filtering `is:open -label:processed` and applying a `processed` label after dispatch.
+- **Daily Memory Generator Optimization**:
+    - Updated `coworker-daily-memory-generator` scripts to use character-based truncation (2000 chars for prompts, 3000 for output) alongside line-based log truncation (Head 10 + Tail 300).
+    - Enhanced script to target `*.task.log` and `*.copilot.log` specifically, extracting "clean prompts" to further save tokens.
+    - Implemented a backup mechanism (`.bak`) before overwriting memory files.
+    - Fixed `gh copilot` command invocation (using `-p` with `--` separator) and a `Rename-Item` bug in PowerShell.
+- **Task Source Monitor Deduplication**:
+    - Implemented content-based deduplication in `task-source-monitor` (ps1/sh) using MD5 hashing of fetched URL content.
+    - Added logic to append the hash to the task file as a marker and skip dispatch if the hash already exists in `coworker/tasks`.
+- **Coworker Memory System Implementation**:
+    - Integrated memory management into `coworker.ps1` and `coworker.sh`.
+    - Configured the agent to read context from Global (`MEMORY.md`), Yearly, Monthly, and Daily memory files in `coworker/tasks/300logs`.
+    - Added prompt instructions for the agent to update the daily memory file after task completion.
+- **Coworker Loop Detection**:
+    - Implemented a safety mechanism in `run_coworker_periodically` (ps1/sh) to detect stuck agents.
+    - Monitors the ratio of activity logs to total lines; kills the process if activity is < 5% for 3 consecutive minutes.
+    - Automatically moves stuck tasks to `3_5aborted`.
+- **Coworker Memory Generator Fixes**:
+    - Resolved `error: unknown option '---#'` in `coworker-daily-memory-generator.ps1` by using `Start-Process` with `ArgumentList`.
+    - Fixed `gh copilot` argument parsing across multiple scripts (`coworker.ps1`, `git-sync.ps1`, `coworker.sh`) to handle special characters in prompts correctly.
+- **Daily Memory Batching**:
+    - Implemented batch processing for `coworker-daily-memory-generator` to handle large logs (approx. 15k chars per batch) and avoid token limits.
+- **Token Usage Analysis**:
+    - Created `count-total-token-usage` script to aggregate token usage and estimate costs.
+    - Reported total estimated cost for Feb 25-28, 2026 as ~$135.36 (Dominant model: `gemini-3-pro-preview`).
+- **Daily Memory Compression**:
+    - Implemented self-compression for daily memory files > 3000 characters.
+    - Backs up original to `MEMORY.YYYYMMDD.long.md` and overwrites with compressed version using `gh copilot`.
+- **Article Creation**:
+    - Created "How I created a project builtin AI coworker" article based on project structure and documentation.
+- **Timezone Handling Improvement**:
+    - Updated all coworker scripts (`coworker.ps1`, `task-source-monitor.ps1`, etc.) to use UTC for all date/time operations.
+    - Replaced `Get-Date` with `(Get-Date).ToUniversalTime()` in PowerShell and added `-u` flag to `date` in Bash.
 
 ### Execution Quality Review
-- **What worked well**: 
-    - The sequence of tasks related to MCP tool specification extraction (`SourceCodeToToolCallSpec` and `WebDriver` KDoc updates) was highly effective.
-    - The **Node.js SDK build** was comprehensive, adding nearly 200 tests and fixing critical bugs.
-    - The **monitoring script evolution** showed good iterative improvement (creation -> optimization -> deduplication).
-    - **Self-Healing**: The loop detection mechanism adds a critical layer of robustness for unattended operation.
-    - **Memory System Iteration**: The rapid evolution of the daily memory generator (Creation -> Fix -> Batching -> Optimization) demonstrated a strong response to complexity and token limit constraints.
-    - **Script Robustness**: The move to UTC in all coworker scripts eliminates potential timezone-related inconsistencies in logs and scheduling.
-    - **Memory Compression**: Implemented a self-maintaining memory system where the agent automatically compresses its own history when it grows too large, ensuring context window efficiency.
-- **What was inefficient**: 
-    - The attempted implementation of `coworker-auto-approve-support` failed completely due to a CLI argument error.
-    - Multiple tasks (`optimize-coworker-memory-generator` [initial attempt], `monitor-coworker-infinite-loop`) had no log output, indicating potential dispatch or startup issues.
-    - **Argument Parsing**: The initial implementation of `gh copilot` calls was fragile, requiring a dedicated fix task (`fix-gh-copilot-argument-parsing`) to handle special characters.
+- **Success**: The tooling for MCP specification generation (SourceCodeToToolCallSpec) was significantly improved. It now supports flexible tag-based description extraction and separates short descriptions from detailed help text.
+- **Success**: The Node.js SDK is now robust with high test coverage and a critical bug fix.
+- **Success**: The task monitoring system is fully operational and optimized for idempotency, preventing duplicate task execution.
+- **Success**: The Coworker agent now has a persistent memory system and self-healing capabilities (loop detection), significantly increasing its autonomy and reliability.
+- **Success**: The memory generator scripts are now highly robust, handling special characters in prompts and large log files via batching and compression.
+- **Success**: Standardized timezone handling to UTC across all scripts improves system reliability and consistency across different environments.
+- **Efficiency**: The iterative updates to `WebDriver` KDoc (first adding `#mcp`, then refining to `@mcp`) showed good responsiveness to requirements, though doing it in one pass would have been better.
+- **Efficiency**: The memory generator optimization significantly reduces token usage for future daily summaries by focusing on the most relevant log sections.
+- **Inefficiency**: The task `035344-coworker-auto-approve-support` failed completely due to an argument parsing error, wasting a cycle.
 
 ### Issues Encountered
-- **CLI Argument Error**: Task `coworker-auto-approve-support` failed with `error: too many arguments`.
-- **Tag Consistency**: Variations in tagging conventions (`#mcp` vs `@mcp`).
-- **Log Retrieval**: Several tasks (`optimize-task-source-monitor-duplication`, `monitor-coworker-infinite-loop`, `filter-monitored-issues-by-date`) had missing or empty logs.
-- **Missing Historical Logs**: The memory generator script encountered missing files for previous days (Feb 25-27), though it handled the current day correctly.
-- **Token Limits**: Initial memory generation hit token limits, necessitating the batching and truncation strategies implemented in later tasks.
-- **Shell Interpretation**: Direct execution of `gh copilot` with complex prompts failed due to shell interpretation of `---` and `#`, requiring a switch to `Start-Process` with explicit argument lists.
+- **Script Failure**: Task `coworker-auto-approve-support` failed with "too many arguments" (Exit Code 1). This suggests a syntax error in the shell command construction or parameter passing within the agent's internal tool invocation.
+- **Tool Noise**: Recurring "unknown option '--no-warnings'" errors in stderr suggest a configuration issue with the Node.js or runtime environment invoking the Copilot CLI or its underlying scripts.
+- **SDK Bug**: `src/client.ts` failed when the server returned `null` because `typeof null` is `'object'`. Fixed by adding a truthiness guard.
+- **Path Error**: Task `optimize-coworker-memory-generator` failed initially because it attempted to access `coworker\coworker.ps1` instead of the correct path `coworker\scripts\coworker.ps1`.
+- **Argument Parsing**: `gh copilot` command failed with "unknown option" when prompts contained dashes or comments. Fixed by using `--` separator and proper argument escaping.
+- **Platform Compatibility**: `chmod` command failed on Windows during script setup, requiring alternative handling or manual intervention for executable permissions.
+- **File Operations**: `Rename-Item` in PowerShell failed to overwrite existing files, necessitating a switch to `Move-Item -Force`.
 
 ### Root Cause Analysis
-- **Auto-approve failure**: The "too many arguments" error likely stems from command expansion issues.
-- **Task Duplication/Empty Logs**: High frequency of "log not found" for specific tasks suggests a systematic issue with how these tasks are being claimed or recorded, possibly due to the very loop issues the new detection script aims to solve.
-- **Argument Parsing Failures**: Shells (PowerShell/Bash) interpret leading dashes/hashes in strings as flags/comments when not strictly quoted or separated, causing `gh copilot` to reject valid prompts.
+- **Auto-approve Failure**: The "too many arguments" error usually indicates unquoted strings containing spaces being passed to a shell command or a tool that expects a fixed number of arguments.
+- **Documentation Churn**: The switch from `#mcp` to `@mcp` indicates the initial specification for the tag wasn't fully settled or standard before implementation began.
+- **Null Safety**: JavaScript's `typeof null` quirk is a common source of runtime errors; explicit null checks are necessary when dealing with external API responses.
+- **Path Verification**: Scripts must verify file paths before execution. The `coworker.ps1` location assumption caused a failure in the optimization task.
+- **Shell Interpretation**: The `gh copilot` errors were caused by the shell interpreting prompt content as flags. Strict argument separation with `--` is essential for CLI tools wrapping other commands.
+- **Windows File System**: Windows handling of file permissions and overwrite operations differs significantly from Unix, requiring specific PowerShell commands (`Move-Item -Force` vs `mv`, ignoring `chmod`) to ensure cross-platform compatibility.
 
 ### Process Improvement Insight
-- **Robust Command Execution**: Explicitly quote arguments in shell scripts to prevent expansion errors. Always use `--` to separate flags from positional arguments in CLI tools.
-- **Standardize MCP Tags**: Establish a single source of truth for MCP annotation conventions.
-- **Task Queue Hygiene**: Investigate the "ghost task" phenomenon where logs are missing. The new loop detection and deduplication logic should help reduce noise.
-- **Log Summarization**: The new "Head+Tail" strategy for memory generation is a good pattern for other large text processing tasks.
-- **Incremental Tooling**: The iterative build-up of the memory generator (MVP -> Fix -> Optimization) is a safer pattern than trying to build a perfect complex tool in one go.
-- **Timezone Standardization**: Enforcing UTC across all maintenance scripts prevents "off-by-one-day" errors in logging and memory file generation, crucial for a system running across potential timezone boundaries.
-
+- **Robust Argument Handling**: When modifying shell scripts (like `coworker.ps1/sh`), ensure strict quoting of file paths and tags to prevent argument parsing errors. Use `Start-Process -ArgumentList` in PowerShell for complex arguments.
+- **Standardize Tags Early**: Define metadata tags (like `@mcp` vs `#mcp`) in a design spec before mass-updating code to avoid double-work.
+- **Log Management**: Truncating large logs (preserving head/tail) is a crucial optimization for maintaining context without exceeding token limits.
+- **Idempotency**: When monitoring external sources (like GitHub issues or URLs), always implement a state-tracking mechanism (like labels or content hashes) to prevent duplicate task creation.
+- **Self-Correction**: The implementation of loop detection demonstrates a proactive approach to handling agent failures, moving from manual intervention to automated recovery.
+- **Context Synthesis**: When historical memory logs are sparse, inferring context from codebase structure (as done for the article) is a viable fallback strategy.
