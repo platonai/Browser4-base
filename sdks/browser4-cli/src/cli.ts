@@ -33,13 +33,13 @@ import { readState, writeState, clearState, CliState } from './state';
 async function ensureServerRunning(args: string[]): Promise<void> {
   const state = readState();
   let baseUrl = state.baseUrl || 'http://localhost:8182';
-  
+
   // Check for --server override in args
   const serverIdx = args.indexOf('--server');
   if (serverIdx !== -1 && args[serverIdx + 1]) {
     baseUrl = args[serverIdx + 1];
   }
-  
+
   // Only attempt to start if we're pointing to localhost
   if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
     return;
@@ -134,7 +134,7 @@ async function downloadJar(targetPath: string): Promise<void> {
 
 async function startServer(jarPath: string, port: number): Promise<void> {
   console.log(`Starting server from ${jarPath} on port ${port}...`);
-  
+
   const child = spawn('java', ['-jar', jarPath, `--server.port=${port}`], {
     detached: true,
     stdio: 'ignore' // or 'inherit' for debugging, but 'ignore' keeps it clean
@@ -145,7 +145,7 @@ async function startServer(jarPath: string, port: number): Promise<void> {
   // Wait for health check
   const start = Date.now();
   const timeout = 60000;
-  
+
   while (Date.now() - start < timeout) {
     try {
       await axios.get(`http://localhost:${port}/actuator/health`);
@@ -1079,7 +1079,7 @@ async function main(): Promise<void> {
       // Pass remaining args to check for --server flag
       await ensureServerRunning(rest);
     }
-    
+
     switch (command) {
       // Core
       case 'open':        await cmdOpen(rest, sessionName); break;
@@ -1162,4 +1162,4 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+main().then(r => "");

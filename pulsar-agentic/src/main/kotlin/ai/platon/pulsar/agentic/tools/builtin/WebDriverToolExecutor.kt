@@ -7,6 +7,7 @@ import java.time.Duration
 import kotlin.reflect.KClass
 
 import ai.platon.pulsar.common.serialize.json.Pson
+import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 
 class WebDriverToolExecutor: AbstractToolExecutor() {
     override val domain = "driver"
@@ -215,7 +216,7 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
                     })()
                 """.trimIndent()
                 val result = driver.evaluate(script) as? String ?: """{"dx":0,"dy":0}"""
-                val parsed = Pson.mapper.readTree(result)
+                val parsed = pulsarObjectMapper().readTree(result)
                 val dx = parsed.get("dx")?.asInt() ?: 0
                 val dy = parsed.get("dy")?.asInt() ?: 0
                 driver.dragAndDrop(src, dx, dy)
