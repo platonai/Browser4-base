@@ -445,6 +445,7 @@ foreach ($taskRoot in $taskRoots) {
         $workingBaseName = $finalTaskInfo.FileName -replace [regex]::Escape($file.Extension), ''
         $prompt = @"
 Finish the task described in file: $workingPath.
+Do not move the file, just execute the task based on its content.
 "@
 
         # Try to parse structured content
@@ -485,7 +486,7 @@ Copilot Execution Output:
         try {
             # Escape double quotes in the prompt and wrap in quotes to ensure correct argument parsing
             $safePrompt = $prompt.Replace('"', '\"')
-            
+
             # Pass arguments as an array to avoid fragile manual escaping/quoting.
             # This keeps quotes/newlines intact in the -p prompt.
             $copilotArgList = @(
