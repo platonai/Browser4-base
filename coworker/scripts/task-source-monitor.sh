@@ -33,7 +33,7 @@ POLL_URL=""
 KEYWORD="@galaxyeye"
 INTERVAL=60
 RUN_ONCE=false
-TASKS_DIR="$REPO_ROOT/coworker/tasks/2working"
+TASKS_DIR="$REPO_ROOT/coworker/tasks/1created"
 
 # ── parse arguments ────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do

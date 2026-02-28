@@ -27,3 +27,9 @@
 - Verified implementation of memory system in coworker.ps1 and coworker.sh.
 - Initialized MEMORY.202602.md, MEMORY.2026.md, and MEMORY.md as they were missing.
 - Confirmed daily memory update mechanism works as expected.
+
+### Task: Add Task Monitor Option to Periodic Runner
+- Modified `run_coworker_periodically.ps1` to accept `-Monitor` switch.
+- Modified `run_coworker_periodically.sh` to accept `--monitor` flag.
+- Both scripts now execute `task-source-monitor` script (once per loop iteration) if the flag is provided.
+- **Fixed Bug:** Updated `task-source-monitor.ps1` and `task-source-monitor.sh` to output tasks to `coworker/tasks/1created` instead of `coworker/tasks/2working`. This ensures `coworker` script (which only scans `1created`) picks up the generated tasks.

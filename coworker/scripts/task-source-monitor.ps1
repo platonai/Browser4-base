@@ -37,7 +37,7 @@ if (-not (Test-Path (Join-Path $RepoRoot "VERSION"))) {
     Write-Error "ERROR: cannot find repo root"; exit 1
 }
 
-$TasksDir = Join-Path $RepoRoot "coworker\tasks\2working"
+$TasksDir = Join-Path $RepoRoot "coworker\tasks\1created"
 New-Item -ItemType Directory -Force -Path $TasksDir | Out-Null
 
 # ── helpers ────────────────────────────────────────────────────────────────────

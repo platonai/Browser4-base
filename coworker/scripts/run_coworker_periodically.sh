@@ -12,9 +12,30 @@ cd "$REPO_ROOT" || exit 1
 SCRIPT_PATH="$REPO_ROOT/coworker/scripts/coworker.sh"
 SCRIPT_NAME="coworker.sh"
 WRAPPER_NAME="run_coworker_periodically.sh"
+MONITOR_SCRIPT_PATH="$REPO_ROOT/coworker/scripts/task-source-monitor.sh"
+MONITOR=false
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --monitor)
+      MONITOR=true
+      shift
+      ;;
+    *)
+      # Ignore unknown arguments for now or treat them as errors
+      echo "Unknown argument: $1"
+      shift
+      ;;
+  esac
+done
 
 echo "Monitoring $SCRIPT_NAME..."
 echo "Script path: $SCRIPT_PATH"
+if [ "$MONITOR" = true ]; then
+  echo "Task source monitoring enabled using: $MONITOR_SCRIPT_PATH"
+fi
+
 
 while true; do
     # Check for tasks in 1created or 5approved
@@ -36,6 +57,15 @@ while true; do
     fi
 
     TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+
+    if [ "$MONITOR" = true ]; then
+        echo "$TIMESTAMP - Running task source monitor..."
+        if [ -x "$MONITOR_SCRIPT_PATH" ]; then
+            "$MONITOR_SCRIPT_PATH" --once
+        else
+            bash "$MONITOR_SCRIPT_PATH" --once
+        fi
+    fi
 
     if [ "$HAS_TASKS" = false ]; then
         echo "$TIMESTAMP - No tasks found in 1created or 5approved. Skipping check."

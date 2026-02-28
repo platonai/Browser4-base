@@ -1,0 +1,140 @@
+Task: add-task-monitor-option
+Description: Task from add-task-monitor-option.md
+Original File: add-task-monitor-option.md
+Started: 2026-02-28 17:17:09
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\add-task-monitor-option.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\02\MEMORY.202602.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Check if the Yearly Memory file (D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\MEMORY.2026.md) has been updated with the previous month's summary. If not, summarize all monthly memories from this year into the Yearly Memory.
+4. Check if the Global Memory file (D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\MEMORY.md) has been updated with the previous year's summary. If not, summarize all yearly memories into the Global Memory.
+5. Ensure you do not overwrite existing content, always append.
+
+
+[Global Memory]:
+# MEMORY.md
+
+## Mission & Vision
+- Create a fully autonomous, self-improving browser agent ecosystem.
+
+## Core Principles
+- Minimize repetition.
+- Continuous improvement.
+- Structural thinking.
+
+## Evolution Phases
+- Phase 1: Basic functionality.
+- Phase 2: Memory and self-improvement.
+
+## Major Turning Points
+- 2026-02-28: Implementation of Coworker Memory System.
+
+## Long-Term Structural Challenges
+- (None recorded yet)
+
+## Opportunity Landscape
+- High-performance browser automation.
+- Intelligent agentic workflows.
+
+## Three Strategic Priorities Now
+- 1. Stabilize memory system.
+- 2. Enhance agent capabilities.
+- 3. Expand test coverage.
+
+
+[Yearly Memory (2026)]:
+# MEMORY.2026.md
+## Annual Strategic Review - 2026
+
+### Project State Evolution
+- Started Memory System implementation.
+
+### Major Achievements
+- Implemented Coworker Memory System.
+
+### Major Failures
+- (None recorded yet)
+
+### Structural Problems (Solved / Unsolved)
+- (None recorded yet)
+
+### Capability Upgrades
+- Coworker now has persistent memory capabilities.
+
+### Strategic Risks
+- (None recorded yet)
+
+### Project Trajectory Forecast
+- Improved task execution consistency expected.
+
+### Three Immediate Strategic Actions
+- 1. Monitor memory system usage.
+- 2. Refine memory prompt instructions based on feedback.
+- 3. Ensure consistent memory updates.
+
+
+[Monthly Memory (2026-02)]:
+# MEMORY.202602.md
+## Monthly Memory - 2026-02
+
+### Work Themes
+- Memory System Implementation
+
+### Recurring Issues
+- (None recorded yet)
+
+### Structural Bottlenecks
+- (None recorded yet)
+
+### Efficiency Trend
+- N/A
+
+### System Adjustments Proposed
+- Initialized Memory System to start tracking daily activities.
+
+
+[Daily Memory (2026-02-28)]:
+# MEMORY.20260228.md
+## Daily Memory - 2026-02-28
+
+### Tasks Executed
+- Implemented Coworker Memory System in `coworker.ps1` and `coworker.sh`.
+  - Updated scripts to import existing memories (Global, Yearly, Monthly, Daily) into the context.
+  - Added instructions for the AI to update the Daily Memory after each task.
+  - Added instructions for the AI to check and update Monthly, Yearly, and Global memories if needed.
+  - Standardized memory file paths to a hierarchical structure: `300logs/YYYY/MM/DD/MEMORY.YYYYMMDD.md`.
+
+### Execution Quality Review
+- The implementation directly modifies the core task runner scripts, ensuring all future tasks will automatically participate in the memory system.
+- The logic for checking memory updates is now embedded in the AI's instructions, distributing the maintenance of memory files to the AI itself.
+
+### Issues Encountered
+- The user prompt specified a flat path for the daily memory file, but the file system and script logic use a nested structure. I adhered to the nested structure as per the implementation.
+- There were no existing memory files to summarize for the Monthly memory update, so that step was skipped for now.
+
+### Root Cause Analysis
+- N/A (Implementation task)
+
+### Process Improvement Insight
+- Ensure that the initial prompt instructions in `coworker.ps1` and `coworker.sh` are kept in sync with the actual file structure to avoid confusion.
+- The memory system relies on the AI following instructions to update memory files. Periodic verification might be needed to ensure compliance.
+
+### Follow-up Verification (Session: 16:30)
+- Verified implementation of memory system in coworker.ps1 and coworker.sh.
+- Initialized MEMORY.202602.md, MEMORY.2026.md, and MEMORY.md as they were missing.
+- Confirmed daily memory update mechanism works as expected.
+
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\02\28\171655-add-task-monitor-option.copilot.log

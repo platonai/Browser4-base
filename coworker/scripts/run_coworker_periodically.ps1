@@ -1,5 +1,9 @@
 #!/usr/bin/env pwsh
 
+param(
+    [switch]$Monitor
+)
+
 $repoRoot = (git rev-parse --show-toplevel 2>$null)
 if (-not $repoRoot) {
     Write-Host "Repo root not found. Exiting."
@@ -9,9 +13,14 @@ Set-Location $repoRoot
 
 $ScriptPath = Resolve-Path ".\coworker\scripts\coworker.ps1"
 $ScriptName = "coworker.ps1"
+$MonitorScriptPath = Resolve-Path ".\coworker\scripts\task-source-monitor.ps1"
 
 Write-Host "Monitoring $ScriptName..."
 Write-Host "Script path: $ScriptPath"
+if ($Monitor) {
+    Write-Host "Task source monitoring enabled using: $MonitorScriptPath"
+}
+
 
 while ($true) {
     $createdTasks = Get-ChildItem -Path ".\coworker\tasks\1created" -File -ErrorAction SilentlyContinue
@@ -32,6 +41,16 @@ while ($true) {
     }
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+
+    if ($Monitor) {
+        Write-Host "$timestamp - Running task source monitor..."
+        try {
+            & $MonitorScriptPath -Once
+        } catch {
+            Write-Error "Failed to run task source monitor: $_"
+        }
+    }
+
     if ($Running) {
         Write-Host "$timestamp - $ScriptName is already running."
     } else {
