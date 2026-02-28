@@ -438,8 +438,6 @@ for file in "${files[@]}"; do
     memoryDayPath="$memoryDayDir/MEMORY.$currentYear$currentMonth$currentDay.md"
 
     # Read existing memories (if any)
-    if [[ -f "$memoryAllPath" ]]; then memoryContext+=$'\n[Global Memory]:\n'$(cat "$memoryAllPath")$'\n'; fi
-    if [[ -f "$memoryYearPath" ]]; then memoryContext+=$'\n[Yearly Memory ('$currentYear')]:\n'$(cat "$memoryYearPath")$'\n'; fi
     if [[ -f "$memoryMonthPath" ]]; then memoryContext+=$'\n[Monthly Memory ('$currentYear'-'$currentMonth')]:\n'$(cat "$memoryMonthPath")$'\n'; fi
     if [[ -f "$memoryDayPath" ]]; then memoryContext+=$'\n[Daily Memory ('$currentYear'-'$currentMonth'-'$currentDay')]:\n'$(cat "$memoryDayPath")$'\n'; fi
 

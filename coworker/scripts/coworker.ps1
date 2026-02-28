@@ -468,8 +468,6 @@ foreach ($taskRoot in $taskRoots) {
         $memoryDayPath = Join-Path $memoryDayDir "MEMORY.$currentYear$currentMonth$currentDay.md"
 
         # Read existing memories (if any)
-        if (Test-Path $memoryAllPath) { $memoryContext += "`n[Global Memory]:`n" + (Get-Content $memoryAllPath -Raw -Encoding UTF8) + "`n" }
-        if (Test-Path $memoryYearPath) { $memoryContext += "`n[Yearly Memory ($currentYear)]:`n" + (Get-Content $memoryYearPath -Raw -Encoding UTF8) + "`n" }
         if (Test-Path $memoryMonthPath) { $memoryContext += "`n[Monthly Memory ($currentYear-$currentMonth)]:`n" + (Get-Content $memoryMonthPath -Raw -Encoding UTF8) + "`n" }
         if (Test-Path $memoryDayPath) { $memoryContext += "`n[Daily Memory ($currentYear-$currentMonth-$currentDay)]:`n" + (Get-Content $memoryDayPath -Raw -Encoding UTF8) + "`n" }
 

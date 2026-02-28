@@ -21,7 +21,6 @@ if ($Monitor) {
     Write-Host "Task source monitoring enabled using: $MonitorScriptPath"
 }
 
-
 while ($true) {
     $createdTasks = Get-ChildItem -Path ".\coworker\tasks\1created" -File -ErrorAction SilentlyContinue
     $approvedTasks = Get-ChildItem -Path ".\coworker\tasks\5approved" -File -Recurse -ErrorAction SilentlyContinue
@@ -64,19 +63,19 @@ while ($true) {
             $loopCheckCounter = 0
             $consecutiveLowActivity = 0
             $maxConsecutiveLowActivity = 18 # 3 minutes / 10 seconds
-            
+
             while (-not $p.HasExited) {
                 Start-Sleep -Seconds 10
-                
+
                 # Find the latest copilot log file
                 $currentYear = (Get-Date).ToUniversalTime().ToString("yyyy")
                 $currentMonth = (Get-Date).ToUniversalTime().ToString("MM")
                 $currentDay = (Get-Date).ToUniversalTime().ToString("dd")
                 $logsSubDir = Join-Path ".\coworker\tasks\300logs" "$currentYear\$currentMonth\$currentDay"
-                
+
                 if (Test-Path $logsSubDir) {
                     $latestLog = Get-ChildItem -Path $logsSubDir -Filter "*.copilot.log.stdout" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-                    
+
                     if ($latestLog) {
                         try {
                             $lines = Get-Content -Path $latestLog.FullName -Tail 500 -ErrorAction SilentlyContinue
@@ -91,12 +90,12 @@ while ($true) {
                                         $actionCount++
                                     }
                                 }
-                                
+
                                 $ratio = 0
                                 if ($lineCount -gt 0) {
                                     $ratio = $actionCount / $lineCount
                                 }
-                                
+
                                 # Only check ratio if we have enough lines to be statistically significant
                                 # e.g. > 10 lines
                                 if ($lineCount -gt 10) {
@@ -107,36 +106,36 @@ while ($true) {
                                         $consecutiveLowActivity = 0
                                     }
                                 } else {
-                                     # Not enough lines yet, reset counter or ignore? 
+                                     # Not enough lines yet, reset counter or ignore?
                                      # Better to ignore and wait for more logs.
-                                     # But if it hangs with 5 lines forever? 
-                                     # The loop detection is for "outputting logs but no action". 
+                                     # But if it hangs with 5 lines forever?
+                                     # The loop detection is for "outputting logs but no action".
                                      # So if it's outputting logs, lineCount will increase.
                                 }
-                                
+
                                 if ($consecutiveLowActivity -ge $maxConsecutiveLowActivity) {
                                     Write-Host "Error: Coworker loop detected! Killing process $($p.Id)..." -ForegroundColor Red
                                     Stop-Process -Id $p.Id -Force
-                                    
+
                                     # Extract task base name from log filename
                                     # Format: HHmmss-TaskName.copilot.log.stdout
                                     $logName = $latestLog.Name
                                     $taskBaseName = $null
-                                    
+
                                     if ($logName -match "^\d{6}-(.*)\.copilot\.log\.stdout$") {
                                         $taskBaseName = $Matches[1]
                                     }
-                                    
+
                                     if ($taskBaseName) {
                                         Write-Host "Aborting task: $taskBaseName"
-                                        
+
                                         $workingDir = ".\coworker\tasks\2working"
                                         $abortedDir = ".\coworker\tasks\3_5aborted"
-                                        
+
                                         if (-not (Test-Path $abortedDir)) {
                                             New-Item -ItemType Directory -Path $abortedDir | Out-Null
                                         }
-                                        
+
                                         # Use wildcard to match potential extensions or variations
                                         $taskFiles = Get-ChildItem -Path $workingDir -Filter "$taskBaseName*"
                                         foreach ($file in $taskFiles) {
@@ -156,7 +155,7 @@ while ($true) {
                     }
                 }
             }
-            
+
             Write-Host "Finished $ScriptName."
         } catch {
             Write-Error "Failed to start ${ScriptName}: $_"
