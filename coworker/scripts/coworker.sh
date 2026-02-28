@@ -439,7 +439,62 @@ for file in "${files[@]}"; do
 
     # Read existing memories (if any)
     if [[ -f "$memoryMonthPath" ]]; then memoryContext+=$'\n[Monthly Memory ('$currentYear'-'$currentMonth')]:\n'$(cat "$memoryMonthPath")$'\n'; fi
-    if [[ -f "$memoryDayPath" ]]; then memoryContext+=$'\n[Daily Memory ('$currentYear'-'$currentMonth'-'$currentDay')]:\n'$(cat "$memoryDayPath")$'\n'; fi
+    if [[ -f "$memoryDayPath" ]]; then 
+        dailyMemoryContent=$(cat "$memoryDayPath")
+        
+        # Check length (approximate chars)
+        contentLength=${#dailyMemoryContent}
+        
+        if [[ $contentLength -gt 3000 ]]; then
+            log_message "Daily memory exceeds 3000 chars ($contentLength). Initiating compression..." INFO
+            
+            # Backup original
+            backupPath="$memoryDayDir/MEMORY.$currentYear$currentMonth$currentDay.long.md"
+            echo "$dailyMemoryContent" > "$backupPath"
+            log_message "Original memory backed up to: $backupPath" INFO
+            
+            # Compress using Copilot
+            compressionPrompt="Compress the following daily memory content to under 3000 characters.
+Rules:
+- shorten descriptions for all points.
+- shorten task descriptions, can be very brief, just keep the keywords.
+- combine similar tasks into one entry.
+- remove redundant information.
+- output ONLY the compressed content.
+
+Content to compress:
+$dailyMemoryContent"
+
+            # Run compression
+            # Use gh copilot to compress
+             if command -v gh >/dev/null 2>&1; then
+                # Create temp file for prompt to handle newlines correctly
+                tempPromptFile=$(mktemp)
+                echo "$compressionPrompt" > "$tempPromptFile"
+                
+                # We need to cat the file into the prompt argument or just pass it directly if supported.
+                # gh copilot -p takes a string.
+                # Let's try to just pass the string but careful with newlines.
+                # Actually, reading from file is safer if possible, but gh copilot doesn't support -f for prompt.
+                # So we stick to string but ensure variable is quoted.
+                
+                compressedContent=$(gh copilot -- -p "$compressionPrompt" 2>/dev/null)
+                
+                if [[ -n "$compressedContent" ]]; then
+                    echo "$compressedContent" > "$memoryDayPath"
+                    dailyMemoryContent="$compressedContent"
+                    log_message "Daily memory compressed to ${#dailyMemoryContent} chars." INFO
+                else
+                    log_message "Memory compression returned empty result." WARN
+                fi
+                rm -f "$tempPromptFile"
+             else
+                log_message "gh command not found, skipping compression." WARN
+             fi
+        fi
+
+        memoryContext+=$'\n[Daily Memory ('$currentYear'-'$currentMonth'-'$currentDay')]:\n'$dailyMemoryContent$'\n'
+    fi
 
     # Construct instructions for updating memory
     memoryInstructions="

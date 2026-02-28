@@ -1,0 +1,81 @@
+● Read coworker\tasks\2working\implement-daily-memory-compression.md
+  └ 12 lines read
+
+✗ Read coworker\coworker.ps1
+  Path does not exist
+
+✗ Read coworker\coworker.sh
+  Path does not exist
+
+● List directory coworker
+  └ 4 files found
+
+● List directory coworker\scripts
+  └ 17 files found
+
+● Read coworker\scripts\coworker.ps1
+  └ 693 lines read
+
+● Read coworker\scripts\coworker.sh
+  └ 650 lines read
+
+● Edit coworker\scripts\coworker.ps1 (+61 -1)
+
+● Edit coworker\scripts\coworker.sh (+45 -1)
+
+● Edit coworker\scripts\coworker.ps1 (+4 -1)
+
+● Edit coworker\scripts\coworker.sh (+11)
+
+● Read coworker\tasks\300logs\2026\02\MEMORY.202602.md
+  └ 17 lines read
+
+● List directory coworker\tasks\300logs\2026\02
+  └ 5 files found
+
+● list_powershell
+  └ <no active shell sessions>
+
+● List directory coworker\tasks\300logs\2026\02\26
+  └ 4 files found
+
+● List directory coworker\tasks\300logs\2026\02\25
+  └ 24 files found
+
+● List directory coworker\tasks\300logs\2026\02\27
+  └ 3 files found
+
+● Read coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md
+  └ 58 lines read
+
+● Edit coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md (+1)
+
+● Edit coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md (+1)
+
+I have completed the task "Implement Daily Memory Compression" by modifying `coworker/scripts/coworker.ps1` and `coworker/scripts/coworker.sh`.
+
+**Summary of changes:**
+1.  **Modified `coworker/scripts/coworker.ps1`**:
+    *   Added logic to check the size of the daily memory file when loading it.
+    *   If the file size exceeds 3000 characters:
+        *   Backs up the original content to `MEMORY.YYYYMMDD.long.md`.
+        *   Uses `gh copilot` to compress the content based on specific rules (shorten descriptions, combine tasks, remove redundancy).
+        *   Overwrites the daily memory file with the compressed content.
+2.  **Modified `coworker/scripts/coworker.sh`**:
+    *   Implemented equivalent logic in Bash for Linux/macOS environments.
+    *   Ensured safe handling of newlines and arguments when invoking `gh copilot`.
+
+**Memory Update:**
+*   Updated `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md` with a summary of the task execution and a note on the new self-compressing capability.
+*   Verified that no other daily memory files existed for February 2026 that needed summarization into the monthly memory file.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         2m 13s
+Total session time:     2m 30s
+Total code changes:     +123 -3
+Breakdown by AI model:
+ gemini-3-pro-preview    566.8k in, 4.3k out, 450.0k cached (Est. 1 Premium request)

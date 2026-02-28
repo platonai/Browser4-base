@@ -469,7 +469,70 @@ foreach ($taskRoot in $taskRoots) {
 
         # Read existing memories (if any)
         if (Test-Path $memoryMonthPath) { $memoryContext += "`n[Monthly Memory ($currentYear-$currentMonth)]:`n" + (Get-Content $memoryMonthPath -Raw -Encoding UTF8) + "`n" }
-        if (Test-Path $memoryDayPath) { $memoryContext += "`n[Daily Memory ($currentYear-$currentMonth-$currentDay)]:`n" + (Get-Content $memoryDayPath -Raw -Encoding UTF8) + "`n" }
+        if (Test-Path $memoryDayPath) { 
+            $dailyMemoryContent = Get-Content $memoryDayPath -Raw -Encoding UTF8
+            
+            # Check for compression need
+            if ($dailyMemoryContent.Length -gt 3000) {
+                Write-LogMessage "Daily memory exceeds 3000 chars ($($dailyMemoryContent.Length)). Initiating compression..." INFO
+                
+                # Backup original
+                $backupPath = Join-Path $memoryDayDir "MEMORY.$currentYear$currentMonth$currentDay.long.md"
+                $dailyMemoryContent | Out-File -FilePath $backupPath -Encoding UTF8
+                Write-LogMessage "Original memory backed up to: $backupPath" INFO
+
+                # Compress using Copilot
+                $compressionPrompt = @"
+Compress the following daily memory content to under 3000 characters.
+Rules:
+- shorten descriptions for all points.
+- shorten task descriptions, can be very brief, just keep the keywords.
+- combine similar tasks into one entry.
+- remove redundant information.
+- output ONLY the compressed content.
+
+Content to compress:
+$dailyMemoryContent
+"@
+                
+                # Run compression
+                # Escape double quotes in the prompt and wrap in quotes to ensure correct argument parsing
+                $safeCompressionPrompt = $compressionPrompt.Replace('"', '\"')
+                
+                $compressionArgList = @(
+                    'copilot'
+                    '--'
+                    '-p'
+                    "`"$safeCompressionPrompt`""
+                )
+                
+                $compressStdOut = [System.IO.Path]::GetTempFileName()
+                $compressStdErr = [System.IO.Path]::GetTempFileName()
+                
+                $compressProcess = Start-Process -FilePath 'gh' -ArgumentList $compressionArgList -NoNewWindow -PassThru -RedirectStandardOutput $compressStdOut -RedirectStandardError $compressStdErr
+                $compressProcess.WaitForExit()
+                
+                if ($compressProcess.ExitCode -eq 0 -and (Test-Path $compressStdOut)) {
+                     $compressedContent = Get-Content $compressStdOut -Raw -Encoding UTF8
+                     if (-not [string]::IsNullOrWhiteSpace($compressedContent)) {
+                         $compressedContent | Out-File -FilePath $memoryDayPath -Encoding UTF8
+                         $dailyMemoryContent = $compressedContent
+                         Write-LogMessage "Daily memory compressed to $($dailyMemoryContent.Length) chars." INFO
+                     }
+                } else {
+                     Write-LogMessage "Memory compression failed." WARN
+                     if (Test-Path $compressStdErr) { 
+                        $err = Get-Content $compressStdErr -Raw
+                        Write-LogVerbose $err 
+                     }
+                }
+                
+                Remove-Item $compressStdOut -ErrorAction SilentlyContinue
+                Remove-Item $compressStdErr -ErrorAction SilentlyContinue
+            }
+
+            $memoryContext += "`n[Daily Memory ($currentYear-$currentMonth-$currentDay)]:`n" + $dailyMemoryContent + "`n" 
+        }
 
         # Construct instructions for updating memory
         $memoryInstructions = @"
