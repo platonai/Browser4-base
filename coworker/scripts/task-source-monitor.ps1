@@ -67,7 +67,7 @@ function Fetch-GitHubIssues {
         # Use gh CLI
         $jsonText = gh issue list `
             --repo $Repo `
-            --search "assignee:$Assignee is:open -label:processed" `
+            --search "assignee:$Assignee is:open -label:processed created:>2026-02-28" `
             --limit 20 `
             --json number,title,body,url,createdAt,state 2>$null
     }elseif ($env:GITHUB_TOKEN) {
@@ -89,6 +89,10 @@ function Fetch-GitHubIssues {
     if ($issues -isnot [System.Array]) { $issues = @($issues) }
 
     foreach ($issue in $issues) {
+        # Check if created after 2026-02-28
+        $createdAt = $issue.created_at
+        if ($createdAt -le "2026-02-28") { continue }
+
         $content = $issue | ConvertTo-Json -Depth 10 -Compress
         Dispatch-Task -Content $content
 

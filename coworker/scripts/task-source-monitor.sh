@@ -72,12 +72,13 @@ fetch_github_issues() {
     # Use gh CLI
     gh issue list \
       --repo "$GH_REPO" \
-      --search "assignee:$ASSIGNEE is:open -label:processed" \
+      --search "assignee:$ASSIGNEE is:open -label:processed created:>2026-02-28" \
       --limit 20 \
       --json number,title,body,url,createdAt,state \
       2>/dev/null
   elif [[ -n "${GITHUB_TOKEN:-}" ]]; then
     # Fall back to curl + REST API
+    # Note: simple listing endpoint doesn't support 'created' filter easily, so we filter in Python below.
     curl -fsSL \
       -H "Authorization: Bearer $GITHUB_TOKEN" \
       -H "Accept: application/vnd.github+json" \
@@ -90,11 +91,19 @@ fetch_github_issues() {
     printf '%s\n' "$line"
   done | python3 -c "
 import sys, json
+from datetime import datetime
+
 data = json.load(sys.stdin)
 if not isinstance(data, list):
     data = [data]
+
+filtered_issues = []
 for issue in data:
-    print(json.dumps(issue, ensure_ascii=False))
+    created_at = issue.get('created_at', '')
+    # Check if created after 2026-02-28. 
+    # created_at format is usually 'YYYY-MM-DDTHH:MM:SSZ'
+    if created_at > '2026-02-28':
+        print(json.dumps(issue, ensure_ascii=False))
 " 2>/dev/null | while IFS= read -r issue_json; do
     # Each line is one issue JSON object
     dispatch_task "$issue_json"
