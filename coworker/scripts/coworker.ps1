@@ -326,7 +326,7 @@ foreach ($taskRoot in $taskRoots) {
         Write-LogMessage "[REVIEW] Task: $($file.Name)" INFO
     }
 
-    # 3. Process 5approved
+    # 4. Process 5approved
     # If there are any files in 5approved or its subdirectories, move them to 6git-pushed with date-based organization, and then call the commit script
     if (Test-Path $approvedDir) {
         $approvedFiles = Get-ChildItem -Path $approvedDir -Recurse -File
@@ -392,8 +392,8 @@ foreach ($taskRoot in $taskRoots) {
         # The current implementation attempts to rename ALL files using gh copilot via rename.ps1.
         # This seems to cover the requirement "1.md, 2.md... are treated as random... rename these".
 
-        Write-Host "DEBUG: renameScript path: $renameScript"
-        Write-Host "DEBUG: Test-Path renameScript: $(Test-Path $renameScript)"
+        Write-LogVerbose "renameScript path: $renameScript"
+        Write-LogVerbose "Test-Path renameScript: $(Test-Path $renameScript)"
 
         if (Test-Path $renameScript) {
             # Execute rename.ps1 script
@@ -507,7 +507,6 @@ Copilot Execution Output:
             # Capture both standard output and error output to separate files
             $process = Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
 
-            $runWaited = $false
             $lastOutputLineCount = 0
 
             # Monitor output in real-time while process is running
@@ -571,8 +570,6 @@ Copilot Execution Output:
                     }
                 }
             }
-
-            $runWaited = $process.HasExited
 
             # Combine copilot stdout and stderr logs into the copilot-specific log
             # First append stdout if it exists

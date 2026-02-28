@@ -192,13 +192,13 @@ Prompt: $promptSample"
     # Using timeout command if available, otherwise just run
     local rawName=""
     if command -v timeout >/dev/null 2>&1; then
-        rawName=$(timeout "$COPILOT_NAME_TIMEOUT_SECONDS" gh copilot -p "$namingPrompt" --allow-all-tools --allow-all-paths 2>/dev/null | head -n 1)
+        rawName=$(timeout "$COPILOT_NAME_TIMEOUT_SECONDS" gh copilot -p "$namingPrompt" 2>/dev/null | head -n 1)
         exitCode=$?
         if [[ $exitCode -eq 124 ]]; then # Timeout exit code
              return 1 # Fail triggers fallback
         fi
     else
-        rawName=$(gh copilot -p "$namingPrompt" --allow-all-tools --allow-all-paths 2>/dev/null | head -n 1)
+        rawName=$(gh copilot -p "$namingPrompt" 2>/dev/null | head -n 1)
     fi
 
     if [[ -z "$rawName" ]]; then
@@ -264,7 +264,7 @@ for file in "${review_files[@]}"; do
     log_message "[REVIEW] Task: $(basename "$file")" INFO
 done
 
-# 3. Process 5approved
+# 4. Process 5approved
 # Find files recursively in approvedDir
 if [[ -d "$approvedDir" ]]; then
     # Use find to get all files recursively and process them in a loop
@@ -414,7 +414,8 @@ for file in "${files[@]}"; do
     # 4. Parse content for execution
     title="$descriptiveName"
     description="Task from $fileName"
-    prompt="$content"
+    prompt="Finish the task described in file: $workingPath.
+Do not move the file, just execute the task based on its content."
 
     # Check for @coworker mention
     # If found, use the mention content as the prompt
@@ -583,7 +584,7 @@ for file in "${files[@]}"; do
     targetSubDir="$targetDir/$currentYear/$currentDate"
     mkdir -p "$targetSubDir"
 
-    targetPath=$(resolve_unique_path "$targetSubDir" "$workingBaseName" "$fileExt")
+    targetPath=$(resolve_unique_path "$targetSubDir" "$workingBaseNameNoExt" "$fileExt")
 
     mv "$workingPath" "$targetPath"
     log_message "$targetMessage: $targetPath" INFO
