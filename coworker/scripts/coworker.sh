@@ -193,13 +193,13 @@ Prompt: $promptSample"
     # Using timeout command if available, otherwise just run
     local rawName=""
     if command -v timeout >/dev/null 2>&1; then
-        rawName=$(timeout "$COPILOT_NAME_TIMEOUT_SECONDS" gh copilot -p "$namingPrompt" 2>/dev/null | head -n 1)
+        rawName=$(timeout "$COPILOT_NAME_TIMEOUT_SECONDS" gh copilot -- -p "$namingPrompt" 2>/dev/null | head -n 1)
         exitCode=$?
         if [[ $exitCode -eq 124 ]]; then # Timeout exit code
              return 1 # Fail triggers fallback
         fi
     else
-        rawName=$(gh copilot -p "$namingPrompt" 2>/dev/null | head -n 1)
+        rawName=$(gh copilot -- -p "$namingPrompt" 2>/dev/null | head -n 1)
     fi
 
     if [[ -z "$rawName" ]]; then
@@ -422,7 +422,7 @@ for file in "${files[@]}"; do
 
     # Define memory file paths
     memoryAllPath="$memoryDir/MEMORY.md"
-    
+
     # Dynamic path construction based on current date
     memoryYearDir="$memoryDir/$currentYear"
     memoryMonthDir="$memoryYearDir/$currentMonth"
@@ -453,9 +453,7 @@ Your memory files are located in: $memoryDir
 After completing the task, you MUST update your daily memory file: $memoryDayPath
 1. Append a summary of this task, its outcome, and any lessons learned to $memoryDayPath.
 2. Check if the Monthly Memory file ($memoryMonthPath) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
-3. Check if the Yearly Memory file ($memoryYearPath) has been updated with the previous month's summary. If not, summarize all monthly memories from this year into the Yearly Memory.
-4. Check if the Global Memory file ($memoryAllPath) has been updated with the previous year's summary. If not, summarize all yearly memories into the Global Memory.
-5. Ensure you do not overwrite existing content, always append.
+3. Ensure you do not overwrite existing content, always append.
 "
 
     prompt="Finish the task described in file: $workingPath.
@@ -533,7 +531,7 @@ $memoryContext"
     # We use a subshell to redirect outputs
 
     (
-        gh copilot -p "$prompt" --allow-all-tools --allow-all-paths > "$stdOutLog" 2> "$stdErrLog"
+        gh copilot -- -p "$prompt" --allow-all-tools --allow-all-paths > "$stdOutLog" 2> "$stdErrLog"
     ) &
     copilotPid=$!
 

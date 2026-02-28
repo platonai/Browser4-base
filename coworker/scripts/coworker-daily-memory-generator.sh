@@ -154,6 +154,7 @@ if [ $PROMPT_LENGTH -gt 20000 ]; then
     PROMPT="${PROMPT:0:20000} ... [Truncated]"
 fi
 
+# Use proper quoting for bash
 gh copilot -p "$PROMPT" --allow-all-tools
 
 echo "Memory generation task completed."

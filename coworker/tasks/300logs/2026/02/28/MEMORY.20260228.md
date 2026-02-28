@@ -2,43 +2,39 @@
 ## Daily Memory - 2026-02-28
 
 ### Tasks Executed
-- **MCP Documentation Optimization**:
-  - Refined `WebDriver` KDoc to serve as MCP tool descriptions.
-  - Implemented `#mcp` (later `@mcp`) tagging strategy for precise description extraction.
-  - Updated `SourceCodeToToolCallSpec` to split documentation into concise `description` (first paragraph/tagged) and detailed `help` (full KDoc).
-- **SDK Development**:
-  - Built and verified `browser4-nodejs` SDK.
-  - Added comprehensive test suite (197 tests) covering Session, Agent, and WebDriver functionality.
-  - Fixed a crash in `createSession` regarding null handling.
-- **Coworker Automation**:
-  - Implemented task monitoring scripts (`monitor.sh`/`monitor.ps1`) to ingest tasks from GitHub issues and URL polling.
-  - Refined `coworker/README.md` to accurately reflect the task pipeline and script locations.
-- **Workflow Automation**:
-  - Attempted to implement `#auto-approve` logic for the coworker pipeline (moving completed tasks to `4approved`).
+- **WebDriver KDoc Optimization**: Updated `WebDriver` KDoc to be concise and appended `#mcp` tags for better tool description extraction.
+- **ToolSpec Description Logic**: Refined `SourceCodeToToolCallSpec` to prioritize `#mcp` tagged paragraphs or first paragraphs for tool descriptions.
+- **ToolSpec Help Extraction**: Enhanced `SourceCodeToToolCallSpec` to populate `ToolSpec.help` with the full KDoc content while keeping `description` concise.
+- **Auto-Approve Support (Failed)**: Attempted to implement `#auto-approve` tag logic in coworker scripts to auto-move completed tasks to `4approved`.
+- **WebDriver KDoc Refinement**: Further refined `WebDriver` KDoc by replacing `#mcp` with `@mcp` annotations in method comments.
+- **Coworker README**: Refined `coworker/README.md`.
 
 ### Execution Quality Review
-- **What worked well**:
-  - The iterative approach to MCP tool specification was effective; starting with KDoc modification, then parser logic, then separating description vs. help created a robust system.
-  - The Node.js SDK build and test generation was highly productive, achieving high coverage in a single session.
-- **What was inefficient**:
-  - The `#auto-approve` implementation failed due to command-line argument errors, wasting a cycle without delivering the feature.
+- **Test-Driven Development**: The ToolSpec optimization tasks (012357, 013745) effectively used TDD, running tests, debugging output, and verifying fixes incrementally.
+- **Batch Editing**: The KDoc updates were handled efficiently using batch edits, though they required multiple passes to get the format exactly right (switching from `#mcp` to `@mcp`).
 
 ### Issues Encountered
-- **Script Argument Error**: The `coworker-auto-approve-support` task failed with "too many arguments" (Exit Code 1), indicating a breakdown in how the script or tool was invoked during that specific task.
+- **Script Argument Error**: The `coworker-auto-approve-support` task failed with "too many arguments" (Exit Code 1), suggesting a syntax error or argument parsing issue in the shell script modification attempt.
+- **Annotation Consistency**: Initial optimization used `#mcp` suffix, but a later task (134801) required changing this to `@mcp` annotation, indicating a change in requirements or standards mid-stream.
 
 ### Root Cause Analysis
-- **Auto-approve Failure**: The error message "Expected 0 arguments but got 69" suggests a shell expansion issue or a malformed command string was passed to a PowerShell/Bash script, likely treating a long string or file list as individual arguments instead of a single input.
+- **Auto-Approve Failure**: The "too many arguments" error usually indicates improper quoting or command chaining in PowerShell/Bash scripts when handling file paths or variable expansion.
+- **Tagging Churn**: The switch from `#mcp` to `@mcp` likely stems from a realization that Javadoc/KDoc standard tags are cleaner than text suffixes for parsing.
 
 ### Process Improvement Insight
-- **Validate Script Inputs**: When modifying shell scripts (especially PowerShell), explicitly validate argument handling and quoting to prevent glob expansion or whitespace splitting from causing argument overflow errors.
+- **Standardize Annotation specs first**: Define the exact KDoc/annotation standard (e.g., `@mcp` vs `#mcp`) before applying batch edits to large files to avoid double-work.
+- **Script Testing**: When modifying core workflow scripts like `coworker.ps1`, use a separate testbed or dry-run mode to verify argument handling before applying logic changes.
+- **Robust Argument Parsing**: Always use `--` separator for `gh copilot` and `Start-Process -ArgumentList` in PowerShell to handle complex prompts safely.
 
-### Task: Fix coworker-daily-memory-generator
-- **Goal**: Fix the `coworker-daily-memory-generator.ps1` script which was failing with "too many arguments".
-- **Outcome**: Success. Identified that unescaped double quotes in the prompt string were causing argument parsing issues in the `gh copilot` call.
-- **Fix**: Escaped double quotes in the prompt string before passing it to `gh copilot`.
-- **Verification**: Ran the script successfully, generating this memory file.
-
-### Task: Rename 3complete to 3_1complete
-- **Goal**: Rename the 3complete task folder to 3_1complete to allow inserting intermediate steps (like 3_5aborted) and update all references.
-- **Outcome**: Success. Renamed 3complete -> 3_1complete. Updated coworker.sh, coworker.ps1, README.md, and README.zh.md to reflect the change.
-- **Lessons Learned**: Comprehensive grep search is crucial when renaming folders referenced in scripts and documentation. Manual review of localized documentation (zh.md) is necessary as key terms might not match simple find/replace patterns.
+### Task Log: Fix GH Copilot Argument Parsing
+- **Problem**: `gh copilot` calls failed when prompts contained newlines or quotes due to improper argument parsing in PowerShell and Bash scripts.
+- **Solution**:
+    - Updated `coworker.ps1`, `coworker-memory-generator.ps1`, and `git-sync.ps1` to use `Start-Process -ArgumentList` with explicit array arguments and `--` separator.
+    - Updated `coworker.sh` and `git-sync.sh` to use `--` separator before the prompt argument.
+    - This ensures prompts with special characters are passed correctly to the copilot extension.
+- **Files Modified**:
+    - `coworker/scripts/coworker.ps1`
+    - `coworker/scripts/coworker-memory-generator.ps1`
+    - `coworker/scripts/git-sync.ps1`
+    - `coworker/scripts/coworker.sh`
+    - `coworker/scripts/git-sync.sh`

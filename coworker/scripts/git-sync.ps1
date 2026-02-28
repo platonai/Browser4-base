@@ -20,6 +20,18 @@ If conflicts occur, resolve them automatically.
 "@
 
 Write-Host "Running:"
-Write-Host "gh copilot -p $prompt --allow-all-tools"
+Write-Host "gh copilot -p `$prompt --allow-all-tools"
 
-gh copilot -p $prompt --allow-all-tools
+# Escape double quotes in the prompt and wrap in quotes to ensure correct argument parsing
+$safePrompt = $prompt.Replace('"', '\"')
+
+# Pass arguments as an array to avoid fragile manual escaping/quoting.
+$copilotArgList = @(
+    'copilot'
+    '--'
+    '-p'
+    "`"$safePrompt`""
+    '--allow-all-tools'
+)
+
+Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -Wait

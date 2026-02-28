@@ -174,6 +174,7 @@ Prompt: $promptSample
         # This is more reliable on Windows PowerShell when prompts contain quotes or newlines.
         $nameArgList = @(
             'copilot'
+            '--'
             '-p'
             "`"$safeNamingPrompt`""
         )
@@ -451,7 +452,7 @@ foreach ($taskRoot in $taskRoots) {
 
         # Define memory file paths
         $memoryAllPath = Join-Path $memoryDir "MEMORY.md"
-        
+
         # Dynamic path construction based on current date
         $memoryYearDir = Join-Path $memoryDir $currentYear
         $memoryMonthDir = Join-Path $memoryYearDir $currentMonth
@@ -482,9 +483,7 @@ Your memory files are located in: $memoryDir
 After completing the task, you MUST update your daily memory file: $memoryDayPath
 1. Append a summary of this task, its outcome, and any lessons learned to $memoryDayPath.
 2. Check if the Monthly Memory file ($memoryMonthPath) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
-3. Check if the Yearly Memory file ($memoryYearPath) has been updated with the previous month's summary. If not, summarize all monthly memories from this year into the Yearly Memory.
-4. Check if the Global Memory file ($memoryAllPath) has been updated with the previous year's summary. If not, summarize all yearly memories into the Global Memory.
-5. Ensure you do not overwrite existing content, always append.
+3. Ensure you do not overwrite existing content, always append.
 "@
 
         $prompt = @"
@@ -538,6 +537,7 @@ Copilot Execution Output:
             # This keeps quotes/newlines intact in the -p prompt.
             $copilotArgList = @(
                 'copilot'
+                '--'
                 '-p'
                 "`"$safePrompt`""
                 '--allow-all-tools'

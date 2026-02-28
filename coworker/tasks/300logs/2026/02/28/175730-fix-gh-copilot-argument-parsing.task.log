@@ -1,0 +1,135 @@
+Task: fix-gh-copilot-argument-parsing
+Description: Task from fix-gh-copilot-argument-parsing.md
+Original File: fix-gh-copilot-argument-parsing.md
+Started: 2026-02-28 17:57:46
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\fix-gh-copilot-argument-parsing.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\MEMORY.202602.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Ensure you do not overwrite existing content, always append.
+
+
+[Global Memory]:
+# MEMORY.md
+
+## Mission & Vision
+- Create a fully autonomous, self-improving browser agent ecosystem.
+
+## Core Principles
+- Minimize repetition.
+- Continuous improvement.
+- Structural thinking.
+
+## Evolution Phases
+- Phase 1: Basic functionality.
+- Phase 2: Memory and self-improvement.
+
+## Major Turning Points
+- 2026-02-28: Implementation of Coworker Memory System.
+
+## Long-Term Structural Challenges
+- (None recorded yet)
+
+## Opportunity Landscape
+- High-performance browser automation.
+- Intelligent agentic workflows.
+
+## Three Strategic Priorities Now
+- 1. Stabilize memory system.
+- 2. Enhance agent capabilities.
+- 3. Expand test coverage.
+
+
+[Yearly Memory (2026)]:
+# MEMORY.2026.md
+## Annual Strategic Review - 2026
+
+### Project State Evolution
+- Started Memory System implementation.
+
+### Major Achievements
+- Implemented Coworker Memory System.
+
+### Major Failures
+- (None recorded yet)
+
+### Structural Problems (Solved / Unsolved)
+- (None recorded yet)
+
+### Capability Upgrades
+- Coworker now has persistent memory capabilities.
+
+### Strategic Risks
+- (None recorded yet)
+
+### Project Trajectory Forecast
+- Improved task execution consistency expected.
+
+### Three Immediate Strategic Actions
+- 1. Monitor memory system usage.
+- 2. Refine memory prompt instructions based on feedback.
+- 3. Ensure consistent memory updates.
+
+
+[Monthly Memory (2026-02)]:
+# MEMORY.202602.md
+## Monthly Memory - 2026-02
+
+### Work Themes
+- Memory System Implementation
+
+### Recurring Issues
+- (None recorded yet)
+
+### Structural Bottlenecks
+- (None recorded yet)
+
+### Efficiency Trend
+- N/A
+
+### System Adjustments Proposed
+- Initialized Memory System to start tracking daily activities.
+
+
+[Daily Memory (2026-02-28)]:
+# MEMORY.20260228.md
+## Daily Memory - 2026-02-28
+
+### Tasks Executed
+- **WebDriver KDoc Optimization**: Updated `WebDriver` KDoc to be concise and appended `#mcp` tags for better tool description extraction.
+- **ToolSpec Description Logic**: Refined `SourceCodeToToolCallSpec` to prioritize `#mcp` tagged paragraphs or first paragraphs for tool descriptions.
+- **ToolSpec Help Extraction**: Enhanced `SourceCodeToToolCallSpec` to populate `ToolSpec.help` with the full KDoc content while keeping `description` concise.
+- **Auto-Approve Support (Failed)**: Attempted to implement `#auto-approve` tag logic in coworker scripts to auto-move completed tasks to `4approved`.
+- **WebDriver KDoc Refinement**: Further refined `WebDriver` KDoc by replacing `#mcp` with `@mcp` annotations in method comments.
+- **Coworker README**: Refined `coworker/README.md`.
+
+### Execution Quality Review
+- **Test-Driven Development**: The ToolSpec optimization tasks (012357, 013745) effectively used TDD, running tests, debugging output, and verifying fixes incrementally.
+- **Batch Editing**: The KDoc updates were handled efficiently using batch edits, though they required multiple passes to get the format exactly right (switching from `#mcp` to `@mcp`).
+
+### Issues Encountered
+- **Script Argument Error**: The `coworker-auto-approve-support` task failed with "too many arguments" (Exit Code 1), suggesting a syntax error or argument parsing issue in the shell script modification attempt.
+- **Annotation Consistency**: Initial optimization used `#mcp` suffix, but a later task (134801) required changing this to `@mcp` annotation, indicating a change in requirements or standards mid-stream.
+
+### Root Cause Analysis
+- **Auto-Approve Failure**: The "too many arguments" error usually indicates improper quoting or command chaining in PowerShell/Bash scripts when handling file paths or variable expansion.
+- **Tagging Churn**: The switch from `#mcp` to `@mcp` likely stems from a realization that Javadoc/KDoc standard tags are cleaner than text suffixes for parsing.
+
+### Process Improvement Insight
+- **Standardize Annotation specs first**: Define the exact KDoc/annotation standard (e.g., `@mcp` vs `#mcp`) before applying batch edits to large files to avoid double-work.
+- **Script Testing**: When modifying core workflow scripts like `coworker.ps1`, use a separate testbed or dry-run mode to verify argument handling before applying logic changes.
+
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\175730-fix-gh-copilot-argument-parsing.copilot.log

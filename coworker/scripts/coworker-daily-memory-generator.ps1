@@ -169,8 +169,18 @@ if (Test-Path $memoryFile) {
 
 Write-Host "Calling gh copilot..."
 
-# Escape double quotes in prompt for safe command line passing
-$promptArg = $prompt.Replace('"', '\"')
-gh copilot -p "$promptArg" --allow-all-tools
+# Use Start-Process to handle arguments safely, similar to coworker.ps1
+$safePrompt = $prompt.Replace('"', '\"')
+$copilotArgList = @(
+    'copilot',
+    '--',
+    '-p',
+    "`"$safePrompt`"",
+    '--allow-all-tools'
+)
+
+# Use direct invocation with -- to separate flags
+# & gh copilot -- -p $prompt --allow-all-tools
+Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -Wait
 
 Write-Host "Memory generation task completed."
