@@ -26,7 +26,7 @@ If conflicts occur, resolve them automatically.
 $safePrompt = $prompt.Replace('"', '\"')
 
 Write-Host "Running:"
-Write-Host "gh-copilot.ps1 -p '$safePrompt' --allow-all-tools"
+Write-Host "gh copilot -p '$safePrompt' --allow-all-tools"
 
 # Pass arguments as an array to avoid fragile manual escaping/quoting.
 $copilotArgList = @(
