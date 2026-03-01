@@ -290,7 +290,7 @@ Write-LogMessage "Script Log: $scriptLogPath" INFO
 Write-LogMessage "==========================================================================" INFO
 
 foreach ($taskRoot in $taskRoots) {
-    $prepareDir = $taskRoot.Prepare
+    $draftDir = $taskRoot.Prepare
     $createdDir = $taskRoot.Created
     $workingDir = $taskRoot.Working
     $finishedDir = $taskRoot.Finished
@@ -306,7 +306,7 @@ foreach ($taskRoot in $taskRoots) {
     $currentTime = (Get-Date).ToUniversalTime().ToString("HHmmss")
 
     # 1. Process 0draft
-    $prepareFiles = Get-ChildItem -Path $prepareDir -File
+    $prepareFiles = Get-ChildItem -Path $draftDir -File
     foreach ($file in $prepareFiles) {
         Write-LogMessage "[PREPARE] Task: $($file.Name)" INFO
     }

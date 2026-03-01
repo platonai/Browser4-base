@@ -47,7 +47,7 @@ cd "$repoRoot" || exit 1
 
 # Define directory paths for task management workflow
 baseDir="$repoRoot/coworker/tasks"
-prepareDir="$baseDir/0draft"
+draftDir="$baseDir/0draft"
 createdDir="$baseDir/1created"        # Input directory for new tasks
 workingDir="$baseDir/2working"        # Processing directory for current tasks
 finishedDir="$baseDir/3_1complete"      # Output directory for completed tasks
@@ -59,7 +59,7 @@ memoryDir="$logsDir"
 scriptsDir="$repoRoot/coworker/scripts"
 
 # Ensure all required directories exist
-mkdir -p "$prepareDir"
+mkdir -p "$draftDir"
 mkdir -p "$createdDir"
 mkdir -p "$workingDir"
 mkdir -p "$finishedDir"
@@ -239,7 +239,7 @@ log_message "===================================================================
 
 # 1. Process 0draft
 shopt -s nullglob
-prepare_files=("$prepareDir"/*)
+prepare_files=("$draftDir"/*)
 shopt -u nullglob
 for file in "${prepare_files[@]}"; do
     [[ -f "$file" ]] || continue
