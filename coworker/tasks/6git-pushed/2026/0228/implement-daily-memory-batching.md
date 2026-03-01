@@ -19,7 +19,7 @@ Instead of sending the entire log content to `gh copilot` at once, we can divide
 them sequentially. This way, we can ensure that each batch is within the token limit and that we can generate
 a complete memory summary without truncation.
 
-## Reference
+## References
 
 - [coworker-daily-memory-generator.ps1](../../scripts/coworker-daily-memory-generator.ps1)
 - [coworker-daily-memory-generator.sh](../../scripts/coworker-daily-memory-generator.sh)
