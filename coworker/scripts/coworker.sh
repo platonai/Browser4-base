@@ -47,7 +47,7 @@ cd "$repoRoot" || exit 1
 
 # Define directory paths for task management workflow
 baseDir="$repoRoot/coworker/tasks"
-prepareDir="$baseDir/0prepare"
+prepareDir="$baseDir/0draft"
 createdDir="$baseDir/1created"        # Input directory for new tasks
 workingDir="$baseDir/2working"        # Processing directory for current tasks
 finishedDir="$baseDir/3_1complete"      # Output directory for completed tasks
@@ -237,7 +237,7 @@ log_message "Started at: $scriptStartTime" INFO
 log_message "Script Log: $scriptLogPath" INFO
 log_message "==========================================================================" INFO
 
-# 1. Process 0prepare
+# 1. Process 0draft
 shopt -s nullglob
 prepare_files=("$prepareDir"/*)
 shopt -u nullglob
@@ -439,20 +439,20 @@ for file in "${files[@]}"; do
 
     # Read existing memories (if any)
     if [[ -f "$memoryMonthPath" ]]; then memoryContext+=$'\n[Monthly Memory ('$currentYear'-'$currentMonth')]:\n'$(cat "$memoryMonthPath")$'\n'; fi
-    if [[ -f "$memoryDayPath" ]]; then 
+    if [[ -f "$memoryDayPath" ]]; then
         dailyMemoryContent=$(cat "$memoryDayPath")
-        
+
         # Check length (approximate chars)
         contentLength=${#dailyMemoryContent}
-        
+
         if [[ $contentLength -gt 3000 ]]; then
             log_message "Daily memory exceeds 3000 chars ($contentLength). Initiating compression..." INFO
-            
+
             # Backup original
             backupPath="$memoryDayDir/MEMORY.$currentYear$currentMonth$currentDay.long.md"
             echo "$dailyMemoryContent" > "$backupPath"
             log_message "Original memory backed up to: $backupPath" INFO
-            
+
             # Compress using Copilot
             compressionPrompt="Compress the following daily memory content to under 3000 characters.
 Rules:
@@ -471,15 +471,15 @@ $dailyMemoryContent"
                 # Create temp file for prompt to handle newlines correctly
                 tempPromptFile=$(mktemp)
                 echo "$compressionPrompt" > "$tempPromptFile"
-                
+
                 # We need to cat the file into the prompt argument or just pass it directly if supported.
                 # gh copilot -p takes a string.
                 # Let's try to just pass the string but careful with newlines.
                 # Actually, reading from file is safer if possible, but gh copilot doesn't support -f for prompt.
                 # So we stick to string but ensure variable is quoted.
-                
+
                 compressedContent=$(gh copilot -- -p "$compressionPrompt" 2>/dev/null)
-                
+
                 if [[ -n "$compressedContent" ]]; then
                     echo "$compressedContent" > "$memoryDayPath"
                     dailyMemoryContent="$compressedContent"

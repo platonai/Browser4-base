@@ -8,7 +8,7 @@ Task files flow through a pipeline of numbered folders inside `coworker/tasks/`:
 
 | Stage | Folder | Description |
 |-------|--------|-------------|
-| Draft | `0prepare` | Create and draft your task files here |
+| Draft | `0draft` | Create and draft your task files here |
 | Queue | `1created` | Move tasks here when ready for execution |
 | Plan | `200plan` | Agent planning phase (managed automatically) |
 | Work | `2working` | Agent is actively executing the task |
@@ -20,7 +20,7 @@ Task files flow through a pipeline of numbered folders inside `coworker/tasks/`:
 
 ## Quick Start
 
-1. **Draft** — Create your task file in `coworker/tasks/0prepare/`.
+1. **Draft** — Create your task file in `coworker/tasks/0draft/`.
 2. **Queue** — Move it to `coworker/tasks/1created/` when ready.
 3. **Execute** — Run the coworker script to process the task:
    - Windows: `.\coworker\scripts\coworker.ps1`

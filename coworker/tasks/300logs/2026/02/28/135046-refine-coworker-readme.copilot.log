@@ -15,7 +15,7 @@
 
 Key improvements made to `coworker/README.md`:
 
-1. **Complete pipeline table** — Added all 9 task stages (`0prepare` through `700archive`) that exist on disk but were missing from the docs
+1. **Complete pipeline table** — Added all 9 task stages (`0draft` through `700archive`) that exist on disk but were missing from the docs
 2. **Accurate script paths** — Fixed `coworker.ps1`/`coworker.sh` to include their full `coworker/scripts/` paths
 3. **Formatting fixes** — Fixed `** Experimental **` to use proper blockquote `> **Experimental**`
 4. **Conciseness** — Tightened prose throughout; removed redundant phrasing

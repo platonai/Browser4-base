@@ -8,11 +8,11 @@ A task lifecycle includes the following stages:
 prepare -> created -> working -> finished -> review -> approved -> pushed
 ```
 
-Each stage has a corresponding directory under the task directory, e.g. 0prepare, 1created, 2working, etc.
+Each stage has a corresponding directory under the task directory, e.g. 0draft, 1created, 2working, etc.
 
 The scripts should scan each task directory and perform a corresponding action based on the stage of the task.
 
-1. tasks in 0prepare: no action, just print the task name and stage.
+1. tasks in 0draft: no action, just print the task name and stage.
 2. tasks in 1created, 2working, 3complete: the current script logic is OK.
 3. tasks in 4review: print the task name and stage.
 4. tasks in 5approved: call commit script to commit & push the task to git.
