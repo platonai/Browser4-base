@@ -1,3 +1,32 @@
+Task: ai-software-factory-design
+Description: Task from ai-software-factory-design.md
+Original File: ai-software-factory-design.md
+Started: 2026-03-02 18:51:49
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\ai-software-factory-design.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\02\MEMORY.20260302.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\02\MEMORY.20260302.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Ensure you do not overwrite existing content, always append.
+
+
+[Monthly Memory (2026-03)]:
+# Monthly Memory - 2026-03
+
+## 2026-03-01
+- **Task**: Reimplement Mock MCP Server
+- **Summary**: Reimplemented MockMCPServer using `io.modelcontextprotocol` SDK (v0.8.1). Updated `pulsar-tests-common` dependencies and refactored endpoints to use Maps for serialization. Verified with updated unit and E2E tests, resolving Jackson serialization issues with `RestTestClient`.
+- **Lessons**: Explicitly converting `ObjectNode` to `Map` ensures correct serialization for `RestTestClient`. Use `-am` flag when building dependent modules.
+
+
+[Daily Memory (2026-03-02)]:
 # Daily Memory - 2026-03-02
 
 ## Tasks
@@ -33,7 +62,9 @@
 - **Outcome**: Reviewed 200plan/features/ai-architect/ai-software-factory-design.md. Created coworker/tasks/2working/1.feedback.md with detailed feedback. Rated Clarity and Feasibility as High. Identified missing details on code modification strategy and context gathering.
 - **Lessons**: Directory-based state machines are robust for AI workflows but need explicit data flow definitions.
 
-### Implement AI Software Factory
-- **Goal**: Implement the directory structure, templates, and orchestrator script for the AI Software Factory design.
-- **Outcome**: Created `coworker/scripts/orchestrator.ps1` (implements story pipeline), `coworker/tasks/100templates` (analysis, plan, implementation prompts), and `coworker/tasks/400artifacts`. Validated with a test story which successfully moved through the pipeline with mocked AI responses.
-- **Lessons**: PowerShell function scoping (calling before definition or scope issues) needs care. Mocking `gh copilot` allows development of AI-driven scripts without API access.
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\02\185048-ai-software-factory-design.copilot.log

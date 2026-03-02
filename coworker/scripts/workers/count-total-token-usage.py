@@ -101,7 +101,8 @@ def analyze_logs(log_dir):
     re_session_time = re.compile(r"Total session time:\s+(.+)")
     re_code_changes = re.compile(r"Total code changes:\s+\+(\d+)\s+-(\d+)")
     re_model_breakdown_start = re.compile(r"Breakdown by AI model:")
-    re_model_line = re.compile(r"^\s+(\S+)\s+([\d.]+[kmb]?) in,\s+([\d.]+[kmb]?) out,\s+([\d.]+[kmb]?) cached")
+    # Improved regex to be more flexible with spaces and model names
+    re_model_line = re.compile(r"^\s*(\S+)\s+([\d.]+[kmb]?) in,\s+([\d.]+[kmb]?) out,\s+([\d.]+[kmb]?) cached")
 
     files_found = 0
     
@@ -135,6 +136,16 @@ def analyze_logs(log_dir):
                     mtime = os.path.getmtime(filepath)
                     date_str = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d')
 
+                # Store file data for detail view
+                file_data = {
+                    "filename": file,
+                    "api_time_seconds": 0,
+                    "session_time_seconds": 0,
+                    "code_added": 0,
+                    "code_removed": 0,
+                    "models": defaultdict(lambda: {"in": 0, "out": 0, "cached": 0, "count": 0})
+                }
+
                 try:
                     content = None
                     for enc in ['utf-8', 'utf-16', 'latin-1']:
@@ -158,47 +169,57 @@ def analyze_logs(log_dir):
                             
                             m_api = re_api_time.search(line)
                             if m_api:
-                                data[date_str]["api_time_seconds"] += parse_duration(m_api.group(1))
+                                dur = parse_duration(m_api.group(1))
+                                data[date_str]["api_time_seconds"] += dur
+                                file_data["api_time_seconds"] = dur
                                 
                             m_session = re_session_time.search(line)
                             if m_session:
-                                data[date_str]["session_time_seconds"] += parse_duration(m_session.group(1))
+                                dur = parse_duration(m_session.group(1))
+                                data[date_str]["session_time_seconds"] += dur
+                                file_data["session_time_seconds"] = dur
                                 
                             m_code = re_code_changes.search(line)
                             if m_code:
-                                data[date_str]["code_added"] += int(m_code.group(1))
-                                data[date_str]["code_removed"] += int(m_code.group(2))
+                                added = int(m_code.group(1))
+                                removed = int(m_code.group(2))
+                                data[date_str]["code_added"] += added
+                                data[date_str]["code_removed"] += removed
+                                file_data["code_added"] = added
+                                file_data["code_removed"] = removed
                             
                             if re_model_breakdown_start.search(line):
                                 in_breakdown = True
                                 continue
                             
                             if in_breakdown:
-                                m_model = re_model_line.search(line) # Note: line.strip() removes leading spaces, regex expects leading spaces in original text but I stripped it.
-                                # Let's adjust regex or check striped line
-                                # Original line has indent. Strip removes it.
-                                # Regex: ^(\S+)\s+... if stripped
-                                m_model_stripped = re.match(r"^(\S+)\s+([\d.]+[kmb]?) in,\s+([\d.]+[kmb]?) out,\s+([\d.]+[kmb]?) cached", line)
-                                
-                                if m_model_stripped:
-                                    model_name = m_model_stripped.group(1)
-                                    in_tokens = parse_size(m_model_stripped.group(2))
-                                    out_tokens = parse_size(m_model_stripped.group(3))
-                                    cached_tokens = parse_size(m_model_stripped.group(4))
+                                m_model = re_model_line.search(line) 
+                                if m_model:
+                                    model_name = m_model.group(1)
+                                    in_tokens = parse_size(m_model.group(2))
+                                    out_tokens = parse_size(m_model.group(3))
+                                    cached_tokens = parse_size(m_model.group(4))
                                     
                                     data[date_str]["models"][model_name]["in"] += in_tokens
                                     data[date_str]["models"][model_name]["out"] += out_tokens
                                     data[date_str]["models"][model_name]["cached"] += cached_tokens
                                     data[date_str]["models"][model_name]["count"] += 1
+                                    
+                                    file_data["models"][model_name]["in"] += in_tokens
+                                    file_data["models"][model_name]["out"] += out_tokens
+                                    file_data["models"][model_name]["cached"] += cached_tokens
+                                    file_data["models"][model_name]["count"] += 1
+
                                 elif line == "" or line.startswith("Total"): 
-                                    # End of breakdown block usually followed by empty line or end of file
-                                    # But sometimes multiple models
                                     pass
                                 else:
-                                    # If line doesn't match model pattern and is not empty, maybe breakdown ended
-                                    if in_breakdown and not line.startswith("Est."): # "Est. 1 Premium request" might be on same line or separate? 
-                                        # In example: "gemini... (Est. 1 Premium request)" is on same line.
+                                    if in_breakdown and not line.startswith("Est."):
                                         pass
+
+                        # Add file detail to data if needed
+                        if "files" not in data[date_str]:
+                            data[date_str]["files"] = []
+                        data[date_str]["files"].append(file_data)
 
                 except Exception as e:
                     print(f"Error reading {filepath}: {e}")
@@ -214,7 +235,7 @@ def calculate_cost(model_name, in_tokens, out_tokens, cached_tokens):
            
     return cost
 
-def print_report(data):
+def print_report(data, detail=False):
     total_cost_grand = 0
     total_in_grand = 0
     total_out_grand = 0
@@ -233,13 +254,6 @@ def print_report(data):
         daily_in = 0
         daily_out = 0
         
-        # Estimate task count from model usage count (rough proxy, or just 1 file = 1 task)
-        # We don't have explicit task count in `data` structure other than model aggregation counts.
-        # But we parsed individual files. Each file is a task execution log.
-        # Let's count files? I didn't store file count per date.
-        # Let's assume sum of model counts is roughly task count if single model per task.
-        # Or better, just sum model counts as "Model calls"
-        
         for model, usage in day_data["models"].items():
             cost = calculate_cost(model, usage["in"], usage["out"], usage["cached"])
             daily_cost += cost
@@ -252,6 +266,17 @@ def print_report(data):
         total_out_grand += daily_out
         
         print(f"{date_str:<12} | {task_count:<5} | {format_duration(day_data['session_time_seconds']):<10} | {format_duration(day_data['api_time_seconds']):<10} | +{day_data['code_added']}/-{day_data['code_removed']:<7} | ${daily_cost:.2f}")
+
+        if detail and "files" in day_data:
+             print("  Detailed Tasks:")
+             for f in day_data["files"]:
+                 f_cost = 0
+                 for m, u in f["models"].items():
+                     f_cost += calculate_cost(m, u["in"], u["out"], u["cached"])
+                 
+                 if f_cost > 0 or f["api_time_seconds"] > 0:
+                     print(f"    {f['filename']:<50} | {format_duration(f['api_time_seconds']):<8} | ${f_cost:.2f}")
+             print("")
 
     print("-" * 80)
     print(f"TOTAL ESTIMATED COST: ${total_cost_grand:.2f}")
@@ -273,6 +298,7 @@ def print_report(data):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Count total token usage from copilot logs")
     parser.add_argument("log_dir", help="Directory containing logs (e.g., coworker/tasks/300logs)")
+    parser.add_argument("--detail", "-d", action="store_true", help="Show detailed per-file breakdown")
     args = parser.parse_args()
     
     if not os.path.exists(args.log_dir):
@@ -280,4 +306,4 @@ if __name__ == "__main__":
         exit(1)
         
     data = analyze_logs(args.log_dir)
-    print_report(data)
+    print_report(data, detail=args.detail)
