@@ -35,23 +35,86 @@ function Invoke-Copilot {
     )
     
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    "[$timestamp] PROMPT:`n$Prompt`n" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+    "[$timestamp] PROMPT START`n" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+    $Prompt | Out-File -FilePath $LogFile -Append -Encoding UTF8
+    "[$timestamp] PROMPT END`n" | Out-File -FilePath $LogFile -Append -Encoding UTF8
     
-    # Simulation of AI invocation
-    # In a real scenario, this would call 'gh copilot -p "$Prompt"'
-    # Here we check if 'gh' is available and has 'copilot' extension
+    # Check if gh is available
+    if (-not (Get-Command "gh" -ErrorAction SilentlyContinue)) {
+        $msg = "Error: 'gh' command not found. Please install GitHub CLI."
+        Write-Error $msg
+        "[$timestamp] ERROR: $msg" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+        return
+    }
+
+    # Escape double quotes in the prompt
+    $safePrompt = $Prompt -replace '"', '\"'
     
-    $output = ""
+    $copilotArgList = @(
+        'copilot'
+        '--'
+        '-p'
+        "`"$safePrompt`""
+        '--allow-all-tools'
+        '--allow-all-paths'
+    )
     
-    # Placeholder for actual AI call
-    # For now, we just echo a dummy response or try to use gh if we can
+    # Temporary files for stdout/stderr
+    $stdOutLog = "$OutputFile.stdout.tmp"
+    $stdErrLog = "$OutputFile.stderr.tmp"
     
-    $output = "AI response placeholder for prompt: $($Prompt.Substring(0, [Math]::Min($Prompt.Length, 50)))..."
-    
-    # Write output to file
-    $output | Out-File -FilePath $OutputFile -Encoding UTF8
-    
-    "[$timestamp] OUTPUT:`n$output`n" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+    $copilotRunTimeoutSeconds = 600
+
+    try {
+        Write-Host "Invoking GitHub Copilot..."
+        $process = Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
+        
+        # Wait loop with timeout
+        $startTime = Get-Date
+        while (-not $process.HasExited) {
+            Start-Sleep -Milliseconds 500
+            $elapsed = (Get-Date) - $startTime
+            if ($elapsed.TotalSeconds -gt $copilotRunTimeoutSeconds) {
+                Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+                $msg = "Timeout: Copilot execution exceeded ${copilotRunTimeoutSeconds}s"
+                Write-Warning $msg
+                "[$timestamp] TIMEOUT: $msg" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+                break
+            }
+        }
+
+        # Process stdout
+        if (Test-Path $stdOutLog) {
+            $outputContent = Get-Content $stdOutLog -Raw -Encoding UTF8
+            if (-not [string]::IsNullOrWhiteSpace($outputContent)) {
+                $outputContent | Out-File -FilePath $OutputFile -Encoding UTF8
+                "[$timestamp] OUTPUT START`n" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+                $outputContent | Out-File -FilePath $LogFile -Append -Encoding UTF8
+                "[$timestamp] OUTPUT END`n" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+            } else {
+                 "[$timestamp] WARNING: No output captured." | Out-File -FilePath $LogFile -Append -Encoding UTF8
+            }
+        } else {
+             "[$timestamp] WARNING: Stdout log not found." | Out-File -FilePath $LogFile -Append -Encoding UTF8
+        }
+        
+        # Process stderr
+        if (Test-Path $stdErrLog) {
+            $errContent = Get-Content $stdErrLog -Raw -Encoding UTF8
+            if (-not [string]::IsNullOrWhiteSpace($errContent)) {
+                "[$timestamp] STDERR:`n$errContent" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+            }
+        }
+        
+    } catch {
+        $msg = "Exception invoking Copilot: $_"
+        Write-Error $msg
+        "[$timestamp] EXCEPTION: $msg" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+    } finally {
+        # Clean up
+        Remove-Item $stdOutLog -ErrorAction SilentlyContinue
+        Remove-Item $stdErrLog -ErrorAction SilentlyContinue
+    }
 }
 
 function Execute-StoryPipeline {
