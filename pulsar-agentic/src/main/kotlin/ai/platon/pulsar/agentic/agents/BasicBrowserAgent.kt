@@ -9,7 +9,7 @@ import ai.platon.pulsar.agentic.inference.InferenceEngine
 import ai.platon.pulsar.agentic.inference.PromptBuilder
 import ai.platon.pulsar.agentic.inference.action.ContextToAction
 import ai.platon.pulsar.agentic.inference.detail.ActResultHelper
-import ai.platon.pulsar.agentic.inference.detail.AgentStateManager
+import ai.platon.pulsar.agentic.inference.AgentStateManager
 import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.inference.detail.PageStateTracker
 import ai.platon.pulsar.agentic.mcp.MCPPluginRegistry

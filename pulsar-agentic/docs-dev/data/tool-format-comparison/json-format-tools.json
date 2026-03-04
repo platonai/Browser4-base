@@ -1,0 +1,339 @@
+{
+  "tools": [
+    {
+      "domain": "agent",
+      "method": "extract",
+      "parameters": [
+        {"name": "instruction", "type": "String"},
+        {"name": "schema", "type": "String"}
+      ],
+      "returns": "String",
+      "description": "Extract data with given JSON schema"
+    },
+    {
+      "domain": "agent",
+      "method": "summarize",
+      "parameters": [
+        {"name": "instruction", "type": "String?"},
+        {"name": "selector", "type": "String?"}
+      ],
+      "returns": "String",
+      "description": "Extract textContent and generate a summary"
+    },
+    {
+      "domain": "browser",
+      "method": "closeTab",
+      "parameters": [
+        {"name": "tabId", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "browser",
+      "method": "switchTab",
+      "parameters": [
+        {"name": "tabId", "type": "String"}
+      ],
+      "returns": "Int"
+    },
+    {
+      "domain": "driver",
+      "method": "check",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "click",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Unit",
+      "description": "focus on an element with [selector] and click it"
+    },
+    {
+      "domain": "driver",
+      "method": "click",
+      "parameters": [
+        {"name": "selector", "type": "String"},
+        {"name": "modifier", "type": "String"}
+      ],
+      "returns": "Unit",
+      "description": "focus on an element with [selector] and click it with modifier pressed"
+    },
+    {
+      "domain": "driver",
+      "method": "delay",
+      "parameters": [
+        {"name": "millis", "type": "Long"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "exists",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Boolean"
+    },
+    {
+      "domain": "driver",
+      "method": "fill",
+      "parameters": [
+        {"name": "selector", "type": "String"},
+        {"name": "text", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "focus",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "goBack",
+      "parameters": [
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "goForward",
+      "parameters": [
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "hover",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "isVisible",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Boolean"
+    },
+    {
+      "domain": "driver",
+      "method": "navigate",
+      "parameters": [
+        {"name": "url", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "press",
+      "parameters": [
+        {"name": "selector", "type": "String"},
+        {"name": "key", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "reload",
+      "parameters": [
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "scrollBy",
+      "parameters": [
+        {"name": "pixels", "type": "Double", "default": "200.0"}
+      ],
+      "returns": "Double"
+    },
+    {
+      "domain": "driver",
+      "method": "scrollTo",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "scrollToBottom",
+      "parameters": [
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "scrollToMiddle",
+      "parameters": [
+        {"name": "ratio", "type": "Double", "default": "0.5"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "scrollToTop",
+      "parameters": [
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "selectFirstTextOrNull",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "String?",
+      "description": "Returns the first node's text content (descendants included). Returns null if no node."
+    },
+    {
+      "domain": "driver",
+      "method": "textContent",
+      "parameters": [
+      ],
+      "returns": "String?",
+      "description": "Returns the document's text content."
+    },
+    {
+      "domain": "driver",
+      "method": "type",
+      "parameters": [
+        {"name": "selector", "type": "String"},
+        {"name": "text", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "uncheck",
+      "parameters": [
+        {"name": "selector", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "driver",
+      "method": "waitForSelector",
+      "parameters": [
+        {"name": "selector", "type": "String"},
+        {"name": "timeoutMillis", "type": "Long", "default": "3000"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "fs",
+      "method": "append",
+      "parameters": [
+        {"name": "filename", "type": "String"},
+        {"name": "content", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "fs",
+      "method": "copyFile",
+      "parameters": [
+        {"name": "source", "type": "String"},
+        {"name": "dest", "type": "String"}
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "deleteFile",
+      "parameters": [
+        {"name": "filename", "type": "String"}
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "fileExists",
+      "parameters": [
+        {"name": "filename", "type": "String"}
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "getFileInfo",
+      "parameters": [
+        {"name": "filename", "type": "String"}
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "listFiles",
+      "parameters": [
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "moveFile",
+      "parameters": [
+        {"name": "source", "type": "String"},
+        {"name": "dest", "type": "String"}
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "readString",
+      "parameters": [
+        {"name": "filename", "type": "String"}
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "replaceContent",
+      "parameters": [
+        {"name": "filename", "type": "String"},
+        {"name": "oldStr", "type": "String"},
+        {"name": "newStr", "type": "String"}
+      ],
+      "returns": "String"
+    },
+    {
+      "domain": "fs",
+      "method": "writeString",
+      "parameters": [
+        {"name": "filename", "type": "String"},
+        {"name": "content", "type": "String"}
+      ],
+      "returns": "Unit"
+    },
+    {
+      "domain": "system",
+      "method": "help",
+      "parameters": [
+        {"name": "domain", "type": "String"}
+      ],
+      "returns": "String",
+      "description": "get help for tool calls in a domain"
+    },
+    {
+      "domain": "system",
+      "method": "help",
+      "parameters": [
+        {"name": "domain", "type": "String"},
+        {"name": "method", "type": "String"}
+      ],
+      "returns": "String",
+      "description": "get help for a tool call"
+    }
+  ]
+}

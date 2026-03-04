@@ -60,23 +60,7 @@ data class AgentState constructor(
     val hasErrors: Boolean get() = exception != null
 
     fun toJson(): String {
-        return Pson.toJson(mapOf(
-            "step" to step,
-            "url" to url,
-            "description" to description,
-            "event" to event,
-            "domain" to domain,
-            "method" to method,
-            "isComplete" to isComplete,
-            "timestamp" to timestamp.toString(),
-            "screenshotContentSummary" to screenshotContentSummary,
-            "currentPageContentSummary" to currentPageContentSummary,
-            "evaluationPreviousGoal" to evaluationPreviousGoal,
-            "nextGoal" to nextGoal,
-            "thinking" to thinking,
-            "instruction" to instruction,
-            "exception" to exception?.compactedBrief(),
-        ))
+        return Pson.toJson(this)
     }
 
     override fun toString(): String {

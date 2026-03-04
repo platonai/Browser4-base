@@ -1,0 +1,50 @@
+
+// domain: driver
+driver.navigate(url: String)
+driver.reload()
+driver.goBack()
+driver.goForward()
+driver.waitForSelector(selector: String, timeoutMillis: Long = 3000)
+driver.exists(selector: String): Boolean
+driver.isVisible(selector: String): Boolean
+driver.focus(selector: String)
+driver.hover(selector: String)
+driver.click(selector: String)                         // focus on an element with [selector] and click it
+driver.click(selector: String, modifier: String)       // focus on an element with [selector] and click it with modifier pressed
+driver.fill(selector: String, text: String)
+driver.type(selector: String, text: String)
+driver.press(selector: String, key: String)
+driver.check(selector: String)
+driver.uncheck(selector: String)
+driver.scrollTo(selector: String)
+driver.scrollToTop()
+driver.scrollToBottom()
+driver.scrollToMiddle(ratio: Double = 0.5)
+driver.scrollBy(pixels: Double = 200.0): Double
+driver.textContent(): String?                            // Returns the document's text content.
+driver.selectFirstTextOrNull(selector: String): String?  // Returns the first node's text content (descendants included). Returns null if no node.
+driver.delay(millis: Long)
+
+// domain: browser
+browser.switchTab(tabId: String): Int
+browser.closeTab(tabId: String)
+
+// domain: fs
+fs.writeString(filename: String, content: String)
+fs.readString(filename: String): String
+fs.append(filename: String, content: String)
+fs.replaceContent(filename: String, oldStr: String, newStr: String): String
+fs.fileExists(filename: String): String
+fs.getFileInfo(filename: String): String
+fs.deleteFile(filename: String): String
+fs.copyFile(source: String, dest: String): String
+fs.moveFile(source: String, dest: String): String
+fs.listFiles(): String
+
+// domain: agent
+agent.extract(instruction: String, schema: String): String // Extract data with given JSON schema
+agent.summarize(instruction: String?, selector: String?): String // Extract textContent and generate a summary
+
+// domain: system
+system.help(domain: String): String                        // get help for tool calls in a domain
+system.help(domain: String, method: String): String        // get help for a tool call

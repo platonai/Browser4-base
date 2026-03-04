@@ -1,4 +1,4 @@
-package ai.platon.pulsar.agentic.inference.detail
+package ai.platon.pulsar.agentic.inference
 
 import ai.platon.browser4.driver.chrome.dom.model.BrowserUseState
 import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
@@ -6,8 +6,15 @@ import ai.platon.browser4.driver.chrome.dom.model.TabState
 import ai.platon.pulsar.agentic.ActionOptions
 import ai.platon.pulsar.agentic.ObserveOptions
 import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
+import ai.platon.pulsar.agentic.inference.detail.PageStateTracker
+import ai.platon.pulsar.agentic.model.AgentHistory
+import ai.platon.pulsar.agentic.model.AgentState
+import ai.platon.pulsar.agentic.model.DetailedActResult
 import ai.platon.pulsar.agentic.model.ExecutionContext
-import ai.platon.pulsar.agentic.model.*
+import ai.platon.pulsar.agentic.model.ObserveElement
+import ai.platon.pulsar.agentic.model.ProcessTrace
+import ai.platon.pulsar.agentic.model.ToolCall
+import ai.platon.pulsar.agentic.model.ToolCallResult
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.MessageWriter
 import ai.platon.pulsar.common.getLogger
@@ -18,7 +25,7 @@ import java.nio.file.Path
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.UUID
 
 /**
  * Manages agent state, execution contexts, and history tracking.
@@ -374,23 +381,23 @@ class AgentStateManager(
     fun writeExecutionContext(context: ExecutionContext) {
         val fileName = "context.log"
         val jsonFileName = "context.jsonl"
-        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), context.toString())
-        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), context.toJson())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), context.toString())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), context.toJson())
     }
 
     fun writeAgentState(state: AgentState, sessionId: String) {
         val fileName = "state.log"
         val jsonFileName = "state.jsonl"
-        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), state.toString())
-        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), state.toJson())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), state.toString())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), state.toJson())
     }
 
     fun writeActionResult(context: ExecutionContext, result: DetailedActResult) {
         val fileName = "result.log"
         val jsonFileName = "result.jsonl"
 
-        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), result.toString())
-        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), result.toJson())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), result.toString())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), result.toJson())
     }
 
     fun writeChatLog(step: Int, actionType: String, messageType: String, content: String, timestamp: Instant = Instant.now()) {
@@ -399,20 +406,20 @@ class AgentStateManager(
         val ts = formatter.format(timestamp)
 
         val fileName = "chat.$ts.$actionType.$messageType.log"
-        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), content)
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), content)
     }
 
     fun writeProcessTrace(trace: ProcessTrace) {
         val event = trace.event ?: "unknown"
         val fileName = "$event.trace.log"
         val jsonFileName = "$event.trace.jsonl"
-        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), trace.toString())
-        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), trace.toJson())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), trace.toString())
+        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), trace.toJson())
     }
 
     fun writeAllProcessTrace() {
         val path = auxRunLogDir.resolve("process_trace.log")
-        MessageWriter.writeOnce(path, processTrace.joinToString("\n") { """🚩$it""" })
+        MessageWriter.Companion.writeOnce(path, processTrace.joinToString("\n") { """🚩$it""" })
     }
 
     fun clearUpHistory(toRemove: Int) {

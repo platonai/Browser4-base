@@ -106,21 +106,30 @@ data class ToolCall constructor(
 
 data class TcException(
     val expression: String = "",
+    /**
+     * Ignore the cause in preview, which may cause recursion when the cause contains a lot of data.
+     * */
+    @JsonIgnore
     val cause: Exception? = null,
     var help: String? = null,
 ) {
     val domain: String get() = expression.substringBefore('.')
     val method: String get() = StringUtils.substringBetween(expression, ".", ")")
+    val message: String? get() = cause?.message
 }
 
 data class TcEvaluate constructor(
-    var value: Any? = null,
-    var description: String? = null,
+    /**
+     * Ignore the value in preview, which may cause recursion when the value is complex and contains a lot of data.
+     * The preview should be generated from the expression and description, which is more concise and informative.
+     * */
+    @JsonIgnore
+    val value: Any? = null,
+    val description: String? = null,
     val className: String? = null,
     val expression: String? = null,
     var exception: TcException? = null
 ) {
-    @get:JsonIgnore
     val preview get() = doGetPreview()
 
     constructor(expression: String, cause: Exception, help: String? = null) :
@@ -159,6 +168,7 @@ data class ObserveElement constructor(
 
     // Revised fields
     val toolCall: ToolCall? = null,
+    @JsonIgnore
     val node: DOMTreeNodeEx? = null,
     val backendNodeId: Int? = null,
     val xpath: String? = null,
@@ -212,7 +222,16 @@ data class AgentHistory(
     fun lastOrNull() = states.lastOrNull()
 
     fun toJson(): String {
-        return Pson.toJson(this)
+        return Pson.toJson(mapOf(
+            "size" to size,
+            "isDone" to isDone,
+            "isSuccess" to isSuccess,
+            "totalSteps" to totalSteps,
+            "hasErrors" to hasErrors,
+            "urls" to urls,
+            "modelOutputs" to modelOutputs,
+            "modelThoughts" to modelThoughts,
+        ))
     }
 
     override fun toString(): String {
@@ -327,7 +346,16 @@ data class ActionDescription constructor(
     }
 
     fun toJson(): String {
-        return Pson.toJson(this)
+        return Pson.toJson(mapOf(
+            "instruction" to instruction,
+            "isComplete" to isComplete,
+            "errorCause" to errorCause,
+            "summary" to summary,
+            "keyFindings" to keyFindings,
+            "nextSuggestions" to nextSuggestions,
+            "modelResponse" to modelResponse?.content,
+            "exception" to exception?.compactedBrief(),
+        ))
     }
 
     override fun toString(): String {

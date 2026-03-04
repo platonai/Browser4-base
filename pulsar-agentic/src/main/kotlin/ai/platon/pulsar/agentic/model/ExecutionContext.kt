@@ -68,13 +68,7 @@ data class ExecutionContext constructor(
     }
 
     fun toJson(): String {
-        return Pson.toJson(mapOf(
-            "step" to step,
-            "event" to event,
-            "targetUrl" to targetUrl,
-            "sessionId" to sessionId,
-            "instruction" to instruction
-        ))
+        return Pson.toJson(this)
     }
 
     override fun toString(): String {
