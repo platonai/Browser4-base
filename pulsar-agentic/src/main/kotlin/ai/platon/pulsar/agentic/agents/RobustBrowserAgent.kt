@@ -143,10 +143,6 @@ open class RobustBrowserAgent(
      * @throws CancellationException if the agent is closed or the operation is cancelled
      */
     override suspend fun run(action: ActionOptions): AgentHistory {
-        if (isClosed) {
-            return stateHistory
-        }
-
         onWillRun(action)
 
         try {
@@ -177,10 +173,6 @@ open class RobustBrowserAgent(
      * @return Result of the action execution
      */
     override suspend fun act(action: ActionOptions): ActResult {
-        if (isClosed) {
-            return ActResult(false, "closed", action = action.action)
-        }
-
         return try {
             val ctx = agentScope.coroutineContext.minusKey(Job)
             withContext(ctx) {
@@ -219,12 +211,6 @@ open class RobustBrowserAgent(
      * @return Extraction result with structured data
      */
     override suspend fun extract(options: ExtractOptions): ExtractResult {
-        if (isClosed) {
-            return ExtractResult(
-                success = false, message = "closed", data = JsonNodeFactory.instance.objectNode()
-            )
-        }
-
         return try {
             val ctx = agentScope.coroutineContext.minusKey(Job)
             withContext(ctx) {
@@ -247,12 +233,6 @@ open class RobustBrowserAgent(
      * candidate elements and potential actions (if returnAction=true).
      */
     override suspend fun observe(options: ObserveOptions): List<ObserveResult> {
-        if (isClosed) {
-            return emptyList()
-        }
-
-//        val context = options.getContext() ?: stateManager.buildInitExecutionContext(options, "observe")
-//        options.setContext(context)
         val context = stateManager.getOrCreateActiveContext(options, "observe")
 
         val ctx = agentScope.coroutineContext.minusKey(Job)
@@ -375,9 +355,6 @@ open class RobustBrowserAgent(
 
     protected suspend fun generateActions(context: ExecutionContext): ActionDescription {
         context.screenshotB64 = if (context.step % config.screenshotEveryNSteps == 0) {
-            if (isClosed) return ActionDescription(
-                context.instruction, context = context, exception = CancellationException("closed")
-            )
             captureScreenshotWithRetry(context)
         } else null
 
@@ -385,10 +362,6 @@ open class RobustBrowserAgent(
         val messages = promptBuilder.buildMultistepAgentMessageListAll(context)
 
         return try {
-            if (isClosed) {
-                throw CancellationException("closed")
-            }
-
             val actionDescription = cta.generate(messages, context)
             requireNotNull(context.agentState.actionDescription) {
                 "Field should be set: context.agentState.actionDescription. " + "Step: ${context.step}, Instruction: ${
@@ -803,7 +776,9 @@ open class RobustBrowserAgent(
             logger.info("⛔ noop.stop sid={} step={} limit={}", context.sid, step, config.consecutiveNoOpLimit)
             return true
         }
-        if (isClosed) return true
+        if (isClosed) {
+            return true
+        }
         val delayMs = calculateConsecutiveNoOpDelay(consecutiveNoOps)
         delay(delayMs)
         val job = currentCoroutineContext()[Job]
