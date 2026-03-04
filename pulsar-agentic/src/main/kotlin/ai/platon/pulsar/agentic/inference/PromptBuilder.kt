@@ -8,6 +8,7 @@ import ai.platon.pulsar.agentic.model.AgentHistory
 import ai.platon.pulsar.agentic.model.AgentState
 import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.prompts.buildMainSystemPromptV1
+import ai.platon.pulsar.agentic.prompts.buildToolUseSections
 import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationRenderer
 import ai.platon.pulsar.common.KStrings
 import ai.platon.pulsar.common.Strings
@@ -64,8 +65,6 @@ class PromptBuilder() {
         }
 
         val TOOL_CALL_RULE_CONTENT = """
-浏览器使用指南：
-
 - domain: 工具域，如 driver, browser, skill.debug.scraping 等，可用点号区分子域
 - method: 方法名，如 click, fill, extract 等
 - 输出结果中，定位节点时 `selector` 字段始终填入 `locator` 的值
@@ -334,16 +333,6 @@ $A11Y_TREE_NOTE_CONTENT
 
 ---
 
-## 工具列表
-
-```
-${ToolCallSpecificationRenderer.render(includeCustomDomains = true)}
-```
-
-$TOOL_CALL_RULE_CONTENT
-
----
-
 ## 输出要求
 
 - 输出严格使用下面 JSON 格式，仅输出 JSON 内容，无多余文字
@@ -353,6 +342,8 @@ $TOOL_CALL_RULE_CONTENT
 {{OUTPUT_SCHEMA_PLACEHOLDER}}
 
 ---
+
+${buildToolUseSections()}
 
 """
 
@@ -396,12 +387,12 @@ ${buildMainSystemPromptV1()}
         return messages
     }
 
-    fun buildObserveMessageListAll(params: ObserveParams, context: ExecutionContext): AgentMessageList {
+    fun buildSingleObserveMessageListAll(params: ObserveParams, context: ExecutionContext): AgentMessageList {
         // Prepare messages for model
         val messages = AgentMessageList()
 
         // observe guide
-        buildObserveGuideSystemPrompt(messages, params)
+        buildSingleObserveGuideSystemPrompt(messages, params)
         // browser state, viewport info, interactive elements, DOM
         buildObserveUserMessageLast(messages, context)
 
@@ -735,7 +726,7 @@ $extractedJson
         return SimpleMessage(role = "user", content = content)
     }
 
-    private fun buildObserveGuideSystemPrompt(messages: AgentMessageList, params: ObserveParams) {
+    private fun buildSingleObserveGuideSystemPrompt(messages: AgentMessageList, params: ObserveParams) {
         val schema =
             if (params.returnAction) OBSERVE_GUIDE_OUTPUT_SCHEMA_RETURN_ACTIONS else OBSERVE_GUIDE_OUTPUT_SCHEMA
 

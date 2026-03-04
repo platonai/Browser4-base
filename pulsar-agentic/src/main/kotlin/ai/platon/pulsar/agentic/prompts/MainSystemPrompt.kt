@@ -1,9 +1,6 @@
 package ai.platon.pulsar.agentic.prompts
 
-import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.A11Y_TREE_NOTE_CONTENT
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.EXTRACTION_TOOL_NOTE_CONTENT
-import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.INTERACTIVE_ELEMENT_LIST_NOTE_CONTENT
-import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.MAX_ACTIONS
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.TOOL_CALL_RULE_CONTENT
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.buildResponseSchema
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.language
@@ -88,6 +85,7 @@ fun buildToolSpecContent(toolFormat: ToolSpecFormat): String {
 ${ToolCallSpecificationRenderer.render(includeCustomDomains = true)}
 ```
 """.trimIndent()
+
         ToolSpecFormat.JSON -> """
 ```json
 ${ToolCallSpecificationRenderer.renderJson(includeCustomDomains = true)}
@@ -96,6 +94,33 @@ ${ToolCallSpecificationRenderer.renderJson(includeCustomDomains = true)}
     }
 
     return toolSpecContent
+}
+
+fun buildToolUseSections(toolFormat: ToolSpecFormat = ToolSpecFormat.KOTLIN): String {
+    return """
+## 工具使用指南
+
+$TOOL_CALL_RULE_CONTENT
+
+### Skill 工具类型定义
+
+$SKILL_TOOL_TYPE_DEFINITIONS
+
+### `agent.extract` 数据提取工具类型定义
+
+$EXTRACTION_TOOL_NOTE_CONTENT
+
+### 工具列表
+
+${buildToolSpecContent(toolFormat)}
+
+### 可用技能概要
+
+${buildSkillSummariesSection()}
+
+---
+
+    """.trimIndent()
 }
 
 /**
@@ -180,27 +205,7 @@ $TASK_COMPLETE_SCHEMA_PROMPT
 
 ---
 
-## 工具调用
-
-$TOOL_CALL_RULE_CONTENT
-
-### Skill 工具类型定义
-
-$SKILL_TOOL_TYPE_DEFINITIONS
-
-### `agent.extract` 数据提取工具类型定义
-
-$EXTRACTION_TOOL_NOTE_CONTENT
-
-### 工具列表
-
-${buildToolSpecContent(toolFormat)}
-
-### 可用技能概要
-
-${buildSkillSummariesSection()}
-
----
+${buildToolUseSections(toolFormat)}
 
         """.trimIndent()
 }

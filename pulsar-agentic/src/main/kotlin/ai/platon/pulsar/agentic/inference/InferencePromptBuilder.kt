@@ -12,7 +12,7 @@ object InferencePromptBuilder {
             promptBuilder.buildMultistepAgentMessageListAll(params.context)
         } else {
             // Single step agents uses observe() -> act()
-            promptBuilder.buildObserveMessageListAll(params, params.context)
+            promptBuilder.buildSingleObserveMessageListAll(params, params.context)
         }
     }
 
