@@ -130,6 +130,8 @@ object PulsarJackson {
     private val mapper = pulsarObjectMapper()
     private val prettyMapper = prettyPulsarObjectMapper()
 
+    fun toJson(vararg value: Pair<String, Any>): String = mapper.writeValueAsString(mapOf(*value))!!
+
     fun toJson(value: Any): String = mapper.writeValueAsString(value)!!
     fun toPrettyJson(value: Any): String = prettyMapper.writeValueAsString(value)!!
 

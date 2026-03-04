@@ -396,50 +396,6 @@ ${buildMainSystemPromptV1()}
         """.trimIndent()
     }
 
-    private fun buildSystemPromptV20251025(
-        url: String,
-        executionInstruction: String,
-        systemInstructions: String? = null
-    ): String {
-        return if (systemInstructions != null) {
-            """
-        $systemInstructions
-        Your current goal: $executionInstruction
-        """.trimIndent()
-        } else {
-            """
-        You are a web automation assistant using browser automation tools to accomplish the user's goal.
-
-        Your task: $executionInstruction
-
-        You have access to various browser automation tools. Use them step by step to complete the task.
-
-        IMPORTANT GUIDELINES:
-        1. Always start by understanding the current page state
-        2. Use the screenshot tool to verify page state when needed
-        3. Use appropriate tools for each action
-        4. When the task is complete, use the "close" tool with success: true
-        5. If the task cannot be completed, use "close" with success: false
-
-        TOOLS OVERVIEW:
-        - screenshot: Take a compressed JPEG screenshot for quick visual context (use sparingly)
-        - ariaTree: Get an accessibility (ARIA) hybrid tree for full page context (preferred for understanding layout and elements)
-        - act: Perform a specific atomic action (click, type, etc.). For filling a field, you can say 'fill the field x with the value y'.
-        - extract: Extract structured data
-        - goto: Navigate to a URL
-        - wait/navback/refresh: Control timing and navigation
-        - scroll: Scroll the page x pixels up or down
-
-        STRATEGY:
-        - Prefer ariaTree to understand the page before acting; use screenshot for quick confirmation.
-        - Keep actions atomic and verify outcomes before proceeding.
-
-        For each action, provide clear reasoning about why you're taking that step.
-        Today's date is ${LocalDate.now()}. You're currently on the website: ${url}.
-        """.trimIndent()
-        }
-    }
-
     fun buildMultistepAgentMessageListAll(context: ExecutionContext): AgentMessageList {
         // Prepare messages for model
         val messages = AgentMessageList()
@@ -664,9 +620,6 @@ $userRequest
 从网页中提取关键数据结构。
 
 - 每次提供一个视口高度(viewport height)内的所有无障碍树 DOM 节点，你的数据来源是无障碍树
-- 视口之上的数据视为已被处理，视口之下的数据视为待处理
-- 视口之上像素高度: 当前视口上方、已滚动出可视范围的网页内容高度
-- 视口之下像素高度: 当前视口下方、不在可视范围内的网页内容高度
 
 """.trimIndent()
         }
@@ -706,7 +659,7 @@ ${params.instruction}
         val content = """
 ## 视口信息
 
-本次焦点视口序号: $processingViewport
+序号: $processingViewport
 视口高度：$viewportHeight
 估算视口总数: $viewportsTotal
 视口之上像素高度: $hiddenTopHeight
@@ -770,30 +723,28 @@ ${schema.toJsonSchema()}
         // The 1-based viewport to see.
         val processingViewport = scrollState.processingViewport
         val viewportsTotal = scrollState.viewportsTotal
-        val nextViewportToSee = 1 + processingViewport
+
+        val viewPortJson = Pson.toJson(
+            "processingViewport" to processingViewport,
+            "viewportHeight" to viewportHeight,
+            "viewportsTotal" to viewportsTotal,
+            "hiddenTopHeight" to hiddenTopHeight,
+            "hiddenBottomHeight" to hiddenBottomHeight
+        )
 
         val extractedJson = DOMSerializer.MAPPER.writeValueAsString(extractionResponse)
 
         val content =
             """
 ## 用户指令
-（数据提取的最初要求）
+
 <user_request>
 $instruction
 </user_request>
 
 ## 视口信息
 
-本次焦点视口序号: $processingViewport
-视口高度：$viewportHeight
-估算视口总数: $viewportsTotal
-视口之上像素高度: $hiddenTopHeight
-视口之下像素高度: $hiddenBottomHeight
-
-- 每次提供一个视口高度(viewport height)内的所有无障碍树 DOM 节点，你的数据来源是无障碍树
-- 视口之上的数据视为已被处理，视口之下的数据视为待处理
-- 视口之上像素高度: 当前视口上方、已滚动出可视范围的网页内容高度
-- 视口之下像素高度: 当前视口下方、不在可视范围内的网页内容高度
+$viewPortJson
 
 ---
 
@@ -893,15 +844,13 @@ $newTabsMessage
 
 ## 视口信息
 
-本次焦点视口序号: $processingViewport
+序号: $processingViewport
 视口高度：$viewportHeight
 估算视口总数: $viewportsTotal
 视口之上像素高度: $hiddenTopHeight
 视口之下像素高度: $hiddenBottomHeight
 
 - 默认每次查看一个视口高度(viewport height)内的所有 DOM 节点
-- 视口之上像素高度: 当前视口上方、已滚动出可视范围的网页内容高度。
-- 视口之下像素高度: 当前视口下方、不在可视范围内的网页内容高度。
 - 注意：网页内容变化可能导致视口位置和视口序号随时发生变化。
 - 默认提供的无障碍树仅包含第`i`个视口内的 DOM 节点，并包含少量视口外邻近节点，以保证信息完整
 - 如需查看下一视口，调用 `scrollBy(viewportHeight)` 向下滚动一屏获取更多信息
@@ -924,7 +873,6 @@ ${nanoTree.lazyJson}
 
 """
 
-        // TODO: we need a translation
         fun contentEN() = contentCN()
 
         val content = when {
