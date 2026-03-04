@@ -140,9 +140,9 @@ class KtorTransport : Transport {
                             ws.close(CloseReason(CloseReason.Codes.NORMAL, ""))
                         }
                     }
-                }.onFailure { 
+                }.onFailure {
                     logger.debug("WebSocket close timeout or error, forcing closure | {}", uri)
-                    warnForClose(this, it) 
+                    warnForClose(this, it)
                 }
             }
             runCatching { client?.close() }.onFailure { warnForClose(this, it) }

@@ -62,9 +62,8 @@ class AgentStateManager(
     // for non-logback logs
     private val auxRunLogDir: Path by lazy { getRunLogDir0() }
 
-    private val _stateHistory = AgentHistory()
-    private val _processTrace = mutableListOf<ProcessTrace>()
     private val config get() = agent.config
+    private val driver get() = agent.activeDriver as PulsarWebDriver
 
     // Context management - see class KDoc for detailed explanation
     // _baseContext: The initial context (first in contexts list)
@@ -75,12 +74,20 @@ class AgentStateManager(
 
     // contexts: All execution contexts created during this session
     // Cleaned periodically to max 100 entries to prevent memory leaks
-    private val contexts: MutableList<ExecutionContext> = mutableListOf()
+    private val _contexts: MutableList<ExecutionContext> = mutableListOf()
+    private val _stateHistory = AgentHistory()
+    private val _processTrace = mutableListOf<ProcessTrace>()
 
-    val driver get() = agent.activeDriver as PulsarWebDriver
     val stateHistory: AgentHistory get() = _stateHistory
     val processTrace: List<ProcessTrace> get() = _processTrace
+    val contexts: List<ExecutionContext> get() = _contexts
 
+    /**
+     * Build the base execution context for the initial action. This is used for as a base context for all
+     * subsequent contexts in the session. The step is set to 0 to indicate that it's the initial context,
+     * and the event name can be used to differentiate it from other contexts (e.g., "resolve-init").
+     * This context may not have a valid instruction or agent state yet.
+     * */
     suspend fun buildBaseExecutionContext(action: ActionOptions, event: String): ExecutionContext {
         val context = buildExecutionContext(action.action, 0, event)
         _baseContext = context
@@ -136,7 +143,7 @@ class AgentStateManager(
      */
     fun getActiveContext(): ExecutionContext {
         val context = requireNotNull(_activeContext) { "Actor not initialized, call act(action: ActionOptions) first!" }
-        require(context == contexts.last()) { "Active context should be the last context in the list. Context list size: ${contexts.size}" }
+        require(context == _contexts.last()) { "Active context should be the last context in the list. Context list size: ${_contexts.size}" }
         return context
     }
 
@@ -147,11 +154,11 @@ class AgentStateManager(
      */
     fun setActiveContext(context: ExecutionContext) {
         _activeContext = context
-        if (contexts.lastOrNull() == context) {
+        if (_contexts.lastOrNull() == context) {
             logger.warn("Context has been already added | sid=${context.sid}")
             return
         }
-        contexts.add(context)
+        _contexts.add(context)
     }
 
     private suspend fun buildInitExecutionContext(action: ActionOptions, event: String): ExecutionContext {
@@ -382,23 +389,23 @@ class AgentStateManager(
     fun writeExecutionContext(context: ExecutionContext) {
         val fileName = "context.log"
         val jsonFileName = "context.jsonl"
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), context.toString())
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), context.toJson())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), context.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), context.toJson())
     }
 
     fun writeAgentState(state: AgentState, sessionId: String) {
         val fileName = "state.log"
         val jsonFileName = "state.jsonl"
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), state.toString())
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), state.toJson())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), state.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), state.toJson())
     }
 
     fun writeActionResult(context: ExecutionContext, result: DetailedActResult) {
         val fileName = "result.log"
         val jsonFileName = "result.jsonl"
 
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), result.toString())
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), result.toJson())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), result.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), result.toJson())
     }
 
     fun writeChatLog(step: Int, actionType: String, messageType: String, content: String, timestamp: Instant = Instant.now()) {
@@ -407,20 +414,20 @@ class AgentStateManager(
         val ts = formatter.format(timestamp)
 
         val fileName = "chat.$ts.$actionType.$messageType.log"
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), content)
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), content)
     }
 
     fun writeProcessTrace(trace: ProcessTrace) {
         val event = trace.event ?: "unknown"
         val fileName = "$event.trace.log"
         val jsonFileName = "$event.trace.jsonl"
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(fileName), trace.toString())
-        MessageWriter.Companion.writeOnce(auxRunLogDir.resolve(jsonFileName), trace.toJson())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), trace.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), trace.toJson())
     }
 
     fun writeAllProcessTrace() {
         val path = auxRunLogDir.resolve("process_trace.log")
-        MessageWriter.Companion.writeOnce(path, processTrace.joinToString("\n") { """🚩$it""" })
+        MessageWriter.writeOnce(path, processTrace.joinToString("\n") { """🚩$it""" })
     }
 
     fun clearUpHistory(toRemove: Int) {
@@ -437,14 +444,14 @@ class AgentStateManager(
 
             // Also cleanup contexts list to prevent unbounded growth
             val maxContextsSize = 100
-            if (contexts.size > maxContextsSize) {
-                val toRemoveContexts = contexts.size - maxContextsSize / 2
-                val remainingContexts = contexts.drop(toRemoveContexts)
-                contexts.clear()
-                contexts.addAll(remainingContexts)
+            if (_contexts.size > maxContextsSize) {
+                val toRemoveContexts = _contexts.size - maxContextsSize / 2
+                val remainingContexts = _contexts.drop(toRemoveContexts)
+                _contexts.clear()
+                _contexts.addAll(remainingContexts)
                 // Update active context reference if it was removed
-                if (_activeContext != null && _activeContext !in contexts) {
-                    _activeContext = contexts.lastOrNull()
+                if (_activeContext != null && _activeContext !in _contexts) {
+                    _activeContext = _contexts.lastOrNull()
                 }
             }
 
