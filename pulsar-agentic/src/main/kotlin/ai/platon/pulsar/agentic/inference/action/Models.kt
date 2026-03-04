@@ -252,9 +252,9 @@ const val OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT = """
 {
   "elements": [
     {
-      "locator": "Web page node locator, composed of two numbers, such as `0,4`",
       "domain": "Tool domain, such as `driver`",
       "method": "Method name, such as `click`",
+      "locator": "Web page node locator, composed of two numbers, such as `0,4`",
       "description": "Description of the current locator and tool selection",
       "arguments": [
         {
