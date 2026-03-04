@@ -130,14 +130,14 @@ object PulsarJackson {
     private val mapper = pulsarObjectMapper()
     private val prettyMapper = prettyPulsarObjectMapper()
 
-    fun toJson(value: Any) = mapper.writeValueAsString(value)!!
-    fun toPrettyJson(value: Any) = prettyMapper.writeValueAsString(value)!!
+    fun toJson(value: Any): String = mapper.writeValueAsString(value)!!
+    fun toPrettyJson(value: Any): String = prettyMapper.writeValueAsString(value)!!
 
-    fun toJsonOrNull(value: Any) = runCatching { mapper.writeValueAsString(value) }.getOrNull()
-    fun toPrettyJsonOrNull(value: Any) = runCatching { prettyMapper.writeValueAsString(value) }.getOrNull()
+    fun toJsonOrNull(value: Any): String? = runCatching { mapper.writeValueAsString(value) }.getOrNull()
+    fun toPrettyJsonOrNull(value: Any): String? = runCatching { prettyMapper.writeValueAsString(value) }.getOrNull()
 
-    fun toJsonOrString(value: Any) = toJsonOrNull(value) ?: value.toString()
-    fun toPrettyJsonOrString(value: Any) = toPrettyJsonOrNull(value) ?: value.toString()
+    fun toJsonOrString(value: Any): String = toJsonOrNull(value) ?: value.toString()
+    fun toPrettyJsonOrString(value: Any): String = toPrettyJsonOrNull(value) ?: value.toString()
 
     fun readTree(json: String): JsonNode? = mapper.readTree(json)
     fun readTreeOrNull(json: String): JsonNode? = runCatching { mapper.readTree(json) }.getOrNull()

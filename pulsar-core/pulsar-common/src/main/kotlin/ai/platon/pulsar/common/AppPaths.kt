@@ -11,7 +11,9 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.io.path.exists
 import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.isDirectory
@@ -416,6 +418,10 @@ object AppPaths {
 
     fun fromTime(time: LocalDateTime): String {
         return time.format(PATH_SAFE_FORMATTER_11)
+    }
+
+    fun fromTime(time: Instant): String {
+        return fromTime(time.atZone(ZoneId.systemDefault()).toLocalDateTime())
     }
 
     fun fromNow(): String {

@@ -6,6 +6,7 @@ import ai.platon.browser4.driver.chrome.dom.model.TabState
 import ai.platon.pulsar.agentic.ActionOptions
 import ai.platon.pulsar.agentic.ObserveOptions
 import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
+import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.model.*
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.MessageWriter
@@ -15,7 +16,6 @@ import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
 import kotlinx.coroutines.withTimeout
 import java.nio.file.Path
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -53,17 +53,7 @@ class AgentStateManager(
     private val logger = getLogger(this)
 
     // for non-logback logs
-    val auxLogDir: Path get() = AppPaths.detectAuxiliaryLogDir().resolve("agent")
-
-    private fun getRunLogDir(sessionId: String): Path {
-        val now = LocalDate.now()
-        val year = now.year.toString()
-        val month = String.format("%02d", now.monthValue)
-        val day = String.format("%02d", now.dayOfMonth)
-        val agentId = agent.uuid.toString()
-        // base log dir for each run: logs/agent/{year}/{month}/{day}/{agentId}/{runId}/
-        return auxLogDir.resolve(year).resolve(month).resolve(day).resolve(agentId).resolve(sessionId)
-    }
+    private val auxRunLogDir: Path by lazy { getRunLogDir0() }
 
     private val _stateHistory = AgentHistory()
     private val _processTrace = mutableListOf<ProcessTrace>()
@@ -166,17 +156,14 @@ class AgentStateManager(
      * The instruction is taken from the ObserveOptions, and the step is set to 1. The event name can be used to differentiate this context from act contexts. An optional base context can be provided for inheritance, but it's not required for the initial observe context.
      * @param options The observe options containing the instruction and other parameters
      * @param event The event name for this context (e.g., "observe-init")
-     * @param baseContext An optional base context that the new context can inherit from. Not
-     * required for the initial observe context, but can be used if this observe context is triggered from an existing context and wants to inherit properties from it.
-     * @return A new ExecutionContext instance for the observe event, initialized with the instruction from the options and step set to 1.
+     * @return A new ExecutionContext instance initialized with the instruction from the options, step set to 1, and the provided event name.
      * */
     suspend fun buildInitExecutionContext(
         options: ObserveOptions,
-        event: String,
-        baseContext: ExecutionContext? = null
+        event: String
     ): ExecutionContext {
         val instruction = options.instruction ?: ""
-        val context = buildExecutionContext(instruction, 1, event, baseContext = baseContext)
+        val context = buildExecutionContext(instruction, 1, event)
         return context
     }
 
@@ -192,18 +179,12 @@ class AgentStateManager(
      * @return A new ExecutionContext instance with the provided parameters and inherited properties from the base context if applicable.
      * */
     suspend fun buildExecutionContext(
-        /**
-         * The user's instruction
-         * */
         instruction: String,
         step: Int,
         event: String,
-        /**
-         * A base context that the new context can inherit from
-         * */
         baseContext: ExecutionContext? = null
     ): ExecutionContext {
-        val context = buildExecutionContext0(instruction, step, event, baseContext = baseContext)
+        val context = buildExecutionContextInternal(instruction, step, event, baseContext = baseContext)
         return context
     }
 
@@ -213,9 +194,14 @@ class AgentStateManager(
      *
      * The step is set to 0 to indicate that it's a standalone context, and the event name can be used to differentiate
      * it from multistep contexts.
+     *
+     * @param instruction The user's instruction for this standalone context
+     * @param event The event name for this context (e.g., "one-off", "external-trigger", etc.)
+     * @return A new ExecutionContext instance for the standalone instruction, initialized with the provided instruction
+     * and event, and step set to 0 to indicate it's not part of a multistep process.
      * */
     suspend fun buildStandaloneExecutionContext(instruction: String, event: String): ExecutionContext {
-        val context = buildExecutionContext0(instruction, 0, event)
+        val context = buildExecutionContextInternal(instruction, 0, event)
         return context
     }
 
@@ -228,14 +214,13 @@ class AgentStateManager(
      * @param instruction The user's instruction (should be the same for all steps in the session)
      * @param step The current step number (starting from 1)
      * @param event The event name for this context (e.g., "act", "observe", "extract", etc.)
+     * @param baseContext An optional base context that the new context can inherit from. If provided, the new context
+     * will validate that the instruction is the same and the step is incremented by 1 compared to the base context.
      * */
-    private suspend fun buildExecutionContext0(
+    private suspend fun buildExecutionContextInternal(
         instruction: String,
         step: Int,
         event: String,
-        /**
-         * A base context that the new context can inherit from
-         * */
         baseContext: ExecutionContext? = null
     ): ExecutionContext {
         // val step = (baseContext?.step ?: -1) + 1
@@ -387,65 +372,46 @@ class AgentStateManager(
     }
 
     fun writeExecutionContext(context: ExecutionContext) {
-        val runLogDir = getRunLogDir(context.sessionId)
-        val fileName = "${context.step}.context.log"
-        val jsonFileName = "${context.step}.context.jsonl"
-        MessageWriter.writeOnce(runLogDir.resolve(fileName), context.toString())
-        MessageWriter.writeOnce(runLogDir.resolve(jsonFileName), context.toJson())
+        val fileName = "context.log"
+        val jsonFileName = "context.jsonl"
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), context.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), context.toJson())
     }
 
     fun writeAgentState(state: AgentState, sessionId: String) {
-        val runLogDir = getRunLogDir(sessionId)
-
-        val fileName = "${state.step}.state.log"
-        val jsonFileName = "${state.step}.state.jsonl"
-        MessageWriter.writeOnce(runLogDir.resolve(fileName), state.toString())
-        MessageWriter.writeOnce(runLogDir.resolve(jsonFileName), state.toJson())
+        val fileName = "state.log"
+        val jsonFileName = "state.jsonl"
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), state.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), state.toJson())
     }
 
     fun writeActionResult(context: ExecutionContext, result: DetailedActResult) {
-        val runLogDir = getRunLogDir(context.sessionId)
-        val fileName = "${context.step}.result.log"
-        val jsonFileName = "${context.step}.result.jsonl"
+        val fileName = "result.log"
+        val jsonFileName = "result.jsonl"
 
-        MessageWriter.writeOnce(runLogDir.resolve(fileName), result.toString())
-        // MessageWriter.writeOnce(runLogDir.resolve(jsonFileName), Pson.toJson(result))
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), result.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), result.toJson())
     }
 
     fun writeChatLog(step: Int, actionType: String, messageType: String, content: String, timestamp: Instant = Instant.now()) {
-        val sessionId = contexts.findLast { it.step == step }?.sessionId
-            ?: _activeContext?.sessionId
-            ?: "unknown-session"
-        val runLogDir = getRunLogDir(sessionId)
-
         val formatter = DateTimeFormatter.ofPattern("yyyyMMdd.HHmmss")
             .withZone(ZoneId.systemDefault())
         val ts = formatter.format(timestamp)
 
-        // Format: {runLogDir}/{step}.chat.{yyyyMMdd.HHmmss}.{actionType}.{messageType}.log
-        // Example: 2.chat.20260302.220354.chat.user.log
-        val fileName = "$step.chat.$ts.$actionType.$messageType.log"
-        MessageWriter.writeOnce(runLogDir.resolve(fileName), content)
+        val fileName = "chat.$ts.$actionType.$messageType.log"
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), content)
     }
 
     fun writeProcessTrace(trace: ProcessTrace) {
-        val sessionId = contexts.findLast { it.step == trace.step }?.sessionId
-            ?: _activeContext?.sessionId
-            ?: "unknown-session"
-        val runLogDir = getRunLogDir(sessionId)
-
         val event = trace.event ?: "unknown"
-        val fileName = "${trace.step}.$event.trace.log"
-        val jsonFileName = "${trace.step}.$event.trace.jsonl"
-        MessageWriter.writeOnce(runLogDir.resolve(fileName), trace.toString())
-        MessageWriter.writeOnce(runLogDir.resolve(jsonFileName), trace.toJson())
+        val fileName = "$event.trace.log"
+        val jsonFileName = "$event.trace.jsonl"
+        MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), trace.toString())
+        MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), trace.toJson())
     }
 
     fun writeAllProcessTrace() {
-        val now = AppPaths.fromNow()
-        val sessionId = _activeContext?.sessionId ?: "unknown-session"
-        val runLogDir = getRunLogDir(sessionId)
-        val path = runLogDir.resolve("process_trace_$now.log")
+        val path = auxRunLogDir.resolve("process_trace.log")
         MessageWriter.writeOnce(path, processTrace.joinToString("\n") { """🚩$it""" })
     }
 
@@ -562,5 +528,11 @@ class AgentStateManager(
         return BrowserUseState(
             browserState = enhancedBrowserState, domState = baseState.domState
         )
+    }
+
+    private fun getRunLogDir0(): Path {
+        val agentId = agent.uuid.toString()
+        val auxLogDir = AppPaths.detectAuxiliaryLogDir().resolve("agent")
+        return auxLogDir.resolve(AppPaths.fromTime(agent.startTime)).resolve(agentId)
     }
 }

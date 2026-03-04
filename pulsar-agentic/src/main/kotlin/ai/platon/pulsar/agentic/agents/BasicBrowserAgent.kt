@@ -10,7 +10,7 @@ import ai.platon.pulsar.agentic.inference.PromptBuilder
 import ai.platon.pulsar.agentic.inference.action.ContextToAction
 import ai.platon.pulsar.agentic.inference.detail.ActResultHelper
 import ai.platon.pulsar.agentic.inference.detail.AgentStateManager
-import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
+import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.inference.detail.PageStateTracker
 import ai.platon.pulsar.agentic.mcp.MCPPluginRegistry
 import ai.platon.pulsar.agentic.model.*
@@ -47,7 +47,7 @@ open class BasicBrowserAgent(
         .resolve(_uuid.toString())
 
     protected val cta by lazy { ContextToAction(session.sessionConfig) }
-    protected val inference by lazy { InferenceEngine(session) }
+    protected val inference by lazy { InferenceEngine(this) }
     protected val domService get() = inference.domService
     protected val promptBuilder = PromptBuilder()
 

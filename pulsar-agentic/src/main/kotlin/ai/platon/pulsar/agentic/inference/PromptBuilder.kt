@@ -5,7 +5,7 @@ import ai.platon.browser4.driver.chrome.dom.model.TabState
 import ai.platon.pulsar.agentic.inference.action.GENERAL_TOOL_CALL_RESULT_PROMPT
 import ai.platon.pulsar.agentic.inference.action.OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT
 import ai.platon.pulsar.agentic.inference.action.TASK_COMPLETE_SCHEMA_PROMPT
-import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
+import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.model.AgentHistory
 import ai.platon.pulsar.agentic.model.AgentState
 import ai.platon.pulsar.agentic.prompts.buildMainSystemPromptV1

@@ -1,16 +1,8 @@
 package ai.platon.pulsar.agentic.inference.detail
 
 import ai.platon.pulsar.agentic.ActResult
-import ai.platon.pulsar.agentic.ObserveOptions
-import ai.platon.pulsar.agentic.agents.AgentConfig
-import ai.platon.pulsar.agentic.inference.ExtractParams
-import ai.platon.pulsar.agentic.inference.ObserveParams
 import ai.platon.pulsar.agentic.model.*
 import ai.platon.pulsar.common.Strings
-import ai.platon.pulsar.common.serialize.json.Pson
-import com.fasterxml.jackson.annotation.JsonIgnore
-import java.time.Instant
-import java.util.*
 
 /**
  * A helper class to help ActResult keeping small.
@@ -93,77 +85,3 @@ data class PerformanceMetrics(
     )
 }
 
-/**
- * Structured logging context for better debugging
- */
-data class ExecutionContext constructor(
-    var step: Int,
-
-    var instruction: String = "",
-    @get:JsonIgnore
-    var screenshotB64: String? = null,
-
-    var event: String,
-    var targetUrl: String? = null,
-
-    @get:JsonIgnore
-    val agentState: AgentState,
-    @get:JsonIgnore
-    val stateHistory: AgentHistory,
-
-    @get:JsonIgnore
-    val config: AgentConfig,
-
-    val sessionId: String,
-    val stepStartTime: Instant = Instant.now(),
-    @get:JsonIgnore
-    val additionalContext: Map<String, Any> = emptyMap()
-) {
-    val sid get() = sessionId.take(8)
-
-    val uuid = UUID.randomUUID().toString()
-
-    @get:JsonIgnore
-    val prevAgentState: AgentState? get() = agentState.prevState
-
-    fun createObserveParams(
-        options: ObserveOptions,
-        fromAct: Boolean,
-        resolve: Boolean
-    ): ObserveParams {
-        return ObserveParams(
-            context = this,
-            returnAction = options.returnAction ?: false,
-            logInferenceToFile = config.logInferenceToFile,
-            fromAct = fromAct,
-            multistep = resolve
-        )
-    }
-
-    fun createObserveActParams(resolve: Boolean): ObserveParams {
-        return ObserveParams(
-            context = this,
-            fromAct = true,
-            returnAction = true,
-            multistep = resolve,
-            logInferenceToFile = config.logInferenceToFile,
-        )
-    }
-
-    fun createExtractParams(schema: ExtractionSchema): ExtractParams {
-        return ExtractParams(
-            instruction = instruction,
-            agentState = agentState,
-            schema = schema,
-            requestId = uuid,
-        )
-    }
-
-    fun toJson() {
-        Pson.toJson(this)
-    }
-
-    override fun toString(): String {
-        return "step=$step, instruction='$instruction', event='$event', targetUrl=$targetUrl, sessionId='$sessionId'"
-    }
-}

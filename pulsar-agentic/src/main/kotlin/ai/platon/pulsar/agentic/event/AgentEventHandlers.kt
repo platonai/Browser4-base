@@ -4,7 +4,7 @@ package ai.platon.pulsar.agentic.event
 
 import ai.platon.pulsar.agentic.ActionOptions
 import ai.platon.pulsar.agentic.ObserveOptions
-import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
+import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.model.AgentState
 import ai.platon.pulsar.common.lang.AbstractChainedFunction1
 import ai.platon.pulsar.common.lang.AbstractChainedPDFunction2

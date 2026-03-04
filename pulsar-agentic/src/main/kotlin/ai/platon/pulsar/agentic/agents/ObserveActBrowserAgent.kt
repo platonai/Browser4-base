@@ -2,7 +2,7 @@ package ai.platon.pulsar.agentic.agents
 
 import ai.platon.pulsar.agentic.ActionOptions
 import ai.platon.pulsar.agentic.AgenticSession
-import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
+import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.common.getLogger
 import kotlinx.coroutines.delay
 

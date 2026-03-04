@@ -1,11 +1,11 @@
 package ai.platon.pulsar.agentic.inference
 
 import ai.platon.browser4.driver.chrome.dom.DomService
-import ai.platon.pulsar.agentic.AgenticSession
+import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
 import ai.platon.pulsar.agentic.event.AgentEventBus
 import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.inference.action.ContextToAction
-import ai.platon.pulsar.agentic.inference.detail.ExecutionContext
+import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.AgentState
 import ai.platon.pulsar.agentic.model.ExtractionSchema
@@ -60,11 +60,12 @@ private data class ExtractInferenceResult(
 )
 
 class InferenceEngine(
-    private val session: AgenticSession
+    private val agent: BasicBrowserAgent
 ) {
+    private val session = agent.session
     private val cta = ContextToAction(session.sessionConfig)
-    private val auxLogDir: Path get() = AppPaths.detectAuxiliaryLogDir().resolve("agent")
-    private val auxLogger by lazy { MultiSinkMessageWriter(auxLogDir) }
+    private val auxRunLogDir: Path by lazy { getRunLogDir0() }
+    private val auxLogger by lazy { MultiSinkMessageWriter(auxRunLogDir) }
 
     val domService: DomService
         get() = (session.getOrCreateBoundDriver() as? AbstractWebDriver)?.domService
@@ -271,8 +272,6 @@ class InferenceEngine(
         return response.content
     }
 
-    // ------------------------------ Event Handler Methods --------------------------------
-
     private fun onWillInfer(context: ExecutionContext, messages: AgentMessageList, actionType: String) {
         // Emit AgentEventBus inference event
         AgentEventBus.emitInferenceEvent(
@@ -395,7 +394,12 @@ class InferenceEngine(
         )
     }
 
-    private fun onDidSummarizeInfer(instruction: String?, textContent: String, response: ModelResponse, inferenceTimeMillis: Long) {
+    private fun onDidSummarizeInfer(
+        instruction: String?,
+        textContent: String,
+        response: ModelResponse,
+        inferenceTimeMillis: Long
+    ) {
         // Emit AgentEventBus inference event
         AgentEventBus.emitInferenceEvent(
             eventType = AgenticEvents.InferenceEventTypes.ON_DID_SUMMARIZE_INFER,
@@ -421,15 +425,13 @@ class InferenceEngine(
         )
     }
 
-    // ------------------------------ Small utilities --------------------------------
-
     private fun logSummary(filename: String, payload: Map<String, Any?>): Path {
-        val path = auxLogDir.resolve("summary").resolve(filename)
+        val path = auxRunLogDir.resolve("summary").resolve(filename)
         return auxLogger.writeTo(payload, path)
     }
 
     private fun log(subdirectory: String, filename: String, payload: Map<String, Any?>): Path {
-        val path = auxLogDir.resolve(subdirectory).resolve(filename)
+        val path = auxRunLogDir.resolve(subdirectory).resolve(filename)
         return auxLogger.writeTo(payload, path)
     }
 
@@ -440,7 +442,13 @@ class InferenceEngine(
         if (!enabled) return null
 
         val payload = mapOf("requestId" to requestId, "messages" to messages)
-        val path = auxLogDir.resolve(subdirectory).resolve(filename)
+        val path = auxRunLogDir.resolve(subdirectory).resolve(filename)
         return auxLogger.writeTo(payload, path)
+    }
+
+    private fun getRunLogDir0(): Path {
+        val auxLogDir = AppPaths.detectAuxiliaryLogDir().resolve("agent")
+        val agentId = agent.uuid.toString()
+        return auxLogDir.resolve(AppPaths.fromTime(agent.startTime)).resolve(agentId)
     }
 }
