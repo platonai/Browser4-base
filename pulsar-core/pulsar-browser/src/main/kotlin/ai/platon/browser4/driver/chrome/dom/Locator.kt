@@ -12,6 +12,7 @@ open class Locator(
         XPATH("xpath"),
         HASH("hash"),
         BACKEND_NODE_ID("backend"),
+        @Deprecated("Use `backend:` instead of fbn: for better consistency and clarity. The frame context can be determined from the backend node id itself.")
         FRAME_BACKEND_NODE_ID("fbn"),
         NODE_ID("node"),
         INDEX("index");

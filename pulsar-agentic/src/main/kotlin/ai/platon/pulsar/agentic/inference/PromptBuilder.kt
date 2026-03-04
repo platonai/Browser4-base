@@ -73,8 +73,8 @@ class PromptBuilder() {
  遵循以下规则使用浏览器和浏览网页：
 
 - domain: 方法域，如 driver, browser, skill.debug.scraping 等，可以用点号区分子域
-- method: 方法名，如 click, fill, extract 等，与 Kotlin 函数名保持一致，遵循 Kotlin 命名规范
-- 输出结果中，定位节点时 `selector` 字段始终填入 `locator` 的值，不提供不能确定的参数
+- method: 方法名，如 click, fill, extract 等
+- 输出结果中，定位节点时 `selector` 字段始终填入 `locator` 的值
 - 确保 `locator` 与对应的可交互元素列表中的 `locator` 完全匹配，或者与无障碍树节点属性完全匹配，准确定位该节点
 - JSON 格式输出时，禁止包含任何额外文本
 - 从`## 浏览器状态`段落获得所有打开标签页的信息
@@ -83,7 +83,6 @@ class PromptBuilder() {
 - 如果目标页面在**新标签页**打开，使用 `browser.switchTab(tabId: String)` 切换到目标页面，从`## 浏览器状态`段落获得 `tabId`
 - 按键操作（如"按回车"），用press方法（参数为"A"/"Enter"/"Space"）。特殊键首字母大写。不要模拟点击屏幕键盘上的按键
 - 仅对特殊按键（如 Enter、Tab、Escape）进行首字母大写
-- 注意：用户难以区分按钮和链接
 - 若预期元素缺失，尝试刷新页面、滚动或返回上一页
 - 若向字段输入内容：1. 无需先滚动和聚焦（工具内部处理）2. 可能需1) 回车 2) 显式搜索按钮 3) 下拉选项以完成操作。
 - 若填写输入框后操作序列中断，通常是因为页面发生了变化（例如输入框下方弹出了建议选项）

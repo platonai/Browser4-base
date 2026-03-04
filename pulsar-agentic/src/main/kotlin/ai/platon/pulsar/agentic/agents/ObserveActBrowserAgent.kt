@@ -33,7 +33,7 @@ class ObserveActBrowserAgent constructor(
         }
 
         if (actResult.success) {
-            updateTodo(context, actResult)
+
             updatePerformanceMetrics(step, stepStartTime, true)
 
             logger.info("🏁 step.done sid={} step={} method={} result={}", sid, step, method, preview)

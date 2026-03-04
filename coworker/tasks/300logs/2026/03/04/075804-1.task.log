@@ -1,0 +1,52 @@
+Task: 1
+Description: Task from 1.md
+Original File: 1.md
+Started: 2026-03-04 07:59:04
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\1.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\04\MEMORY.20260304.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\04\MEMORY.20260304.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Ensure you do not overwrite existing content, always append.
+
+
+[Monthly Memory (2026-03)]:
+# Monthly Memory - 2026-03
+
+## 2026-03-01
+- **Task**: Reimplement Mock MCP Server
+- **Summary**: Reimplemented MockMCPServer using `io.modelcontextprotocol` SDK (v0.8.1). Updated `pulsar-tests-common` dependencies and refactored endpoints to use Maps for serialization. Verified with updated unit and E2E tests, resolving Jackson serialization issues with `RestTestClient`.
+- **Lessons**: Explicitly converting `ObjectNode` to `Map` ensures correct serialization for `RestTestClient`. Use `-am` flag when building dependent modules.
+
+## 2026-03-02
+- **Tasks**: Completed `delete-copilot-branches.ps1`, improved `run-agent-examples`, added filtering to `check_links.py`, created `move-scripts.py`, enhanced `count-total-token-usage.py`, reviewed AI Software Factory design, and implemented initial `orchestrator.ps1`.
+- **Summary**: Focused on tooling improvements and implementing the AI Software Factory infrastructure. Delivered scripts for branch cleanup, link checking, script relocation, and token usage analysis. Reviewed and implemented the initial version of the AI orchestrator.
+- **Lessons**: Local installation of dependencies is key for multi-module builds. Directory-based state machines provide robustness for AI workflows.
+
+## 2026-03-03
+- **Tasks**: Documented `orchestrator.ps1` (English/Chinese). Implemented `Invoke-Copilot` in `orchestrator.ps1`. Created `refine-last-draft.ps1/.sh`. Enhanced agent context logging in `AgentStateManager`. Documented agent state transformations.
+- **Summary**: Continued work on the AI Software Factory. Improved the orchestrator script with real Copilot invocation. Added script to refine drafts. Standardized agent logging directory structure. Documented key architectural components.
+- **Lessons**: Reusing existing script patterns ensures reliability. Directory-based state machines simplify monitoring.
+
+
+[Daily Memory (2026-03-04)]:
+# Daily Memory - 2026-03-04
+
+## Task: Remove ToDoManager
+- **Goal**: Remove `ToDoManager` class and its usages from `BrowserPerceptiveAgent` and documentation, as it is no longer needed.
+- **Outcome**: Deleted `pulsar-agentic/src/main/kotlin/ai/platon/pulsar/agentic/inference/todo/ToDoManager.kt`. Removed `ToDoManager` usage and related code blocks (initialization, progress updates, task completion) from `BrowserPerceptiveAgent.kt`. Removed `todo*` configuration flags from `AgentConfig` in `BrowserPerceptiveAgent.kt`. Updated `docs-dev/agentic/AgentFileSystem-Review-2026-02-09.md` to remove reference.
+- **Lessons**: Careful code removal requires checking for side effects (compilation errors) and verifying all usages, including documentation.
+
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\04\075804-1.copilot.log

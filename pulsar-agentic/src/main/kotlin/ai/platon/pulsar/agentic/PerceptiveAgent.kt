@@ -137,7 +137,7 @@ data class ObserveOptions(
 
 data class ObserveResult constructor(
     // the DOM node locator, format is `frameIndex,backendNodeId`
-    @Deprecated("")
+    @Deprecated("Locator is deprecated and will be removed in future versions. Use backendNodeId directly for element identification.")
     val locator: String? = null,
 
     // the domain of the tool call, `driver`, `browser`, `fs`, `agent`, etc
