@@ -418,9 +418,8 @@ class AgentStateManager(
     }
 
     fun writeProcessTrace(trace: ProcessTrace) {
-        val event = trace.event ?: "unknown"
-        val fileName = "$event.trace.log"
-        val jsonFileName = "$event.trace.jsonl"
+        val fileName = "agent-trace.log"
+        val jsonFileName = "agent-trace.jsonl"
         MessageWriter.writeOnce(auxRunLogDir.resolve(fileName), trace.toString())
         MessageWriter.writeOnce(auxRunLogDir.resolve(jsonFileName), trace.toJson())
     }
