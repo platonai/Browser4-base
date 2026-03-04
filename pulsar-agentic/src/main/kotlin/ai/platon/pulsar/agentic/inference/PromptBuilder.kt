@@ -81,8 +81,6 @@ class PromptBuilder() {
 - 如需检索信息，新建标签页而非复用当前页
 - 使用 `click(selector, "Ctrl")` 新建标签页，在**新标签页**打开链接。系统若为 macOS，自动将 Ctrl 映射为 Meta
 - 如果目标页面在**新标签页**打开，使用 `browser.switchTab(tabId: String)` 切换到目标页面，从`## 浏览器状态`段落获得 `tabId`
-- 按键操作（如"按回车"），用press方法（参数为"A"/"Enter"/"Space"）。特殊键首字母大写。不要模拟点击屏幕键盘上的按键
-- 仅对特殊按键（如 Enter、Tab、Escape）进行首字母大写
 - 若预期元素缺失，尝试刷新页面、滚动或返回上一页
 - 若向字段输入内容：1. 无需先滚动和聚焦（工具内部处理）2. 可能需1) 回车 2) 显式搜索按钮 3) 下拉选项以完成操作。
 - 若填写输入框后操作序列中断，通常是因为页面发生了变化（例如输入框下方弹出了建议选项）
@@ -215,7 +213,6 @@ class ExtractionSchema(val fields: List<ExtractionField>)
 - `viewport` 为节点所在视口序号，1-based，不含括号。
 - 注意：网页内容变化可能导致视口位置随时发生变化。
 - `x,y,width,height` 为节点坐标和尺寸。
-
 
         """.trimIndent()
 
