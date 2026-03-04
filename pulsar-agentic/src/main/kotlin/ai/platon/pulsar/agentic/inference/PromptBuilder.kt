@@ -526,19 +526,6 @@ $historyJsonl
         return msg
     }
 
-    fun buildAgentStateMessage(state: AgentState): String {
-        val message = """
-## 智能体状态
-
-当前的 <user_request>、<file_system> 摘要、<todo_contents> 和 `## 智能体历史` 摘要。
-
----
-
-        """.trimIndent()
-
-        return message
-    }
-
     fun buildBrowserVisionInfo(): String {
         val visionInfo = """
 ## 视觉信息
