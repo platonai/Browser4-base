@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.expectBody
 import kotlin.test.assertFalse
@@ -35,6 +36,7 @@ import kotlin.test.assertTrue
  */
 @Tag("E2ETest")
 class MCPToolControllerE2ETest : RestAPITestBase() {
+    private val logger = LoggerFactory.getLogger(MCPToolControllerE2ETest::class.java)
     private val objectMapper = jacksonObjectMapper()
 
     /**
@@ -95,7 +97,11 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
     @AfterEach
     fun cleanUpSessions() {
         // Best-effort cleanup of any sessions left open by the test
-        try { callTool("kill_all_sessions") } catch (_: Exception) { }
+        try {
+            callTool("kill_all_sessions")
+        } catch (e: Exception) {
+            logger.debug("Cleanup kill_all_sessions failed (may be expected): {}", e.message)
+        }
         createdSessions.clear()
     }
 
@@ -285,11 +291,7 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
         callTool("navigate", mapOf("sessionId" to sid, "url" to MOCK_PRODUCT_LIST_URL))
 
-        val response = callTool("go_back", mapOf("sessionId" to sid))
         assertToolRecognized("go_back", mapOf("sessionId" to sid))
-        // Tool should be dispatched without "Unknown tool" error
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"))
     }
 
     @Test
@@ -297,9 +299,7 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
     fun testGoForward() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
 
-        val response = callTool("go_forward", mapOf("sessionId" to sid))
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"))
+        assertToolRecognized("go_forward", mapOf("sessionId" to sid))
     }
 
     @Test
@@ -307,9 +307,7 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
     fun testReload() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
 
-        val response = callTool("reload", mapOf("sessionId" to sid))
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"))
+        assertToolRecognized("reload", mapOf("sessionId" to sid))
     }
 
     // =========================================================================
@@ -394,27 +392,21 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
     @DisplayName("aria_snapshot returns accessibility snapshot (cli: snapshot)")
     fun testAriaSnapshot() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
-        val response = callTool("aria_snapshot", mapOf("sessionId" to sid))
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"), "aria_snapshot should be recognized")
+        assertToolRecognized("aria_snapshot", mapOf("sessionId" to sid))
     }
 
     @Test
     @DisplayName("evaluate runs JavaScript and returns the result (cli: eval)")
     fun testEvaluate() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
-        val response = callTool("evaluate", mapOf("sessionId" to sid, "expression" to "document.title"))
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"), "evaluate should be recognized")
+        assertToolRecognized("evaluate", mapOf("sessionId" to sid, "expression" to "document.title"))
     }
 
     @Test
     @DisplayName("screenshot captures the page (cli: screenshot)")
     fun testScreenshot() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
-        val response = callTool("screenshot", mapOf("sessionId" to sid))
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"), "screenshot should be recognized")
+        assertToolRecognized("screenshot", mapOf("sessionId" to sid))
     }
 
     @Test
@@ -422,33 +414,27 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
     fun testPdfFallback() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
         // pdf in cli.ts calls evaluate with a string expression
-        val response = callTool(
+        assertToolRecognized(
             "evaluate",
             mapOf(
                 "sessionId" to sid,
                 "expression" to "'PDF generation not directly supported; use screenshot as alternative'"
             )
         )
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"), "evaluate (pdf) should be recognized")
     }
 
     @Test
     @DisplayName("page_url returns the current URL")
     fun testPageUrl() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
-        val response = callTool("page_url", mapOf("sessionId" to sid))
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"), "page_url should be recognized")
+        assertToolRecognized("page_url", mapOf("sessionId" to sid))
     }
 
     @Test
     @DisplayName("page_title returns the current page title")
     fun testPageTitle() {
         val sid = openAndNavigate(MOCK_PRODUCT_DETAIL_URL)
-        val response = callTool("page_title", mapOf("sessionId" to sid))
-        val text = textContent(response)
-        assertFalse(text.contains("Unknown tool:"), "page_title should be recognized")
+        assertToolRecognized("page_title", mapOf("sessionId" to sid))
     }
 
     // =========================================================================
