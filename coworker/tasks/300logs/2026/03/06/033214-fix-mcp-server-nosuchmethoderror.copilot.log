@@ -1,0 +1,176 @@
+● Read coworker/tasks/2working/fix-mcp-server-nosuchmethoderror.md
+  └ 23 lines read
+
+● Glob "**/MockMCPServer*.kt"
+  └ 1 file found
+
+● Glob "**/TestMCPServer*.kt"
+  └ No matches found
+
+● Read pulsar-tests/pulsar-tests-common/src/main/kotlin/ai/platon/pulsar/test/mcp/MockMCPServer.kt
+  └ 289 lines read
+
+● Glob "**/TestMCPServer*.java"
+  └ No matches found
+
+● Glob "**/TestMCPServer*"
+  └ No matches found
+
+● Find test files
+  $ find /home/vincent/workspace/Browser4-4.6 -name "TestMCPServer*" 2>/dev/null
+  └ 3 lines...
+
+● Find test source files
+  $ find /home/vincent/workspace/Browser4-4.6 -name "TestMCPServer*.java" -o -name
+  "TestMCPServer*.kt" 2>/dev/null
+  └ 1 line...
+
+● Find test files that use MockMCPServer
+  $ find /home/vincent/workspace/Browser4-4.6 -path "*/test*" -name "*.kt" | xargs grep -l
+  "MockMCPServer\|callTool" 2>/dev/null | head -20
+  └ 9 lines...
+
+● Explore test directory structure
+  $ find /home/vincent/workspace/Browser4-4.6/pulsar-tests -name "*.kt" -path "*/test*" | head -20
+  && echo "---" && ls /home/vincent/workspace/Browser4-4.6/pulsar-tests/pulsar-tests-common/src/
+  └ 23 lines...
+
+● Check recent git history
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager log --oneline -10 && echo "---" && git
+   --no-pager status --short | head -20
+  └ 18 lines...
+
+● Check if test files were deleted
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager log --all --oneline --diff-filter=D --
+   "*TestMCPServer*" 2>/dev/null | head -10
+  └ 4 lines...
+
+● Show what happened to test files in the rename commit
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 05d83f34a --name-status | grep -i
+   "TestMCP\|MockMCP" | head -20
+  └ 4 lines...
+
+● Find all MCP test Kotlin files
+  $ find /home/vincent/workspace/Browser4-4.6/pulsar-tests -name "*.kt" -path "*/mcp*" 2>/dev/null
+  └ 5 lines...
+
+● Check the Update commit
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 68b5c0667 --name-status | grep -i
+   "TestMCP\|MockMCP" | head -20
+  └ 5 lines...
+
+● Show the deleted test file content
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 68b5c0667:pulsar-tests/pulsar-tes
+  ts-common/src/test/kotlin/ai/platon/pulsar/test/mcp/legacy/TestMCPServerMock.kt 2>/dev/null | head
+   -100
+  └ 1 line...
+
+● Show test file at rename commit
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 05d83f34a:pulsar-tests/pulsar-tes
+  ts-common/src/test/kotlin/ai/platon/pulsar/test/mcp/TestMCPServerMock.kt 2>/dev/null | head -100
+  └ 101 lines...
+
+● Show legacy MockMCPServer
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 68b5c0667:pulsar-tests/pulsar-tes
+  ts-common/src/main/kotlin/ai/platon/pulsar/test/mcp/legacy/MockMCPServer.kt 2>/dev/null | head
+  -100
+  └ 1 line...
+
+● Show legacy MockMCPServer from git diff
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 68b5c0667 -- "pulsar-tests/pulsar
+  -tests-common/src/main/kotlin/ai/platon/pulsar/test/mcp/legacy/MockMCPServer.kt" | head -150
+  └ 151 lines...
+
+● Get full TestMCPServerMock content
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 05d83f34a:pulsar-tests/pulsar-tes
+  ts-common/src/test/kotlin/ai/platon/pulsar/test/mcp/TestMCPServerMock.kt 2>/dev/null
+  └ 159 lines...
+
+● Get full TestMCPServerForPluginMock content
+  $ cd /home/vincent/workspace/Browser4-4.6 && git --no-pager show 05d83f34a:pulsar-tests/pulsar-tes
+  ts-common/src/test/kotlin/ai/platon/pulsar/test/mcp/TestMCPServerForPluginMock.kt 2>/dev/null
+  └ 474 lines...
+
+Now I understand the issue. The test source files were deleted but stale compiled `.class` files remain. I need to:
+1. Add a `callTool(ObjectNode)` overload to `MockMCPServer` (tests call it with Jackson's `ObjectNode`)
+2. Restore the test source files
+
+● Edit pulsar-tests/pulsar-tests-common/src/main/kotlin/ai/platon/pulsar/test/mcp/MockMCPServer.kt
+  (+11)
+
+Now restore the test source files:
+
+● Create test directory
+  $ mkdir -p /home/vincent/workspace/Browser4-4.6/pulsar-tests/pulsar-tests-common/src/test/kotlin/a
+  i/platon/pulsar/test/mcp/
+  └ 1 line...
+
+● Create
+  pulsar-tests/pulsar-tests-common/src/test/kotlin/ai/platon/pulsar/test/mcp/TestMCPServerMock.kt
+  (+169)
+
+● Create pulsar-tests/pulsar-tests-common/src/test/kotlin/ai/platon/pulsar/test/mcp/TestMCPServerForP
+  luginMock.kt (+420)
+
+Now let's build and run the tests to verify:
+
+● Run the failing tests
+  $ cd /home/vincent/workspace/Browser4-4.6 && ./mvnw -pl pulsar-tests/pulsar-tests-common -am test
+  -Dsurefire.failIfNoSpecifiedTests=false -Dtest="TestMCPServerMock,TestMCPServerForPluginMock" -q
+  2>&1 | tail -30
+  └ 1 line...
+
+● read_bash
+  └ 31 lines...
+
+● Check test results summary
+  $ cd /home/vincent/workspace/Browser4-4.6 && ./mvnw -pl pulsar-tests/pulsar-tests-common -am test
+  -Dsurefire.failIfNoSpecifiedTests=false -Dtest="TestMCPServerMock,TestMCPServerForPluginMock" 2>&1
+   | grep -E "Tests run:|BUILD|ERROR|FAIL" | tail -20
+  └ 10 lines...
+
+All 27 tests pass. Now commit the fix:
+
+● Commit the fix
+  $ cd /home/vincent/workspace/Browser4-4.6 && git add
+  pulsar-tests/pulsar-tests-common/src/main/kotlin/ai/platon/pulsar/test/mcp/MockMCPServer.kt pu
+  lsar-tests/pulsar-tests-common/src/test/kotlin/ai/platon/pulsar/test/mcp/TestMCPServerMock.kt
+  pulsar-tests/pulsar-tests-common/src/test/kotlin/ai/platon/pulsar/test/mcp/TestMCPServerForPlu
+  ginMock.kt && git commit -m "Fix: restore test sources and add callTool(JsonNode) overload to ...
+  └ 13 lines...
+
+Now update the daily memory file:
+
+● Check memory directory
+  $ mkdir -p /home/vincent/workspace/Browser4-4.6/coworker/tasks/300logs/2026/03/06/ && ls
+  /home/vincent/workspace/Browser4-4.6/coworker/tasks/300logs/2026/03/06/
+  └ 3 lines...
+
+● Update daily memory file
+  $ cat >>
+  /home/vincent/workspace/Browser4-4.6/coworker/tasks/300logs/2026/03/06/MEMORY.20260306.md <<
+  'EOF'
+
+  ## Task: fix-mcp-server-nosuchmethoderror (2026-03-06)...
+  └ 37 lines...
+
+The task is complete. Here's what was done:
+
+**Root cause**: Test source files `TestMCPServerMock.kt` and `TestMCPServerForPluginMock.kt` were deleted in a prior commit, but stale compiled `.class` files remained in `target/test-classes`. These stale classes called `MockMCPServer.callTool(String)` (old legacy API), while the current implementation only has `callTool(Map<String, Any>)`.
+
+**Fix**:
+1. Added a `callTool(JsonNode)` overload to `MockMCPServer` that accepts a Jackson `JsonNode`, converts it to `Map<String, Any>`, and delegates to the existing method
+2. Restored both test source files from git history, adapted to camelCase naming with `@DisplayName` per project conventions
+
+**Result**: All 27 tests now pass (was 3 failures + 14 errors from `NoSuchMethodError`).
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         4m 1s
+Total session time:     9m 49s
+Total code changes:     +600 -0
+Breakdown by AI model:
+ claude-sonnet-4.6       1.2m in, 15.0k out, 1.1m cached (Est. 1 Premium request)
