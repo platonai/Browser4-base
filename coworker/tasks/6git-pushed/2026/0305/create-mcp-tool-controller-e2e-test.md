@@ -9,6 +9,6 @@ Refer to the existing E2E test for the `CommandController` as a reference for ho
 
 [CommandControllerE2ETest.kt](../../../pulsar-tests/pulsar-rest-tests/src/test/kotlin/ai/platon/pulsar/rest/api/controller/CommandControllerE2ETest.kt)
 
-All commands supported by cli.ts should be covered in the test cases to ensure comprehensive testing of the `MCPToolController`.
+All commands supported by program.ts should be covered in the test cases to ensure comprehensive testing of the `MCPToolController`.
 
-[cli.ts](../../../sdks/browser4-cli/src/cli.ts)
+[program.ts](../../../sdks/browser4-cli/src/program.ts)
