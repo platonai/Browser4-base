@@ -441,7 +441,9 @@
         <!-- TODO: This artifact was moved to: jakarta.servlet » jakarta.servlet-api -->
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
-        <ktor.version>3.3.1</ktor.version>
+        <io.modelcontextprotocol.version>0.8.1</io.modelcontextprotocol.version>
+        <!-- keep consistent with io.modelcontextprotocol:kotlin-sdk-core-jvm:jar:0.8.1 -->
+        <ktor.version>3.2.3</ktor.version>
         <!-- required by pulsar-browser -->
         <websocket.api.version>1.1</websocket.api.version>
 

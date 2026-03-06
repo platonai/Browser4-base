@@ -235,6 +235,7 @@
         <!-- Dependencies -->
         <pulsar-jsoup.version>1.14.3</pulsar-jsoup.version>
         <kotlinx-coroutines.version>1.10.1</kotlinx-coroutines.version>
-        <ktor.version>3.3.1</ktor.version>
+        <!-- keep consistent with io.modelcontextprotocol:kotlin-sdk-core-jvm:jar:0.8.1 -->
+        <ktor.version>3.2.3</ktor.version>
     </properties>
 </project>
