@@ -67,14 +67,16 @@ async function installHttpTransport(httpServer: http.Server, serverBackendFactor
       const host = req.headers.host?.toLowerCase();
       if (!host) {
         res.statusCode = 400;
-        return res.end('Missing host');
+        res.end('Missing host');
+        return;
       }
 
       // Prevent DNS evil.com -> localhost rebind.
       if (!allowedHosts.includes(host)) {
         // Access from the browser is forbidden.
         res.statusCode = 403;
-        return res.end('Access is only allowed at ' + allowedHosts.join(', '));
+        res.end('Access is only allowed at ' + allowedHosts.join(', '));
+        return;
       }
     }
 
@@ -86,10 +88,12 @@ async function installHttpTransport(httpServer: http.Server, serverBackendFactor
       process.emit('SIGINT');
       return;
     }
-    if (url.pathname.startsWith('/sse'))
+    if (url.pathname.startsWith('/sse')) {
       await handleSSE(serverBackendFactory, req, res, url, sseSessions);
-    else
-      await handleStreamable(serverBackendFactory, req, res, streamableSessions);
+      return;
+    }
+
+    await handleStreamable(serverBackendFactory, req, res, streamableSessions);
   });
 
   return url;

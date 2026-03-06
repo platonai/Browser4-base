@@ -137,9 +137,13 @@ data class TcEvaluate constructor(
 
     private fun doGetPreview(): String {
         return when (value) {
-            is Number -> "$value"
+            is Number,
             is Boolean -> "$value"
-            else -> Strings.compactInline("$value", 50)
+            is String -> Strings.compactInline(value, 50)
+            else -> mapOf(
+                "description" to description, "expression" to expression,
+                "className" to className, "exception" to exception?.message
+            ).filterValues { it != null }.entries.joinToString { (k, v) -> "$k=$v" }
         }
     }
 }
