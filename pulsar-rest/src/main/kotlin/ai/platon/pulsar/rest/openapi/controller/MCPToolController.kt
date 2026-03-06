@@ -66,8 +66,6 @@ class MCPToolController(
 ) {
     private val logger = LoggerFactory.getLogger(MCPToolController::class.java)
 
-    private val objectMapper = com.fasterxml.jackson.databind.ObjectMapper()
-
     // =========================================================================
     // Tool call endpoint
     // =========================================================================

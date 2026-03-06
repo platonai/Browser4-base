@@ -65,6 +65,9 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
                                 pageUrl = paramString(args, "pageUrl", functionName)!!
                             )
                         )
+                        // After navigation, wait for the page to load by waiting for the body element to be present
+                        driver.waitForNavigation()
+                        driver.waitForSelector("body", timeoutMillis = 10_000)
                     }
                     else -> throw IllegalArgumentException("navigate requires 'url' or ('rawUrl','pageUrl')")
                 }
