@@ -270,7 +270,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
             )
         }
 
-        // TODO: fix me - feature postponed
+        // TODO: fix me - virtualScrollContainer feature is postponed
         // assertEquals(true, scrollContainer.isScrollable, "Expected #virtualScrollContainer to be marked scrollable")
 
         val direct = findNodeById(root, "virtualScrollContainer")

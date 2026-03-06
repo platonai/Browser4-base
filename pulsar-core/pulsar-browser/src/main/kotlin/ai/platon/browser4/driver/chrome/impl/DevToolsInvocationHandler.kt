@@ -97,7 +97,7 @@ class DevToolsInvocationHandler(impl: Any) : SuspendAwareHandler(impl) {
         val isSuspend = method.parameterTypes.lastOrNull()
             ?.let { Continuation::class.java.isAssignableFrom(it) } == true
         if (isSuspend) {
-            require(args != null && args.isNotEmpty()) { "args must not be null or empty for suspend method" }
+            require(!args.isNullOrEmpty()) { "args must not be null or empty for suspend method" }
             @Suppress("UNCHECKED_CAST")
             val cont = args.last() as Continuation<Any?>
             invocationScope.launch(cont.context) {
