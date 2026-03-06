@@ -1,11 +1,5 @@
 [ {
   "domain" : "driver",
-  "method" : "jvm",
-  "returnType" : "JvmWebDriver",
-  "description" : "Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on. @mcp",
-  "help" : "Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on. @mcp\n\nJvmWebDriver is not recommended, use Kotlin native suspend methods instead, or use SDK instead."
-}, {
-  "domain" : "driver",
   "method" : "addInitScript",
   "arguments" : [ {
     "name" : "script",

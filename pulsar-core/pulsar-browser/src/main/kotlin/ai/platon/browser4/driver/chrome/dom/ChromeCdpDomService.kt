@@ -474,6 +474,9 @@ class ChromeCdpDomService(
         return BrowserUseState(browserState, domState)
     }
 
+    /**
+     * Reserved.
+     * */
     override suspend fun computeFullClientInfo(): FullClientInfo {
         // Helpers
         suspend fun evalString(expr: String): String? = try {

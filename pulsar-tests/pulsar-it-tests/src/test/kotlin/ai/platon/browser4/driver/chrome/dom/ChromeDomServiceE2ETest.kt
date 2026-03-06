@@ -15,7 +15,9 @@ import kotlin.test.assertIs
 import java.io.File
 import java.time.Instant
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 
+@Tag("E2ETest")
 class ChromeDomServiceE2ETest : WebDriverTestBase() {
     private val testURL get() = "$generatedAssetsBaseURL/interactive-dynamic.html"
 

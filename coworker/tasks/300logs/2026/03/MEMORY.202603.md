@@ -31,3 +31,10 @@
 - Advanced AI Software Factory architecture and documentation with orchestrator workflows, templates, and directory-based execution/state patterns.
 - Refactored agent/tool internals by removing obsolete ToDoManager logic, integrating native MCP/Skills execution in `AgentToolExecutor`, and adding broad MCP controller test coverage.
 - Recurring execution insight: use robust absolute paths, reliable PowerShell argument quoting, and `-am`/local installs to avoid cross-module and invocation-context failures.
+
+### Daily Rollup Update (2026-03-01 to 2026-03-05)
+- Migrated MCP mock server/testing to official SDK patterns, stabilized Map-based payload handling, and fixed stale test-class/API mismatch failures.
+- Expanded MCP controller coverage (unit + E2E focus), with environment caveats noted for Kotlin daemon startup.
+- Built/iterated AI Software Factory orchestration and related coworker automation scripts/docs.
+- Refined tooling reliability around absolute-path resolution, PowerShell argument quoting, and script modularization.
+- Reaffirmed execution hygiene: prefer repo-root absolute paths and `-am`/local installs for multi-module consistency.

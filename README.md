@@ -95,6 +95,7 @@ val result = agent.run("""
    ```
 
    Explore and run examples in the `browser4-examples` module to see Browser4 in action.
+   Java-compatible examples have been removed; use Kotlin APIs, SDKs, or CLI tools instead.
 
 For Docker deployment, see our [Docker Hub repository](https://hub.docker.com/r/galaxyeye88/browser4).
 
@@ -367,5 +368,4 @@ agent.run("""
 ## License
 
 Apache 2.0 License. See [LICENSE](LICENSE) for details.
-
 

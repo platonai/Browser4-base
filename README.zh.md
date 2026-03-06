@@ -106,6 +106,7 @@ val result = agent.run("""
    ```
 
    在 `browser4-examples` 模块中探索并运行示例，直观了解 Browser4 的能力。
+   Java 兼容示例已移除，请改用 Kotlin API、SDK 或 CLI 工具。
 
 Docker 部署请参见我们的 [Docker Hub 仓库](https://hub.docker.com/r/galaxyeye88/browser4)。
 
@@ -379,5 +380,4 @@ export PROXY_ROTATION_URL=https://your-proxy-provider.com/rotation-endpoint
 - LLM：大语言模型 (LLM)
 - Structured Logging：结构化日志
 - Auto Extraction：自动抽取
-
 

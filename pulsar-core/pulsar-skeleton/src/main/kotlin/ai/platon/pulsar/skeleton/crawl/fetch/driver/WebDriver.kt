@@ -206,15 +206,6 @@ interface WebDriver : Closeable {
     val timeoutPolicy: Map<String, Duration>
 
     /**
-     * Returns a JvmWebDriver to support other JVM languages, such as java, clojure, scala, and so on. @mcp
-     *
-     * JvmWebDriver is not recommended, use Kotlin native suspend methods instead, or use SDK instead.
-     *
-     * @see JvmWebDriver
-     * */
-    fun jvm(): JvmWebDriver
-
-    /**
      * Adds a script which would be evaluated whenever the page is navigated. @mcp
      *
      * The script is evaluated after the document was created but before any of
@@ -1438,7 +1429,6 @@ interface WebDriver : Closeable {
      * */
     @Throws(WebDriverException::class)
     suspend fun setPropertyAll(selector: String, propName: String, propValue: String)
-
 
     /**
      * Find hyperlinks in elements matching the CSS query. @mcp

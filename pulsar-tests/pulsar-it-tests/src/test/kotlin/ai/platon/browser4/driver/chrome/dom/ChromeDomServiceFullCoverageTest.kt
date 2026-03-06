@@ -11,6 +11,7 @@ import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import java.nio.file.Files
@@ -18,14 +19,12 @@ import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
-import org.junit.jupiter.api.DisplayName
 
 class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     private val testURL = interactiveDynamicURL
-//    private val testURL = "https://news.ycombinator.com/news"
 
     @Test
-        @DisplayName("Get trees, build and serialize end-to-end with assertions")
+    @DisplayName("Get trees, build and serialize end-to-end with assertions")
     fun getTreesBuildAndSerializeEndToEndWithAssertions() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
@@ -74,7 +73,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-        @DisplayName("Find element using css, xpath, backend id, element hash and convert to interacted element")
+    @DisplayName("Find element using css, xpath, backend id, element hash and convert to interacted element")
     fun findElementUsingCssXpathBackendIdElementHashAndConvertToInteractedElement() =
         runEnhancedWebDriverTest(testURL) { driver ->
             assertIs<PulsarWebDriver>(driver)
@@ -133,7 +132,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
             if (!xPath.isNullOrBlank()) {
                 val byXPath = service.findElement(ElementRefCriteria(xPath = xPath))
                 assertNotNull(byXPath)
-                assertEquals(t.nodeId, byXPath!!.nodeId)
+                assertEquals(t.nodeId, byXPath.nodeId)
             }
 
             // By backend node id
@@ -157,7 +156,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         }
 
     @Test
-        @DisplayName("Options toggling - no AX or Snapshot yields minimal enhanced nodes")
+    @DisplayName("Options toggling - no AX or Snapshot yields minimal enhanced nodes")
     fun optionsTogglingNoAxOrSnapshotYieldsMinimalEnhancedNodes() =
         runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
             assertIs<PulsarWebDriver>(driver)
@@ -196,7 +195,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         }
 
     @Test
-        @DisplayName("Scrollability and interactivity analysis on dynamic content")
+    @DisplayName("Scrollability and interactivity analysis on dynamic content")
     fun scrollabilityAndInteractivityAnalysisOnDynamicContent() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
@@ -298,7 +297,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-        @DisplayName("Dynamic content load is reflected in enhanced DOM tree")
+    @DisplayName("Dynamic content load is reflected in enhanced DOM tree")
     fun dynamicContentLoadIsReflectedInEnhancedDomTree() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
@@ -349,7 +348,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-        @DisplayName("SnapshotNodeEx bounds and rects are populated correctly")
+    @DisplayName("SnapshotNodeEx bounds and rects are populated correctly")
     fun snapshotnodeexBoundsAndRectsArePopulatedCorrectly() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
@@ -412,8 +411,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-        @DisplayName("SnapshotNodeEx bounds on interactive elements")
-    fun snapshotnodeexBoundsOnInteractiveElements() = runEnhancedWebDriverTest(testURL) { driver ->
+    @DisplayName("SnapshotNodeEx bounds on interactive elements")
+    fun snapshotNodeExBoundsOnInteractiveElements() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -530,13 +529,13 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         printlnPro(DomDebug.summarize(root2))
         val buttonNode2 = service.findElement(ElementRefCriteria(cssSelector = "button"))
         assertNotNull(buttonNode2)
-        val snap2 = buttonNode2!!.snapshotNode
+        val snap2 = buttonNode2.snapshotNode
         assertNotNull(snap2)
 
         val bcr2 = getBcr("button")
         val scrollX2 = jsNumber("window.scrollX || window.pageXOffset || 0") ?: 0.0
         val scrollY2 = jsNumber("window.scrollY || window.pageYOffset || 0") ?: 0.0
-        val cssPos2 = snap2!!.computedStyles?.get("position") ?: cssPosition
+        val cssPos2 = snap2.computedStyles?.get("position") ?: cssPosition
         val expectedAbsX2 = bcr2["x"]!! + if (cssPos2 == "fixed") 0.0 else scrollX2
         val expectedAbsY2 = bcr2["y"]!! + if (cssPos2 == "fixed") 0.0 else scrollY2
 
@@ -572,8 +571,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     }
 
     @Test
-        @DisplayName("SnapshotNodeEx scrollRects on scrollable container")
-    fun snapshotnodeexScrollrectsOnScrollableContainer() = runEnhancedWebDriverTest(testURL) { driver ->
+    @DisplayName("SnapshotNodeEx scrollRects on scrollable container")
+    fun snapshotNodeExScrollRectsOnScrollableContainer() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = ChromeCdpDomService(devTools)
@@ -594,22 +593,9 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         }
         assertTrue(hasContainer, "Expected #virtualScrollContainer to be present")
 
-        val options = SnapshotOptions(
-            maxDepth = 100,
-            includeAX = true,
-            includeSnapshot = true,
-            includeStyles = true,
-            includePaintOrder = true,
-            includeDOMRects = true,
-            includeScrollAnalysis = true,
-            includeVisibility = true,
-            includeInteractivity = true
-        )
-
-        val root = collectEnhancedRoot(service, options)
-
         // Find the scrollable container
         val scrollContainer = service.findElement(ElementRefCriteria(cssSelector = "#virtualScrollContainer"))
+        // TODO: fix me
         assertNotNull(scrollContainer, "Expected scroll container to be found")
 
         val snapshot = scrollContainer.snapshotNode
@@ -623,7 +609,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         assertTrue(bounds.height > 0, "Expected scroll container bounds height to be positive")
         printlnPro("ScrollContainer bounds: x=${bounds.x}, y=${bounds.y}, width=${bounds.width}, height=${bounds.height}")
 
-        // Test absoluteBounds (may be null if CDP doesn't provide bounds, only clientRects)
+        // Test absoluteBounds (maybe null if CDP doesn't provide bounds, only clientRects)
         if (snapshot.absoluteBounds != null) {
             val absoluteBounds = snapshot.absoluteBounds!!
             assertTrue(absoluteBounds.width > 0, "Expected scroll container absoluteBounds width to be positive")

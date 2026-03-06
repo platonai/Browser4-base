@@ -1,0 +1,82 @@
+Task: remove-jvm-webdriver-support
+Description: Task from remove-jvm-webdriver-support.md
+Original File: remove-jvm-webdriver-support.md
+Started: 2026-03-06 07:25:54
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\remove-jvm-webdriver-support.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\06\MEMORY.20260306.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\06\MEMORY.20260306.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Ensure you do not overwrite existing content, always append.
+
+
+[Monthly Memory (2026-03)]:
+# MEMORY.202603.md
+## Monthly Memory - 2026-03
+
+### Work Themes
+- **AI Software Factory Implementation**:Designed and implemented the "Architect" orchestrator, directory-based workflow structures, and supporting scripts (e.g., `orchestrator.ps1`, `refine-last-draft`).
+- **MCP & Agent Integration**: Reimplemented Mock MCP server using the official Kotlin SDK, refactored `AgentToolExecutor` for native MCP/Skills support, and added comprehensive controller tests.
+- **DevEx & Tooling Improvements**: Enhanced developer utilities including branch cleanup, link checking filters, script moving automation, and agent example runners.
+- **Refactoring & Cleanup**: Removed the obsolete `ToDoManager` component and standardized agent context logging directories.
+
+### Recurring Issues
+- **Scripting Fragility**:Repeated challenges with PowerShell argument passing (arrays vs. strings for CLI tools) and relative path resolution in helper scripts (`rename.ps1`, `coworker.ps1`).
+- **Build & Dependency Management**: Frequent build failures due to missing local dependencies in multi-module projects, requiring explicit `mvn install` or `-am` flags.
+- **Serialization Nuances**: Specific issues with Jackson `ObjectNode` vs. `Map` handling in `RestTestClient` and E2E tests.
+
+### Structural Bottlenecks
+- **Cross-Platform Maintenance**:Dual maintenance of `.ps1` and `.sh` scripts and handling path separator differences (backslashes vs. forward slashes) slows down tooling updates.
+- **Local Repository State**: Reliance on local artifacts for dependent modules complicates isolated task execution.
+
+### Efficiency Trend
+- **High Velocity**:Rapid transition from AI Software Factory design to functional implementation.
+- **Investment in Automation**: Proactive creation of maintenance tools (`move-scripts`, `check_links` filters) indicates a shift towards long-term efficiency over short-term fixes.
+
+### System Adjustments Proposed
+- **Robust Script Invocation**:Standardize PowerShell argument passing (prefer explicit quoting) and strictly verify relative paths for helper scripts.
+- **Unified Build Practices**: consistently use `-am` (also make) or `mvn install` when working with cross-module dependencies to ensure local repo consistency.
+- **Directory-Based Architectures**: Expand the use of directory-based state machines (validated by the Orchestrator and Agent Logging work) for managing complex asynchronous workflows.
+
+### Daily Rollup (2026-03-01 to 2026-03-04)
+- Rebuilt Mock MCP server using the official Kotlin SDK and aligned request handling/tests to Map-based payloads for reliable serialization.
+- Delivered automation/tooling improvements across coworker scripts (branch cleanup, orchestrator/copilot integration, draft refinement, link filtering, script relocation, and token usage reporting).
+- Advanced AI Software Factory architecture and documentation with orchestrator workflows, templates, and directory-based execution/state patterns.
+- Refactored agent/tool internals by removing obsolete ToDoManager logic, integrating native MCP/Skills execution in `AgentToolExecutor`, and adding broad MCP controller test coverage.
+- Recurring execution insight: use robust absolute paths, reliable PowerShell argument quoting, and `-am`/local installs to avoid cross-module and invocation-context failures.
+
+
+[Daily Memory (2026-03-06)]:
+
+## Task: fix-mcp-server-nosuchmethoderror (2026-03-06)
+
+### Summary
+Fixed `NoSuchMethodError` in `TestMCPServerMock` and `TestMCPServerForPluginMock` test classes.
+
+### Root Cause
+Test source files (`TestMCPServerMock.kt`, `TestMCPServerForPluginMock.kt`) were deleted in a prior commit (`68b5c0667`) but stale compiled `.class` files remained in `target/test-classes`. These stale classes called `MockMCPServer.callTool(String)` (the old legacy API), but the new `MockMCPServer` only had `callTool(Map<String, Any>)`. Maven ran the stale class files instead of recompiling, causing `NoSuchMethodError`.
+
+### Fix
+1. Restored `TestMCPServerMock.kt` and `TestMCPServerForPluginMock.kt` source files (adapted from git history at commit `05d83f34a`) with camelCase test method names and `@DisplayName` annotations per project conventions.
+2. Added a `callTool(JsonNode)` overload to `MockMCPServer` that converts a Jackson `JsonNode` to `Map<String, Any>` and delegates to the existing `callTool(Map<String, Any>)`, enabling tests that use Jackson's ObjectMapper API.
+
+### Result
+All 27 tests pass (was: 3 failures, 14 errors).
+
+### Lessons Learned
+- **Stale class files are a common trap**: When source files are deleted without `mvn clean`, stale `.class` files in `target/` continue to be executed by Maven's test runner, causing confusing `NoSuchMethodError` failures.
+- **Check git history for deleted files**: `git log --all --diff-filter=D -- "*FileName*"` quickly finds when and why a source file was deleted, and `git show <commit>:path` restores content.
+- **API compatibility**: When refactoring public APIs of shared test utilities (e.g., MockMCPServer), add overloads to support call sites rather than forcing all callers to update simultaneously.
+
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\06\072526-remove-jvm-webdriver-support.copilot.log

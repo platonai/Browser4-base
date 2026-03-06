@@ -1,16 +1,17 @@
 package ai.platon.browser4.driver.chrome.dom
 
-import ai.platon.pulsar.WebDriverTestBase
 import ai.platon.browser4.driver.chrome.RemoteDevTools
-import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
 import ai.platon.browser4.driver.chrome.dom.model.DOMTreeNodeEx
-import org.junit.jupiter.api.Assertions.*
+import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
+import ai.platon.pulsar.WebDriverTestBase
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import kotlin.math.abs
 import kotlin.test.Ignore
 import kotlin.test.assertIs
-import org.junit.jupiter.api.DisplayName
 
 class ChromeDomBoundsParityTest : WebDriverTestBase() {
 
@@ -34,21 +35,23 @@ class ChromeDomBoundsParityTest : WebDriverTestBase() {
             n.contentDocument?.let { dfs(it)?.let { return it } }
             return null
         }
+
         val html = dfs(doc)
         assertNotNull(html, "iframe#$iframeId contentDocument should contain an HTML element")
-        return html!!
+        return html
     }
 
     @Test
-        @DisplayName("bounds are in CSS pixels independent of DPR (scaling applied)")
-    fun boundsAreInCssPixelsIndependentOfDprScalingApplied() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
-        assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
-        val devTools = driver.implementation as RemoteDevTools
-        val service = ChromeCdpDomService(devTools)
+    @DisplayName("bounds are in CSS pixels independent of DPR (scaling applied)")
+    fun boundsAreInCssPixelsIndependentOfDprScalingApplied() =
+        runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
+            assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
+            val devTools = driver.implementation as RemoteDevTools
+            val service = ChromeCdpDomService(devTools)
 
-        // Inject a simple layout with a known CSS box size
-        devTools.runtime.evaluate(
-            """
+            // Inject a simple layout with a known CSS box size
+            devTools.runtime.evaluate(
+                """
             (function(){
               document.open();
               document.write(`<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}</style></head>
@@ -58,43 +61,43 @@ class ChromeDomBoundsParityTest : WebDriverTestBase() {
               document.close();
             })();
             """.trimIndent()
-        )
-        Thread.sleep(200)
+            )
+            Thread.sleep(200)
 
-        val options = SnapshotOptions(
-            maxDepth = 50,
-            includeAX = false,
-            includeSnapshot = true,
-            includeStyles = true,
-            includePaintOrder = true,
-            includeDOMRects = true,
-            includeScrollAnalysis = false,
-            includeVisibility = true,
-            includeInteractivity = false
-        )
+            val options = SnapshotOptions(
+                maxDepth = 50,
+                includeAX = false,
+                includeSnapshot = true,
+                includeStyles = true,
+                includePaintOrder = true,
+                includeDOMRects = true,
+                includeScrollAnalysis = false,
+                includeVisibility = true,
+                includeInteractivity = false
+            )
 
-        val root = collectEnhancedRoot(service, options)
-        val box = findNodeById(root, "box")
-        assertNotNull(box)
-        val bounds = box.snapshotNode?.bounds
-        assertNotNull(bounds, "Box should have snapshot bounds")
-        // CSS width/height must be as authored (not multiplied by DPR)
-        assertNear(bounds.width, 200.0, 1.0, "Box width should be 200 CSS px")
-        assertNear(bounds.height, 120.0, 1.0, "Box height should be 120 CSS px")
-    }
+            val root = collectEnhancedRoot(service, options)
+            val box = findNodeById(root, "box")
+            assertNotNull(box)
+            val bounds = box.snapshotNode?.bounds
+            assertNotNull(bounds, "Box should have snapshot bounds")
+            // CSS width/height must be as authored (not multiplied by DPR)
+            assertNear(bounds.width, 200.0, 1.0, "Box width should be 200 CSS px")
+            assertNear(bounds.height, 120.0, 1.0, "Box height should be 120 CSS px")
+        }
 
     @Test
     @Ignore("inner iframe features are postponed")
-        @DisplayName("iframe offsets and scroll are reflected in absolutePosition and visibility true when within viewport")
-    fun iframeOffsetsAndScrollAreReflectedInAbsolutepositionAndVisibilityTrueWhenWithinViewport()
-        = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
-        assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
-        val devTools = driver.implementation as RemoteDevTools
-        val service = driver.domService
+    @DisplayName("iframe offsets and scroll are reflected in absolutePosition and visibility true when within viewport")
+    fun iframeOffsetsAndScrollAreReflectedInAbsolutepositionAndVisibilityTrueWhenWithinViewport() =
+        runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
+            assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
+            val devTools = driver.implementation as RemoteDevTools
+            val service = driver.domService
 
-        // Build parent with an iframe using srcdoc (same-origin), scroll iframe content to 400
-        devTools.runtime.evaluate(
-            """
+            // Build parent with an iframe using srcdoc (same-origin), scroll iframe content to 400
+            devTools.runtime.evaluate(
+                """
             (function(){
               document.open();
               document.write(`<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}</style></head>
@@ -111,60 +114,64 @@ class ChromeDomBoundsParityTest : WebDriverTestBase() {
               document.close();
             })();
             """.trimIndent()
-        )
-        Thread.sleep(250)
+            )
+            Thread.sleep(250)
 
-        val options = SnapshotOptions(
-            maxDepth = 100,
-            includeAX = false,
-            includeSnapshot = true,
-            includeStyles = true,
-            includePaintOrder = true,
-            includeDOMRects = true,
-            includeScrollAnalysis = true,
-            includeVisibility = true,
-            includeInteractivity = false
-        )
+            val options = SnapshotOptions(
+                maxDepth = 100,
+                includeAX = false,
+                includeSnapshot = true,
+                includeStyles = true,
+                includePaintOrder = true,
+                includeDOMRects = true,
+                includeScrollAnalysis = true,
+                includeVisibility = true,
+                includeInteractivity = false
+            )
 
-        // Retry a few times until iframe HTML scroll reflects script
-        var root = collectEnhancedRoot(service, options)
-        var html = findIframeHtmlNode(root, "f1")
-        var retries = 0
-        while ((html.snapshotNode?.scrollRects?.y ?: 0.0) < 350.0 && retries < 3) {
-            Thread.sleep(200)
-            root = collectEnhancedRoot(service, options)
-            html = findIframeHtmlNode(root, "f1")
-            retries++
+            // Retry a few times until iframe HTML scroll reflects script
+            var root = collectEnhancedRoot(service, options)
+            var html = findIframeHtmlNode(root, "f1")
+            var retries = 0
+            while ((html.snapshotNode?.scrollRects?.y ?: 0.0) < 350.0 && retries < 3) {
+                Thread.sleep(200)
+                root = collectEnhancedRoot(service, options)
+                html = findIframeHtmlNode(root, "f1")
+                retries++
+            }
+
+            val inner = findNodeById(root, "inner")
+            assertNotNull(inner)
+
+            // Expected absolute X/Y: iframe.left + inner.left, iframe.top + (inner.top - scrollTop)
+            val expectedAbsX = 50.0 + 20.0
+            val expectedAbsY = 80.0 + (500.0 - 400.0)
+
+            val ap = inner.absolutePosition
+            assertNotNull(ap, "Absolute position should be computed for iframe descendants")
+            assertNear(ap.x, expectedAbsX, 3.0, "Absolute X should include iframe offset")
+            assertNear(ap.y, expectedAbsY, 3.0, "Absolute Y should include iframe offset minus scroll")
+
+            assertEquals(
+                true,
+                inner.isVisible,
+                "Inner element brought into iframe viewport by scroll should be visible"
+            )
+
+            // Validate iframe HTML's clientRects and scrollRects
+            val client = html.snapshotNode?.clientRects
+            val scroll = html.snapshotNode?.scrollRects
+            assertNotNull(client, "iframe HTML should have clientRects")
+            assertNotNull(scroll, "iframe HTML should have scrollRects")
+            assertNear(client.width, 300.0, 3.0, "iframe client width should match CSS width")
+            assertNear(client.height, 200.0, 3.0, "iframe client height should match CSS height")
+            assertNear(scroll.x, 0.0, 1.0, "iframe scrollX should be 0")
+            assertNear(scroll.y, 400.0, 50.0, "iframe scrollY should reflect window.scrollTo")
         }
-
-        val inner = findNodeById(root, "inner")
-        assertNotNull(inner)
-
-        // Expected absolute X/Y: iframe.left + inner.left, iframe.top + (inner.top - scrollTop)
-        val expectedAbsX = 50.0 + 20.0
-        val expectedAbsY = 80.0 + (500.0 - 400.0)
-
-        val ap = inner.absolutePosition
-        assertNotNull(ap, "Absolute position should be computed for iframe descendants")
-        assertNear(ap.x, expectedAbsX, 3.0, "Absolute X should include iframe offset")
-        assertNear(ap.y, expectedAbsY, 3.0, "Absolute Y should include iframe offset minus scroll")
-
-        assertEquals(true, inner.isVisible, "Inner element brought into iframe viewport by scroll should be visible")
-
-        // Validate iframe HTML's clientRects and scrollRects
-        val client = html.snapshotNode?.clientRects
-        val scroll = html.snapshotNode?.scrollRects
-        assertNotNull(client, "iframe HTML should have clientRects")
-        assertNotNull(scroll, "iframe HTML should have scrollRects")
-        assertNear(client.width, 300.0, 3.0, "iframe client width should match CSS width")
-        assertNear(client.height, 200.0, 3.0, "iframe client height should match CSS height")
-        assertNear(scroll.x, 0.0, 1.0, "iframe scrollX should be 0")
-        assertNear(scroll.y, 400.0, 50.0, "iframe scrollY should reflect window.scrollTo")
-    }
 
     @Test
     @Ignore("inner iframe features are postponed")
-        @DisplayName("iframe content outside viewport is not visible")
+    @DisplayName("iframe content outside viewport is not visible")
     fun iframeContentOutsideViewportIsNotVisible() = runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
         assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools

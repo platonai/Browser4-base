@@ -22,6 +22,5 @@
 
     <modules>
         <module>browser4-examples</module>
-        <module>java-compatible</module>
     </modules>
 </project>

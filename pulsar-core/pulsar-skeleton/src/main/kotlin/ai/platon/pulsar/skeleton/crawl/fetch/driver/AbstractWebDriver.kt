@@ -32,7 +32,7 @@ abstract class AbstractWebDriver(
     override val guid: String,
     override val browser: AbstractBrowser,
     override val id: Int = ID_SUPPLIER.incrementAndGet()
-) : Comparable<AbstractWebDriver>, AbstractJvmWebDriver(), WebDriver, JvmWebDriver {
+) : Comparable<AbstractWebDriver>, WebDriver {
     companion object {
         private val ID_SUPPLIER = AtomicInteger()
     }
@@ -276,8 +276,6 @@ abstract class AbstractWebDriver(
     fun cancel() {
         canceled.set(true)
     }
-
-    override fun jvm(): JvmWebDriver = this
 
     val mainRequestHeaders: Map<String, Any> get() = navigateEntry.mainRequestHeaders
 

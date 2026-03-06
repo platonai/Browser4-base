@@ -127,4 +127,3 @@ open class WebDriverTestBase : TestWebSiteAccess() {
         return service.buildEnhancedDomTree(service.getMultiDOMTrees(PageTarget(), options))
     }
 }
-

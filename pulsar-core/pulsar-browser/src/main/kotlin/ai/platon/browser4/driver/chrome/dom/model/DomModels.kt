@@ -483,35 +483,11 @@ data class MicroDOMTreeNode(
     val shouldShowScrollInfo: Boolean? = null,
     val scrollInfoText: String? = null
 ) {
-    private val nanoTreeCache = mutableMapOf<String, NanoDOMTree>()
-
     private val seenChunks = mutableListOf<Pair<Double, Double>>()
 
     val links = mutableListOf<String>()
 
     fun toJson() = Pson.toJson(this)
-
-    fun hasSeen(startY: Double, endY: Double): Boolean {
-        // check if the point has been seen
-        val (s, e) = if (startY <= endY) startY to endY else endY to startY
-        val eps = 1e-6
-        if (s.isNaN() || e.isNaN()) return false
-        return seenChunks.any { (ms, me) -> s >= ms - eps && e <= me + eps }
-    }
-
-    /**
-     * The 1-based next chunk to see, each chunk is a viewport height.
-     * */
-    @Deprecated("Deprecated")
-    fun nextChunkToSee(viewportHeight: Double): Int {
-        if (seenChunks.isEmpty()) {
-            return 1
-        }
-
-        return IntRange(1, 20).firstOrNull { i -> hasSeen(i * 1.0, i * 1.0 * viewportHeight) } ?: 1
-    }
-
-    fun slimHTML(): String? = MicroDOMTreeNodeHelper.slimHTML(this)
 
     fun toInteractiveDOMTreeNodeList(currentViewportIndex: Int, lastViewportIndex: Int): InteractiveDOMTreeNodeList =
         MicroDOMTreeNodeHelper(this, false, currentViewportIndex, lastViewportIndex)
@@ -527,22 +503,8 @@ data class MicroDOMTreeNode(
         return helper.toNanoTreeUnfiltered()
     }
 
-    /**
-     * Rendering data corresponding to a specific viewport slice of the page.
-     *
-     * @param viewportIndex 1-based viewport index to collect nodes for (must be >= 1).
-     * @param viewportHeight The viewport height in CSS pixels (must be > 0).
-     * @param scale How much extra height to include above and below the viewport. 1.0 = exact viewport, 1.2 = 20% margin.
-     */
-    fun toNanoTreeInViewport(viewportHeight: Int, viewportIndex: Int = 1, scale: Double = 1.0): NanoDOMTree {
-        val helper = MicroToNanoTreeHelper(this, seenChunks)
-        return helper.toNanoTreeInViewport(viewportHeight.toDouble(), viewportIndex, scale)
-    }
-
     fun toNanoTreeInRange(startY: Double = 0.0, endY: Double = 100000.0): NanoDOMTree {
         val helper = MicroToNanoTreeHelper(this, seenChunks)
-//        val key = "$startY$endY"
-//        return nanoTreeCache.computeIfAbsent(key) { helper.toNanoTreeInRange0(this, startY, endY) }
         return helper.toNanoTreeInRange(startY, endY)
     }
 
@@ -564,8 +526,9 @@ typealias MicroDOMTree = MicroDOMTreeNode
  * Serializable DOMTreeNode structure.
  * Enhanced with compound component marking and paint order information.
  *
- * Naming conversion: mini -> tiny -> micro -> nano -> pico -> ...
- */
+ * Naming conversion to compress the tree for LLM input:
+ * mini -> tiny -> micro -> nano -> pico -> femto -> atto -> zepto -> yocto
+ * */
 data class NanoDOMTreeNode(
     /**
      * Locator format: `frameIndex,backendNodeId`
@@ -619,7 +582,9 @@ data class DOMState constructor(
     val nanoTree get() = microTree.toNanoTree()
 
     fun getAbsoluteFBNLocator(locator: String?): FBNLocator? {
-        if (locator == null) return null
+        if (locator == null) {
+            return null
+        }
 
         val fbnLocator = FBNLocator.parseRelaxed(locator) ?: return null
         if (fbnLocator.isAbsolute) {
@@ -646,6 +611,9 @@ data class ClientInfo(
     val screenHeight: Int = VIEWPORT.height
 )
 
+/**
+ * Reserved
+ * */
 data class FullClientInfo(
     val timeZone: String,
     val locale: Locale,
