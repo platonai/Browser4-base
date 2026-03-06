@@ -39,7 +39,7 @@ class ChromeCdpDomService(
     }
 
     override suspend fun getDOMState(target: PageTarget, snapshotOptions: SnapshotOptions): DOMState {
-        val allTrees = getMultiDOMTrees(options = snapshotOptions)
+        val allTrees = buildMultiDOMTrees(options = snapshotOptions)
         if (logger.isDebugEnabled) {
             logger.debug("allTrees summary: \n{}", DomDebug.summarize(allTrees))
         }
@@ -59,7 +59,10 @@ class ChromeCdpDomService(
         return domState
     }
 
-    override suspend fun getMultiDOMTrees(target: PageTarget, options: SnapshotOptions): TargetTrees {
+    suspend fun buildMultiDOMTrees(
+        target: PageTarget = PageTarget(),
+        options: SnapshotOptions = SnapshotOptions()
+    ): TargetTrees {
         val startTime = System.currentTimeMillis()
         val timings = mutableMapOf<String, Long>()
 
@@ -135,7 +138,7 @@ class ChromeCdpDomService(
         )
     }
 
-    override fun buildEnhancedDomTree(trees: TargetTrees): DOMTreeNodeEx {
+    fun buildEnhancedDomTree(trees: TargetTrees): DOMTreeNodeEx {
         val options = trees.options
         // Build ancestor map for XPath and hash generation
         val ancestorMap = buildAncestorMap(trees.domTree)
@@ -145,13 +148,13 @@ class ChromeCdpDomService(
         // Build sibling map for XPath index calculation
         val siblingMap = buildSiblingMap(trees.domTree)
 
-        // Build paint order map for interaction index calculation
-        val paintOrderMap = buildPaintOrderMap(trees.snapshotByBackendId)
-
-        // Build stacking context map for z-index analysis
-        val stackingContextMap = buildStackingContextMap(trees.snapshotByBackendId)
-
-        data class FrameNode(val node: DOMTreeNodeEx)
+//        // Build paint order map for interaction index calculation
+//        val paintOrderMap = buildPaintOrderMap(trees.snapshotByBackendId)
+//
+//        // Build stacking context map for z-index analysis
+//        val stackingContextMap = buildStackingContextMap(trees.snapshotByBackendId)
+//
+//        data class FrameNode(val node: DOMTreeNodeEx)
 
         fun visibilityStyleCheck(snap: SnapshotNodeEx?): Boolean? {
             snap ?: return null
@@ -265,7 +268,7 @@ class ChromeCdpDomService(
                 .onFailure { tracer?.trace("Element hash failed | nodeId={} | {} ", node.nodeId, it.toString()) }
                 .getOrNull()
 
-            var mergedNode = node.copy(
+            val mergedNode = node.copy(
                 snapshotNode = snap,
                 axNode = ax,
                 isScrollable = isScrollable,
@@ -288,10 +291,9 @@ class ChromeCdpDomService(
             val tag = node.nodeName.uppercase()
             if (tag == "HTML") {
                 nextHtmlFrames = htmlFrames + mergedNode
-                val s = snap
-                if (s?.scrollRects != null) {
-                    nextOffsetX -= s.scrollRects.x
-                    nextOffsetY -= s.scrollRects.y
+                if (snap?.scrollRects != null) {
+                    nextOffsetX -= snap.scrollRects.x
+                    nextOffsetY -= snap.scrollRects.y
                 }
             }
 
@@ -333,12 +335,12 @@ class ChromeCdpDomService(
         return merged
     }
 
-    override suspend fun buildTinyTree(): TinyTree {
-        val trees = getMultiDOMTrees()
+    internal suspend fun buildTinyTree(): TinyTree {
+        val trees = buildMultiDOMTrees()
         return buildTinyTree(trees)
     }
 
-    override fun buildTinyTree(trees: TargetTrees): TinyTree {
+    internal fun buildTinyTree(trees: TargetTrees): TinyTree {
         val enhanced = buildEnhancedDomTree(trees)
         val hasElements = enhanced.children.isNotEmpty() ||
                 enhanced.shadowRoots.isNotEmpty() ||
@@ -353,7 +355,7 @@ class ChromeCdpDomService(
         return tinyTree ?: TinyTree(DOMTreeNodeEx())
     }
 
-    override fun buildTinyTree(root: DOMTreeNodeEx): TinyNode {
+    fun buildTinyTree(root: DOMTreeNodeEx): TinyNode {
         fun simplify(node: DOMTreeNodeEx): TinyNode {
             val simplifiedChildren = node.children.map { simplify(it) }
 
@@ -369,7 +371,7 @@ class ChromeCdpDomService(
         return simplify(root)
     }
 
-    override fun buildDOMState(root: TinyNode, includeAttributes: List<String>): DOMState {
+    fun buildDOMState(root: TinyNode, includeAttributes: List<String> = emptyList()): DOMState {
         // Use enhanced serialization with default options
         val options = DOMStateBuilder.CompactOptions(
             enablePaintOrderPruning = true,
@@ -477,7 +479,7 @@ class ChromeCdpDomService(
     /**
      * Reserved.
      * */
-    override suspend fun computeFullClientInfo(): FullClientInfo {
+    suspend fun computeFullClientInfo(): FullClientInfo {
         // Helpers
         suspend fun evalString(expr: String): String? = try {
             devTools.runtime.evaluate(expr).result.value?.toString()
@@ -566,7 +568,7 @@ class ChromeCdpDomService(
     }
 
     override fun findElement(ref: ElementRefCriteria): DOMTreeNodeEx? {
-        val root = lastEnhancedRoot ?: return null
+        val root = requireNotNull(lastEnhancedRoot) { "Enhanced DOM tree not built yet" }
 
         // Try element hash first (fastest)
         ref.elementHash?.let { hash ->
@@ -659,7 +661,7 @@ class ChromeCdpDomService(
         return null
     }
 
-    override fun toInteractedElement(node: DOMTreeNodeEx): DOMInteractedElement {
+    fun toInteractedElement(node: DOMTreeNodeEx): DOMInteractedElement {
         return DOMInteractedElement(
             elementHash = node.elementHash ?: HashUtils.simpleElementHash(node),
             xpath = node.xpath,
@@ -702,9 +704,9 @@ class ChromeCdpDomService(
     private suspend fun getDevicePixelRatio(): Double {
         return try {
             val evaluation = devTools.runtime.evaluate("window.devicePixelRatio")
-            val result = evaluation?.result
-            val numeric = result?.value?.toString()?.toDoubleOrNull()
-            numeric ?: result?.unserializableValue?.toDoubleOrNull() ?: 1.0
+            val result = evaluation.result
+            val numeric = result.value?.toString()?.toDoubleOrNull()
+            numeric ?: result.unserializableValue?.toDoubleOrNull() ?: 1.0
         } catch (e: Exception) {
             logger.debug("Device pixel ratio fallback | err={}", e.toString())
             1.0
@@ -948,4 +950,3 @@ private fun AXNode.toEnhanced(): AXNodeEx {
         frameId = null
     )
 }
-

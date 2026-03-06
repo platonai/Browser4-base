@@ -93,7 +93,7 @@ class ChromeDomBoundsParityTest : WebDriverTestBase() {
         runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
             assertIs<ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver>(driver)
             val devTools = driver.implementation as RemoteDevTools
-            val service = driver.domService
+            val service = driver.domService as ChromeCdpDomService
 
             // Build parent with an iframe using srcdoc (same-origin), scroll iframe content to 400
             devTools.runtime.evaluate(

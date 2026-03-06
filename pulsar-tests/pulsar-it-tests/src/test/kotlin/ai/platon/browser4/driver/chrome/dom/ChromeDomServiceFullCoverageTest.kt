@@ -94,13 +94,13 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
 
             suspend fun collectRoot(): DOMTreeNodeEx {
                 repeat(3) { attempt ->
-                    val t = service.getMultiDOMTrees(target = PageTarget(), options = options)
+                    val t = service.buildMultiDOMTrees(target = PageTarget(), options = options)
                     printlnPro(DomDebug.summarize(t))
                     val r = service.buildEnhancedDomTree(t)
                     if (r.children.isNotEmpty() || attempt == 2) return r
                     Thread.sleep(300)
                 }
-                return service.buildEnhancedDomTree(service.getMultiDOMTrees(PageTarget(), options))
+                return service.buildEnhancedDomTree(service.buildMultiDOMTrees(PageTarget(), options))
             }
 
             val root = collectRoot()
@@ -175,7 +175,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
                 includeInteractivity = false
             )
 
-            val trees = service.getMultiDOMTrees(PageTarget(), options)
+            val trees = service.buildMultiDOMTrees(PageTarget(), options)
             printlnPro(DomDebug.summarize(trees))
             assertTrue(trees.snapshotByBackendId.isEmpty())
             assertTrue(trees.axTree.isEmpty())
@@ -199,7 +199,7 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     fun scrollabilityAndInteractivityAnalysisOnDynamicContent() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
-        val service = driver.domService
+        val service = driver.domService as ChromeCdpDomService
 
         // Create a clearly scrollable container and interactive buttons
         runCatching { devTools.runtime.evaluate("generateLargeList(1000)") }
@@ -575,10 +575,12 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
     fun snapshotNodeExScrollRectsOnScrollableContainer() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
-        val service = ChromeCdpDomService(devTools)
 
         // Generate a large scrollable list
         runCatching { devTools.runtime.evaluate("generateLargeList(1000)") }
+
+        val service = ChromeCdpDomService(devTools)
+        service.getBrowserUseState()
 
         // Wait for container to be present
         var hasContainer = false
@@ -587,7 +589,8 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
                 devTools.runtime.evaluate("document.getElementById('virtualScrollContainer') != null")
             }.getOrNull()?.result?.value?.toString()?.equals("true", ignoreCase = true) == true
             if (ok) {
-                hasContainer = true; return@repeat
+                hasContainer = true;
+                return@repeat
             }
             Thread.sleep(1000)
         }
@@ -595,7 +598,6 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
 
         // Find the scrollable container
         val scrollContainer = service.findElement(ElementRefCriteria(cssSelector = "#virtualScrollContainer"))
-        // TODO: fix me
         assertNotNull(scrollContainer, "Expected scroll container to be found")
 
         val snapshot = scrollContainer.snapshotNode
@@ -610,14 +612,11 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         printlnPro("ScrollContainer bounds: x=${bounds.x}, y=${bounds.y}, width=${bounds.width}, height=${bounds.height}")
 
         // Test absoluteBounds (maybe null if CDP doesn't provide bounds, only clientRects)
-        if (snapshot.absoluteBounds != null) {
-            val absoluteBounds = snapshot.absoluteBounds!!
-            assertTrue(absoluteBounds.width > 0, "Expected scroll container absoluteBounds width to be positive")
-            assertTrue(absoluteBounds.height > 0, "Expected scroll container absoluteBounds height to be positive")
-            printlnPro("ScrollContainer absoluteBounds: x=${absoluteBounds.x}, y=${absoluteBounds.y}, width=${absoluteBounds.width}, height=${absoluteBounds.height}")
-        } else {
-            printlnPro("ScrollContainer absoluteBounds not available (CDP may only provide clientRects for this element)")
-        }
+        requireNotNull(snapshot.absoluteBounds)
+        val absoluteBounds = snapshot.absoluteBounds!!
+        assertTrue(absoluteBounds.width > 0, "Expected scroll container absoluteBounds width to be positive")
+        assertTrue(absoluteBounds.height > 0, "Expected scroll container absoluteBounds height to be positive")
+        printlnPro("ScrollContainer absoluteBounds: x=${absoluteBounds.x}, y=${absoluteBounds.y}, width=${absoluteBounds.width}, height=${absoluteBounds.height}")
 
         // Test scrollRects - should be present for scrollable elements
         assertNotNull(snapshot.scrollRects, "Expected scroll container to have scrollRects")
@@ -631,11 +630,10 @@ class ChromeDomServiceFullCoverageTest : WebDriverTestBase() {
         printlnPro("ScrollRects.height (${scrollRects.height}) vs Bounds.height (${bounds.height})")
 
         // Test clientRects
-        if (snapshot.clientRects != null) {
-            val clientRects = snapshot.clientRects!!
-            assertTrue(clientRects.width >= 0, "Expected scroll container clientRects width to be non-negative")
-            assertTrue(clientRects.height >= 0, "Expected scroll container clientRects height to be non-negative")
-            printlnPro("ScrollContainer clientRects: x=${clientRects.x}, y=${clientRects.y}, width=${clientRects.width}, height=${clientRects.height}")
-        }
+        requireNotNull(snapshot.clientRects)
+        val clientRects = snapshot.clientRects!!
+        assertTrue(clientRects.width >= 0, "Expected scroll container clientRects width to be non-negative")
+        assertTrue(clientRects.height >= 0, "Expected scroll container clientRects height to be non-negative")
+        printlnPro("ScrollContainer clientRects: x=${clientRects.x}, y=${clientRects.y}, width=${clientRects.width}, height=${clientRects.height}")
     }
 }

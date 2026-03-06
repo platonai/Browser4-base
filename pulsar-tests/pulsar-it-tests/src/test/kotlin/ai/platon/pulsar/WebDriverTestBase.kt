@@ -1,6 +1,7 @@
 package ai.platon.pulsar
 
 import ai.platon.browser4.driver.chrome.ChromeLauncher
+import ai.platon.browser4.driver.chrome.dom.ChromeCdpDomService
 import ai.platon.browser4.driver.chrome.dom.DomService
 import ai.platon.browser4.driver.chrome.dom.model.DOMTreeNodeEx
 import ai.platon.browser4.driver.chrome.dom.model.PageTarget
@@ -115,15 +116,15 @@ open class WebDriverTestBase : TestWebSiteAccess() {
         return null
     }
 
-    protected suspend fun collectEnhancedRoot(service: DomService, options: SnapshotOptions): DOMTreeNodeEx {
+    protected suspend fun collectEnhancedRoot(service: ChromeCdpDomService, options: SnapshotOptions): DOMTreeNodeEx {
         repeat(3) { attempt ->
-            val t = service.getMultiDOMTrees(target = PageTarget(), options = options)
+            val t = service.buildMultiDOMTrees(target = PageTarget(), options = options)
             // Best-effort summary for diagnostics
             printlnPro(DomDebug.summarize(t))
             val r = service.buildEnhancedDomTree(t)
             if (r.children.isNotEmpty() || attempt == 2) return r
             Thread.sleep(300)
         }
-        return service.buildEnhancedDomTree(service.getMultiDOMTrees(PageTarget(), options))
+        return service.buildEnhancedDomTree(service.buildMultiDOMTrees(PageTarget(), options))
     }
 }
