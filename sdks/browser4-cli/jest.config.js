@@ -8,4 +8,7 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
+  moduleNameMapper: {
+    'mcpBundle$': '<rootDir>/tests/__mocks__/mcpBundle.ts',
+  },
 };
