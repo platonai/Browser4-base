@@ -493,6 +493,8 @@ data class MicroDOMTreeNode(
 
     fun toJson() = Pson.toJson(this)
 
+    fun toYaml() = Pson.toYaml(this)
+
     fun toInteractiveDOMTreeNodeList(currentViewportIndex: Int, lastViewportIndex: Int): InteractiveDOMTreeNodeList =
         MicroDOMTreeNodeHelper(this, false, currentViewportIndex, lastViewportIndex)
             .toInteractiveDOMTreeNodeList()
@@ -565,6 +567,23 @@ data class NanoDOMTreeNode(
 
     @get:JsonIgnore
     val lazyYaml: String by lazy { DOMSerializer.toYaml(this) }
+
+    fun toJson() = lazyJson
+
+    fun toYaml() = lazyYaml
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as NanoDOMTreeNode
+
+        return lazyYaml == other.lazyYaml
+    }
+
+    override fun hashCode(): Int {
+        return lazyYaml.hashCode()
+    }
 }
 
 typealias NanoDOMTree = NanoDOMTreeNode

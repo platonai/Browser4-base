@@ -1,6 +1,7 @@
 package ai.platon.browser4.driver.chrome.dom
 
 import ai.platon.browser4.driver.chrome.RemoteDevTools
+import ai.platon.browser4.driver.chrome.dom.model.DOMState
 import ai.platon.browser4.driver.chrome.dom.model.DOMTreeNodeEx
 import ai.platon.browser4.driver.chrome.dom.model.ElementRefCriteria
 import ai.platon.browser4.driver.chrome.dom.model.PageTarget
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
 import java.time.Instant
 import kotlin.io.path.appendText
 import kotlin.io.path.createDirectories
@@ -23,6 +25,8 @@ import kotlin.test.assertIs
 class ChromeSnapshotServiceE2ETest : WebDriverTestBase() {
     private val testURL get() = "$generatedAssetsBaseURL/interactive-dynamic.html"
     private val startTime = Instant.now()
+    private val ident = AppPaths.md5Hex(testURL)
+    private val reportDir = AppPaths.detectAuxiliaryLogDir().resolve("tests")
 
     private data class Metrics(
         val url: String,
@@ -94,24 +98,36 @@ class ChromeSnapshotServiceE2ETest : WebDriverTestBase() {
 
             writeMetrics(metrics)
             writeSnapshot(enhancedRoot)
+            writeDOMState(domState)
         }
 
     private fun writeMetrics(metrics: Metrics) {
-        val path = AppPaths.detectAuxiliaryLogDir().resolve("tests").resolve("snapshot-service-e2e.json")
+        val path = reportDir.resolve("snapshot-metrics-$ident.json")
         path.parent.createDirectories()
-        val mapper = prettyPulsarObjectMapper()
-        path.appendText(mapper.writeValueAsString(metrics))
+        Files.writeString(path, prettyPulsarObjectMapper().writeValueAsString(metrics))
 
         logger.info("Metrics written | {}", path.toUri())
     }
 
     private fun writeSnapshot(snapshot: DOMTreeNodeEx) {
-        val ident = AppPaths.fromUri(testURL)
-        val path = AppPaths.detectAuxiliaryLogDir().resolve("tests").resolve("snapshot-$ident.yaml")
+        val path = reportDir.resolve("snapshot-$ident.yaml")
         path.parent.createDirectories()
-        path.appendText(snapshot.toYaml())
+        Files.writeString(path, snapshot.toYaml())
 
         logger.info("Snapshot written | {}", path.toUri())
+    }
+
+    private fun writeDOMState(domState: DOMState) {
+        val ident = AppPaths.fromUri(testURL)
+        var path = reportDir.resolve("dom-state-micro-$ident.yaml")
+        path.parent.createDirectories()
+        Files.writeString(path, domState.microTree.toYaml())
+        logger.info("Micro tree written | {}", path.toUri())
+
+        path = reportDir.resolve("dom-state-nano-$ident.yaml")
+        path.parent.createDirectories()
+        Files.writeString(path, domState.nanoTree.toYaml())
+        logger.info("Nano tree written | {}", path.toUri())
     }
 
     private fun countDomNodes(root: DOMTreeNodeEx?): Int {
