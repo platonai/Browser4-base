@@ -60,8 +60,9 @@ open class WebDriverTestBase : TestWebSiteAccess() {
     /**
      * Run webdriver test with the default browser.
      * */
-    protected fun runEnhancedWebDriverTest(url: String, block: suspend (driver: WebDriver) -> Unit) =
-        webDriverService.runEnhancedWebDriverTest(url, browser, block)
+    protected fun runEnhancedWebDriverTest(
+        url: String, block: suspend (driver: WebDriver) -> Unit
+    ) = webDriverService.runEnhancedWebDriverTest(url, browser, block)
 
     /**
      * Run webdriver test with the default browser.
