@@ -16,10 +16,10 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
     override val targetClass: KClass<*> = WebDriver::class
 
     init {
-        val generator = ToolSpecGenerator
-        generator.generate()
-
-        generator.webDriverToolSpecs.associateByTo(toolSpec) { it.method }
+        ToolSpecGenerator.apply {
+            generateAllOnce()
+            webDriverToolSpecs.associateByTo(toolSpec) { it.method }
+        }
 
         // Add custom drag tool spec which is not in WebDriver interface but supported via JS
         val dragSpec = ToolSpec(

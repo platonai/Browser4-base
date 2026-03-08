@@ -16,7 +16,7 @@ object ToolSpecGenerator {
     val agentToolSpecs = mutableListOf<ToolSpec>()
 
     @Synchronized
-    fun generate() {
+    fun generateAllOnce() {
         if (isGenerated.compareAndSet(false, true)) {
             var sourceCode = LLMUtils.readSourceFileFromResource("pulsar-core", "WebDriver.kt")
             extractInterface("driver", sourceCode, "WebDriver").toCollection(webDriverToolSpecs)

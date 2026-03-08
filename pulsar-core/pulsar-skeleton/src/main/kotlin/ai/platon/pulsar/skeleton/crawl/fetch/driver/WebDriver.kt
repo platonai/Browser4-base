@@ -5,6 +5,7 @@ import ai.platon.browser4.driver.chrome.NodeRef
 import ai.platon.browser4.driver.chrome.dom.model.NanoDOMTree
 import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.common.ExperimentalApi
+import ai.platon.pulsar.common.ai.llm.MCP
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.math.geometric.PointD
 import ai.platon.pulsar.common.math.geometric.RectD
@@ -973,6 +974,7 @@ interface WebDriver : Closeable {
      * @param values The values or labels of the options to select
      * @return The list of selected option values
      */
+    @MCP
     suspend fun selectOption(selector: String, values: List<String>): List<String>
 
     /**
