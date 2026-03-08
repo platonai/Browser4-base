@@ -33,7 +33,9 @@ Task files flow through a pipeline of numbered folders inside `coworker/tasks/`:
 2. **Queue** — Move it to `coworker/tasks/1created/` when ready.
 3. **Execute** — Run the coworker script to process the task:
    - Windows: `.\coworker\scripts\coworker.ps1`
-   - Linux/macOS: `./coworker/scripts/workers/coworker.sh`
+   - Python: `python .\coworker\scripts\coworker.py`
+   - Linux/macOS: `./coworker/scripts/coworker.sh`
+   - Linux/macOS (Python): `python3 ./coworker/scripts/coworker.py`
 4. **Review** — Task moves to `3_1complete` after execution. Review the changes.
 5. **Approve** — Move the task to `5approved` to have it automatically committed and pushed by the periodic runner.
 

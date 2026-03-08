@@ -34,8 +34,10 @@
 1. **草稿** — 在 `coworker/tasks/0draft/` 创建任务文件。
 2. **队列** — 准备好后将其移至 `coworker/tasks/1created/`。
 3. **执行** — 运行协作助手脚本处理任务：
-   - Windows: `./coworker/scripts/workers/coworker.ps1`
-   - Linux/macOS: `./coworker/scripts/workers/coworker.sh`
+   - Windows: `.\coworker\scripts\coworker.ps1`
+   - Python: `python .\coworker\scripts\coworker.py`
+   - Linux/macOS: `./coworker/scripts/coworker.sh`
+   - Linux/macOS (Python): `python3 ./coworker/scripts/coworker.py`
 4. **审查** — 任务执行后会进入 `3_1complete`，可审查更改。
 5. **批准** — 将任务移至 `5approved`，定时任务会自动提交并推送。
 
