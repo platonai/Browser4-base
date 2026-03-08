@@ -1,11 +1,7 @@
 package ai.platon.browser4.driver.chrome.dom
 
 import ai.platon.browser4.driver.chrome.RemoteDevTools
-import ai.platon.browser4.driver.chrome.dom.model.DOMState
-import ai.platon.browser4.driver.chrome.dom.model.DOMTreeNodeEx
-import ai.platon.browser4.driver.chrome.dom.model.ElementRefCriteria
-import ai.platon.browser4.driver.chrome.dom.model.PageTarget
-import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
+import ai.platon.browser4.driver.chrome.dom.model.*
 import ai.platon.pulsar.WebDriverTestBase
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
@@ -17,7 +13,6 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.time.Instant
-import kotlin.io.path.appendText
 import kotlin.io.path.createDirectories
 import kotlin.test.assertIs
 
@@ -45,60 +40,60 @@ class ChromeSnapshotServiceE2ETest : WebDriverTestBase() {
     @Test
     @DisplayName("Given interactive page When collecting all trees Then get DOM AX and Snapshot with timings")
     fun testGetDomAxAndSnapshot() = runEnhancedWebDriverTest(testURL) { driver ->
-            assertIs<PulsarWebDriver>(driver)
-            val devTools = driver.implementation as RemoteDevTools
-            val service = ChromeCdpSnapshotService(devTools)
+        assertIs<PulsarWebDriver>(driver)
+        val devTools = driver.implementation as RemoteDevTools
+        val service = ChromeCdpSnapshotService(devTools)
 
-            val options = SnapshotOptions(
-                maxDepth = 1000,
-                includeAX = true,
-                includeSnapshot = true,
-                includeStyles = true,
-                includePaintOrder = true,
-                includeDOMRects = true,
-                includeScrollAnalysis = true,
-                includeVisibility = true,
-                includeInteractivity = true
-            )
+        val options = SnapshotOptions(
+            maxDepth = 1000,
+            includeAX = true,
+            includeSnapshot = true,
+            includeStyles = true,
+            includePaintOrder = true,
+            includeDOMRects = true,
+            includeScrollAnalysis = true,
+            includeVisibility = true,
+            includeInteractivity = true
+        )
 
-            val trees = service.buildTargetTrees(target = PageTarget(), options = options)
-            assertTrue(trees.devicePixelRatio > 0.1, "devicePixelRatio should be positive")
-            assertTrue(trees.cdpTiming.isNotEmpty(), "cdpTiming should record phases")
+        val trees = service.buildTargetTrees(target = PageTarget(), options = options)
+        assertTrue(trees.devicePixelRatio > 0.1, "devicePixelRatio should be positive")
+        assertTrue(trees.cdpTiming.isNotEmpty(), "cdpTiming should record phases")
 
-            val enhancedRoot = service.buildEnhancedDomTree(trees)
-            val simplified = service.buildTinyTree(enhancedRoot)
-            val domState = service.buildDOMState(simplified)
+        val enhancedRoot = service.buildEnhancedDomTree(trees)
+        val simplified = service.buildTinyTree(enhancedRoot)
+        val domState = service.buildDOMState(simplified)
 
-            assertTrue { enhancedRoot.children.isNotEmpty() }
-            kotlin.test.assertTrue { simplified.children.isNotEmpty() }
+        assertTrue { enhancedRoot.children.isNotEmpty() }
+        kotlin.test.assertTrue { simplified.children.isNotEmpty() }
 
-            assertTrue(domState.nanoTreeLazyJson.length > 50, "Serialized JSON should not be trivial")
-            assertTrue(domState.selectorMap.isNotEmpty(), "Selector map should contain entries")
+        assertTrue(domState.nanoTreeLazyJson.length > 50, "Serialized JSON should not be trivial")
+        assertTrue(domState.selectorMap.isNotEmpty(), "Selector map should contain entries")
 
-            // Probe a stable element
-            val bodyNode = service.findElement(ElementRefCriteria(cssSelector = "body"))
-            assertNotNull(bodyNode, "Should locate <body> element")
-            val interacted = service.toInteractedElement(bodyNode!!)
-            assertTrue(interacted.elementHash.isNotBlank(), "Interacted element hash should be non-empty")
+        // Probe a stable element
+        val bodyNode = service.findElement(ElementRefCriteria(cssSelector = "body"))
+        assertNotNull(bodyNode, "Should locate <body> element")
+        val interacted = service.toInteractedElement(bodyNode!!)
+        assertTrue(interacted.elementHash.isNotBlank(), "Interacted element hash should be non-empty")
 
-            val domCount = countDomNodes(enhancedRoot)
-            val metrics = Metrics(
-                url = testURL,
-                timestamp = Instant.now().toString(),
-                case = "ChromeDomServiceE2E",
-                cdpTiming = trees.cdpTiming,
-                devicePixelRatio = trees.devicePixelRatio,
-                domNodeCount = domCount,
-                axNodeCount = trees.axTree.size,
-                snapshotEntryCount = trees.snapshotByBackendId.size,
-                serializeJsonSize = domState.nanoTreeLazyJson.length,
-                notes = "End-to-end validation with LLM serialization"
-            )
+        val domCount = countDomNodes(enhancedRoot)
+        val metrics = Metrics(
+            url = testURL,
+            timestamp = Instant.now().toString(),
+            case = "ChromeDomServiceE2E",
+            cdpTiming = trees.cdpTiming,
+            devicePixelRatio = trees.devicePixelRatio,
+            domNodeCount = domCount,
+            axNodeCount = trees.axTree.size,
+            snapshotEntryCount = trees.snapshotByBackendId.size,
+            serializeJsonSize = domState.nanoTreeLazyJson.length,
+            notes = "End-to-end validation with LLM serialization"
+        )
 
-            writeMetrics(metrics)
-            writeSnapshot(enhancedRoot)
-            writeDOMState(domState)
-        }
+        writeMetrics(metrics)
+        writeSnapshot(enhancedRoot)
+        writeDOMState(domState)
+    }
 
     private fun writeMetrics(metrics: Metrics) {
         val path = reportDir.resolve("snapshot-metrics-$ident.json")
