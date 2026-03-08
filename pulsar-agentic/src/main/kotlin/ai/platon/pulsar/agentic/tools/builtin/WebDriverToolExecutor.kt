@@ -1,14 +1,10 @@
 package ai.platon.pulsar.agentic.tools.builtin
 
-import ai.platon.pulsar.agentic.model.ToolSpec
 import ai.platon.pulsar.agentic.tools.specs.ToolSpecGenerator
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.NavigateEntry
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import java.time.Duration
 import kotlin.reflect.KClass
-
-import ai.platon.pulsar.common.serialize.json.Pson
-import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 
 class WebDriverToolExecutor: AbstractToolExecutor() {
     override val domain = "driver"
@@ -20,18 +16,6 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
             generateAllOnce()
             webDriverToolSpecs.associateByTo(toolSpec) { it.method }
         }
-
-        // Add custom drag tool spec which is not in WebDriver interface but supported via JS
-        val dragSpec = ToolSpec(
-            domain, "drag",
-            listOf(
-                ToolSpec.Arg("sourceSelector", "String", ""),
-                ToolSpec.Arg("targetSelector", "String", "")
-            ),
-            "Unit",
-            "Drag an element from source selector to target selector."
-        )
-        toolSpec["drag"] = dragSpec
     }
 
     override fun help(method: String): String {
@@ -207,25 +191,10 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
             "dragAndDrop" -> { validateArgs(args, allowed("selector", "deltaX", "deltaY"), setOf("selector", "deltaX"), functionName); driver.dragAndDrop(paramString(args, "selector", functionName)!!, paramInt(args, "deltaX", functionName)!!, paramInt(args, "deltaY", functionName, required = false, default = 0)!!) }
             "drag" -> {
                 validateArgs(args, allowed("sourceSelector", "targetSelector"), setOf("sourceSelector", "targetSelector"), functionName)
-                val src = paramString(args, "sourceSelector", functionName)!!
-                val tgt = paramString(args, "targetSelector", functionName)!!
-                val encodedSrc = Pson.toJson(src)
-                val encodedTgt = Pson.toJson(tgt)
-                val script = """
-                    (() => {
-                        const s = document.querySelector($encodedSrc);
-                        const t = document.querySelector($encodedTgt);
-                        if (!s || !t) return JSON.stringify({dx:0,dy:0});
-                        const sr = s.getBoundingClientRect();
-                        const tr = t.getBoundingClientRect();
-                        return JSON.stringify({dx: tr.x - sr.x + tr.width/2 - sr.width/2, dy: tr.y - sr.y + tr.height/2 - sr.height/2});
-                    })()
-                """.trimIndent()
-                val result = driver.evaluate(script) as? String ?: """{"dx":0,"dy":0}"""
-                val parsed = pulsarObjectMapper().readTree(result)
-                val dx = parsed.get("dx")?.asInt() ?: 0
-                val dy = parsed.get("dy")?.asInt() ?: 0
-                driver.dragAndDrop(src, dx, dy)
+                driver.drag(
+                    sourceSelector = paramString(args, "sourceSelector", functionName)!!,
+                    targetSelector = paramString(args, "targetSelector", functionName)!!
+                )
             }
             "clickTextMatches" -> {
                 when {

@@ -1,0 +1,235 @@
+● SQL: Create task todos
+  └ 5 row(s) inserted. Last inserted row ID: 5.
+
+● Read coworker\tasks\2working\configurable-coworker-scripts.md
+  └ 12 lines read
+
+● Check repo status
+  $ git --no-pager status --short
+  └ 10 lines...
+
+● Todo started: review-task-file
+
+● Read coworker\scripts\workers\refine-last-draft.ps1
+  └ 59 lines read
+
+● Read coworker\scripts\workers\coworker-memory-generator.ps1
+  └ 334 lines read
+
+● Read coworker\scripts\workers\refine-last-draft.sh
+  └ 32 lines read
+
+● Read coworker\scripts\config.ps1
+  └ 10 lines read
+
+● Read coworker\scripts\config.sh
+  └ 10 lines read
+
+● Read coworker\scripts\workers\coworker-memory-generator.sh
+  └ 338 lines read
+
+● Todo started: plan-work
+
+● Grep "config\.(ps1|sh)|\bCOPILOT\b|gh copilot" in *.{ps1,sh}
+(D:\workspace\Browser4\Browser4-4.6\coworker\scripts)
+  └ 44 lines found
+
+● Create plan file
+  $ @'
+  # Plan
+  1. Inspect existing coworker script patterns for loading configured Copilot command arrays.
+  2. Update referenced PowerShell and Bash worker scripts to source config.ps1/config.sh and
+  invoke the configured Copilot command safely....
+  └ 5 lines...
+
+● Read coworker\scripts\coworker.ps1 lines 45-75
+  └ 31 lines read
+
+● Read coworker\scripts\coworker.sh lines 55-85
+  └ 31 lines read
+
+● Read coworker\scripts\workers\coworker-daily-memory-generator.ps1 lines 1-240
+  └ 218 lines read
+
+● Read coworker\scripts\workers\coworker-daily-memory-generator.sh lines 130-220
+  └ 84 lines read
+
+● Read coworker\scripts\workers\coworker-daily-memory-generator.sh lines 1-70
+  └ 70 lines read
+
+● Read coworker\scripts\workers\coworker-daily-memory-generator.ps1 lines 15-40
+  └ 26 lines read
+
+● Edit coworker\scripts\workers\refine-last-draft.ps1
+  Edit coworker\scripts\workers\coworker-memory-generator.ps1
+  Edit coworker\scripts\workers\coworker-daily-memory-generator.ps1
+  Edit coworker\scripts\workers\refine-last-draft.sh
+  Edit coworker\scripts\workers\coworker-memory-generator.sh
+  Edit coworker\scripts\workers\coworker-daily-memory-generator.sh
+
+● Read coworker\scripts\workers\coworker-memory-generator.ps1 lines 1-110
+  └ 109 lines read
+
+● Read coworker\scripts\workers\coworker-memory-generator.sh lines 1-80
+  └ 80 lines read
+
+● Read coworker\scripts\workers\coworker-daily-memory-generator.sh lines 1-175
+  └ 175 lines read
+
+● Read coworker\scripts\workers\refine-last-draft.ps1 lines 1-90
+  └ 75 lines read
+
+● Read coworker\scripts\workers\coworker-daily-memory-generator.ps1 lines 1-235
+  └ 234 lines read
+
+● Read coworker\scripts\workers\refine-last-draft.sh lines 1-60
+  └ 47 lines read
+
+● Edit coworker\scripts\workers\refine-last-draft.ps1
+  Edit coworker\scripts\workers\coworker-memory-generator.ps1
+  Edit coworker\scripts\workers\coworker-daily-memory-generator.ps1
+
+● Parse PowerShell workers
+  $ $files = @(
+    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\refine-last-draft.ps1',
+    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-memory-generator.ps1',
+    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-daily-memory-generator
+  .ps1'...
+  └ 33 lines...
+
+● Validate bash workers
+  $ python -c "from pathlib import Path;
+  files=[r'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\refine-last-draft.sh',r'D
+  :\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-memory-generator.sh',r'D:\
+  workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-daily-memory-generator.sh'];
+  for f in files:...
+  └ 9 lines...
+
+● Validate PowerShell worker syntax
+  $ $files=@('D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\refine-last-draft.ps1','
+  D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-memory-generator.ps1','D:
+  \workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-daily-memory-generator.ps1'
+  ); foreach($file in $files){$tokens=$null; $errors=$null;
+  [System.Management.Automation.Language.Parser]::ParseFile($file,[ref]$tokens,[ref]$errors) | ...
+  └ 6 lines...
+
+● Validate bash worker syntax
+  $ $srcFiles=@('D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\refine-last-draft.sh'
+  ,'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-memory-generator.sh','D
+  :\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-daily-memory-generator.sh'
+  ); $tmpRoot=Join-Path $env:TEMP 'coworker-bash-validate'; New-Item -ItemType Directory -Path
+  $tmpRoot -Force | Out-Null; foreach($file in $srcFiles){$tmp=Join-Path $tmpRoot ...
+  └ 12 lines...
+
+● stop_powershell
+  └ 1 line...
+
+● Validate bash scripts with LF temp copies
+  $ $srcFiles=@('D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\refine-last-draft.sh'
+  ,'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-memory-generator.sh','D
+  :\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-daily-memory-generator.sh'
+  ); $tmpRoot='D:\workspace\Browser4\Browser4-4.6\target\tmp\coworker-bash-validate'; New-Item
+  -ItemType Directory -Path $tmpRoot -Force | Out-Null; $bashPaths=@(); foreach($file in ...
+  └ 9 lines...
+
+● Inspect bash environment
+  $ bash -lc "pwd && command -v bash && ls"
+  └ 9 lines...
+
+● Validate bash syntax via stdin
+  $ $srcFiles=@('D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\refine-last-draft.sh'
+  ,'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-memory-generator.sh','D
+  :\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-daily-memory-generator.sh'
+  ); foreach($file in $srcFiles){$content=[IO.File]::ReadAllText($file).Replace("`r`n","`n");
+  $content | bash -n; if($LASTEXITCODE -ne 0){throw "bash -n failed for $file"}}; ...
+  └ 3 lines...
+
+● Inspect bash config array
+  $ bash -lc "source '/mnt/d/workspace/Browser4/Browser4-4.6/coworker/scripts/config.sh' && declare
+  -p COPILOT"
+  └ 2 lines...
+
+● Verify PowerShell argument composition
+  $ $repoRoot='D:\workspace\Browser4\Browser4-4.6'; $expected='gh copilot --model gpt-5.4
+  --no-ask-user --log-level info --allow-all';
+  & {
+    $configPath=Join-Path $repoRoot 'coworker\scripts\config.ps1'; . $configPath;
+  $copilotExecutable=$COPILOT[0]; $copilotBaseArgs=@($COPILOT | Select-Object -Skip 1); ...
+  └ 12 lines...
+
+● Todo started: implement-task
+
+● Review script diffs
+  $ git --no-pager diff -- coworker/scripts/workers/refine-last-draft.ps1
+  coworker/scripts/workers/refine-last-draft.sh
+  coworker/scripts/workers/coworker-memory-generator.ps1
+  coworker/scripts/workers/coworker-memory-generator.sh
+  coworker/scripts/workers/coworker-daily-memory-generator.ps1 ...
+  └ 273 lines...
+
+● Grep "\$copilotExecutable|\$copilotBaseArgs|\$\{COPILOT\[@\]\}" in *.{ps1,sh}
+(D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers)
+  └ 18 lines found
+
+● Verify normalized bash config array
+  $ $tmp='D:\workspace\Browser4\Browser4-4.6\target\tmp\config.sh.lf'; New-Item -ItemType Directory
+  -Path (Split-Path $tmp) -Force | Out-Null; $content=[IO.File]::ReadAllText('D:\workspace\Browser4\
+  Browser4-4.6\coworker\scripts\config.sh').Replace("`r`n","`n");
+  [IO.File]::WriteAllText($tmp,$content,[Text.UTF8Encoding]::new($false)); bash -lc "source
+  '/mnt/d/workspace/Browser4/Browser4-4.6/target/tmp/config.sh.lf' && declare -p COPILOT"
+  └ 2 lines...
+
+● Todo started: validate-changes
+
+● Read coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md
+  └ 19 lines read
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md lines 1-220
+  └ 51 lines read
+
+● Todo completed: update-memory
+
+● Memory stored: coworker scripts
+  └ Coworker scripts should source COPILOT command arrays from coworker/scripts/conf…
+
+● Append daily memory entry
+  $ @'
+
+  ## Task: configurable-coworker-scripts (2026-03-08)
+
+  ### Summary...
+  └ 28 lines...
+
+● Read coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md lines 1-200
+  └ 37 lines read
+
+● Clean temp files and inspect final status
+  $ $tmpFiles=@('D:\workspace\Browser4\Browser4-4.6\target\tmp\config.sh.lf','D:\workspace\Browser4\
+  Browser4-4.6\target\tmp\coworker-bash-validate'); foreach($path in $tmpFiles){ if(Test-Path
+  $path){ Remove-Item -Path $path -Recurse -Force }}; git --no-pager status --short --
+  coworker/scripts/workers coworker/tasks/300logs/2026/03/08/MEMORY.20260308.md
+  coworker/tasks/300logs/2026/03/MEMORY.202603.md
+  └ 11 lines...
+
+● Remove validation temp files
+  $ $tmpFiles=@('D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\refine-last-draft.sh.
+  lfcheck','D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-memory-generato
+  r.sh.lfcheck','D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\coworker-daily-memo
+  ry-generator.sh.lfcheck'); foreach($path in $tmpFiles){ if(Test-Path $path){ Remove-Item -Path
+   $path -Force }}; git --no-pager status --short -- coworker/scripts/workers ...
+  └ 9 lines...
+
+Implemented configurable Copilot loading across the coworker worker scripts by updating `refine-last-draft`, `coworker-memory-generator`, and the delegated daily memory generators in both PowerShell and Bash to source `coworker/scripts/config.ps1|sh`, validate `COPILOT`, and invoke the configured command instead of hard-coded `gh copilot`.  
+Validated with PowerShell parsing, Bash `bash -n` on LF-normalized copies, and command-array checks confirming the configured invocation expands to `gh copilot --model gpt-5.4 --no-ask-user --log-level info --allow-all` plus the expected prompt flags.  
+Appended the 2026-03-08 daily memory entry; the monthly memory already included the 2026-03-07 rollup, so no monthly append was needed.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         3m 25s
+Total session time:     4m 40s
+Total code changes:     +115 -26
+Breakdown by AI model:
+ gpt-5.4                 961.5k in, 12.6k out, 831.9k cached (Est. 1 Premium request)

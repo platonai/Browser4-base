@@ -26,6 +26,21 @@ fi
 
 cd "$REPO_ROOT"
 
+CONFIG_SH="$REPO_ROOT/coworker/scripts/config.sh"
+if [[ -f "$CONFIG_SH" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG_SH"
+fi
+
+if ! declare -p COPILOT >/dev/null 2>&1; then
+    COPILOT=(gh copilot)
+fi
+
+if [[ "$(declare -p COPILOT 2>/dev/null)" != declare\ -a* ]]; then
+    echo "Error: COPILOT must be defined as a bash array in $CONFIG_SH" >&2
+    exit 1
+fi
+
 YEAR=$(date -d "$DATE" +%Y)
 MONTH=$(date -d "$DATE" +%m)
 DAY=$(date -d "$DATE" +%d)
@@ -49,9 +64,9 @@ invoke_gh_copilot() {
     # We use eval or simple execution?
     # gh copilot -- -p "..."
     if [ "$CAPTURE" == "true" ]; then
-        gh copilot -- -p "$PROMPT" --allow-all-tools
+        "${COPILOT[@]}" -- -p "$PROMPT" --allow-all-tools
     else
-        gh copilot -- -p "$PROMPT" --allow-all-tools
+        "${COPILOT[@]}" -- -p "$PROMPT" --allow-all-tools
     fi
 }
 

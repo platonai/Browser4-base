@@ -1,1395 +1,1652 @@
-[ {
-  "domain" : "driver",
-  "method" : "addInitScript",
-  "arguments" : [ {
-    "name" : "script",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Adds a script which would be evaluated whenever the page is navigated. @mcp",
-  "help" : "Adds a script which would be evaluated whenever the page is navigated. @mcp\n\nThe script is evaluated after the document was created but before any of its scripts were run. This is useful to amend the JavaScript environment, e.g. to seed [Math.random].\n\nThis function should be invoked before a navigation, usually in an onWillNavigate event handler."
-}, {
-  "domain" : "driver",
-  "method" : "addBlockedURLs",
-  "arguments" : [ {
-    "name" : "urlPatterns",
-    "type" : "List<String>"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Blocks resource URLs from loading. @mcp",
-  "help" : "Blocks resource URLs from loading. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "open",
-  "arguments" : [ {
-    "name" : "url",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Opens the specified URL in the web driver. @mcp",
-  "help" : "Opens the specified URL in the web driver. @mcp\n\nThis function navigates the web driver to the provided URL and waits for the navigation to complete. It is a suspend function, meaning it can be used within coroutines for asynchronous execution.\n\nExample usage: ```kotlin driver.open(\"https://www.example.com\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "navigate",
-  "arguments" : [ {
-    "name" : "url",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Navigates current page to the given URL. @mcp",
-  "help" : "Navigates current page to the given URL. @mcp\n\n```kotlin driver.navigate(\"https://www.example.com\") driver.waitForNavigation() ```"
-}, {
-  "domain" : "driver",
-  "method" : "navigateTo",
-  "arguments" : [ {
-    "name" : "url",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit"
-}, {
-  "domain" : "driver",
-  "method" : "navigate",
-  "arguments" : [ {
-    "name" : "entry",
-    "type" : "NavigateEntry"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Navigates current page to the given URL. @mcp",
-  "help" : "Navigates current page to the given URL. @mcp\n\n```kotlin val entry = NavigateEntry(\"https://www.example.com?timestamp=11712067353\", pageUrl = \"https://www.example.com\") driver.navigate(entry) driver.waitForNavigation() ```"
-}, {
-  "domain" : "driver",
-  "method" : "navigateTo",
-  "arguments" : [ {
-    "name" : "entry",
-    "type" : "NavigateEntry"
-  } ],
-  "returnType" : "Unit"
-}, {
-  "domain" : "driver",
-  "method" : "reload",
-  "returnType" : "Unit",
-  "description" : "Reloads the current page. @mcp",
-  "help" : "Reloads the current page. @mcp\n\nThis method should trigger a reload of the current page, similar to how a user would refresh the page in a browser."
-}, {
-  "domain" : "driver",
-  "method" : "goBack",
-  "returnType" : "Unit",
-  "description" : "Navigates the browser to the previous page in the navigation history. @mcp",
-  "help" : "Navigates the browser to the previous page in the navigation history. @mcp\n\nThis method is expected to use the browser's navigation history to move back to the previous page. It should handle any exceptions that may occur during the navigation process."
-}, {
-  "domain" : "driver",
-  "method" : "goForward",
-  "returnType" : "Unit",
-  "description" : "Navigates the browser to the next page in the navigation history. @mcp",
-  "help" : "Navigates the browser to the next page in the navigation history. @mcp\n\nThis method is expected to use the browser's navigation history to move forward to the next page. It should handle any exceptions that may occur during the navigation process."
-}, {
-  "domain" : "driver",
-  "method" : "currentUrl",
-  "returnType" : "String",
-  "description" : "Returns a string representing the current URL that the browser is looking at. @mcp",
-  "help" : "Returns a string representing the current URL that the browser is looking at. @mcp\n\nThe current url is always the main frame's `document.documentURI` if the browser succeed to return it, and is displayed in the browser's address bar.\n\nIf the browser failed to return a proper url, returns the passed in url to navigate, just like a real user enter a url in the address bar but the browser failed to load the page.\n\nNOTE: the url can be non-standard, for example:\n\nabout:blank chrome://newtab chrome://settings\n\nsee [ai.platon.cdt.kt.protocol.types.page.NavigationEntry.userTypedURL]"
-}, {
-  "domain" : "driver",
-  "method" : "url",
-  "returnType" : "String",
-  "description" : "The URL read-only property of the Document interface returns the document location as a string. @mcp",
-  "help" : "The URL read-only property of the Document interface returns the document location as a string. @mcp\n\nThis property equals to javascript `document.URL`. The `document.URL` property returns the same value. The `document.documentURI` property can be used on any document types, while the `document.URL` property can only be used on HTML documents."
-}, {
-  "domain" : "driver",
-  "method" : "documentURI",
-  "returnType" : "String",
-  "description" : "Returns the document location as a string. @mcp",
-  "help" : "Returns the document location as a string. @mcp\n\nThis property equals to javascript `document.documentURI`.\n\nThe `document.URL` property which returns the same value. The `document.documentURI` property can be used on any document types, while the `document.URL` property can only be used on HTML documents."
-}, {
-  "domain" : "driver",
-  "method" : "baseURI",
-  "returnType" : "String",
-  "description" : "Returns the document's baseURI. @mcp",
-  "help" : "Returns the document's baseURI. @mcp\n\nThe baseURI is a property of Node, it's the absolute base URL of the document containing the node. A baseURI is used to resolve relative URLs.\n\nThe base URL is determined as follows: 1. By default, the base URL is the location of the document (as determined by window.location). 2. If the document has an `<base>` element, its href attribute is used."
-}, {
-  "domain" : "driver",
-  "method" : "referrer",
-  "returnType" : "String",
-  "description" : "The referrer property returns the URI of the page that linked to this page. @mcp",
-  "help" : "The referrer property returns the URI of the page that linked to this page. @mcp\n\nThe value is an empty string if the user navigated to the page directly (not through a link, but, for example, by using a bookmark).\n\nInside an <iframe>, the referrer will initially be set to the same value as the href of the parent window's Window.location."
-}, {
-  "domain" : "driver",
-  "method" : "pageSource",
-  "returnType" : "String?",
-  "description" : "Returns the source of the last loaded page. @mcp",
-  "help" : "Returns the source of the last loaded page. @mcp\n\nIf the page has been modified after loading (for example, by JavaScript) there is no guarantee that the returned text is that of the modified page.\n\nPageSource and outerHTML:\n\n- pageSource: returns document HTML markup, will support non-HTML document - outerHTML: returns document HTML markup, for HTML document only\n\n```kotlin val pageSource = driver.pageSource() ```"
-}, {
-  "domain" : "driver",
-  "method" : "title",
-  "returnType" : "String",
-  "description" : "Returns the title of the current page. @mcp",
-  "help" : "Returns the title of the current page. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "nanoDOMTree",
-  "returnType" : "NanoDOMTree?",
-  "description" : "Retrieves a lightweight version of the DOM tree (NanoDOMTree). @mcp",
-  "help" : "Retrieves a lightweight version of the DOM tree (NanoDOMTree). @mcp\n\nThe NanoDOMTree is based on the accessibility tree and enhanced with DOM and document snapshot information. It is designed to be a compact representation suitable for AI processing and analysis."
-}, {
-  "domain" : "driver",
-  "method" : "chat",
-  "arguments" : [ {
-    "name" : "prompt",
-    "type" : "String"
-  }, {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "ModelResponse",
-  "description" : "Interact with an AI model using the context of the element selected by [selector]. @mcp",
-  "help" : "Interact with an AI model using the context of the element selected by [selector]. @mcp\n\nThe AI model receives the element's content and structure as context along with the provided prompt."
-}, {
-  "domain" : "driver",
-  "method" : "getCookies",
-  "returnType" : "List<Map<String, String>>",
-  "description" : "Returns the cookies of the current page. @mcp",
-  "help" : "Returns the cookies of the current page. @mcp\n\n```kotlin val cookies = driver.getCookies() ```"
-}, {
-  "domain" : "driver",
-  "method" : "deleteCookies",
-  "arguments" : [ {
-    "name" : "name",
-    "type" : "String"
-  }, {
-    "name" : "url",
-    "type" : "String?",
-    "defaultValue" : "null"
-  }, {
-    "name" : "domain",
-    "type" : "String?",
-    "defaultValue" : "null"
-  }, {
-    "name" : "path",
-    "type" : "String?",
-    "defaultValue" : "null"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Deletes browser cookies with matching name and url or domain/path pair. @mcp",
-  "help" : "Deletes browser cookies with matching name and url or domain/path pair. @mcp\n\n```kotlin driver.deleteCookies(\"name\", \"https://www.example.com\") ```\n\n> NOTE: At least one of the url and domain needs to be specified\n\nmatch provided URL."
-}, {
-  "domain" : "driver",
-  "method" : "clearBrowserCookies",
-  "returnType" : "Unit",
-  "description" : "Clears browser cookies. @mcp",
-  "help" : "Clears browser cookies. @mcp\n\n```kotlin driver.clearBrowserCookies() ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForSelector",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Duration",
-  "description" : "Wait until the element identified by the selector becomes present in the DOM or timeout. @mcp",
-  "help" : "Wait until the element identified by the selector becomes present in the DOM or timeout. @mcp\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForSelector",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "timeoutMillis",
-    "type" : "Long"
-  } ],
-  "returnType" : "Long",
-  "description" : "Wait until the element identified by the selector becomes present in the DOM or timeout. @mcp",
-  "help" : "Wait until the element identified by the selector becomes present in the DOM or timeout. @mcp\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", 30000) ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForSelector",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "timeout",
-    "type" : "Duration"
-  } ],
-  "returnType" : "Duration",
-  "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp",
-  "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", Duration.ofSeconds(30)) ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForSelector",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "action",
-    "type" : "suspend ("
-  } ],
-  "returnType" : "Unit",
-  "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp",
-  "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\") { driver.scrollDown() } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForSelector",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "timeoutMillis",
-    "type" : "Long"
-  }, {
-    "name" : "action",
-    "type" : "suspend ("
-  } ],
-  "returnType" : "Unit",
-  "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp",
-  "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", 30000) { driver.scrollDown() } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForSelector",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "timeout",
-    "type" : "Duration"
-  }, {
-    "name" : "action",
-    "type" : "suspend ("
-  } ],
-  "returnType" : "Unit",
-  "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp",
-  "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout. @mcp\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", Duration.ofSeconds(30)) { driver.scrollDown() } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForNavigation",
-  "arguments" : [ {
-    "name" : "oldUrl",
-    "type" : "String"
-  } ],
-  "returnType" : "Duration",
-  "description" : "Wait until the current url changes or timeout. @mcp",
-  "help" : "Wait until the current url changes or timeout. @mcp\n\n```kotlin val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation() if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url) } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForNavigation",
-  "arguments" : [ {
-    "name" : "oldUrl",
-    "type" : "String"
-  }, {
-    "name" : "timeoutMillis",
-    "type" : "Long"
-  } ],
-  "returnType" : "Long",
-  "description" : "Wait until the current url changes or timeout. @mcp",
-  "help" : "Wait until the current url changes or timeout. @mcp\n\n```kotlin val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation(1000) if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url, 1000) } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForNavigation",
-  "arguments" : [ {
-    "name" : "oldUrl",
-    "type" : "String"
-  }, {
-    "name" : "timeout",
-    "type" : "Duration"
-  } ],
-  "returnType" : "Duration",
-  "description" : "Wait until the current url changes or timeout. @mcp",
-  "help" : "Wait until the current url changes or timeout. @mcp\n\n```kotlin val timeout = Duration.ofSeconds(30) val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation(timeout) if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url, timeout) } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitForPage",
-  "arguments" : [ {
-    "name" : "url",
-    "type" : "String"
-  }, {
-    "name" : "timeout",
-    "type" : "Duration"
-  } ],
-  "returnType" : "WebDriver?",
-  "description" : "Await navigation to the specified URL page or timeout if necessary. @mcp",
-  "help" : "Await navigation to the specified URL page or timeout if necessary. @mcp\n\n```kotlin val newDriver = driver.waitForPage(\"https://www.example.com\", Duration.ofSeconds(30)) ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitUntil",
-  "arguments" : [ {
-    "name" : "predicate",
-    "type" : "suspend ("
-  } ],
-  "returnType" : "Unit",
-  "description" : "Wait until the predicate returns true. @mcp",
-  "help" : "Wait until the predicate returns true. @mcp\n\n```kotlin val remainingTime = driver.waitUntil { driver.exists(\"h2.title\") } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitUntil",
-  "arguments" : [ {
-    "name" : "timeoutMillis",
-    "type" : "Long"
-  }, {
-    "name" : "predicate",
-    "type" : "suspend ("
-  } ],
-  "returnType" : "Unit",
-  "description" : "Wait until the predicate returns true. @mcp",
-  "help" : "Wait until the predicate returns true. @mcp\n\n```kotlin val remainingTime = driver.waitUntil(10000) { driver.exists(\"h2.title\") } ```"
-}, {
-  "domain" : "driver",
-  "method" : "waitUntil",
-  "arguments" : [ {
-    "name" : "timeout",
-    "type" : "Duration"
-  }, {
-    "name" : "predicate",
-    "type" : "suspend ("
-  } ],
-  "returnType" : "Unit",
-  "description" : "Wait until the predicate returns true. @mcp",
-  "help" : "Wait until the predicate returns true. @mcp\n\n```kotlin val remainingTime = driver.waitUntil(Duration.ofSeconds(10)) { driver.exists(\"h2.title\") } ```"
-}, {
-  "domain" : "driver",
-  "method" : "exists",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Boolean",
-  "description" : "Returns whether the element exists. @mcp",
-  "help" : "Returns whether the element exists. @mcp\n\n```kotlin driver.exists(\"h2.title\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "isHidden",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Boolean",
-  "description" : "Returns whether the element is hidden. @mcp",
-  "help" : "Returns whether the element is hidden. @mcp\n\n```kotlin driver.isHidden(\"input[name='q']\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "isVisible",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Boolean",
-  "description" : "Returns whether the element is visible. @mcp",
-  "help" : "Returns whether the element is visible. @mcp\n\n```kotlin driver.isVisible(\"input[name='q']\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "isChecked",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Boolean",
-  "description" : "Returns whether the element is checked. @mcp",
-  "help" : "Returns whether the element is checked. @mcp\n\n```kotlin driver.isChecked(\"input[name='agree']\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "bringToFront",
-  "returnType" : "Unit",
-  "description" : "Brings the browser window to the front. @mcp",
-  "help" : "Brings the browser window to the front. @mcp\n\n```kotlin driver.bringToFront() ```"
-}, {
-  "domain" : "driver",
-  "method" : "hover",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method hovers over the element. @mcp",
-  "help" : "This method hovers over the element. @mcp\n\n1. Scroll the element into view if needed. 2. Move mouse to hover over a random position near the center of the element.\n\n```kotlin driver.hover(\"h1\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "focus",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method fetches an element with `selector` and focuses it. @mcp",
-  "help" : "This method fetches an element with `selector` and focuses it. @mcp\n\nIf there's no element matching `selector`, nothing to do.\n\n```kotlin driver.focus(\"input[name='q']\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
-}, {
-  "domain" : "driver",
-  "method" : "type",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "text",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method emulates inserting text that doesn't come from a key press. @mcp",
-  "help" : "This method emulates inserting text that doesn't come from a key press. @mcp\n\n```kotlin driver.type(\"input[name='q']\", \"Hello, World!\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
-}, {
-  "domain" : "driver",
-  "method" : "fill",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "text",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method emulates inserting text that doesn't come from a key press. @mcp",
-  "help" : "This method emulates inserting text that doesn't come from a key press. @mcp\n\nUnlike [type], this method clears the existing value before typing.\n\n```kotlin driver.fill(\"input[name='q']\", \"Hello, World!\") ```\n\nof an element to focus, and then fill text into it. If there are multiple elements satisfying the selector, the first will be focused."
-}, {
-  "domain" : "driver",
-  "method" : "press",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "key",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Shortcut for keyboard down and keyboard up. @mcp",
-  "help" : "Shortcut for keyboard down and keyboard up. @mcp\n\nThe key is specified as a string, which can be a single character, a key name, or a combination of both. For example, 'a', 'A', 'KeyA', 'Enter', 'Shift+A', and 'Control+Shift+Tab' are all valid keys.\n\n```kotlin driver.press(\"input[name='q']\", \"Enter\") ```\n\nof an element to focus, and then press a key. If there are multiple elements satisfying the selector, the first will be focused. See [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)"
-}, {
-  "domain" : "driver",
-  "method" : "keyDown",
-  "arguments" : [ {
-    "name" : "key",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Presses and holds a keyboard key on the currently focused element. @mcp",
-  "help" : "Presses and holds a keyboard key on the currently focused element. @mcp\n\n```kotlin driver.keyDown(\"Shift\") driver.keyDown(\"Control\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "keyUp",
-  "arguments" : [ {
-    "name" : "key",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Releases a previously pressed keyboard key on the currently focused element. @mcp",
-  "help" : "Releases a previously pressed keyboard key on the currently focused element. @mcp\n\n```kotlin driver.keyUp(\"Shift\") driver.keyUp(\"Control\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "click",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "count",
-    "type" : "Int",
-    "defaultValue" : "1"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method focuses an element with [selector] and clicks it. @mcp",
-  "help" : "This method focuses an element with [selector] and clicks it. @mcp\n\nIf there's no element matching `selector`, nothing to do.\n\n```kotlin driver.click(\"button[type='submit']\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
-}, {
-  "domain" : "driver",
-  "method" : "click",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "modifier",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Focus on an element with [selector] and click it with [modifier] pressed. @mcp",
-  "help" : "Focus on an element with [selector] and click it with [modifier] pressed. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "dblclick",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Focus on an element with [selector] and double-click it. @mcp",
-  "help" : "Focus on an element with [selector] and double-click it. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "dblclick",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "modifier",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Focus on an element with [selector] and double-click it with [modifier] pressed. @mcp",
-  "help" : "Focus on an element with [selector] and double-click it with [modifier] pressed. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "resize",
-  "arguments" : [ {
-    "name" : "width",
-    "type" : "Int"
-  }, {
-    "name" : "height",
-    "type" : "Int"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Resizes the viewport to the specified width and height. @mcp",
-  "help" : "Resizes the viewport to the specified width and height. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "dialogAccept",
-  "arguments" : [ {
-    "name" : "promptText",
-    "type" : "String?",
-    "defaultValue" : "null"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Accepts the dialog. @mcp",
-  "help" : "Accepts the dialog. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "dialogDismiss",
-  "returnType" : "Unit",
-  "description" : "Dismisses the dialog. @mcp",
-  "help" : "Dismisses the dialog. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "clickTextMatches",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "pattern",
-    "type" : "String"
-  }, {
-    "name" : "count",
-    "type" : "Int",
-    "defaultValue" : "1"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it. @mcp",
-  "help" : "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it. @mcp\n\nIf there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickTextMatches(\"button\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
-}, {
-  "domain" : "driver",
-  "method" : "clickMatches",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "attrName",
-    "type" : "String"
-  }, {
-    "name" : "pattern",
-    "type" : "String"
-  }, {
-    "name" : "count",
-    "type" : "Int",
-    "defaultValue" : "1"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it. @mcp",
-  "help" : "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it. @mcp\n\nIf there's no element matching [selector], or the element has no attribute [attrName], or the element's attribute value doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickAttributeMatches(\"button\", \"type\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
-}, {
-  "domain" : "driver",
-  "method" : "selectOption",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "values",
-    "type" : "List<String>"
-  } ],
-  "returnType" : "List<String>",
-  "description" : "Selects one or more options in a <select> element. @mcp",
-  "help" : "Selects one or more options in a <select> element. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "selectOption",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "value",
-    "type" : "String"
-  } ],
-  "returnType" : "String?",
-  "description" : "Selects an option in a <select> element. @mcp",
-  "help" : "Selects an option in a <select> element. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "clickNthAnchor",
-  "arguments" : [ {
-    "name" : "n",
-    "type" : "Int"
-  }, {
-    "name" : "rootSelector",
-    "type" : "String",
-    "defaultValue" : "body"
-  } ],
-  "returnType" : "String?",
-  "description" : "Clicks the nth anchor element in the DOM. @mcp",
-  "help" : "Clicks the nth anchor element in the DOM. @mcp\n\nThis function searches for all anchor (`<a>`) elements within the specified root element, and clicks the nth anchor element (0-based index). If the anchor element exists, it returns the `href` attribute of the clicked anchor element. If the element does not exist, it returns null.\n\n```kotlin driver.clickNthAnchor(100, \"body\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "check",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method check an element with [selector]. If there's no element matching [selector], nothing to do. @mcp",
-  "help" : "This method check an element with [selector]. If there's no element matching [selector], nothing to do. @mcp\n\n[selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) of an element to check. If there are multiple elements satisfying the selector, the first will be checked."
-}, {
-  "domain" : "driver",
-  "method" : "uncheck",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do. @mcp",
-  "help" : "This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do. @mcp\n\n[selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) of an element to uncheck. If there are multiple elements satisfying the selector, the first will be focused."
-}, {
-  "domain" : "driver",
-  "method" : "scrollTo",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Double",
-  "description" : "This method fetches an element with [selector], scrolls it into view if needed. @mcp",
-  "help" : "This method fetches an element with [selector], scrolls it into view if needed. @mcp\n\nIf there's no element matching [selector], the method does nothing.\n\n```kotlin driver.scrollTo(\"h2.title\") ```\n\nthe [selector], the first will be selected."
-}, {
-  "domain" : "driver",
-  "method" : "scrollDown",
-  "arguments" : [ {
-    "name" : "count",
-    "type" : "Int",
-    "defaultValue" : "1"
-  } ],
-  "returnType" : "Double",
-  "description" : "The current page frame scrolls down for [count] times. @mcp",
-  "help" : "The current page frame scrolls down for [count] times. @mcp\n\n```kotlin driver.scrollDown(3) ```"
-}, {
-  "domain" : "driver",
-  "method" : "scrollUp",
-  "arguments" : [ {
-    "name" : "count",
-    "type" : "Int",
-    "defaultValue" : "1"
-  } ],
-  "returnType" : "Double",
-  "description" : "The current page frame scrolls up for [count] times. @mcp",
-  "help" : "The current page frame scrolls up for [count] times. @mcp\n\n```kotlin driver.scrollUp(3) ```"
-}, {
-  "domain" : "driver",
-  "method" : "scrollBy",
-  "arguments" : [ {
-    "name" : "pixels",
-    "type" : "Double",
-    "defaultValue" : "200.0"
-  }, {
-    "name" : "smooth",
-    "type" : "Boolean",
-    "defaultValue" : "true"
-  } ],
-  "returnType" : "Double",
-  "description" : "Scrolls the current page frame vertically by the given number of pixels. @mcp",
-  "help" : "Scrolls the current page frame vertically by the given number of pixels. @mcp\n\nPositive values scroll down, negative values scroll up. The target position is clamped to the scrollable range [0, scrollHeight - viewportHeight].\n\nWhen [smooth] is true a deterministic, step‑wise scrolling algorithm is used (instead of relying on the browser's native smooth scrolling) for higher stability: it issues incremental `window.scrollTo()` calls and waits for the viewport to settle after each step. This reduces race conditions with lazy‑loaded content or async layout changes and yields more predictable final positions.\n\nTypical usage: ```kotlin // Scroll down 200px smoothly (default) driver.scrollBy() // Scroll up 500px immediately driver.scrollBy(-500.0, smooth = false) // Scroll down one viewport height, smooth val y = driver.scrollBy(driver.viewportHeight(), smooth = true) ```\n\n`window.scrollTo()` is executed."
-}, {
-  "domain" : "driver",
-  "method" : "scrollToTop",
-  "returnType" : "Double",
-  "description" : "The current page frame scrolls to the top. @mcp",
-  "help" : "The current page frame scrolls to the top. @mcp\n\n```kotlin driver.scrollToTop() ```"
-}, {
-  "domain" : "driver",
-  "method" : "scrollToBottom",
-  "returnType" : "Double",
-  "description" : "The current page frame scrolls to the bottom. @mcp",
-  "help" : "The current page frame scrolls to the bottom. @mcp\n\n```kotlin driver.scrollToBottom() ```"
-}, {
-  "domain" : "driver",
-  "method" : "scrollToMiddle",
-  "arguments" : [ {
-    "name" : "ratio",
-    "type" : "Double"
-  } ],
-  "returnType" : "Double",
-  "description" : "The current page frame scrolls to the middle. @mcp",
-  "help" : "The current page frame scrolls to the middle. @mcp\n\n```kotlin driver.scrollToMiddle(0.2) driver.scrollToMiddle(0.5) driver.scrollToMiddle(0.8) ```"
-}, {
-  "domain" : "driver",
-  "method" : "scrollToViewport",
-  "arguments" : [ {
-    "name" : "n",
-    "type" : "Double"
-  }, {
-    "name" : "smooth",
-    "type" : "Boolean",
-    "defaultValue" : "true"
-  } ],
-  "returnType" : "Double",
-  "description" : "Scroll to the 2.5th viewport position. @mcp",
-  "help" : "Scroll to the 2.5th viewport position. @mcp\n\n```kotlin driver.scrollToViewport(1.0) driver.scrollToViewport(1.5) driver.scrollToViewport(2.5) driver.scrollToViewport(3.0) ```\n\n1.00 means at the top of the first screen, 2.50 means halfway through the second screen."
-}, {
-  "domain" : "driver",
-  "method" : "mouseWheelDown",
-  "arguments" : [ {
-    "name" : "count",
-    "type" : "Int",
-    "defaultValue" : "1"
-  }, {
-    "name" : "deltaX",
-    "type" : "Double",
-    "defaultValue" : "0.0"
-  }, {
-    "name" : "deltaY",
-    "type" : "Double",
-    "defaultValue" : "150.0"
-  }, {
-    "name" : "delayMillis",
-    "type" : "Long",
-    "defaultValue" : "0"
-  } ],
-  "returnType" : "Unit",
-  "description" : "The mouse wheels down for [count] times. @mcp",
-  "help" : "The mouse wheels down for [count] times. @mcp\n\n```kotlin driver.mouseWheelDown(3) ```"
-}, {
-  "domain" : "driver",
-  "method" : "mouseWheelUp",
-  "arguments" : [ {
-    "name" : "count",
-    "type" : "Int",
-    "defaultValue" : "1"
-  }, {
-    "name" : "deltaX",
-    "type" : "Double",
-    "defaultValue" : "0.0"
-  }, {
-    "name" : "deltaY",
-    "type" : "Double",
-    "defaultValue" : "-150.0"
-  }, {
-    "name" : "delayMillis",
-    "type" : "Long",
-    "defaultValue" : "0"
-  } ],
-  "returnType" : "Unit",
-  "description" : "The mouse wheels up for [count] times. @mcp",
-  "help" : "The mouse wheels up for [count] times. @mcp\n\n```kotlin driver.mouseWheelUp(3) ```"
-}, {
-  "domain" : "driver",
-  "method" : "mouseWheel",
-  "arguments" : [ {
-    "name" : "deltaX",
-    "type" : "Double",
-    "defaultValue" : "0.0"
-  }, {
-    "name" : "deltaY",
-    "type" : "Double",
-    "defaultValue" : "150.0"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Scrolls the mouse wheel by the provided deltas. @mcp",
-  "help" : "Scrolls the mouse wheel by the provided deltas. @mcp\n\n```kotlin driver.mouseWheel(0.0, 150.0) driver.mouseWheel(0.0, -150.0) ```"
-}, {
-  "domain" : "driver",
-  "method" : "moveMouseTo",
-  "arguments" : [ {
-    "name" : "x",
-    "type" : "Double"
-  }, {
-    "name" : "y",
-    "type" : "Double"
-  } ],
-  "returnType" : "Unit",
-  "description" : "The mouse moves to the position specified by [x] and [y]. @mcp",
-  "help" : "The mouse moves to the position specified by [x] and [y]. @mcp\n\n```kotlin driver.moveMouseTo(100.0, 200.0) ```"
-}, {
-  "domain" : "driver",
-  "method" : "mouseMove",
-  "arguments" : [ {
-    "name" : "x",
-    "type" : "Double"
-  }, {
-    "name" : "y",
-    "type" : "Double"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Moves the mouse to the position specified by [x] and [y]. @mcp",
-  "help" : "Moves the mouse to the position specified by [x] and [y]. @mcp\n\n```kotlin driver.mouseMove(100.0, 200.0) ```"
-}, {
-  "domain" : "driver",
-  "method" : "mouseDown",
-  "arguments" : [ {
-    "name" : "button",
-    "type" : "String",
-    "defaultValue" : "left"
-  }, {
-    "name" : "clickCount",
-    "type" : "Int",
-    "defaultValue" : "1"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Presses a mouse button at the current mouse position. @mcp",
-  "help" : "Presses a mouse button at the current mouse position. @mcp\n\n```kotlin driver.mouseDown() driver.mouseDown(\"right\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "mouseUp",
-  "arguments" : [ {
-    "name" : "button",
-    "type" : "String",
-    "defaultValue" : "left"
-  }, {
-    "name" : "clickCount",
-    "type" : "Int",
-    "defaultValue" : "1"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Releases a mouse button at the current mouse position. @mcp",
-  "help" : "Releases a mouse button at the current mouse position. @mcp\n\n```kotlin driver.mouseUp() driver.mouseUp(\"right\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "moveMouseTo",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "deltaX",
-    "type" : "Int"
-  }, {
-    "name" : "deltaY",
-    "type" : "Int",
-    "defaultValue" : "0"
-  } ],
-  "returnType" : "Unit",
-  "description" : "The mouse moves to the element with [selector]. @mcp",
-  "help" : "The mouse moves to the element with [selector]. @mcp\n\n```kotlin driver.moveMouseTo(\"h2.title\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "dragAndDrop",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "deltaX",
-    "type" : "Int"
-  }, {
-    "name" : "deltaY",
-    "type" : "Int",
-    "defaultValue" : "0"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Performs a drag, dragenter, dragover, and drop in sequence. @mcp",
-  "help" : "Performs a drag, dragenter, dragover, and drop in sequence. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "outerHTML",
-  "returnType" : "String?",
-  "description" : "Returns the document's HTML markup. @mcp",
-  "help" : "Returns the document's HTML markup. @mcp\n\n```kotlin val html = driver.outerHTML() ```\n\nIf the document does not exist, returns null."
-}, {
-  "domain" : "driver",
-  "method" : "outerHTML",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "String?",
-  "description" : "Returns the node's HTML markup, the node is located by [selector]. @mcp",
-  "help" : "Returns the node's HTML markup, the node is located by [selector]. @mcp\n\nIf the node does not exist, returns null.\n\n```kotlin val html = driver.outerHTML(\"h2.title\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "textContent",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String?",
-    "defaultValue" : "null"
-  } ],
-  "returnType" : "String?",
-  "description" : "Returns the text content of the document or a specific element. @mcp",
-  "help" : "Returns the text content of the document or a specific element. @mcp\n\nIf [selector] is null, returns the text content of the entire document (usually `document.body.innerText`). If [selector] is provided, returns the text content of the first matching element.\n\nIf the document or element does not exist, returns null.\n\n```kotlin val bodyText = driver.textContent() val titleText = driver.textContent(\"h1.title\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "extract",
-  "arguments" : [ {
-    "name" : "fields",
-    "type" : "Map<String, String>"
-  } ],
-  "returnType" : "Map<String, String?>",
-  "description" : "Extracts multiple fields from the page using CSS selectors. @mcp",
-  "help" : "Extracts multiple fields from the page using CSS selectors. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "querySelectorAll",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "List<NodeRef>",
-  "description" : "Use querySelectorAll to get all matched elements, and then return their NodeRefs. @mcp",
-  "help" : "Use querySelectorAll to get all matched elements, and then return their NodeRefs. @mcp\n\nNote that the NodeRefs may become stale after certain operations, so they should be used immediately after selection.\n\nThe type is determined by the prefix of the selector string, e.g. \"css:div\" for CSS selector, \"xpath://div\" for XPath, \"e123\" for backendNodeId. If no prefix is provided, CSS selector is used by default."
-}, {
-  "domain" : "driver",
-  "method" : "selectFirstTextOrNull",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "String?",
-  "description" : "Returns the node's text content, the node is located by [selector]. @mcp",
-  "help" : "Returns the node's text content, the node is located by [selector]. @mcp\n\nIf the node does not exist, returns null.\n\n```kotlin val text = driver.selectFirstTextOrNull(\"h2.title\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectTextAll",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "List<String>",
-  "description" : "Returns a list of text contents of all the elements matching the specified selector within the page. @mcp",
-  "help" : "Returns a list of text contents of all the elements matching the specified selector within the page. @mcp\n\nIf no elements match the selector, returns an empty list.\n\n```kotlin val texts = driver.selectTextAll(\"h2\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectFirstAttributeOrNull",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "attrName",
-    "type" : "String"
-  } ],
-  "returnType" : "String?",
-  "description" : "Returns the node's attribute value, the node is located by [selector], the attribute is [attrName]. @mcp",
-  "help" : "Returns the node's attribute value, the node is located by [selector], the attribute is [attrName]. @mcp\n\nIf the node does not exist, or the attribute does not exist, returns null.\n\n```kotlin val classes = driver.selectFirstAttributeOrNull(\"h2.title\", \"class\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectAttributes",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "Map<String, String>",
-  "description" : "Returns the node's attribute values, the node is located by [selector]. @mcp",
-  "help" : "Returns the node's attribute values, the node is located by [selector]. @mcp\n\nIf the node do not exist, or the attribute does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectAttributes(\"h2.title\", \"class\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectAttributeAll",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "attrName",
-    "type" : "String"
-  }, {
-    "name" : "start",
-    "type" : "Int",
-    "defaultValue" : "0"
-  }, {
-    "name" : "limit",
-    "type" : "Int",
-    "defaultValue" : "10000"
-  } ],
-  "returnType" : "List<String>",
-  "description" : "Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName]. @mcp",
-  "help" : "Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName]. @mcp\n\nIf the nodes do not exist, or the attribute does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectAttributeAll(\"h2.title\", \"class\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "setAttribute",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "attrName",
-    "type" : "String"
-  }, {
-    "name" : "attrValue",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Set the attribute of an element located by [selector]. @mcp",
-  "help" : "Set the attribute of an element located by [selector]. @mcp\n\n```kotlin driver.setAttribute(\"h2.title\", \"class\", \"header\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "setAttributeAll",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "attrName",
-    "type" : "String"
-  }, {
-    "name" : "attrValue",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Set the attribute of all elements matching the CSS query. @mcp",
-  "help" : "Set the attribute of all elements matching the CSS query. @mcp\n\n```kotlin driver.setAttributeAll(\"h2.title\", \"class\", \"header\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectFirstPropertyValueOrNull",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "propName",
-    "type" : "String"
-  } ],
-  "returnType" : "String?",
-  "description" : "Returns the node's property value, the node is located by [selector], the property is [propName]. @mcp",
-  "help" : "Returns the node's property value, the node is located by [selector], the property is [propName]. @mcp\n\nIf the node does not exist, or the property does not exist, returns null.\n\n```kotlin val classes = driver.selectFirstPropertyOrNull(\"input#input\", \"value\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectPropertyValueAll",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "propName",
-    "type" : "String"
-  }, {
-    "name" : "start",
-    "type" : "Int",
-    "defaultValue" : "0"
-  }, {
-    "name" : "limit",
-    "type" : "Int",
-    "defaultValue" : "10000"
-  } ],
-  "returnType" : "List<String>",
-  "description" : "Returns the nodes' property values, the nodes are located by [selector], the property is [propName]. @mcp",
-  "help" : "Returns the nodes' property values, the nodes are located by [selector], the property is [propName]. @mcp\n\nIf the nodes do not exist, or the property does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectPropertyAll(\"input#input\", \"value\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "setProperty",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "propName",
-    "type" : "String"
-  }, {
-    "name" : "propValue",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Set the property of an element located by [selector]. @mcp",
-  "help" : "Set the property of an element located by [selector]. @mcp\n\n```kotlin driver.setProperty(\"input#input\", \"value\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "setPropertyAll",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "propName",
-    "type" : "String"
-  }, {
-    "name" : "propValue",
-    "type" : "String"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Set the property of all elements matching the CSS query. @mcp",
-  "help" : "Set the property of all elements matching the CSS query. @mcp\n\n```kotlin driver.setPropertyAll(\"input#input\", \"value\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectHyperlinks",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "offset",
-    "type" : "Int",
-    "defaultValue" : "1"
-  }, {
-    "name" : "limit",
-    "type" : "Int",
-    "defaultValue" : "Int.MAX_VALUE"
-  } ],
-  "returnType" : "List<Hyperlink>",
-  "description" : "Find hyperlinks in elements matching the CSS query. @mcp",
-  "help" : "Find hyperlinks in elements matching the CSS query. @mcp\n\n```kotlin val hyperlinks = driver.selectHyperlinks(\"a.product-link\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectAnchors",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "offset",
-    "type" : "Int",
-    "defaultValue" : "1"
-  }, {
-    "name" : "limit",
-    "type" : "Int",
-    "defaultValue" : "Int.MAX_VALUE"
-  } ],
-  "returnType" : "List<GeoAnchor>",
-  "description" : "Find anchor elements matching the CSS query. @mcp",
-  "help" : "Find anchor elements matching the CSS query. @mcp\n\n```kotlin val anchors = driver.selectAnchors(\"a.product-link\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "selectImages",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "offset",
-    "type" : "Int",
-    "defaultValue" : "1"
-  }, {
-    "name" : "limit",
-    "type" : "Int",
-    "defaultValue" : "Int.MAX_VALUE"
-  } ],
-  "returnType" : "List<String>",
-  "description" : "Find image elements matching the CSS query. @mcp",
-  "help" : "Find image elements matching the CSS query. @mcp\n\n```kotlin val images = driver.selectImages(\"img.product-image\") ```"
-}, {
-  "domain" : "driver",
-  "method" : "evaluate",
-  "arguments" : [ {
-    "name" : "expression",
-    "type" : "String"
-  } ],
-  "returnType" : "Any?",
-  "description" : "Executes JavaScript in the context of the currently selected frame or window. @mcp",
-  "help" : "Executes JavaScript in the context of the currently selected frame or window. @mcp\n\nIf the result is not JavaScript object, it is not returned.\n\nIf you want to execute a function, convert it to IIFE (Immediately Invoked Function Expression).\n\n```kotlin val title = driver.evaluate(\"document.title\") ```\n\nMulti-line JavaScript code:\n\n```kotlin val code = \"\"\" () => { const a = 10; const b = 20; return a * b; } \"\"\".trimIndent()\n\nval result = driver.evaluate(code) ```\n\n### 🔍 Notes: * **Wrap the code in an IIFE (Immediately Invoked Function Expression)** to return a value. * **Escape line breaks** with `\\n`."
-}, {
-  "domain" : "driver",
-  "method" : "evaluate",
-  "arguments" : [ {
-    "name" : "expression",
-    "type" : "String"
-  }, {
-    "name" : "defaultValue",
-    "type" : "T"
-  } ],
-  "returnType" : "T",
-  "description" : "Executes JavaScript and returns the result, or [defaultValue] if the result is null or incompatible. @mcp",
-  "help" : "Executes JavaScript and returns the result, or [defaultValue] if the result is null or incompatible. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "evaluateDetail",
-  "arguments" : [ {
-    "name" : "expression",
-    "type" : "String"
-  } ],
-  "returnType" : "JsEvaluation?",
-  "description" : "returns detailed evaluation metadata (beta). @mcp",
-  "help" : "returns detailed evaluation metadata (beta). @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "evaluateValue",
-  "arguments" : [ {
-    "name" : "expression",
-    "type" : "String"
-  } ],
-  "returnType" : "Any?",
-  "description" : "Executes JavaScript and returns the result as a JSON-serializable value. @mcp",
-  "help" : "Executes JavaScript and returns the result as a JSON-serializable value. @mcp\n\nIf the result is an object, it is serialized to a Map or List. If the result is a primitive, it is returned as is. If the result is null or undefined, null is returned."
-}, {
-  "domain" : "driver",
-  "method" : "evaluateValue",
-  "arguments" : [ {
-    "name" : "expression",
-    "type" : "String"
-  }, {
-    "name" : "defaultValue",
-    "type" : "T"
-  } ],
-  "returnType" : "T",
-  "description" : "Executes JavaScript and returns the result as a JSON-serializable value, or [defaultValue] if null/incompatible. @mcp",
-  "help" : "Executes JavaScript and returns the result as a JSON-serializable value, or [defaultValue] if null/incompatible. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "evaluateValueDetail",
-  "arguments" : [ {
-    "name" : "expression",
-    "type" : "String"
-  } ],
-  "returnType" : "JsEvaluation?",
-  "description" : "Returns detailed value evaluation metadata (beta). @mcp",
-  "help" : "Returns detailed value evaluation metadata (beta). @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "evaluateValue",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "functionDeclaration",
-    "type" : "String"
-  } ],
-  "returnType" : "Any?"
-}, {
-  "domain" : "driver",
-  "method" : "evaluateValueDetail",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "functionDeclaration",
-    "type" : "String"
-  } ],
-  "returnType" : "JsEvaluation?"
-}, {
-  "domain" : "driver",
-  "method" : "screenshot",
-  "arguments" : [ {
-    "name" : "fullPage",
-    "type" : "Boolean",
-    "defaultValue" : "false"
-  } ],
-  "returnType" : "String?",
-  "description" : "Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout. @mcp",
-  "help" : "Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout. @mcp\n\nIf the backend supports element-centric capture this may represent the full page; implementation specific.\n\nThe target element (if any) is scrolled into view before capture.\n\n```kotlin val base64 = driver.screenshot() val bytes = Base64.getDecoder().decode(base64) ```"
-}, {
-  "domain" : "driver",
-  "method" : "screenshot",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "String?",
-  "description" : "Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box. @mcp",
-  "help" : "Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box. @mcp\n\nReturns a Base64 encoded image (implementation usually PNG/JPEG), PNG by default."
-}, {
-  "domain" : "driver",
-  "method" : "screenshot",
-  "arguments" : [ {
-    "name" : "rect",
-    "type" : "RectD"
-  } ],
-  "returnType" : "String?",
-  "description" : "Take a screenshot of the rectangle specified by [rect] in the current page coordinate space. @mcp",
-  "help" : "Take a screenshot of the rectangle specified by [rect] in the current page coordinate space. @mcp\n\nCaller is responsible for ensuring the rectangle is visible or scrolled into view if the implementation requires it."
-}, {
-  "domain" : "driver",
-  "method" : "captureScreenshot",
-  "arguments" : [ {
-    "name" : "fullPage",
-    "type" : "Boolean",
-    "defaultValue" : "false"
-  } ],
-  "returnType" : "String?"
-}, {
-  "domain" : "driver",
-  "method" : "captureScreenshot",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "String?"
-}, {
-  "domain" : "driver",
-  "method" : "captureScreenshot",
-  "arguments" : [ {
-    "name" : "rect",
-    "type" : "RectD"
-  } ],
-  "returnType" : "String?"
-}, {
-  "domain" : "driver",
-  "method" : "ariaSnapshot",
-  "returnType" : "String"
-}, {
-  "domain" : "driver",
-  "method" : "clickablePoint",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "PointD?",
-  "description" : "Calculate the clickable point of an element located by [selector]. @mcp",
-  "help" : "Calculate the clickable point of an element located by [selector]. @mcp\n\nIf the element does not exist, or is not clickable, returns null."
-}, {
-  "domain" : "driver",
-  "method" : "boundingBox",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  } ],
-  "returnType" : "RectD?",
-  "description" : "Return the bounding box of an element located by [selector]. @mcp",
-  "help" : "Return the bounding box of an element located by [selector]. @mcp\n\nIf the element does not exist, returns null."
-}, {
-  "domain" : "driver",
-  "method" : "newJsoupSession",
-  "returnType" : "Connection",
-  "description" : "Create a new Jsoup session with the last page's context, which means, the same headers and cookies. @mcp",
-  "help" : "Create a new Jsoup session with the last page's context, which means, the same headers and cookies. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "loadJsoupResource",
-  "arguments" : [ {
-    "name" : "url",
-    "type" : "String"
-  } ],
-  "returnType" : "Connection.Response",
-  "description" : "Load the url as a resource with Jsoup rather than browser rendering, with the last page's context. @mcp",
-  "help" : "Load the url as a resource with Jsoup rather than browser rendering, with the last page's context. @mcp\n\nThis means, the same headers and cookies."
-}, {
-  "domain" : "driver",
-  "method" : "loadResource",
-  "arguments" : [ {
-    "name" : "url",
-    "type" : "String"
-  } ],
-  "returnType" : "NetworkResourceResponse",
-  "description" : "Load the url as a resource without browser rendering, with the last page's context. @mcp",
-  "help" : "Load the url as a resource without browser rendering, with the last page's context. @mcp\n\nThis means, the same headers and cookies."
-}, {
-  "domain" : "driver",
-  "method" : "delay",
-  "arguments" : [ {
-    "name" : "millis",
-    "type" : "Long",
-    "defaultValue" : "1000"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Delay for a given amount of time. @mcp",
-  "help" : "Delay for a given amount of time. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "delay",
-  "arguments" : [ {
-    "name" : "duration",
-    "type" : "Duration"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Delay for a given amount of time. @mcp",
-  "help" : "Delay for a given amount of time. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "delay",
-  "arguments" : [ {
-    "name" : "duration",
-    "type" : "kotlin.time.Duration"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Delay for a given amount of time. @mcp",
-  "help" : "Delay for a given amount of time. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "upload",
-  "arguments" : [ {
-    "name" : "selector",
-    "type" : "String"
-  }, {
-    "name" : "paths",
-    "type" : "List<String>"
-  } ],
-  "returnType" : "Unit",
-  "description" : "Upload files to the element located by [selector]. @mcp",
-  "help" : "Upload files to the element located by [selector]. @mcp"
-}, {
-  "domain" : "driver",
-  "method" : "pause",
-  "returnType" : "Unit",
-  "description" : "Force the page pauses all navigations and PENDING resource fetches. @mcp",
-  "help" : "Force the page pauses all navigations and PENDING resource fetches. @mcp\n\nIf the page loading pauses, the user can still interact with the page, and therefore resources can continue to load."
-}, {
-  "domain" : "driver",
-  "method" : "stop",
-  "returnType" : "Unit",
-  "description" : "Force the page stop all navigations and RELEASES all resources. @mcp",
-  "help" : "Force the page stop all navigations and RELEASES all resources. @mcp\n\nInteraction with the stop page results in undefined behavior and the results should not be trusted.\n\nIf a web driver stops, it can later be used to visit other pages."
-} ]
+[
+  {
+    "domain": "driver",
+    "method": "open",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Opens the specified URL in the web driver.",
+    "help": "Opens the specified URL in the web driver.\n\nThis function navigates the web driver to the provided URL and waits for the navigation to complete. It is a suspend function, meaning it can be used within coroutines for asynchronous execution.\n\nExample usage: ```kotlin driver.open(\"https://www.example.com\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "navigate",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Navigates current page to the given URL.",
+    "help": "Navigates current page to the given URL.\n\n```kotlin driver.navigate(\"https://www.example.com\") driver.waitForNavigation() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "navigate",
+    "arguments": [
+      {
+        "name": "entry",
+        "type": "NavigateEntry"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Navigates current page to the given URL.",
+    "help": "Navigates current page to the given URL.\n\n```kotlin val entry = NavigateEntry(\"https://www.example.com?timestamp=11712067353\", pageUrl = \"https://www.example.com\") driver.navigate(entry) driver.waitForNavigation() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "reload",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Reloads the current page.",
+    "help": "Reloads the current page.\n\nThis method should trigger a reload of the current page, similar to how a user would refresh the page in a browser."
+  },
+  {
+    "domain": "driver",
+    "method": "goBack",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Navigates the browser to the previous page in the navigation history.",
+    "help": "Navigates the browser to the previous page in the navigation history.\n\nThis method is expected to use the browser's navigation history to move back to the previous page. It should handle any exceptions that may occur during the navigation process."
+  },
+  {
+    "domain": "driver",
+    "method": "goForward",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Navigates the browser to the next page in the navigation history.",
+    "help": "Navigates the browser to the next page in the navigation history.\n\nThis method is expected to use the browser's navigation history to move forward to the next page. It should handle any exceptions that may occur during the navigation process."
+  },
+  {
+    "domain": "driver",
+    "method": "currentUrl",
+    "arguments": [],
+    "returnType": "String",
+    "description": "Returns a string representing the current URL that the browser is looking at.",
+    "help": "Returns a string representing the current URL that the browser is looking at.\n\nThe current url is always the main frame's `document.documentURI` if the browser succeed to return it, and is displayed in the browser's address bar.\n\nIf the browser failed to return a proper url, returns the passed in url to navigate, just like a real user enter a url in the address bar but the browser failed to load the page.\n\nNOTE: the url can be non-standard, for example:\n\nabout:blank chrome://newtab chrome://settings\n\nsee [ai.platon.cdt.kt.protocol.types.page.NavigationEntry.userTypedURL]"
+  },
+  {
+    "domain": "driver",
+    "method": "url",
+    "arguments": [],
+    "returnType": "String",
+    "description": "The URL read-only property of the Document interface returns the document location as a string.",
+    "help": "The URL read-only property of the Document interface returns the document location as a string.\n\nThis property equals to javascript `document.URL`. The `document.URL` property returns the same value. The `document.documentURI` property can be used on any document types, while the `document.URL` property can only be used on HTML documents."
+  },
+  {
+    "domain": "driver",
+    "method": "documentURI",
+    "arguments": [],
+    "returnType": "String",
+    "description": "Returns the document location as a string.",
+    "help": "Returns the document location as a string.\n\nThis property equals to javascript `document.documentURI`.\n\nThe `document.URL` property which returns the same value. The `document.documentURI` property can be used on any document types, while the `document.URL` property can only be used on HTML documents."
+  },
+  {
+    "domain": "driver",
+    "method": "baseURI",
+    "arguments": [],
+    "returnType": "String",
+    "description": "Returns the document's baseURI.",
+    "help": "Returns the document's baseURI.\n\nThe baseURI is a property of Node, it's the absolute base URL of the document containing the node. A baseURI is used to resolve relative URLs.\n\nThe base URL is determined as follows: 1. By default, the base URL is the location of the document (as determined by window.location). 2. If the document has an `<base>` element, its href attribute is used."
+  },
+  {
+    "domain": "driver",
+    "method": "referrer",
+    "arguments": [],
+    "returnType": "String",
+    "description": "The referrer property returns the URI of the page that linked to this page.",
+    "help": "The referrer property returns the URI of the page that linked to this page.\n\nThe value is an empty string if the user navigated to the page directly (not through a link, but, for example, by using a bookmark).\n\nInside an <iframe>, the referrer will initially be set to the same value as the href of the parent window's Window.location."
+  },
+  {
+    "domain": "driver",
+    "method": "pageSource",
+    "arguments": [],
+    "returnType": "String?",
+    "description": "Returns the source of the last loaded page.",
+    "help": "Returns the source of the last loaded page.\n\nIf the page has been modified after loading (for example, by JavaScript) there is no guarantee that the returned text is that of the modified page.\n\nPageSource and outerHTML:\n\n- pageSource: returns document HTML markup, will support non-HTML document - outerHTML: returns document HTML markup, for HTML document only\n\n```kotlin val pageSource = driver.pageSource() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "title",
+    "arguments": [],
+    "returnType": "String",
+    "description": "Returns the title of the current page.",
+    "help": "Returns the title of the current page."
+  },
+  {
+    "domain": "driver",
+    "method": "nanoDOMTree",
+    "arguments": [],
+    "returnType": "NanoDOMTree?",
+    "description": "Retrieves a lightweight version of the DOM tree (NanoDOMTree).",
+    "help": "Retrieves a lightweight version of the DOM tree (NanoDOMTree).\n\nThe NanoDOMTree is based on the accessibility tree and enhanced with DOM and document snapshot information. It is designed to be a compact representation suitable for AI processing and analysis."
+  },
+  {
+    "domain": "driver",
+    "method": "chat",
+    "arguments": [
+      {
+        "name": "prompt",
+        "type": "String"
+      },
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "ModelResponse",
+    "description": "Interact with an AI model using the context of the element selected by [selector].",
+    "help": "Interact with an AI model using the context of the element selected by [selector].\n\nThe AI model receives the element's content and structure as context along with the provided prompt."
+  },
+  {
+    "domain": "driver",
+    "method": "getCookies",
+    "arguments": [],
+    "returnType": "List<Map<String, String>>",
+    "description": "Returns the cookies of the current page.",
+    "help": "Returns the cookies of the current page.\n\n```kotlin val cookies = driver.getCookies() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "deleteCookies",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "String"
+      },
+      {
+        "name": "url",
+        "type": "String?",
+        "defaultValue": "null"
+      },
+      {
+        "name": "domain",
+        "type": "String?",
+        "defaultValue": "null"
+      },
+      {
+        "name": "path",
+        "type": "String?",
+        "defaultValue": "null"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Deletes browser cookies with matching name and url or domain/path pair.",
+    "help": "Deletes browser cookies with matching name and url or domain/path pair.\n\n```kotlin driver.deleteCookies(\"name\", \"https://www.example.com\") ```\n\n> NOTE: At least one of the url and domain needs to be specified\n\nmatch provided URL."
+  },
+  {
+    "domain": "driver",
+    "method": "clearBrowserCookies",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Clears browser cookies.",
+    "help": "Clears browser cookies.\n\n```kotlin driver.clearBrowserCookies() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForSelector",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Duration",
+    "description": "Wait until the element identified by the selector becomes present in the DOM or timeout.",
+    "help": "Wait until the element identified by the selector becomes present in the DOM or timeout.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForSelector",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "timeoutMillis",
+        "type": "Long"
+      }
+    ],
+    "returnType": "Long",
+    "description": "Wait until the element identified by the selector becomes present in the DOM or timeout.",
+    "help": "Wait until the element identified by the selector becomes present in the DOM or timeout.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", 30000) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForSelector",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "timeout",
+        "type": "Duration"
+      }
+    ],
+    "returnType": "Duration",
+    "description": "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
+    "help": "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", Duration.ofSeconds(30)) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForSelector",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "action",
+        "type": "suspend ("
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
+    "help": "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\") { driver.scrollDown() } ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForSelector",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "timeoutMillis",
+        "type": "Long"
+      },
+      {
+        "name": "action",
+        "type": "suspend ("
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
+    "help": "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", 30000) { driver.scrollDown() } ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForSelector",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "timeout",
+        "type": "Duration"
+      },
+      {
+        "name": "action",
+        "type": "suspend ("
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
+    "help": "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", Duration.ofSeconds(30)) { driver.scrollDown() } ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForNavigation",
+    "arguments": [
+      {
+        "name": "oldUrl",
+        "type": "String",
+        "defaultValue": ""
+      }
+    ],
+    "returnType": "Duration",
+    "description": "Wait until the current url changes or timeout.",
+    "help": "Wait until the current url changes or timeout.\n\n```kotlin val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation() if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url) } ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForNavigation",
+    "arguments": [
+      {
+        "name": "oldUrl",
+        "type": "String",
+        "defaultValue": ""
+      },
+      {
+        "name": "timeoutMillis",
+        "type": "Long"
+      }
+    ],
+    "returnType": "Long",
+    "description": "Wait until the current url changes or timeout.",
+    "help": "Wait until the current url changes or timeout.\n\n```kotlin val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation(1000) if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url, 1000) } ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForNavigation",
+    "arguments": [
+      {
+        "name": "oldUrl",
+        "type": "String",
+        "defaultValue": ""
+      },
+      {
+        "name": "timeout",
+        "type": "Duration"
+      }
+    ],
+    "returnType": "Duration",
+    "description": "Wait until the current url changes or timeout.",
+    "help": "Wait until the current url changes or timeout.\n\n```kotlin val timeout = Duration.ofSeconds(30) val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation(timeout) if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url, timeout) } ```"
+  },
+  {
+    "domain": "driver",
+    "method": "waitForPage",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "String"
+      },
+      {
+        "name": "timeout",
+        "type": "Duration"
+      }
+    ],
+    "returnType": "WebDriver?",
+    "description": "Await navigation to the specified URL page or timeout if necessary.",
+    "help": "Await navigation to the specified URL page or timeout if necessary.\n\n```kotlin val newDriver = driver.waitForPage(\"https://www.example.com\", Duration.ofSeconds(30)) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "exists",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Boolean",
+    "description": "Returns whether the element exists.",
+    "help": "Returns whether the element exists.\n\n```kotlin driver.exists(\"h2.title\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "isHidden",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Boolean",
+    "description": "Returns whether the element is hidden.",
+    "help": "Returns whether the element is hidden.\n\n```kotlin driver.isHidden(\"input[name='q']\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "isVisible",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Boolean",
+    "description": "Returns whether the element is visible.",
+    "help": "Returns whether the element is visible.\n\n```kotlin driver.isVisible(\"input[name='q']\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "isChecked",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Boolean",
+    "description": "Returns whether the element is checked.",
+    "help": "Returns whether the element is checked.\n\n```kotlin driver.isChecked(\"input[name='agree']\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "bringToFront",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Brings the browser window to the front.",
+    "help": "Brings the browser window to the front.\n\n```kotlin driver.bringToFront() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "hover",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method hovers over the element.",
+    "help": "This method hovers over the element.\n\n1. Scroll the element into view if needed. 2. Move mouse to hover over a random position near the center of the element.\n\n```kotlin driver.hover(\"h1\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "focus",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method fetches an element with `selector` and focuses it.",
+    "help": "This method fetches an element with `selector` and focuses it.\n\nIf there's no element matching `selector`, nothing to do.\n\n```kotlin driver.focus(\"input[name='q']\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
+  },
+  {
+    "domain": "driver",
+    "method": "type",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "text",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method emulates inserting text that doesn't come from a key press.",
+    "help": "This method emulates inserting text that doesn't come from a key press.\n\n```kotlin driver.type(\"input[name='q']\", \"Hello, World!\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
+  },
+  {
+    "domain": "driver",
+    "method": "fill",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "text",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method emulates inserting text that doesn't come from a key press.",
+    "help": "This method emulates inserting text that doesn't come from a key press.\n\nUnlike [type], this method clears the existing value before typing.\n\n```kotlin driver.fill(\"input[name='q']\", \"Hello, World!\") ```\n\nof an element to focus, and then fill text into it. If there are multiple elements satisfying the selector, the first will be focused."
+  },
+  {
+    "domain": "driver",
+    "method": "press",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "key",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Shortcut for keyboard down and keyboard up.",
+    "help": "Shortcut for keyboard down and keyboard up.\n\nThe key is specified as a string, which can be a single character, a key name, or a combination of both. For example, 'a', 'A', 'KeyA', 'Enter', 'Shift+A', and 'Control+Shift+Tab' are all valid keys.\n\n```kotlin driver.press(\"input[name='q']\", \"Enter\") ```\n\nof an element to focus, and then press a key. If there are multiple elements satisfying the selector, the first will be focused. See [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)"
+  },
+  {
+    "domain": "driver",
+    "method": "keyDown",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Presses and holds a keyboard key on the currently focused element.",
+    "help": "Presses and holds a keyboard key on the currently focused element.\n\n```kotlin driver.keyDown(\"Shift\") driver.keyDown(\"Control\") ```\n\nSee [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)"
+  },
+  {
+    "domain": "driver",
+    "method": "keyUp",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Releases a previously pressed keyboard key on the currently focused element.",
+    "help": "Releases a previously pressed keyboard key on the currently focused element.\n\n```kotlin driver.keyUp(\"Shift\") driver.keyUp(\"Control\") ```\n\nSee [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)"
+  },
+  {
+    "domain": "driver",
+    "method": "click",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "count",
+        "type": "Int",
+        "defaultValue": "1"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method focuses an element with [selector] and clicks it.",
+    "help": "This method focuses an element with [selector] and clicks it.\n\nIf there's no element matching `selector`, nothing to do.\n\n```kotlin driver.click(\"button[type='submit']\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
+  },
+  {
+    "domain": "driver",
+    "method": "click",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "modifier",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Focus on an element with [selector] and click it with [modifier] pressed.",
+    "help": "Focus on an element with [selector] and click it with [modifier] pressed."
+  },
+  {
+    "domain": "driver",
+    "method": "dblclick",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Focus on an element with [selector] and double-click it.",
+    "help": "Focus on an element with [selector] and double-click it."
+  },
+  {
+    "domain": "driver",
+    "method": "dblclick",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "modifier",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Focus on an element with [selector] and double-click it with [modifier] pressed.",
+    "help": "Focus on an element with [selector] and double-click it with [modifier] pressed."
+  },
+  {
+    "domain": "driver",
+    "method": "resize",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "Int"
+      },
+      {
+        "name": "height",
+        "type": "Int"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Resizes the viewport to the specified width and height.",
+    "help": "Resizes the viewport to the specified width and height."
+  },
+  {
+    "domain": "driver",
+    "method": "dialogAccept",
+    "arguments": [
+      {
+        "name": "promptText",
+        "type": "String?",
+        "defaultValue": "null"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Accepts the dialog.",
+    "help": "Accepts the dialog."
+  },
+  {
+    "domain": "driver",
+    "method": "dialogDismiss",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Dismisses the dialog.",
+    "help": "Dismisses the dialog."
+  },
+  {
+    "domain": "driver",
+    "method": "clickTextMatches",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "pattern",
+        "type": "String"
+      },
+      {
+        "name": "count",
+        "type": "Int",
+        "defaultValue": "1"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.",
+    "help": "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickTextMatches(\"button\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
+  },
+  {
+    "domain": "driver",
+    "method": "clickMatches",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "attrName",
+        "type": "String"
+      },
+      {
+        "name": "pattern",
+        "type": "String"
+      },
+      {
+        "name": "count",
+        "type": "Int",
+        "defaultValue": "1"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it.",
+    "help": "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element has no attribute [attrName], or the element's attribute value doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickAttributeMatches(\"button\", \"type\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
+  },
+  {
+    "domain": "driver",
+    "method": "selectOption",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "values",
+        "type": "List<String>"
+      }
+    ],
+    "returnType": "List<String>",
+    "description": "Selects one or more options in a <select> element.",
+    "help": "Selects one or more options in a <select> element."
+  },
+  {
+    "domain": "driver",
+    "method": "selectOption",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "value",
+        "type": "String"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Selects an option in a <select> element.",
+    "help": "Selects an option in a <select> element."
+  },
+  {
+    "domain": "driver",
+    "method": "clickNthAnchor",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "Int"
+      },
+      {
+        "name": "rootSelector",
+        "type": "String",
+        "defaultValue": "body"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Clicks the nth anchor element in the DOM.",
+    "help": "Clicks the nth anchor element in the DOM.\n\nThis function searches for all anchor (`<a>`) elements within the specified root element, and clicks the nth anchor element (0-based index). If the anchor element exists, it returns the `href` attribute of the clicked anchor element. If the element does not exist, it returns null.\n\n```kotlin driver.clickNthAnchor(100, \"body\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "check",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method check an element with [selector]. If there's no element matching [selector], nothing to do.",
+    "help": "This method check an element with [selector]. If there's no element matching [selector], nothing to do.\n\n[selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) of an element to check. If there are multiple elements satisfying the selector, the first will be checked."
+  },
+  {
+    "domain": "driver",
+    "method": "uncheck",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do.",
+    "help": "This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do.\n\n[selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) of an element to uncheck. If there are multiple elements satisfying the selector, the first will be focused."
+  },
+  {
+    "domain": "driver",
+    "method": "scrollTo",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Double",
+    "description": "This method fetches an element with [selector], scrolls it into view if needed.",
+    "help": "This method fetches an element with [selector], scrolls it into view if needed.\n\nIf there's no element matching [selector], the method does nothing.\n\n```kotlin driver.scrollTo(\"h2.title\") ```\n\nthe [selector], the first will be selected."
+  },
+  {
+    "domain": "driver",
+    "method": "scrollDown",
+    "arguments": [
+      {
+        "name": "count",
+        "type": "Int",
+        "defaultValue": "1"
+      }
+    ],
+    "returnType": "Double",
+    "description": "The current page frame scrolls down for [count] times.",
+    "help": "The current page frame scrolls down for [count] times.\n\n```kotlin driver.scrollDown(3) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "scrollUp",
+    "arguments": [
+      {
+        "name": "count",
+        "type": "Int",
+        "defaultValue": "1"
+      }
+    ],
+    "returnType": "Double",
+    "description": "The current page frame scrolls up for [count] times.",
+    "help": "The current page frame scrolls up for [count] times.\n\n```kotlin driver.scrollUp(3) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "scrollBy",
+    "arguments": [
+      {
+        "name": "pixels",
+        "type": "Double",
+        "defaultValue": "200.0"
+      },
+      {
+        "name": "smooth",
+        "type": "Boolean",
+        "defaultValue": "true"
+      }
+    ],
+    "returnType": "Double",
+    "description": "Scrolls the current page frame vertically by the given number of pixels.",
+    "help": "Scrolls the current page frame vertically by the given number of pixels.\n\nPositive values scroll down, negative values scroll up. The target position is clamped to the scrollable range [0, scrollHeight - viewportHeight].\n\nWhen [smooth] is true a deterministic, step‑wise scrolling algorithm is used (instead of relying on the browser's native smooth scrolling) for higher stability: it issues incremental `window.scrollTo()` calls and waits for the viewport to settle after each step. This reduces race conditions with lazy‑loaded content or async layout changes and yields more predictable final positions.\n\nTypical usage: ```kotlin // Scroll down 200px smoothly (default) driver.scrollBy() // Scroll up 500px immediately driver.scrollBy(-500.0, smooth = false) // Scroll down one viewport height, smooth val y = driver.scrollBy(driver.viewportHeight(), smooth = true) ```\n\n`window.scrollTo()` is executed."
+  },
+  {
+    "domain": "driver",
+    "method": "scrollToTop",
+    "arguments": [],
+    "returnType": "Double",
+    "description": "The current page frame scrolls to the top.",
+    "help": "The current page frame scrolls to the top.\n\n```kotlin driver.scrollToTop() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "scrollToBottom",
+    "arguments": [],
+    "returnType": "Double",
+    "description": "The current page frame scrolls to the bottom.",
+    "help": "The current page frame scrolls to the bottom.\n\n```kotlin driver.scrollToBottom() ```"
+  },
+  {
+    "domain": "driver",
+    "method": "scrollToMiddle",
+    "arguments": [
+      {
+        "name": "ratio",
+        "type": "Double"
+      }
+    ],
+    "returnType": "Double",
+    "description": "The current page frame scrolls to the middle.",
+    "help": "The current page frame scrolls to the middle.\n\n```kotlin driver.scrollToMiddle(0.2) driver.scrollToMiddle(0.5) driver.scrollToMiddle(0.8) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "scrollToViewport",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "Double"
+      },
+      {
+        "name": "smooth",
+        "type": "Boolean",
+        "defaultValue": "true"
+      }
+    ],
+    "returnType": "Double",
+    "description": "Scroll to the 2.5th viewport position.",
+    "help": "Scroll to the 2.5th viewport position.\n\n```kotlin driver.scrollToViewport(1.0) driver.scrollToViewport(1.5) driver.scrollToViewport(2.5) driver.scrollToViewport(3.0) ```\n\n1.00 means at the top of the first screen, 2.50 means halfway through the second screen."
+  },
+  {
+    "domain": "driver",
+    "method": "mouseWheelDown",
+    "arguments": [
+      {
+        "name": "count",
+        "type": "Int",
+        "defaultValue": "1"
+      },
+      {
+        "name": "deltaX",
+        "type": "Double",
+        "defaultValue": "0.0"
+      },
+      {
+        "name": "deltaY",
+        "type": "Double",
+        "defaultValue": "150.0"
+      },
+      {
+        "name": "delayMillis",
+        "type": "Long",
+        "defaultValue": "0"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "The mouse wheels down for [count] times.",
+    "help": "The mouse wheels down for [count] times.\n\n```kotlin driver.mouseWheelDown(3) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "mouseWheelUp",
+    "arguments": [
+      {
+        "name": "count",
+        "type": "Int",
+        "defaultValue": "1"
+      },
+      {
+        "name": "deltaX",
+        "type": "Double",
+        "defaultValue": "0.0"
+      },
+      {
+        "name": "deltaY",
+        "type": "Double",
+        "defaultValue": "-150.0"
+      },
+      {
+        "name": "delayMillis",
+        "type": "Long",
+        "defaultValue": "0"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "The mouse wheels up for [count] times.",
+    "help": "The mouse wheels up for [count] times.\n\n```kotlin driver.mouseWheelUp(3) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "mouseWheel",
+    "arguments": [
+      {
+        "name": "deltaX",
+        "type": "Double",
+        "defaultValue": "0.0"
+      },
+      {
+        "name": "deltaY",
+        "type": "Double",
+        "defaultValue": "150.0"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Scrolls the mouse wheel by the provided deltas.",
+    "help": "Scrolls the mouse wheel by the provided deltas.\n\nPositive [deltaY] scrolls down and negative [deltaY] scrolls up.\n\n```kotlin driver.mouseWheel(0.0, 150.0) driver.mouseWheel(0.0, -150.0) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "moveMouseTo",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "Double"
+      },
+      {
+        "name": "y",
+        "type": "Double"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "The mouse moves to the position specified by [x] and [y].",
+    "help": "The mouse moves to the position specified by [x] and [y].\n\n```kotlin driver.moveMouseTo(100.0, 200.0) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "mouseMove",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "Double"
+      },
+      {
+        "name": "y",
+        "type": "Double"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Moves the mouse to the position specified by [x] and [y].",
+    "help": "Moves the mouse to the position specified by [x] and [y].\n\n```kotlin driver.mouseMove(100.0, 200.0) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "mouseDown",
+    "arguments": [
+      {
+        "name": "button",
+        "type": "String",
+        "defaultValue": "left"
+      },
+      {
+        "name": "clickCount",
+        "type": "Int",
+        "defaultValue": "1"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Presses a mouse button at the current mouse position.",
+    "help": "Presses a mouse button at the current mouse position.\n\n```kotlin driver.mouseDown() driver.mouseDown(\"right\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "mouseUp",
+    "arguments": [
+      {
+        "name": "button",
+        "type": "String",
+        "defaultValue": "left"
+      },
+      {
+        "name": "clickCount",
+        "type": "Int",
+        "defaultValue": "1"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Releases a mouse button at the current mouse position.",
+    "help": "Releases a mouse button at the current mouse position.\n\n```kotlin driver.mouseUp() driver.mouseUp(\"right\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "moveMouseTo",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "deltaX",
+        "type": "Int"
+      },
+      {
+        "name": "deltaY",
+        "type": "Int",
+        "defaultValue": "0"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "The mouse moves to the element with [selector].",
+    "help": "The mouse moves to the element with [selector].\n\n```kotlin driver.moveMouseTo(\"h2.title\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "dragAndDrop",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "deltaX",
+        "type": "Int"
+      },
+      {
+        "name": "deltaY",
+        "type": "Int",
+        "defaultValue": "0"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Performs a drag, dragenter, dragover, and drop in sequence.",
+    "help": "Performs a drag, dragenter, dragover, and drop in sequence."
+  },
+  {
+    "domain": "driver",
+    "method": "drag",
+    "arguments": [
+      {
+        "name": "sourceSelector",
+        "type": "String"
+      },
+      {
+        "name": "targetSelector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Drags the element identified by [sourceSelector] onto the element identified by [targetSelector].",
+    "help": "Drags the element identified by [sourceSelector] onto the element identified by [targetSelector].\n\nThe implementation measures the centers of the source and target elements in the DOM and then delegates to [dragAndDrop] using the computed offset."
+  },
+  {
+    "domain": "driver",
+    "method": "outerHTML",
+    "arguments": [],
+    "returnType": "String?",
+    "description": "Returns the document's HTML markup.",
+    "help": "Returns the document's HTML markup.\n\n```kotlin val html = driver.outerHTML() ```\n\nIf the document does not exist, returns null."
+  },
+  {
+    "domain": "driver",
+    "method": "outerHTML",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Returns the node's HTML markup, the node is located by [selector].",
+    "help": "Returns the node's HTML markup, the node is located by [selector].\n\nIf the node does not exist, returns null.\n\n```kotlin val html = driver.outerHTML(\"h2.title\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "textContent",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String?",
+        "defaultValue": "null"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Returns the text content of the document or a specific element.",
+    "help": "Returns the text content of the document or a specific element.\n\nIf [selector] is null, returns the text content of the entire document (usually `document.body.innerText`). If [selector] is provided, returns the text content of the first matching element.\n\nIf the document or element does not exist, returns null.\n\n```kotlin val bodyText = driver.textContent() val titleText = driver.textContent(\"h1.title\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectFirstTextOrNull",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Returns the node's text content, the node is located by [selector].",
+    "help": "Returns the node's text content, the node is located by [selector].\n\nIf the node does not exist, returns null.\n\n```kotlin val text = driver.selectFirstTextOrNull(\"h2.title\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectTextAll",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "List<String>",
+    "description": "Returns a list of text contents of all the elements matching the specified selector within the page.",
+    "help": "Returns a list of text contents of all the elements matching the specified selector within the page.\n\nIf no elements match the selector, returns an empty list.\n\n```kotlin val texts = driver.selectTextAll(\"h2\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectFirstAttributeOrNull",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "attrName",
+        "type": "String"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Returns the node's attribute value, the node is located by [selector], the attribute is [attrName].",
+    "help": "Returns the node's attribute value, the node is located by [selector], the attribute is [attrName].\n\nIf the node does not exist, or the attribute does not exist, returns null.\n\n```kotlin val classes = driver.selectFirstAttributeOrNull(\"h2.title\", \"class\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectAttributes",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "Map<String, String>",
+    "description": "Returns the node's attribute values, the node is located by [selector].",
+    "help": "Returns the node's attribute values, the node is located by [selector].\n\nIf the node do not exist, or the attribute does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectAttributes(\"h2.title\", \"class\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectAttributeAll",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "attrName",
+        "type": "String"
+      },
+      {
+        "name": "start",
+        "type": "Int",
+        "defaultValue": "0"
+      },
+      {
+        "name": "limit",
+        "type": "Int",
+        "defaultValue": "10000"
+      }
+    ],
+    "returnType": "List<String>",
+    "description": "Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName].",
+    "help": "Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName].\n\nIf the nodes do not exist, or the attribute does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectAttributeAll(\"h2.title\", \"class\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "setAttribute",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "attrName",
+        "type": "String"
+      },
+      {
+        "name": "attrValue",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Set the attribute of an element located by [selector].",
+    "help": "Set the attribute of an element located by [selector].\n\n```kotlin driver.setAttribute(\"h2.title\", \"class\", \"header\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "setAttributeAll",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "attrName",
+        "type": "String"
+      },
+      {
+        "name": "attrValue",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Set the attribute of all elements matching the CSS query.",
+    "help": "Set the attribute of all elements matching the CSS query.\n\n```kotlin driver.setAttributeAll(\"h2.title\", \"class\", \"header\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectFirstPropertyValueOrNull",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "propName",
+        "type": "String"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Returns the node's property value, the node is located by [selector], the property is [propName].",
+    "help": "Returns the node's property value, the node is located by [selector], the property is [propName].\n\nIf the node does not exist, or the property does not exist, returns null.\n\n```kotlin val classes = driver.selectFirstPropertyOrNull(\"input#input\", \"value\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectPropertyValueAll",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "propName",
+        "type": "String"
+      },
+      {
+        "name": "start",
+        "type": "Int",
+        "defaultValue": "0"
+      },
+      {
+        "name": "limit",
+        "type": "Int",
+        "defaultValue": "10000"
+      }
+    ],
+    "returnType": "List<String>",
+    "description": "Returns the nodes' property values, the nodes are located by [selector], the property is [propName].",
+    "help": "Returns the nodes' property values, the nodes are located by [selector], the property is [propName].\n\nIf the nodes do not exist, or the property does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectPropertyAll(\"input#input\", \"value\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "setProperty",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "propName",
+        "type": "String"
+      },
+      {
+        "name": "propValue",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Set the property of an element located by [selector].",
+    "help": "Set the property of an element located by [selector].\n\n```kotlin driver.setProperty(\"input#input\", \"value\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "setPropertyAll",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "propName",
+        "type": "String"
+      },
+      {
+        "name": "propValue",
+        "type": "String"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Set the property of all elements matching the CSS query.",
+    "help": "Set the property of all elements matching the CSS query.\n\n```kotlin driver.setPropertyAll(\"input#input\", \"value\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectHyperlinks",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "offset",
+        "type": "Int",
+        "defaultValue": "1"
+      },
+      {
+        "name": "limit",
+        "type": "Int",
+        "defaultValue": "Int.MAX_VALUE"
+      }
+    ],
+    "returnType": "List<Hyperlink>",
+    "description": "Find hyperlinks in elements matching the CSS query.",
+    "help": "Find hyperlinks in elements matching the CSS query.\n\n```kotlin val hyperlinks = driver.selectHyperlinks(\"a.product-link\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectAnchors",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "offset",
+        "type": "Int",
+        "defaultValue": "1"
+      },
+      {
+        "name": "limit",
+        "type": "Int",
+        "defaultValue": "Int.MAX_VALUE"
+      }
+    ],
+    "returnType": "List<GeoAnchor>",
+    "description": "Find anchor elements matching the CSS query.",
+    "help": "Find anchor elements matching the CSS query.\n\n```kotlin val anchors = driver.selectAnchors(\"a.product-link\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "selectImages",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "offset",
+        "type": "Int",
+        "defaultValue": "1"
+      },
+      {
+        "name": "limit",
+        "type": "Int",
+        "defaultValue": "Int.MAX_VALUE"
+      }
+    ],
+    "returnType": "List<String>",
+    "description": "Find image elements matching the CSS query.",
+    "help": "Find image elements matching the CSS query.\n\n```kotlin val images = driver.selectImages(\"img.product-image\") ```"
+  },
+  {
+    "domain": "driver",
+    "method": "evaluate",
+    "arguments": [
+      {
+        "name": "expression",
+        "type": "String"
+      }
+    ],
+    "returnType": "Any?",
+    "description": "Executes JavaScript in the context of the currently selected frame or window.",
+    "help": "Executes JavaScript in the context of the currently selected frame or window.\n\nIf the result is not JavaScript object, it is not returned.\n\nIf you want to execute a function, convert it to IIFE (Immediately Invoked Function Expression).\n\n```kotlin val title = driver.evaluate(\"document.title\") ```\n\nMulti-line JavaScript code:\n\n```kotlin val code = \"\"\" () => { const a = 10; const b = 20; return a * b; } \"\"\".trimIndent()\n\nval result = driver.evaluate(code) ```\n\n### 🔍 Notes: * **Wrap the code in an IIFE (Immediately Invoked Function Expression)** to return a value. * **Escape line breaks** with `\\n`."
+  },
+  {
+    "domain": "driver",
+    "method": "evaluateDetail",
+    "arguments": [
+      {
+        "name": "expression",
+        "type": "String"
+      }
+    ],
+    "returnType": "JsEvaluation?",
+    "description": "returns detailed evaluation metadata (beta).",
+    "help": "returns detailed evaluation metadata (beta)."
+  },
+  {
+    "domain": "driver",
+    "method": "evaluateValue",
+    "arguments": [
+      {
+        "name": "expression",
+        "type": "String"
+      }
+    ],
+    "returnType": "Any?",
+    "description": "Executes JavaScript and returns the result as a JSON-serializable value.",
+    "help": "Executes JavaScript and returns the result as a JSON-serializable value.\n\nIf the result is an object, it is serialized to a Map or List. If the result is a primitive, it is returned as is. If the result is null or undefined, null is returned."
+  },
+  {
+    "domain": "driver",
+    "method": "evaluateValueDetail",
+    "arguments": [
+      {
+        "name": "expression",
+        "type": "String"
+      }
+    ],
+    "returnType": "JsEvaluation?",
+    "description": "Returns detailed value evaluation metadata (beta).",
+    "help": "Returns detailed value evaluation metadata (beta)."
+  },
+  {
+    "domain": "driver",
+    "method": "evaluateValue",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "functionDeclaration",
+        "type": "String"
+      }
+    ],
+    "returnType": "Any?",
+    "description": "Evaluate Value"
+  },
+  {
+    "domain": "driver",
+    "method": "evaluateValueDetail",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "functionDeclaration",
+        "type": "String"
+      }
+    ],
+    "returnType": "JsEvaluation?",
+    "description": "Evaluate Value Detail"
+  },
+  {
+    "domain": "driver",
+    "method": "screenshot",
+    "arguments": [
+      {
+        "name": "fullPage",
+        "type": "Boolean",
+        "defaultValue": "false"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout.",
+    "help": "Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout.\n\nIf the backend supports element-centric capture this may represent the full page; implementation specific.\n\nThe target element (if any) is scrolled into view before capture.\n\n```kotlin val base64 = driver.screenshot() val bytes = Base64.getDecoder().decode(base64) ```"
+  },
+  {
+    "domain": "driver",
+    "method": "screenshot",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box.",
+    "help": "Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box.\n\nReturns a Base64 encoded image (implementation usually PNG/JPEG), PNG by default."
+  },
+  {
+    "domain": "driver",
+    "method": "screenshot",
+    "arguments": [
+      {
+        "name": "rect",
+        "type": "RectD"
+      }
+    ],
+    "returnType": "String?",
+    "description": "Take a screenshot of the rectangle specified by [rect] in the current page coordinate space.",
+    "help": "Take a screenshot of the rectangle specified by [rect] in the current page coordinate space.\n\nCaller is responsible for ensuring the rectangle is visible or scrolled into view if the implementation requires it."
+  },
+  {
+    "domain": "driver",
+    "method": "ariaSnapshot",
+    "arguments": [],
+    "returnType": "String",
+    "description": "Aria Snapshot"
+  },
+  {
+    "domain": "driver",
+    "method": "clickablePoint",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "PointD?",
+    "description": "Calculate the clickable point of an element located by [selector].",
+    "help": "Calculate the clickable point of an element located by [selector].\n\nIf the element does not exist, or is not clickable, returns null."
+  },
+  {
+    "domain": "driver",
+    "method": "boundingBox",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      }
+    ],
+    "returnType": "RectD?",
+    "description": "Return the bounding box of an element located by [selector].",
+    "help": "Return the bounding box of an element located by [selector].\n\nIf the element does not exist, returns null."
+  },
+  {
+    "domain": "driver",
+    "method": "newJsoupSession",
+    "arguments": [],
+    "returnType": "Connection",
+    "description": "Create a new Jsoup session with the last page's context, which means, the same headers and cookies.",
+    "help": "Create a new Jsoup session with the last page's context, which means, the same headers and cookies."
+  },
+  {
+    "domain": "driver",
+    "method": "loadJsoupResource",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "String"
+      }
+    ],
+    "returnType": "Connection.Response",
+    "description": "Load the url as a resource with Jsoup rather than browser rendering, with the last page's context.",
+    "help": "Load the url as a resource with Jsoup rather than browser rendering, with the last page's context.\n\nThis means, the same headers and cookies."
+  },
+  {
+    "domain": "driver",
+    "method": "loadResource",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "String"
+      }
+    ],
+    "returnType": "NetworkResourceResponse",
+    "description": "Load the url as a resource without browser rendering, with the last page's context.",
+    "help": "Load the url as a resource without browser rendering, with the last page's context.\n\nThis means, the same headers and cookies."
+  },
+  {
+    "domain": "driver",
+    "method": "delay",
+    "arguments": [
+      {
+        "name": "millis",
+        "type": "Long",
+        "defaultValue": "1000"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Delay for a given amount of time.",
+    "help": "Delay for a given amount of time."
+  },
+  {
+    "domain": "driver",
+    "method": "delay",
+    "arguments": [
+      {
+        "name": "duration",
+        "type": "Duration"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Delay for a given amount of time.",
+    "help": "Delay for a given amount of time."
+  },
+  {
+    "domain": "driver",
+    "method": "delay",
+    "arguments": [
+      {
+        "name": "duration",
+        "type": "kotlin.time.Duration"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Delay for a given amount of time.",
+    "help": "Delay for a given amount of time."
+  },
+  {
+    "domain": "driver",
+    "method": "upload",
+    "arguments": [
+      {
+        "name": "selector",
+        "type": "String"
+      },
+      {
+        "name": "paths",
+        "type": "List<String>"
+      }
+    ],
+    "returnType": "Unit",
+    "description": "Upload files to the element located by [selector].",
+    "help": "Upload files to the element located by [selector]."
+  },
+  {
+    "domain": "driver",
+    "method": "pause",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Force the page pauses all navigations and PENDING resource fetches.",
+    "help": "Force the page pauses all navigations and PENDING resource fetches.\n\nIf the page loading pauses, the user can still interact with the page, and therefore resources can continue to load."
+  },
+  {
+    "domain": "driver",
+    "method": "stop",
+    "arguments": [],
+    "returnType": "Unit",
+    "description": "Force the page stop all navigations and RELEASES all resources.",
+    "help": "Force the page stop all navigations and RELEASES all resources.\n\nInteraction with the stop page results in undefined behavior and the results should not be trusted.\n\nIf a web driver stops, it can later be used to visit other pages."
+  }
+]

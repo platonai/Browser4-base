@@ -22,6 +22,22 @@ if (-not $repoRoot) {
 $repoRoot = (Resolve-Path $repoRoot).Path
 Set-Location $repoRoot
 
+$configPath = Join-Path $repoRoot "coworker\scripts\config.ps1"
+if (Test-Path $configPath) {
+    . $configPath
+}
+if (-not $COPILOT) {
+    $COPILOT = @('gh', 'copilot')
+}
+if ($COPILOT -is [string]) {
+    throw "COPILOT must be defined as a PowerShell array in $configPath"
+}
+if ($COPILOT.Count -lt 2) {
+    throw "COPILOT must include an executable and at least one argument"
+}
+$copilotExecutable = $COPILOT[0]
+$copilotBaseArgs = @($COPILOT | Select-Object -Skip 1)
+
 $parsedDate = Get-Date $Date
 $year = $parsedDate.ToString("yyyy")
 $month = $parsedDate.ToString("mm") # Wait, mm is minutes? No, "MM"
@@ -206,13 +222,12 @@ CONSTRAINTS:
 
     # Use Start-Process to handle arguments safely
     $safePrompt = $prompt.Replace('"', '\"')
-    $copilotArgList = @(
-        'copilot',
+    $copilotArgList = @($copilotBaseArgs + @(
         '--',
         '-p',
         "`"$safePrompt`"",
         '--allow-all-tools'
-    )
+    ))
 
-    Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -Wait
+    Start-Process -FilePath $copilotExecutable -ArgumentList $copilotArgList -NoNewWindow -Wait
 }

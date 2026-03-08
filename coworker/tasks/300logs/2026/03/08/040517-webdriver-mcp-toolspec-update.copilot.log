@@ -1,0 +1,498 @@
+● SQL: Initialize task todos
+  └ 0 row(s) inserted.
+
+● Read coworker\tasks\2working\webdriver-mcp-toolspec-update.md
+  └ 28 lines read
+
+● Check git status
+  $ git --no-pager status --short
+  └ 30 lines...
+
+● Todo started: review-webdriver-toolspec-task
+
+● Glob "**/*{WebDriverToolExecutor,ToolSpecGenerator,WebDriver}*.kt" in
+D:\workspace\Browser4\Browser4-4.6
+  └ 41 files found
+
+● Grep "class WebDriverToolExecutor|object ToolSpecGenerator|interface WebDriver|@MCP|fun drag\(" in
+ *.{kt,java} (D:\workspace\Browser4\Browser4-4.6)
+  └ 6 lines found
+
+● Create session plan
+  $ @'
+  # Plan - webdriver MCP toolspec update
+
+  1. Inspect WebDriver MCP-related code paths (`WebDriverToolExecutor`, `ToolSpecGenerator`,
+  `WebDriver` and implementations/tests) and identify the minimal set of affected files....
+  └ 8 lines...
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 1-260
+  └ 260 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+   lines 1-260
+
+  └ 260 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt lines
+   1-260
+  └ 260 lines read
+
+● Grep "annotation class MCP|@Target\(|@Retention\(" in *.kt (D:\workspace\Browser4\Browser4-4.6)
+  └ 11 lines found
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt lines
+   258-420
+  └ 163 lines read
+
+● Read pulsar-core\pulsar-common\src\main\kotlin\ai\platon\pulsar\common\ai\llm\Annotations.kt lines
+  1-120
+  └ 9 lines read
+
+● Grep "ToolSpecGenerator|driver-tool-call-specs|webDriverToolSpecs|parseFunctionsWithKDoc|@mcp" in
+*.kt (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic)
+  └ 16 lines found
+
+● Grep "dragAndDrop\(|suspend fun dragAndDrop|suspend fun drag\(" in *.kt
+(D:\workspace\Browser4\Browser4-4.6)
+  └ 16 lines found
+
+● Grep "@MCP" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\ai\pla
+ton\pulsar\skeleton\crawl\fetch\driver\WebDriver.kt)
+  └ 1 line found
+
+● Grep
+"waitForSelector|waitForNavigation|clickTextMatches|dragAndDrop|dialogAccept|keyDown|mouseDown"
+(D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\ske
+leton\crawl\fetch\driver\WebDriver.kt)
+  └ 38 lines found
+
+● Glob "**/driver-tool-call-specs.json" in D:\workspace\Browser4\Browser4-4.6
+  └ 1 file found
+
+● Read pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\inference\action\SourceCodeToToolCallT
+  est.kt lines 1-260
+  └ 45 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt lines
+   35-75
+  └ 41 lines read
+
+● Grep "waitForPage\(|exists\(|isVisible\(|isHidden\(|isChecked\(|focus\(|hover\(|type\(|fill\(|pres
+s\(|click\(|dblclick\(|upload\(|selectOption\(|ariaSnapshot\(|title\(|dialogAccept\(|dialogDismiss\(
+|resize\(|keyDown\(|keyUp\(|mouseDown\(|mouseUp\(|clickMatches\(|clickNthAnchor\("
+(D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\ske
+leton\crawl\fetch\driver\WebDriver.kt)
+  └ 59 lines found
+
+● Grep "extractInterface\(" (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotlin)
+  └ 3 lines found
+
+● Read sdks\browser4-kotlin\src\main\kotlin\ai\platon\pulsar\sdk\v0\WebDriver.kt lines 1-260
+  └ 260 lines read
+
+● Read pulsar-core\pulsar-plugins\pulsar-protocol\src\main\kotlin\ai\platon\pulsar\protocol\browser\d
+  river\cdt\PulsarWebDriver.kt lines 1160-1255
+  └ 96 lines read
+
+● Read pulsar-core\pulsar-plugins\pulsar-protocol-playwright\src\main\kotlin\ai\platon\pulsar\protoco
+  l\browser\driver\playwright\PlaywrightDriver.kt lines 540-620
+  └ 81 lines read
+
+● Grep "driver-tool-call-specs|tool-call-specs|tool specs|webDriverToolSpecs" in *.{kt,md,json}
+(D:\workspace\Browser4\Browser4-4.6)
+  └ 18 lines found
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt lines
+   420-560
+  └ 141 lines read
+
+● Read pulsar-core\pulsar-resources\src\main\resources\code-mirror\driver-tool-call-specs.json lines
+  1-220
+  └ 220 lines read
+
+● Grep "processKDoc\(|normalize|mcp tag|@mcp" (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src
+\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt)
+  └ 4 lines found
+
+● Read pulsar-core\pulsar-common\src\main\kotlin\ai\platon\pulsar\common\Strings.kt lines 1-220
+  └ 100 lines read
+
+● Grep "camel.*word|splitCamel|camelCase|toWords|humanize|human readable|method name" in *.kt
+(D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-common\src\main\kotlin)
+  └ 2 lines found
+
+● Grep "cleanupKDoc\(|compactDoc\(" in *.kt (D:\workspace\Browser4\Browser4-4.6)
+  └ 2 lines found
+
+● Read pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverExToolExecutorT
+  est.kt lines 1-260
+  └ 105 lines read
+
+● Grep "callFunctionOn\(|toolSpec\["drag"\]|dragSpec" in *.kt
+(D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\test\kotlin)
+  └ 62 lines found
+
+● Grep "#mcp|@mcp" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\a
+i\platon\pulsar\skeleton\crawl\fetch\driver\WebDriver.kt)
+  └ 5 lines found
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 900-1180
+  └ 281 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+   lines 1-340
+
+  └ 282 lines read
+
+● Grep "suspend fun evaluate\(|suspend fun dragAndDrop\(|suspend fun clickNthAnchor\(|suspend fun
+mouseDown\(|suspend fun mouseUp\(" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\s
+rc\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDriver.kt)
+  └ 5 lines found
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+   lines 283-380
+
+  └ 98 lines read
+
+● Grep "suspend fun bringToFront\(|suspend fun chat\(|suspend fun scrollDown\(|suspend fun
+scrollUp\(|suspend fun scrollBy\(|suspend fun scrollToTop\(|suspend fun scrollToBottom\(|suspend fun
+ scrollToMiddle\(|suspend fun scrollToViewport\(|suspend fun mouseWheel\(|suspend fun
+pause\(|suspend fun screenshot\(|suspend fun selectText\(|suspend fun selectTextAll\(|suspend fun
+selectFirstText\(|suspend fun waitForRequest\(|suspend fun waitForResponse\(|suspend fun
+browserZoomIn\(|suspend fun browserZoomOut\(|suspend fun stop\(|suspend fun close\(|suspend fun
+currentUrl\(|suspend fun pageSource\(|suspend fun url\(|suspend fun documentURI\(|suspend fun
+baseURI\(|suspend fun referrer\(" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\sr
+c\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDriver.kt)
+  └ 22 lines found
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+   lines 380-470
+
+  └ 16 lines read
+
+● Grep "driver\.([A-Za-z0-9_]+)\(" (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotli
+n\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt)
+  └ 5 lines found
+
+● Glob "**/*WebDriverToolExecutor*Test.kt" in
+D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\test\kotlin
+  └ No matches found
+
+● Grep "ToolSpecGenerator\.webDriverToolSpecs|generateAllOnce\(" in *.kt
+(D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\test\kotlin)
+  └ No matches found
+
+● Grep "class WebDriverToolExecutor|WebDriverToolExecutor\(" in *.kt
+(D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\test\kotlin)
+  └ 1 line found
+
+● Read
+  pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\tools\builtin\ExecutorsNamedArgsTest.kt
+  lines 1-260
+  └ 63 lines read
+
+● Grep "WebDriverToolExecutor\(|driver\." (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\tes
+t\kotlin\ai\platon\pulsar\agentic\tools\builtin\ExecutorsNamedArgsTest.kt)
+  └ 6 lines found
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\common\llm\LLMUtils.kt
+  lines 1-220
+  └ 49 lines read
+
+● Grep "readSourceFileFromResource\(|code-mirror" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pu
+lsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\common\llm\LLMUtils.kt)
+  └ 1 line found
+
+● Glob "**/code-mirror/WebDriver.kt" in D:\workspace\Browser4\Browser4-4.6
+  └ No matches found
+
+● Grep "#mcp|@mcp" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\a
+i\platon\pulsar\skeleton\crawl\fetch\driver\WebDriver.kt)
+  └ 1 file found
+
+● List WebDriver MCP-tagged methods
+  $ python - <<'PY'
+  from pathlib import Path
+  import re
+  path = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\a
+  i\platon\pulsar\skeleton\crawl\fetch\driver\WebDriver.kt')...
+  └ 32 lines...
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 1180-1270
+  └ 91 lines read
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 1270-1380
+  └ 111 lines read
+
+● Grep "@MCP" in *.kt
+(D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic)
+  └ No matches found
+
+● Grep "interface PerceptiveAgent|class PerceptiveAgent" in *.kt
+(D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotlin)
+  └ 2 lines found
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\PerceptiveAgent.kt lines 1-240
+  └ 240 lines read
+
+● Grep "@mcp|#mcp" (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotlin\ai\platon\puls
+ar\agentic\PerceptiveAgent.kt)
+  └ No matches found
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\AgentToolExecutor.kt
+  lines 1-240
+  └ 233 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\PerceptiveAgent.kt lines 176-340
+  └ 128 lines read
+
+● Grep "suspend fun (act|observe|extract|run|summarize)\(" (D:\workspace\Browser4\Browser4-4.6\pulsa
+r-agentic\src\main\kotlin\ai\platon\pulsar\agentic\PerceptiveAgent.kt)
+  └ 11 lines found
+
+● Annotate WebDriver MCP methods
+  $ $script = @'
+  from pathlib import Path
+  import re
+
+  path = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\a...
+  └ 106 lines...
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt lines
+   90-220
+  └ 131 lines read
+
+● Annotate WebDriver MCP methods
+  $ $script = @'
+  from pathlib import Path
+  import re
+
+  path = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\a...
+  └ 111 lines...
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 1268-1325
+  └ 58 lines read
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 220-320
+  └ 100 lines read
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 1-40
+  └ 40 lines read
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 232-275
+  └ 44 lines read
+
+● Insert MCP annotations in WebDriver
+  $ $script = @'
+  from pathlib import Path
+  import re
+
+  path = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\a...
+  └ 45 lines...
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 232-280
+  └ 49 lines read
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 1238-1318
+  └ 81 lines read
+
+● Grep "@MCP" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-skeleton\src\main\kotlin\ai\pla
+ton\pulsar\skeleton\crawl\fetch\driver\WebDriver.kt)
+  └ 1 file found
+
+● Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt
+
+● Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+
+  Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\PerceptiveAgent.kt
+  Edit pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\inference\action\SourceCodeToToolCallT
+  est.kt
+  Edit
+  pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\tools\builtin\ExecutorsNamedArgsTest.kt
+
+● Todo started: implement-webdriver-toolspec-update
+
+● Compile affected Maven modules
+  $ .\mvnw.cmd -pl pulsar-agentic -am -DskipTests compile
+  └ 88 lines...
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt lines
+   35-180
+  └ 146 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\PerceptiveAgent.kt lines 194-292
+  └ 99 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+   lines 1-60
+
+  └ 60 lines read
+
+● read_powershell
+  └ 88 lines...
+
+● read_powershell
+  └ 110 lines...
+
+● read_powershell
+  └ 226 lines...
+
+● Read pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\inference\action\SourceCodeToToolCallT
+  est.kt lines 1-220
+  └ 80 lines read
+
+● Read
+  pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\tools\builtin\ExecutorsNamedArgsTest.kt
+  lines 1-220
+  └ 79 lines read
+
+● Run targeted agentic tests
+  $ .\mvnw.cmd -pl pulsar-agentic -am -Dkotlin.compiler.execution.strategy=in-process
+  -Dtest=SourceCodeToToolCallTest,ExecutorsNamedArgsTest -D"surefire.failIfNoSpecifiedTests=false"
+  test
+  └ 5 lines...
+
+● Edit pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\inference\action\SourceCodeToToolCallT
+  est.kt
+
+● Review current diff
+  $ git --no-pager diff -- pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\c
+  rawl\fetch\driver\WebDriver.kt
+  pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt
+  pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+   pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\PerceptiveAgent.kt pulsar-agentic\src...
+  └ 8 lines...
+
+● Run targeted agentic tests
+  $ & .\mvnw.cmd -pl pulsar-agentic -am -Dkotlin.compiler.execution.strategy=in-process
+  '-Dtest=SourceCodeToToolCallTest,ExecutorsNamedArgsTest' '-Dsurefire.failIfNoSpecifiedTests=false'
+   test
+  └ 65 lines...
+
+● Read pulsar-core\pulsar-resources\src\main\resources\code-mirror\driver-tool-call-specs.json lines
+  1-80
+  └ 80 lines read
+
+● Run targeted tests with in-process Kotlin
+  $ & .\mvnw.cmd -pl pulsar-agentic -am '-Dkotlin.compiler.execution.strategy=in-process'
+  '-Dtest=SourceCodeToToolCallTest,ExecutorsNamedArgsTest' '-Dsurefire.failIfNoSpecifiedTests=false'
+   test
+  └ 109 lines...
+
+● list_powershell
+  └ Active shell sessions:
+
+● Grep "compilerExecutionStrategy|kotlin\.compiler\.execution\.strategy|daemon" in pom.xml
+(D:\workspace\Browser4\Browser4-4.6)
+  └ No matches found
+
+● Grep "<compilerExecutionStrategy>|<kotlin\.compiler\.execution\.strategy>|kotlin-daemon|daemon" in
+ *.xml (D:\workspace\Browser4\Browser4-4.6)
+  └ No matches found
+
+● Read pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fetch\driver\WebDr
+  iver.kt lines 220-236
+  └ 17 lines read
+
+● Try targeted tests with Kotlin daemon disabled
+  $ & .\mvnw.cmd -pl pulsar-agentic -am '-Dkotlin.daemon.enabled=false'
+  '-Dtest=SourceCodeToToolCallTest,ExecutorsNamedArgsTest' '-Dsurefire.failIfNoSpecifiedTests=false'
+   test
+  └ 109 lines...
+
+● Refresh WebDriver code mirror
+  $ $script = @'
+  from pathlib import Path
+  repo = Path(r'D:\workspace\Browser4\Browser4-4.6')
+  src = repo / r'pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl\fet
+  ch\driver\WebDriver.kt'...
+  └ 6 lines...
+
+● Verify executor methods are annotated
+  $ $script = @'
+  from pathlib import Path
+  import re
+  repo = Path(r'D:\workspace\Browser4\Browser4-4.6')
+  wd_path = repo / r'pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\skeleton\crawl...
+  └ 22 lines...
+
+● Read pulsar-core\pulsar-resources\src\main\resources\code-mirror\agent-tool-call-specs.json lines
+  1-120
+  └ 120 lines read
+
+● Glob "**/code-mirror/*tool-call-specs.json" in D:\workspace\Browser4\Browser4-4.6
+  └ 2 files found
+
+● Read pulsar-core\pulsar-resources\src\main\resources\code-mirror\driver-tool-call-specs.json lines
+  1-120
+  └ 120 lines read
+
+● Regenerate tool spec mirrors
+  $ $script = @'
+  from pathlib import Path
+  import json
+  import re...
+  └ 374 lines...
+
+● Read pulsar-core\pulsar-resources\src\main\resources\code-mirror\driver-tool-call-specs.json lines
+  1-90
+  └ 90 lines read
+
+● Grep "navigateTo|@mcp|#mcp" (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-resources\src\m
+ain\resources\code-mirror\driver-tool-call-specs.json)
+  └ No matches found
+
+● Read pulsar-core\pulsar-resources\src\main\resources\code-mirror\agent-tool-call-specs.json lines
+  1-140
+  └ 90 lines read
+
+● Todo started: validate-webdriver-toolspec-update
+
+● Grep "2026-03-07|Daily Rollup Update \(2026-03-01 to 2026-03-07\)"
+(D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md)
+  └ 1 line found
+
+● Append daily memory entry
+  $ $entry = @'
+
+  ## Task: webdriver-mcp-toolspec-update
+  **Summary:** Aligned MCP tool-spec generation with explicit `@MCP` annotations, added a real
+  `WebDriver.drag(sourceSelector, targetSelector)` API, and refreshed code-mirror tool-spec ...
+  └ 36 lines...
+
+● Todo completed: update-memory-log
+
+● Memory stored: tool specs
+  └ Tool specs are generated from code-mirror source text and now include only inter…
+
+● Check final touched files
+  $ git --no-pager status --short -- pulsar-core\pulsar-skeleton\src\main\kotlin\ai\platon\pulsar\
+  skeleton\crawl\fetch\driver\WebDriver.kt
+  pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\specs\ToolSpecGenerator.kt
+  pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\tools\builtin\WebDriverToolExecutor.kt
+   pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\PerceptiveAgent.kt pulsar-agentic\src...
+  └ 19 lines...
+
+Done: I implemented the `@MCP`-gated tool-spec generation, added `WebDriver.drag(sourceSelector, targetSelector)`, updated the executor/tests, and refreshed the code-mirror source/spec artifacts. Validation included a scripted coverage check confirming every `WebDriverToolExecutor`-exposed WebDriver method is now `@MCP`-annotated, but Maven validation was blocked by a pre-existing Kotlin compile-daemon connection failure in upstream modules (`pulsar-common` / `pulsar-tests-common`) before the changed module could run. Daily memory was appended, and the monthly memory already contained the prior-day rollup so no monthly append was needed.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         10m 10s
+Total session time:     12m 54s
+Total code changes:     +99 -48
+Breakdown by AI model:
+ gpt-5.4                 4.4m in, 36.6k out, 3.6m cached (Est. 1 Premium request)

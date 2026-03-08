@@ -5,6 +5,9 @@ import ai.platon.browser4.driver.chrome.NodeRef
 import ai.platon.browser4.driver.chrome.dom.model.NanoDOMTree
 import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.common.ExperimentalApi
+import ai.platon.pulsar.common.ai.llm.MCP
+import ai.platon.pulsar.common.serialize.json.Pson
+import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.math.geometric.PointD
 import ai.platon.pulsar.common.math.geometric.RectD
@@ -17,7 +20,7 @@ import java.io.Closeable
 import java.time.Duration
 
 /**
- * [WebDriver] defines a concise interface to visit and manipulate webpages. #mcp
+ * [WebDriver] defines a concise interface to visit and manipulate webpages. @mcp
  *
  * The webpage is rendered to a Document Object Model (DOM) in a real browser, and the interface provides methods to
  * control the browser, select textContent and attributes of Elements, and interact with the webpage.
@@ -243,6 +246,7 @@ interface WebDriver : Closeable {
      * @throws WebDriverException If an error occurs during navigation or waiting for the navigation to complete.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun open(url: String) {
         // Navigates the web driver to the specified URL.
         navigate(url)
@@ -261,6 +265,7 @@ interface WebDriver : Closeable {
      * @param url URL to navigate page to.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun navigate(url: String)
 
     @Deprecated("Use navigate(url: String) instead", ReplaceWith("navigate(url)"))
@@ -279,6 +284,7 @@ interface WebDriver : Closeable {
      * @param entry NavigateEntry to navigate page to.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun navigate(entry: NavigateEntry)
 
     @Deprecated("Use navigate(entry: NavigateEntry) instead", ReplaceWith("navigate(entry)"))
@@ -291,6 +297,7 @@ interface WebDriver : Closeable {
      * This method should trigger a reload of the current page, similar to how a user would refresh the page in a browser.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun reload()
 
     /**
@@ -302,6 +309,7 @@ interface WebDriver : Closeable {
      * @throws WebDriverException If an error occurs while navigating back.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun goBack()
 
     /**
@@ -313,6 +321,7 @@ interface WebDriver : Closeable {
      * @throws WebDriverException If an error occurs while navigating forward.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun goForward()
 
     /**
@@ -334,6 +343,7 @@ interface WebDriver : Closeable {
      *
      * @return A string containing the URL of the document, or the passed in url to navigate.
      */
+    @MCP
     suspend fun currentUrl(): String
 
     /**
@@ -348,6 +358,7 @@ interface WebDriver : Closeable {
      * @return A string containing the URL of the document
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun url(): String
 
     /**
@@ -362,6 +373,7 @@ interface WebDriver : Closeable {
      *
      * @return The document's documentURI.
      * */
+    @MCP
     suspend fun documentURI(): String
 
     /**
@@ -377,6 +389,7 @@ interface WebDriver : Closeable {
      *
      * @return The document's baseURI.
      * */
+    @MCP
     suspend fun baseURI(): String
 
     /**
@@ -391,6 +404,7 @@ interface WebDriver : Closeable {
      * @return The document's referrer.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun referrer(): String
 
     /**
@@ -412,12 +426,14 @@ interface WebDriver : Closeable {
      * @return The source of the current page
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun pageSource(): String?
 
     /**
      * Returns the title of the current page. @mcp
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun title(): String
 
     /**
@@ -428,6 +444,7 @@ interface WebDriver : Closeable {
      *
      * @return A [NanoDOMTree] representing the current page state, or null if retrieval fails.
      * */
+    @MCP
     suspend fun nanoDOMTree(): NanoDOMTree?
 
     /**
@@ -439,6 +456,7 @@ interface WebDriver : Closeable {
      * @param selector The CSS selector of the element to use as context.
      * @return A [ModelResponse] containing the model's answer.
      */
+    @MCP
     suspend fun chat(prompt: String, selector: String): ModelResponse
 
     /**
@@ -451,6 +469,7 @@ interface WebDriver : Closeable {
      * @return The cookies of the current page.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun getCookies(): List<Map<String, String>>
 
     /**
@@ -469,6 +488,7 @@ interface WebDriver : Closeable {
      * @param path If specified, deletes only cookies with the exact path.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun deleteCookies(name: String, url: String? = null, domain: String? = null, path: String? = null)
 
     /**
@@ -481,6 +501,7 @@ interface WebDriver : Closeable {
      * @see Browser.clearCookies
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun clearBrowserCookies()
 
     /**
@@ -494,6 +515,7 @@ interface WebDriver : Closeable {
      * @return The remaining time until timeout when the element becomes present.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForSelector(selector: String): Duration = waitForSelector(selector) {}
 
     /**
@@ -507,6 +529,7 @@ interface WebDriver : Closeable {
      * @return The remaining time until timeout when the element becomes present.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForSelector(selector: String, timeoutMillis: Long): Long =
         waitForSelector(selector, timeoutMillis) {}
 
@@ -521,6 +544,7 @@ interface WebDriver : Closeable {
      * @return The remaining time until timeout when the element becomes present.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForSelector(selector: String, timeout: Duration): Duration = waitForSelector(selector, timeout) {}
 
     /**
@@ -538,6 +562,7 @@ interface WebDriver : Closeable {
      * @param action The action to execute when the element is not found.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForSelector(selector: String, action: suspend () -> Unit): Duration
 
     /**
@@ -557,6 +582,7 @@ interface WebDriver : Closeable {
      * @return The remaining time until timeout when the element becomes present.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForSelector(selector: String, timeoutMillis: Long, action: suspend () -> Unit): Long =
         waitForSelector(selector, Duration.ofMillis(timeoutMillis), action).toMillis()
 
@@ -577,6 +603,7 @@ interface WebDriver : Closeable {
      * @return The remaining time until timeout when the element becomes present.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForSelector(selector: String, timeout: Duration, action: suspend () -> Unit): Duration
 
     /**
@@ -593,6 +620,7 @@ interface WebDriver : Closeable {
      * ```
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForNavigation(oldUrl: String = ""): Duration
 
     /**
@@ -611,6 +639,7 @@ interface WebDriver : Closeable {
      * @param timeoutMillis The maximum time to wait for the url to change.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForNavigation(oldUrl: String = "", timeoutMillis: Long): Long =
         waitForNavigation(oldUrl, Duration.ofMillis(timeoutMillis)).toMillis()
 
@@ -631,6 +660,7 @@ interface WebDriver : Closeable {
      * @param timeout The maximum time to wait for the url to change.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForNavigation(oldUrl: String = "", timeout: Duration): Duration
 
     /**
@@ -644,6 +674,7 @@ interface WebDriver : Closeable {
      * @return The remaining time until timeout when the predicate returns true.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun waitForPage(url: String, timeout: Duration): WebDriver?
 
     /**
@@ -709,6 +740,7 @@ interface WebDriver : Closeable {
      * @return Whether the element exists.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun exists(selector: String): Boolean
 
     /**
@@ -722,6 +754,7 @@ interface WebDriver : Closeable {
      * @return Whether the element is hidden.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun isHidden(selector: String): Boolean = !isVisible(selector)
 
     /**
@@ -735,6 +768,7 @@ interface WebDriver : Closeable {
      * @return Whether the element is visible.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun isVisible(selector: String): Boolean
 
     /**
@@ -748,6 +782,7 @@ interface WebDriver : Closeable {
      * @return Whether the element is checked.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun isChecked(selector: String): Boolean
 
     /////////////////////////////////////////////////
@@ -761,6 +796,7 @@ interface WebDriver : Closeable {
      * ```
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun bringToFront()
 
     /**
@@ -774,6 +810,7 @@ interface WebDriver : Closeable {
      * ```
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun hover(selector: String)
 
     /**
@@ -789,6 +826,7 @@ interface WebDriver : Closeable {
      * of an element to focus. If there are multiple elements satisfying the selector, the first will be focused.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun focus(selector: String)
 
     /**
@@ -804,6 +842,7 @@ interface WebDriver : Closeable {
      * @param text The text to insert.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun type(selector: String, text: String)
 
     /**
@@ -821,6 +860,7 @@ interface WebDriver : Closeable {
      * @param text The text to fill.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun fill(selector: String, text: String)
 
     /**
@@ -840,6 +880,7 @@ interface WebDriver : Closeable {
      *      See [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun press(selector: String, key: String)
 
     /**
@@ -854,6 +895,7 @@ interface WebDriver : Closeable {
      *      See [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun keyDown(key: String)
 
     /**
@@ -868,6 +910,7 @@ interface WebDriver : Closeable {
      *      See [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun keyUp(key: String)
 
     /**
@@ -885,6 +928,7 @@ interface WebDriver : Closeable {
      * @param count The number of times to click.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun click(selector: String, count: Int = 1)
 
     /**
@@ -894,6 +938,7 @@ interface WebDriver : Closeable {
      * @param modifier The keyboard modifier to press while clicking (e.g., "Shift", "Control", "Alt").
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun click(selector: String, modifier: String)
 
     /**
@@ -902,6 +947,7 @@ interface WebDriver : Closeable {
      * @param selector The selector of the element to double-click.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun dblclick(selector: String)
 
     /**
@@ -911,21 +957,25 @@ interface WebDriver : Closeable {
      * @param modifier The keyboard modifier to press while double-clicking.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun dblclick(selector: String, modifier: String)
 
     /**
      * Resizes the viewport to the specified width and height. @mcp
      * */
+    @MCP
     suspend fun resize(width: Int, height: Int)
 
     /**
      * Accepts the dialog. @mcp
      * */
+    @MCP
     suspend fun dialogAccept(promptText: String? = null)
 
     /**
      * Dismisses the dialog. @mcp
      * */
+    @MCP
     suspend fun dialogDismiss()
 
     /**
@@ -944,6 +994,7 @@ interface WebDriver : Closeable {
      * @param count The number of times to click.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun clickTextMatches(selector: String, pattern: String, count: Int = 1)
 
     /**
@@ -964,6 +1015,7 @@ interface WebDriver : Closeable {
      * @param count The number of times to click.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun clickMatches(selector: String, attrName: String, pattern: String, count: Int = 1)
 
     /**
@@ -973,6 +1025,7 @@ interface WebDriver : Closeable {
      * @param values The values or labels of the options to select
      * @return The list of selected option values
      */
+    @MCP
     suspend fun selectOption(selector: String, values: List<String>): List<String>
 
     /**
@@ -982,6 +1035,7 @@ interface WebDriver : Closeable {
      * @param value The value or label of the option to select
      * @return The selected option value, or null if not found
      */
+    @MCP
     suspend fun selectOption(selector: String, value: String): String? {
         val selected = selectOption(selector, listOf(value))
         return selected.firstOrNull()
@@ -1004,6 +1058,7 @@ interface WebDriver : Closeable {
      * @throws WebDriverException If an error occurs while interacting with the WebDriver.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun clickNthAnchor(n: Int, rootSelector: String = "body"): String?
 
     /**
@@ -1015,6 +1070,7 @@ interface WebDriver : Closeable {
      * selector, the first will be checked.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun check(selector: String)
 
     /**
@@ -1026,6 +1082,7 @@ interface WebDriver : Closeable {
      * selector, the first will be focused.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun uncheck(selector: String)
 
     /**
@@ -1041,6 +1098,7 @@ interface WebDriver : Closeable {
      * the [selector], the first will be selected.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollTo(selector: String): Double
 
     /**
@@ -1053,6 +1111,7 @@ interface WebDriver : Closeable {
      * @param count The times to scroll down.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollDown(count: Int = 1): Double
 
     /**
@@ -1065,6 +1124,7 @@ interface WebDriver : Closeable {
      * @param count The times to scroll up.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollUp(count: Int = 1): Double
 
     /**
@@ -1096,6 +1156,7 @@ interface WebDriver : Closeable {
      * @throws WebDriverException If the underlying browser interaction fails.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollBy(pixels: Double = 200.0, smooth: Boolean = true): Double
 
     /**
@@ -1106,6 +1167,7 @@ interface WebDriver : Closeable {
      * ```
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollToTop(): Double
 
     /**
@@ -1116,6 +1178,7 @@ interface WebDriver : Closeable {
      * ```
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollToBottom(): Double
 
     /**
@@ -1130,6 +1193,7 @@ interface WebDriver : Closeable {
      * @param ratio The ratio of the page to scroll to, 0.0 means the top, 1.0 means the bottom.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollToMiddle(ratio: Double): Double
 
     /**
@@ -1146,6 +1210,7 @@ interface WebDriver : Closeable {
      * 1.00 means at the top of the first screen, 2.50 means halfway through the second screen.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun scrollToViewport(n: Double, smooth: Boolean = true): Double
 
     /**
@@ -1162,6 +1227,7 @@ interface WebDriver : Closeable {
      */
     @Deprecated("Use mouseWheel(deltaX, deltaY) instead", replaceWith = ReplaceWith("mouseWheel(deltaX, deltaY)"))
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun mouseWheelDown(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = 150.0, delayMillis: Long = 0)
 
     /**
@@ -1178,6 +1244,7 @@ interface WebDriver : Closeable {
      */
     @Deprecated("Use mouseWheel(deltaX, deltaY) instead", replaceWith = ReplaceWith("mouseWheel(deltaX, deltaY)"))
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun mouseWheelUp(count: Int = 1, deltaX: Double = 0.0, deltaY: Double = -150.0, delayMillis: Long = 0)
 
     /**
@@ -1194,6 +1261,7 @@ interface WebDriver : Closeable {
      * @param deltaY The distance to wheel vertically.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun mouseWheel(deltaX: Double = 0.0, deltaY: Double = 150.0)
 
     /**
@@ -1208,6 +1276,7 @@ interface WebDriver : Closeable {
      */
     @Deprecated("Use mouseMove instead", replaceWith = ReplaceWith("mouseMove(x, y)"))
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun moveMouseTo(x: Double, y: Double)
 
     /**
@@ -1221,6 +1290,7 @@ interface WebDriver : Closeable {
      * @param y The y coordinate to move to.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun mouseMove(x: Double, y: Double)
 
     /**
@@ -1235,6 +1305,7 @@ interface WebDriver : Closeable {
      * @param clickCount The click count associated with the press event.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun mouseDown(button: String = "left", clickCount: Int = 1)
 
     /**
@@ -1249,6 +1320,7 @@ interface WebDriver : Closeable {
      * @param clickCount The click count associated with the release event.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun mouseUp(button: String = "left", clickCount: Int = 1)
 
     /**
@@ -1262,6 +1334,7 @@ interface WebDriver : Closeable {
      * @param deltaY The distance to the top of the element.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun moveMouseTo(selector: String, deltaX: Int, deltaY: Int = 0)
 
     /**
@@ -1272,7 +1345,44 @@ interface WebDriver : Closeable {
      * @param deltaY The distance to drag vertically.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun dragAndDrop(selector: String, deltaX: Int, deltaY: Int = 0)
+
+
+    /**
+     * Drags the element identified by [sourceSelector] onto the element identified by [targetSelector]. @mcp
+     *
+     * The implementation measures the centers of the source and target elements in the DOM and then delegates
+     * to [dragAndDrop] using the computed offset.
+     *
+     * @param sourceSelector The selector of the element to drag.
+     * @param targetSelector The selector of the element to drop onto.
+     */
+    @MCP
+    suspend fun drag(sourceSelector: String, targetSelector: String) {
+        val encodedSource = Pson.toJson(sourceSelector)
+        val encodedTarget = Pson.toJson(targetSelector)
+        val script = """
+            (() => {
+                const source = document.querySelector($encodedSource);
+                const target = document.querySelector($encodedTarget);
+                if (!source || !target) return JSON.stringify({ dx: 0, dy: 0 });
+                const sourceRect = source.getBoundingClientRect();
+                const targetRect = target.getBoundingClientRect();
+                return JSON.stringify({
+                    dx: targetRect.x - sourceRect.x + targetRect.width / 2 - sourceRect.width / 2,
+                    dy: targetRect.y - sourceRect.y + targetRect.height / 2 - sourceRect.height / 2
+                });
+            })()
+        """.trimIndent()
+        val result = evaluate(script) as? String ?: """{"dx":0,"dy":0}"""
+        val parsed = pulsarObjectMapper().readTree(result)
+        dragAndDrop(
+            sourceSelector,
+            parsed.path("dx").asInt(),
+            parsed.path("dy").asInt()
+        )
+    }
 
     /**
      * Returns the document's HTML markup. @mcp
@@ -1286,6 +1396,7 @@ interface WebDriver : Closeable {
      * @return The HTML markup of the document.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun outerHTML(): String?
 
     /**
@@ -1301,6 +1412,7 @@ interface WebDriver : Closeable {
      * @return The HTML markup of the node.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun outerHTML(selector: String): String?
 
     /**
@@ -1319,6 +1431,7 @@ interface WebDriver : Closeable {
      * @param selector The CSS selector of the element. If null, targets the document body.
      * @return The text content, or null if not found.
      * */
+    @MCP
     suspend fun textContent(selector: String? = null): String?
 
     /**
@@ -1356,6 +1469,7 @@ interface WebDriver : Closeable {
      * @return The text content of the node.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectFirstTextOrNull(selector: String): String?
 
     /**
@@ -1371,6 +1485,7 @@ interface WebDriver : Closeable {
      * @return The text contents of the nodes.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectTextAll(selector: String): List<String>
 
     /**
@@ -1387,6 +1502,7 @@ interface WebDriver : Closeable {
      * @return The attribute value of the node.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectFirstAttributeOrNull(selector: String, attrName: String): String?
 
     /**
@@ -1402,6 +1518,7 @@ interface WebDriver : Closeable {
      * @return The attribute pairs of the nodes.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectAttributes(selector: String): Map<String, String>
 
     /**
@@ -1420,6 +1537,7 @@ interface WebDriver : Closeable {
      * @return The attribute values of the nodes.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectAttributeAll(selector: String, attrName: String, start: Int = 0, limit: Int = 10000): List<String>
 
     /**
@@ -1434,6 +1552,7 @@ interface WebDriver : Closeable {
      * @param attrValue The attribute value to set.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun setAttribute(selector: String, attrName: String, attrValue: String)
 
     /**
@@ -1448,6 +1567,7 @@ interface WebDriver : Closeable {
      * @param attrValue The attribute value to set.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun setAttributeAll(selector: String, attrName: String, attrValue: String)
 
 
@@ -1465,6 +1585,7 @@ interface WebDriver : Closeable {
      * @return The property value of the node.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectFirstPropertyValueOrNull(selector: String, propName: String): String?
 
     /**
@@ -1483,6 +1604,7 @@ interface WebDriver : Closeable {
      * @return The property values of the nodes.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectPropertyValueAll(
         selector: String,
         propName: String,
@@ -1502,6 +1624,7 @@ interface WebDriver : Closeable {
      * @param propValue The property value to set.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun setProperty(selector: String, propName: String, propValue: String)
 
     /**
@@ -1516,6 +1639,7 @@ interface WebDriver : Closeable {
      * @param propValue The property value to set.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun setPropertyAll(selector: String, propName: String, propValue: String)
 
     /**
@@ -1531,6 +1655,7 @@ interface WebDriver : Closeable {
      * @return The hyperlinks in the elements.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectHyperlinks(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<Hyperlink>
 
     /**
@@ -1546,6 +1671,7 @@ interface WebDriver : Closeable {
      * @return The anchors.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectAnchors(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<GeoAnchor>
 
     /**
@@ -1561,6 +1687,7 @@ interface WebDriver : Closeable {
      * @return The image URLs.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun selectImages(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<String>
 
     /**
@@ -1596,6 +1723,7 @@ interface WebDriver : Closeable {
      * @return Remote object value in case of primitive values or null.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun evaluate(expression: String): Any?
 
     /**
@@ -1615,6 +1743,7 @@ interface WebDriver : Closeable {
      * @return A [JsEvaluation] object containing the result and metadata.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun evaluateDetail(expression: String): JsEvaluation?
 
     /**
@@ -1628,6 +1757,7 @@ interface WebDriver : Closeable {
      * @return The result as a JSON-compatible object (Map, List, String, Number, Boolean, or null).
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun evaluateValue(expression: String): Any?
 
     /**
@@ -1647,14 +1777,17 @@ interface WebDriver : Closeable {
      * @return A [JsEvaluation] object containing the result value and metadata.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun evaluateValueDetail(expression: String): JsEvaluation?
 
     @Throws(WebDriverException::class)
     @ExperimentalApi
+    @MCP
     suspend fun evaluateValue(selector: String, functionDeclaration: String): Any?
 
     @Throws(WebDriverException::class)
     @ExperimentalApi
+    @MCP
     suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation?
 
     /**
@@ -1670,6 +1803,7 @@ interface WebDriver : Closeable {
      * ```
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun screenshot(fullPage: Boolean = false): String?
 
     /**
@@ -1678,6 +1812,7 @@ interface WebDriver : Closeable {
      * Returns a Base64 encoded image (implementation usually PNG/JPEG), PNG by default.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun screenshot(selector: String): String?
 
     /**
@@ -1686,6 +1821,7 @@ interface WebDriver : Closeable {
      * Caller is responsible for ensuring the rectangle is visible or scrolled into view if the implementation requires it.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun screenshot(rect: RectD): String?
 
     @Deprecated("Use screenshot(fullPage = true) instead", ReplaceWith("screenshot(fullPage = true)"))
@@ -1698,6 +1834,7 @@ interface WebDriver : Closeable {
     suspend fun captureScreenshot(rect: RectD): String? = screenshot(rect)
 
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun ariaSnapshot(): String
 
     /**
@@ -1709,6 +1846,7 @@ interface WebDriver : Closeable {
      * @return The clickable point of the element.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun clickablePoint(selector: String): PointD?
 
     /**
@@ -1720,6 +1858,7 @@ interface WebDriver : Closeable {
      * @return The bounding box of the element.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun boundingBox(selector: String): RectD?
 
     /**
@@ -1728,6 +1867,7 @@ interface WebDriver : Closeable {
      * @return The Jsoup session.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun newJsoupSession(): Connection
 
     /**
@@ -1739,6 +1879,7 @@ interface WebDriver : Closeable {
      * @return The Jsoup response.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun loadJsoupResource(url: String): Connection.Response
 
     /**
@@ -1750,6 +1891,7 @@ interface WebDriver : Closeable {
      * @return The network resource response.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun loadResource(url: String): NetworkResourceResponse
 
     /**
@@ -1757,6 +1899,7 @@ interface WebDriver : Closeable {
      *
      * @param millis The amount of time to delay, in milliseconds.
      * */
+    @MCP
     suspend fun delay(millis: Long = 1000) = kotlinx.coroutines.delay(millis)
 
     /**
@@ -1764,6 +1907,7 @@ interface WebDriver : Closeable {
      *
      * @param duration The amount of time to delay.
      * */
+    @MCP
     suspend fun delay(duration: Duration) = kotlinx.coroutines.delay(duration.toMillis())
 
     /**
@@ -1771,6 +1915,7 @@ interface WebDriver : Closeable {
      *
      * @param duration The amount of time to delay.
      * */
+    @MCP
     suspend fun delay(duration: kotlin.time.Duration) = kotlinx.coroutines.delay(duration.inWholeMilliseconds)
 
     /**
@@ -1780,6 +1925,7 @@ interface WebDriver : Closeable {
      * @param paths The list of file paths to upload.
      */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun upload(selector: String, paths: List<String>)
 
     /**
@@ -1789,6 +1935,7 @@ interface WebDriver : Closeable {
      * and therefore resources can continue to load.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun pause()
 
     /**
@@ -1799,5 +1946,6 @@ interface WebDriver : Closeable {
      * If a web driver stops, it can later be used to visit other pages.
      * */
     @Throws(WebDriverException::class)
+    @MCP
     suspend fun stop()
 }

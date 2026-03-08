@@ -32,6 +32,22 @@ if (-not $repoRoot) {
 $repoRoot = (Resolve-Path $repoRoot).Path
 Set-Location $repoRoot
 
+$configPath = Join-Path $repoRoot "coworker\scripts\config.ps1"
+if (Test-Path $configPath) {
+    . $configPath
+}
+if (-not $COPILOT) {
+    $COPILOT = @('gh', 'copilot')
+}
+if ($COPILOT -is [string]) {
+    throw "COPILOT must be defined as a PowerShell array in $configPath"
+}
+if ($COPILOT.Count -lt 2) {
+    throw "COPILOT must include an executable and at least one argument"
+}
+$copilotExecutable = $COPILOT[0]
+$copilotBaseArgs = @($COPILOT | Select-Object -Skip 1)
+
 $parsedDate = Get-Date $Date
 $year = $parsedDate.ToString("yyyy")
 $month = $parsedDate.ToString("MM")
@@ -54,35 +70,33 @@ function Invoke-GhCopilot {
 
     if ($CaptureOutput) {
         # Arguments for direct invocation (no extra quotes needed for array elements)
-        $directArgs = @(
-            'copilot',
+        $directArgs = @($copilotBaseArgs + @(
             '--',
             '-p',
             $Prompt,
             '--allow-all-tools'
-        )
+        ))
 
         # Executing directly to capture output
         # Note: gh copilot output might include ANSI codes, we might need to strip them?
         # Typically gh copilot outputs markdown.
 
-        $output = & gh $directArgs 2>&1 | Out-String
+        $output = & $copilotExecutable @directArgs 2>&1 | Out-String
         return $output
     } else {
         # Arguments for Start-Process (might need quotes for complex strings depending on PS version/OS)
         # But generally, Start-Process ArgumentList array is safe.
         # The original code added quotes, let's keep it for safety in the Start-Process path.
         $safePrompt = $Prompt.Replace('"', '\"')
-        $processArgs = @(
-            'copilot',
+        $processArgs = @($copilotBaseArgs + @(
             '--',
             '-p',
             "`"$safePrompt`"",
             '--allow-all-tools'
-        )
+        ))
 
         # Use Start-Process to handle arguments safely and stream to console
-        Start-Process -FilePath 'gh' -ArgumentList $processArgs -NoNewWindow -Wait
+        Start-Process -FilePath $copilotExecutable -ArgumentList $processArgs -NoNewWindow -Wait
     }
 }
 

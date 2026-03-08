@@ -24,6 +24,22 @@ if (-not $repoRoot) {
     exit 1
 }
 
+$configPath = Join-Path $repoRoot "coworker\scripts\config.ps1"
+if (Test-Path $configPath) {
+    . $configPath
+}
+if (-not $COPILOT) {
+    $COPILOT = @('gh', 'copilot')
+}
+if ($COPILOT -is [string]) {
+    throw "COPILOT must be defined as a PowerShell array in $configPath"
+}
+if ($COPILOT.Count -lt 2) {
+    throw "COPILOT must include an executable and at least one argument"
+}
+$copilotExecutable = $COPILOT[0]
+$copilotBaseArgs = @($COPILOT | Select-Object -Skip 1)
+
 $draftDir = Join-Path $repoRoot "coworker\tasks\0draft"
 
 if (-not (Test-Path $draftDir)) {
@@ -46,14 +62,13 @@ $prompt = "Refine the content of the draft file: $draftPath. Improve the writing
 
 Write-Host "Starting GitHub Copilot to refine the draft..."
 
-# Use gh copilot with the prompt
-$ghArgs = @(
-    'copilot',
+# Use configured gh copilot command with the prompt
+$ghArgs = @($copilotBaseArgs + @(
     '--',
     '-p',
     "`"$prompt`"",
     '--allow-all-tools',
     '--allow-all-paths'
-)
+))
 
-Start-Process -FilePath "gh" -ArgumentList $ghArgs -NoNewWindow -Wait
+Start-Process -FilePath $copilotExecutable -ArgumentList $ghArgs -NoNewWindow -Wait

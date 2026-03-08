@@ -178,6 +178,21 @@ function Write-LogVerbose {
     $logEntry | Out-File -FilePath $scriptLogPath -Append -Encoding UTF8
 }
 
+function Ensure-DraftPlaceholders {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$DraftDirectory
+    )
+
+    foreach ($draftNumber in 1..5) {
+        $draftPath = Join-Path $DraftDirectory "$draftNumber.md"
+        if (!(Test-Path $draftPath)) {
+            Set-Content -Path $draftPath -Value '' -Encoding UTF8
+            Write-LogMessage "Created missing draft placeholder: $draftPath" INFO
+        }
+    }
+}
+
 function Get-TaskBaseName {
     param(
         [Parameter(Mandatory=$true)]
@@ -340,6 +355,8 @@ foreach ($taskRoot in $taskRoots) {
     $currentDay = (Get-Date).ToUniversalTime().ToString("dd")
     $currentDate = "$currentMonth$currentDay"
     $currentTime = (Get-Date).ToUniversalTime().ToString("HHmmss")
+
+    Ensure-DraftPlaceholders -DraftDirectory $draftDir
 
     # 1. Process 0draft
     $prepareFiles = Get-ChildItem -Path $draftDir -File
@@ -724,6 +741,7 @@ Copilot Log: $copilotLogPath
 
         Move-Item -Path $workingPath -Destination $targetInfo.Path -Force
         Write-LogMessage "$targetMessage : $($targetInfo.Path)" INFO
+        Ensure-DraftPlaceholders -DraftDirectory $draftDir
 
         Write-LogMessage "---" INFO
     }

@@ -1,6 +1,7 @@
 package ai.platon.pulsar.agentic
 
 import ai.platon.pulsar.agentic.model.*
+import ai.platon.pulsar.common.ai.llm.MCP
 import ai.platon.pulsar.common.Strings
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
@@ -198,6 +199,7 @@ interface PerceptiveAgent : AutoCloseable {
      * @param task The user goal or instruction to fulfill.
      * @return The final action result produced by the agent.
      */
+    @MCP
     suspend fun run(task: String): AgentHistory
 
     /**
@@ -217,6 +219,7 @@ interface PerceptiveAgent : AutoCloseable {
      * @param instruction The observation instruction from the user.
      * @return Zero or more observation results describing candidate elements and potential actions.
      */
+    @MCP
     suspend fun observe(instruction: String): List<ObserveResult>
 
     /**
@@ -240,6 +243,7 @@ interface PerceptiveAgent : AutoCloseable {
      * @param selector Optional locator limiting which element's text is summarized.
      * @return The generated summary text.
      */
+    @MCP
     suspend fun summarize(instruction: String? = null, selector: String? = null): String
 
     /**
@@ -248,6 +252,7 @@ interface PerceptiveAgent : AutoCloseable {
      * @param action The action to execute.
      * @return The result of executing the action.
      */
+    @MCP
     suspend fun act(action: String): ActResult
 
     /**
@@ -276,6 +281,7 @@ interface PerceptiveAgent : AutoCloseable {
      * @param instruction The extraction instruction from the user.
      * @return The extraction result produced by the model.
      */
+    @MCP
     suspend fun extract(instruction: String): ExtractResult
 
     /**
@@ -285,6 +291,7 @@ interface PerceptiveAgent : AutoCloseable {
      * @param schema The JSON schema used to constrain the returned data structure.
      * @return The extraction result produced by the model.
      */
+    @MCP
     suspend fun extract(instruction: String, schema: ExtractionSchema): ExtractResult
 
     /**

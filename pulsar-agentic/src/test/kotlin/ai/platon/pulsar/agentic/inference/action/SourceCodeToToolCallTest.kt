@@ -1,6 +1,7 @@
 package ai.platon.pulsar.agentic.inference.action
 
 import ai.platon.pulsar.agentic.tools.specs.ToolSpecGenerator
+import ai.platon.pulsar.common.ai.llm.MCP
 import ai.platon.pulsar.skeleton.common.llm.LLMUtils
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -41,5 +42,40 @@ class SourceCodeToToolCallTest {
 
         // Verify annotations are removed
         assertTrue(!help.contains("@param"), "Help should not contain @param annotations")
+    }
+
+    @Test
+    @DisplayName("extractInterface only includes @MCP methods and uses fallback description")
+    fun extractInterfaceOnlyIncludesAnnotatedMethods() {
+        val sourceCode = """
+            interface Demo {
+                /**
+                 * Click the current button. @mcp
+                 *
+                 * Extra context for click.
+                 */
+                @MCP
+                suspend fun clickNow(): Unit
+
+                @MCP
+                suspend fun noDocsHere()
+
+                suspend fun internalOnly()
+            }
+        """.trimIndent()
+
+        val tools = ToolSpecGenerator.extractInterface("driver", sourceCode, "Demo")
+
+        assertTrue(tools.any { it.method == "clickNow" }, "Annotated method with KDoc should be included")
+        assertTrue(tools.any { it.method == "noDocsHere" }, "Annotated method without KDoc should be included")
+        assertTrue(tools.none { it.method == "internalOnly" }, "Unannotated method should not be included")
+        assertTrue(
+            tools.first { it.method == "clickNow" }.description!!.contains("Click the current button."),
+            "Tagged @mcp paragraph should be used for description"
+        )
+        assertTrue(
+            tools.first { it.method == "noDocsHere" }.description!!.contains("No Docs Here"),
+            "Method-name fallback should generate a human readable description"
+        )
     }
 }

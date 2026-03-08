@@ -159,6 +159,20 @@ log_verbose() {
     echo "$logEntry" >> "$scriptLogPath"
 }
 
+ensure_draft_placeholders() {
+    local draft_directory="$1"
+    local draft_number
+    local draft_path
+
+    for draft_number in 1 2 3 4 5; do
+        draft_path="$draft_directory/$draft_number.md"
+        if [[ ! -e "$draft_path" ]]; then
+            : > "$draft_path"
+            log_message "Created missing draft placeholder: $draft_path" INFO
+        fi
+    done
+}
+
 # Function: Get unique path to avoid collisions
 # Usage: resolve_unique_path "directory" "basename" "extension"
 resolve_unique_path() {
@@ -254,6 +268,8 @@ log_message "Coworker Task Runner - Bash Shell Version" INFO
 log_message "Started at: $scriptStartTime" INFO
 log_message "Script Log: $scriptLogPath" INFO
 log_message "==========================================================================" INFO
+
+ensure_draft_placeholders "$draftDir"
 
 # 1. Process 0draft
 shopt -s nullglob
@@ -648,6 +664,7 @@ $memoryContext"
 
     mv "$workingPath" "$targetPath"
     log_message "$targetMessage: $targetPath" INFO
+    ensure_draft_placeholders "$draftDir"
 
     log_message "---" INFO
 

@@ -38,7 +38,7 @@ object ToolSpecGenerator {
         }
     }
 
-    private fun extractInterface(domain: String, sourceCode: String, interfaceName: String): List<ToolSpec> {
+    fun extractInterface(domain: String, sourceCode: String, interfaceName: String): List<ToolSpec> {
         // Parse WebDriver interface methods and build ToolCall specs
         val interfaceBody = extractInterfaceBody(sourceCode, interfaceName) ?: sourceCode
         val methods = parseFunctionsWithKDoc(interfaceBody)
@@ -58,7 +58,7 @@ object ToolSpecGenerator {
             val method = m.name
             // Use parsed return type; default to Unit when absent
             val returnType = m.returnType.ifBlank { "Unit" }
-            val description = m.kdoc
+            val description = m.kdoc ?: methodNameToDescription(method)
             val help = m.fullKDoc
             toolSpec += ToolSpec(domain, method, arguments, returnType, description, help)
         }
@@ -98,6 +98,7 @@ object ToolSpecGenerator {
         val kdocBuf = StringBuilder()
         var pendingKDoc: String? = null
         var pendingFullKDoc: String? = null
+        var pendingMcpAnnotation = false
 
         var collectingSig = false
         val sigBuf = StringBuilder()
@@ -118,12 +119,13 @@ object ToolSpecGenerator {
         fun commitSig() {
             val sig = sigBuf.toString()
             val parsed = parseSignature(sig)
-            if (parsed != null) {
+            if (parsed != null && pendingMcpAnnotation) {
                 val (name, params, returnType) = parsed
                 out += FuncSig(name, params, returnType, pendingKDoc, pendingFullKDoc)
             }
             pendingKDoc = null
             pendingFullKDoc = null
+            pendingMcpAnnotation = false
             resetSig()
         }
 
@@ -149,6 +151,9 @@ object ToolSpecGenerator {
 
             // Skip annotation lines
             if (line.trimStart().startsWith("@")) {
+                if (line.contains("@MCP")) {
+                    pendingMcpAnnotation = true
+                }
                 continue
             }
 
@@ -199,7 +204,7 @@ object ToolSpecGenerator {
         // In case last signature ended at EOF
         if (collectingSig && parenDepth == 0 && sigBuf.contains('(')) {
             val parsed = parseSignature(sigBuf.toString())
-            if (parsed != null) {
+            if (parsed != null && pendingMcpAnnotation) {
                 val (name, params, returnType) = parsed
                 out += FuncSig(name, params, returnType, pendingKDoc, pendingFullKDoc)
             }
@@ -512,8 +517,9 @@ object ToolSpecGenerator {
 
         val lines = inner.lines()
             .map { it.trim().removePrefix("*").trim() }
-            // Filter out annotation lines like @param, @return, etc.
-            .filter { !it.startsWith("@") }
+            .filter {
+                !it.startsWith("@") || it.startsWith("@mcp", ignoreCase = true)
+            }
 
         // Group lines into paragraphs
         val paragraphs = mutableListOf<String>()
@@ -536,18 +542,35 @@ object ToolSpecGenerator {
             paragraphs.add(currentParagraph.toString().trim())
         }
 
-        // Find paragraph with #mcp tag
-        val mcpParagraph = paragraphs.firstOrNull { it.contains("#mcp", ignoreCase = true) }
+        val taggedParagraphs = paragraphs
+            .filter { it.contains("@mcp", ignoreCase = true) || it.contains("#mcp", ignoreCase = true) }
+            .map(::stripMcpTag)
+            .filter { it.isNotBlank() }
 
-        val shortDescription = if (mcpParagraph != null) {
-            mcpParagraph.replace("#mcp", "", ignoreCase = true).trim()
+        val shortDescription = if (taggedParagraphs.isNotEmpty()) {
+            taggedParagraphs.joinToString("\n\n")
         } else {
-            paragraphs.firstOrNull() ?: ""
+            paragraphs.map(::stripMcpTag).filter { it.isNotBlank() }.joinToString("\n\n")
         }
 
-        val fullDescription = paragraphs.joinToString("\n\n")
+        val fullDescription = paragraphs.map(::stripMcpTag).filter { it.isNotBlank() }.joinToString("\n\n")
 
         return shortDescription to fullDescription
+    }
+
+    private fun stripMcpTag(paragraph: String): String {
+        return paragraph
+            .replace("@mcp", "", ignoreCase = true)
+            .replace("#mcp", "", ignoreCase = true)
+            .trim()
+    }
+
+    private fun methodNameToDescription(methodName: String): String {
+        return methodName
+            .replace(Regex("([a-z0-9])([A-Z])"), "$1 $2")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
     }
 
     private fun cleanupKDoc(kdocRaw: String): String {

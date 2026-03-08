@@ -32,6 +32,21 @@ fi
 
 cd "$REPO_ROOT"
 
+CONFIG_SH="$REPO_ROOT/coworker/scripts/config.sh"
+if [[ -f "$CONFIG_SH" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG_SH"
+fi
+
+if ! declare -p COPILOT >/dev/null 2>&1; then
+    COPILOT=(gh copilot)
+fi
+
+if [[ "$(declare -p COPILOT 2>/dev/null)" != declare\ -a* ]]; then
+    echo "Error: COPILOT must be defined as a bash array in $CONFIG_SH" >&2
+    exit 1
+fi
+
 LOG_DIR="$REPO_ROOT/coworker/tasks/300logs/$YEAR/$MONTH/$DAY"
 MEMORY_FILE="$LOG_DIR/MEMORY.$YEAR$MONTH$DAY.md"
 
@@ -154,7 +169,7 @@ $content
     fi
 
     echo "Calling gh copilot for batch..."
-    gh copilot -p "$prompt" --allow-all-tools
+    "${COPILOT[@]}" -- -p "$prompt" --allow-all-tools
 }
 
 # Check if memory file exists and backup before starting
