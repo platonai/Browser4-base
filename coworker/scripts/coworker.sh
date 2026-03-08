@@ -60,6 +60,21 @@ pushedDir="$baseDir/6git-pushed"
 logsDir="$baseDir/300logs"              # Directory for script and execution logs
 memoryDir="$logsDir"
 scriptsDir="$repoRoot/coworker/scripts"
+configSh="$scriptsDir/config.sh"
+
+if [[ -f "$configSh" ]]; then
+    # shellcheck disable=SC1090
+    source "$configSh"
+fi
+
+if ! declare -p COPILOT >/dev/null 2>&1; then
+    COPILOT=(gh copilot)
+fi
+
+if [[ "$(declare -p COPILOT 2>/dev/null)" != declare\ -a* ]]; then
+    echo "Error: COPILOT must be defined as a bash array in $configSh" >&2
+    exit 1
+fi
 
 # Ensure all required directories exist
 mkdir -p "$draftDir"
@@ -196,13 +211,13 @@ Prompt: $promptSample"
     # Using timeout command if available, otherwise just run
     local rawName=""
     if command -v timeout >/dev/null 2>&1; then
-        rawName=$(timeout "$COPILOT_NAME_TIMEOUT_SECONDS" gh copilot -- -p "$namingPrompt" 2>/dev/null | head -n 1)
+        rawName=$(timeout "$COPILOT_NAME_TIMEOUT_SECONDS" "${COPILOT[@]}" -- -p "$namingPrompt" 2>/dev/null | head -n 1)
         exitCode=$?
         if [[ $exitCode -eq 124 ]]; then # Timeout exit code
              return 1 # Fail triggers fallback
         fi
     else
-        rawName=$(gh copilot -- -p "$namingPrompt" 2>/dev/null | head -n 1)
+        rawName=$("${COPILOT[@]}" -- -p "$namingPrompt" 2>/dev/null | head -n 1)
     fi
 
     if [[ -z "$rawName" ]]; then
@@ -526,7 +541,7 @@ $memoryContext"
     # We use a subshell to redirect outputs
 
     (
-        gh copilot -- -p "$prompt" --allow-all-tools --allow-all-paths > "$stdOutLog" 2> "$stdErrLog"
+        "${COPILOT[@]}" -- -p "$prompt" --allow-all-tools --allow-all-paths > "$stdOutLog" 2> "$stdErrLog"
     ) &
     copilotPid=$!
 

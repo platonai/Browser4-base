@@ -1,0 +1,254 @@
+● Todo added: Review task file
+
+● Read coworker\tasks\2working\load-configured-coworker-scripts.md
+  └ 10 lines read
+
+● Todo added: Create session plan
+
+● Read coworker\scripts\coworker.ps1
+  └ 1 line read
+
+● Read coworker\scripts\coworker.sh
+  └ 1 line read
+
+● Grep "gh\s+copilot|copilot" in *.{ps1,sh} (D:\workspace\Browser4\Browser4-4.6\coworker\scripts)
+  └ 126 lines found
+
+● Read coworker\scripts\config.ps1
+  └ 1 line read
+
+● Read coworker\scripts\config.sh
+  └ 1 line read
+
+● Read coworker\scripts\coworker.ps1 lines 1-140
+  └ 140 lines read
+
+● Read coworker\scripts\coworker.ps1 lines 160-230
+  └ 70 lines read
+
+● Read coworker\scripts\coworker.ps1 lines 530-575
+  └ 46 lines read
+
+● Read coworker\scripts\coworker.sh lines 1-120
+  └ 120 lines read
+
+● Read coworker\scripts\coworker.sh lines 180-215
+  └ 36 lines read
+
+● Read coworker\scripts\coworker.sh lines 515-535
+  └ 20 lines read
+
+● Grep "config\.(ps1|sh)|COPILOT=" in *.{ps1,sh}
+(D:\workspace\Browser4\Browser4-4.6\coworker\scripts)
+  └ 2 lines found
+
+● Todo completed: review-task-file
+
+● Grep "\$COPILOT\b|\bCOPILOT\b" in **/*.{ps1,sh,md} (D:\workspace\Browser4\Browser4-4.6)
+  └ 5 lines found
+
+● Create session plan
+  $ @'
+  # Plan
+  1. Inspect coworker shell and PowerShell scripts plus config files to determine how Copilot
+  should be configured.
+  2. Update coworker.ps1 and coworker.sh so they load config.ps1/config.sh and execute the ...
+  └ 6 lines...
+
+● Read coworker\scripts\workers\rename.ps1 lines 1-120
+  └ 120 lines read
+
+● Read ~\.copilot\session-state\a8b0ecb2-ae04-476d-98a0-3d4f2ee172e5\plan.md
+  └ 4 lines read
+
+● Read coworker\scripts\workers\refine-last-draft.sh
+  └ 32 lines read
+
+● Read coworker\scripts\workers\gh-copilot.ps1
+  └ 41 lines read
+
+● Read coworker\scripts\workers\rename.sh lines 1-140
+  └ 138 lines read
+
+● Grep "config\.ps1|config\.sh|configured copilot|COPILOT command" in **/*.{md,ps1,sh}
+(D:\workspace\Browser4\Browser4-4.6)
+  └ 6 lines found
+
+● Edit coworker\scripts\config.ps1
+  Edit coworker\scripts\config.sh
+  Edit coworker\scripts\coworker.ps1
+  Edit coworker\scripts\coworker.sh
+
+● Todo started: inspect-coworker-scripts
+
+● Read coworker\scripts\coworker.ps1 lines 38-125
+  └ 87 lines read
+
+● Read coworker\scripts\coworker.sh lines 50-95
+  └ 46 lines read
+
+● Review script diff
+  $ git --no-pager diff -- coworker/scripts/config.ps1 coworker/scripts/config.sh
+  coworker/scripts/coworker.ps1 coworker/scripts/coworker.sh
+  └ 216 lines...
+
+● Parse PowerShell script and inspect config
+  $ $ps1 = 'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\coworker.ps1'; $configPs1 =
+  'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\config.ps1'; $null =
+  [System.Management.Automation.Language.Parser]::ParseFile($ps1, [ref]$null, [ref]$null); .
+  $configPs1; "PS_CONFIG=$($COPILOT -join ' ')"
+  └ 2 lines...
+
+● Check bash script syntax and config array
+  $ bash -lc "set -e; bash -n 'D:/workspace/Browser4/Browser4-4.6/coworker/scripts/coworker.sh';
+  source 'D:/workspace/Browser4/Browser4-4.6/coworker/scripts/config.sh'; printf 'SH_CONFIG=%s\n'
+  \"${COPILOT[*]}\""
+  └ 2 lines...
+
+● Read coworker\scripts\coworker.ps1 lines 38-60
+  └ 23 lines read
+
+● Retry bash syntax and config check
+  $ Set-Location 'D:\workspace\Browser4\Browser4-4.6'; bash -lc "set -e; bash -n
+  coworker/scripts/coworker.sh; source coworker/scripts/config.sh; printf 'SH_CONFIG=%s\n'
+  \"${COPILOT[*]}\""
+  └ 3 lines...
+
+● Read coworker\scripts\coworker.sh lines 120-135
+  └ 16 lines read
+
+● View committed bash script head
+  $ git --no-pager show HEAD:coworker/scripts/coworker.sh | Select-Object -First 20
+  └ 21 lines...
+
+● Inspect bash script bytes
+  $ $bytes = Get-Content -Path 'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\coworker.sh'
+  -AsByteStream -TotalCount 220; [System.BitConverter]::ToString($bytes)
+  └ 2 lines...
+
+● Read coworker\scripts\coworker.ps1 lines 1-55
+  └ 55 lines read
+
+● View committed PowerShell head
+  $ git --no-pager show HEAD:coworker/scripts/coworker.ps1 | Select-Object -First 60
+  └ 47 lines...
+
+● Edit coworker\scripts\coworker.ps1
+
+● Check diff whitespace issues
+  $ git --no-pager diff --check -- coworker/scripts/config.ps1 coworker/scripts/config.sh
+  coworker/scripts/coworker.ps1 coworker/scripts/coworker.sh
+  └ 3 lines...
+
+● Re-parse PowerShell script and config
+  $ $root = 'D:\workspace\Browser4\Browser4-4.6'; $ps1 = Join-Path $root
+  'coworker\scripts\coworker.ps1'; $configPs1 = Join-Path $root 'coworker\scripts\config.ps1'; $null
+   = [System.Management.Automation.Language.Parser]::ParseFile($ps1, [ref]$null, [ref]$null); .
+  $configPs1; if ($COPILOT[0] -ne 'gh' -or $COPILOT[1] -ne 'copilot') { throw 'Unexpected PS config'
+   }; 'PS_VALIDATION_OK'
+  └ 2 lines...
+
+● Validate bash script using LF temp copy
+  $ $root = 'D:\workspace\Browser4\Browser4-4.6'; $tempDir = Join-Path $env:TEMP
+  'browser4-coworker-validate'; New-Item -ItemType Directory -Path $tempDir -Force | Out-Null;
+  $tempSh = Join-Path $tempDir 'coworker.sh'; $tempConfig = Join-Path $tempDir 'config.sh';
+  [System.IO.File]::WriteAllText($tempSh, ((Get-Content -Path (Join-Path $root
+  'coworker\scripts\coworker.sh') -Raw) -replace "`r`n", "`n")); ...
+  └ 7 lines...
+
+● Todo completed: implement-config-loading
+
+● Read coworker\scripts\coworker.ps1 lines 38-52
+  └ 15 lines read
+
+● Validate bash script with temp helper
+  $ $root = 'D:\workspace\Browser4\Browser4-4.6'; $tempDir = Join-Path $env:TEMP
+  'browser4-coworker-validate'; New-Item -ItemType Directory -Path $tempDir -Force | Out-Null;
+  $tempSh = Join-Path $tempDir 'coworker.sh'; $tempConfig = Join-Path $tempDir 'config.sh';
+  $validateSh = Join-Path $tempDir 'validate.sh'; [System.IO.File]::WriteAllText($tempSh,
+  ((Get-Content -Path (Join-Path $root 'coworker\scripts\coworker.sh') -Raw) -replace "`r`n", ...
+  └ 13 lines...
+
+● Summarize changed files
+  $ Set-Location 'D:\workspace\Browser4\Browser4-4.6'; git --no-pager diff --stat --
+  coworker/scripts/config.ps1 coworker/scripts/config.sh coworker/scripts/coworker.ps1
+  coworker/scripts/coworker.sh
+  └ 8 lines...
+
+● Validate bash script from repo temp copy
+  $ Set-Location 'D:\workspace\Browser4\Browser4-4.6'; $tempDir = 'target\copilot-validate';
+  New-Item -ItemType Directory -Path $tempDir -Force | Out-Null;
+  [System.IO.File]::WriteAllText((Join-Path $tempDir 'coworker.sh'), ((Get-Content -Path
+  'coworker\scripts\coworker.sh' -Raw) -replace "`r`n", "`n"));
+  [System.IO.File]::WriteAllText((Join-Path $tempDir 'config.sh'), ((Get-Content -Path ...
+  └ 13 lines...
+
+● Todo started: validate-changes
+
+✗ Read coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md
+  Path does not exist
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md
+  └ 45 lines read
+
+● Glob "**/MEMORY.202603*.md" in D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03
+  └ 11 files found
+
+● Read coworker\tasks\300logs\2026\03\01\MEMORY.20260301.md
+  └ 15 lines read
+
+● Read coworker\tasks\300logs\2026\03\02\MEMORY.20260302.md
+  └ 39 lines read
+
+● Read coworker\tasks\300logs\2026\03\03\MEMORY.20260303.md
+  └ 26 lines read
+
+● Read coworker\tasks\300logs\2026\03\04\MEMORY.20260304.md
+  └ 26 lines read
+
+● Read coworker\tasks\300logs\2026\03\05\MEMORY.20260305.md
+  └ 47 lines read
+
+● Read coworker\tasks\300logs\2026\03\06\MEMORY.20260306.md
+  └ 39 lines read
+
+● Read coworker\tasks\300logs\2026\03\07\MEMORY.20260307.md
+  └ 19 lines read
+
+● Todo completed: update-memory
+
+● Append daily and monthly memory updates
+  $ $dailyPath =
+  'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md';
+  $monthlyPath =
+  'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md';
+  $dailyDir = Split-Path $dailyPath -Parent;...
+  └ 54 lines...
+
+● Read coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md
+  └ 19 lines read
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md lines 40-end
+  └ 12 lines read
+
+● Capture final diff
+  $ Set-Location 'D:\workspace\Browser4\Browser4-4.6'; git --no-pager diff --
+  coworker/scripts/config.ps1 coworker/scripts/config.sh coworker/scripts/coworker.ps1
+  coworker/scripts/coworker.sh coworker/tasks/300logs/2026/03/08/MEMORY.20260308.md
+  coworker/tasks/300logs/2026/03/MEMORY.202603.md | Select-Object -First 250
+  └ 232 lines...
+
+Implemented the coworker script update so both `coworker.ps1` and `coworker.sh` now load `coworker/scripts/config.ps1` / `config.sh` and use the configured Copilot command for naming plus main execution; I also converted those config files to native array forms so extra flags compose safely.  
+Validated by parsing the PowerShell script/config and by checking the Bash script via an LF-normalized temp copy, confirming the loaded command resolves to `gh copilot --model gpt-5.4 --no-ask-user --log-level info --allow-all`.  
+I also appended today’s task summary to `coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md` and updated `coworker\tasks\300logs\2026\03\MEMORY.202603.md` with a 2026-03-01 to 2026-03-07 rollup.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         3m 41s
+Total session time:     4m 27s
+Total code changes:     +79 -9
+Breakdown by AI model:
+ gpt-5.4                 862.7k in, 13.9k out, 710.1k cached (Est. 1 Premium request)

@@ -1,3 +1,22 @@
+Task: load-configured-coworker-scripts
+Description: Task from load-configured-coworker-scripts.md
+Original File: load-configured-coworker-scripts.md
+Started: 2026-03-08 03:35:44
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\load-configured-coworker-scripts.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Ensure you do not overwrite existing content, always append.
+
+
+[Monthly Memory (2026-03)]:
 # MEMORY.202603.md
 ## Monthly Memory - 2026-03
 
@@ -44,8 +63,9 @@
 - Removed obsolete JVM WebDriver compatibility layers and the `examples/java-compatible` module while updating mirrors/docs to match the slimmer API surface.
 - Continued reinforcing execution hygiene: regenerate contract mirrors after API edits, watch for stale build artifacts in `target/`, and prefer `-am`/module-local builds for multi-module consistency.
 
-### Daily Rollup Update (2026-03-01 to 2026-03-07)
-- Rebuilt and stabilized MCP/server-side testing around the official SDK, Map-based payload handling, restored test sources, and compatibility overloads to eliminate stale-class and serialization failures.
-- Expanded Browser4 API/tooling coverage with new low-level WebDriver input actions, aligned CLI/MCP aliases, refreshed docs/spec mirrors, and added targeted controller/E2E coverage where the environment allowed it.
-- Continued investing in coworker automation: architect/orchestrator flows, refine-draft tooling, rename/path fixes, memory-generator refactors, and more reliable configured Copilot invocation across PowerShell and Bash scripts.
-- Reinforced recurring execution hygiene: prefer repo-root absolute paths, validate cross-shell quoting/argument passing carefully, watch for stale `target/` artifacts, and use `-am` or local installs when module dependencies are involved.
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\08\033523-load-configured-coworker-scripts.copilot.log

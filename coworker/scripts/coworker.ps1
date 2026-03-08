@@ -49,6 +49,21 @@ Fix-Encoding-UTF8
 
 $tasksRoot = Join-Path $repoRoot "coworker\tasks"
 $scriptsDir = Join-Path $repoRoot "coworker\scripts"
+$configPath = Join-Path $scriptsDir "config.ps1"
+if (Test-Path $configPath) {
+    . $configPath
+}
+if (-not $COPILOT) {
+    $COPILOT = @('gh', 'copilot')
+}
+if ($COPILOT -is [string]) {
+    throw "COPILOT must be defined as a PowerShell array in $configPath"
+}
+if ($COPILOT.Count -lt 2) {
+    throw "COPILOT must include an executable and at least one argument"
+}
+$copilotExecutable = $COPILOT[0]
+$copilotBaseArgs = @($COPILOT | Select-Object -Skip 1)
 $taskRoots = @(
     @{
         Prepare = (Join-Path $tasksRoot "0draft")
@@ -103,6 +118,24 @@ $scriptStartTime = (Get-Date).ToUniversalTime()
 
 $copilotNameTimeoutSeconds = 60
 $copilotRunTimeoutSeconds = 6000
+
+function New-CopilotArgumentList {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$Arguments
+    )
+
+    return @($script:copilotBaseArgs + $Arguments)
+}
+
+function Format-CopilotCommand {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$Arguments
+    )
+
+    return "{0} {1}" -f $script:copilotExecutable, ((New-CopilotArgumentList -Arguments $Arguments) -join ' ')
+}
 
 # ============================================================================
 # Logging Functions
@@ -182,11 +215,11 @@ Prompt: $promptSample
             "`"$safeNamingPrompt`""
         )
 
-        Write-LogVerbose ("Executing GH Copilot for naming: gh {0}" -f ($nameArgList -join ' '))
+        Write-LogVerbose ("Executing GH Copilot for naming: {0}" -f (Format-CopilotCommand -Arguments $nameArgList))
 
         $nameStdOut = [System.IO.Path]::GetTempFileName()
         $nameStdErr = [System.IO.Path]::GetTempFileName()
-        $nameProcess = Start-Process -FilePath 'gh' -ArgumentList $nameArgList -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
+        $nameProcess = Start-Process -FilePath $copilotExecutable -ArgumentList (New-CopilotArgumentList -Arguments $nameArgList) -NoNewWindow -PassThru -RedirectStandardOutput $nameStdOut -RedirectStandardError $nameStdErr
 
         $waited = $false
         try {
@@ -405,14 +438,14 @@ foreach ($taskRoot in $taskRoots) {
             $maxRetries = 3
             $retryCount = 0
             $success = $false
-            
+
             while (-not $success -and $retryCount -lt $maxRetries) {
                 try {
                     $generatedName = & $renameScript -FilePath $file.FullName
-                    
+
                     # check for common failure patterns in output
-                    if (-not [string]::IsNullOrWhiteSpace($generatedName) -and 
-                        $generatedName -notmatch "Error" -and 
+                    if (-not [string]::IsNullOrWhiteSpace($generatedName) -and
+                        $generatedName -notmatch "Error" -and
                         $generatedName -notmatch "Timeout") {
                         $descriptiveName = $generatedName
                         $success = $true
@@ -427,7 +460,7 @@ foreach ($taskRoot in $taskRoots) {
                     if ($retryCount -lt $maxRetries) { Start-Sleep -Seconds 2 }
                 }
             }
-            
+
             if (-not $success) {
                 Write-LogMessage "Renaming failed after $maxRetries attempts. Using fallback safe title." WARN
             }
@@ -482,7 +515,7 @@ foreach ($taskRoot in $taskRoots) {
         $memoryGeneratorScript = Join-Path $PSScriptRoot "workers\coworker-memory-generator.ps1"
         try {
             $memoryResultJson = & $memoryGeneratorScript -Type init -Date "$currentYear-$currentMonth-$currentDay" | Out-String
-            
+
             if (-not [string]::IsNullOrWhiteSpace($memoryResultJson)) {
                 $memoryResult = $memoryResultJson | ConvertFrom-Json
                 $memoryContext = $memoryResult.context
@@ -547,7 +580,6 @@ Copilot Execution Output:
             # Pass arguments as an array to avoid fragile manual escaping/quoting.
             # This keeps quotes/newlines intact in the -p prompt.
             $copilotArgList = @(
-                'copilot'
                 '--'
                 '-p'
                 "`"$safePrompt`""
@@ -563,7 +595,7 @@ Copilot Execution Output:
 
             # Execute Copilot tool with the task prompt
             # Capture both standard output and error output to separate files
-            $process = Start-Process -FilePath 'gh' -ArgumentList $copilotArgList -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
+            $process = Start-Process -FilePath $copilotExecutable -ArgumentList (New-CopilotArgumentList -Arguments $copilotArgList) -NoNewWindow -PassThru -RedirectStandardOutput $stdOutLog -RedirectStandardError $stdErrLog
 
             $lastOutputLineCount = 0
 
