@@ -1,0 +1,108 @@
+● SQL: Initialize task todos
+  └ 3 row(s) inserted. Last inserted row ID: 3.
+
+● Read coworker\tasks\2working\review-micro-to-nano-tree-helper.md
+  └ 7 lines read
+
+● Check repo status
+  $ git --no-pager status --short
+  └ 19 lines...
+
+● Todo started: read-review-task
+
+● Read pulsar-core\pulsar-browser\src\main\kotlin\ai\platon\browser4\driver\chrome\dom\util\MicroDOMT
+  reeNodeHelper.kt
+  └ 350 lines read
+
+● Grep "MicroDOMTreeNodeHelper|MicroToNanoTreeHelper|nano tree|micro tree" in *.kt
+(D:\workspace\Browser4\Browser4-4.6)
+  └ 12 lines found
+
+● Create session plan
+  $ $plan = @'
+  # Plan
+  1. Inspect MicroDOMTreeNodeHelper and nearby tests/usages.
+  2. Identify correctness, performance, and maintainability issues.
+  3. Summarize review findings and update memory logs....
+  └ 4 lines...
+
+● Read
+  pulsar-core\pulsar-browser\src\main\kotlin\ai\platon\browser4\driver\chrome\dom\model\DomModels.kt
+  lines 490-525
+  └ 36 lines read
+
+● Grep "toNanoTreeInViewport|toNanoTreeInRange|toInteractiveDOMTreeNodeList|mergeChunks|inYRange" in
+ *.kt (D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-browser\src\test)
+  └ No matches found
+
+● Code-review: Review helper code
+  ● Grep
+  "nanoTreeLazyJson|nanoTreeLazyYaml|renderedAriaSnapshot|\.render\(\)|\.lazyJson\b|\.lazyYaml\b" in
+   **/*.kt (D:\workspace\Browser4\Browser4-4.6)
+    └ 14 lines found
+  ● Grep "DOMState\.|NanoDOMTreeNode\.|toNanoTree\(\)\.lazyJson|toNanoTree\(\)\.lazyYaml" in **/*.kt
+   (D:\workspace\Browser4\Browser4-4.6)
+    └ 1 line found
+
+✗ Read pulsar-core\pulsar-browser\src\main\kotlin\ai\platon\browser4\driver\chrome\dom\AriaSnapshotRe
+  nderer.kt lines 1-130
+  Path does not exist
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  610-840
+  └ 231 lines read
+
+● Inspect history for reviewed lines
+  $ git --no-pager blame -L 50,75 -- 'pulsar-core/pulsar-browser/src/main/kotlin/ai/platon/browser4/
+  driver/chrome/dom/util/MicroDOMTreeNodeHelper.kt' && echo '---' && git --no-pager blame -L 271,321
+   -- 'pulsar-core/pulsar-browser/src/main/kotlin/ai/platon/browser4/driver/chrome/dom/util/MicroDOM
+  TreeNodeHelper.kt'
+  └ 137 lines...
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md
+  └ 25 lines read
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md lines 1-220
+  └ 57 lines read
+
+● Grep "class\s+AriaSnapshotRenderer|ariaSnapshot" in *.kt
+(D:\workspace\Browser4\Browser4-4.6\pulsar-core\pulsar-browser\src\main\kotlin)
+  └ 4 lines found
+
+● Todo started: execute-review-task
+
+● Append daily memory and check monthly rollup
+  $ $daily =
+  'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md';
+  $monthly =
+  'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md';
+  $entry = @'...
+  └ 30 lines...
+
+● Todo completed: update-memory
+
+● Read
+  pulsar-core\pulsar-browser\src\main\kotlin\ai\platon\browser4\driver\chrome\dom\model\DomModels.kt
+  lines 548-614
+  └ 67 lines read
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md lines 24-80
+  └ 5 lines read
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md lines 50-80
+  └ 8 lines read
+
+Completed the review task: I found two substantive issues in `pulsar-core\pulsar-browser\src\main\kotlin\ai\platon\browser4\driver\chrome\dom\util\MicroDOMTreeNodeHelper.kt` — (1) `toNanoTreeInRangeRecursive()` pre-filters children before recursion, which can drop visible leaf nodes and in-range descendants under out-of-range wrappers from the nano tree / ARIA snapshot, and (2) `toInteractiveDOMTreeNodeList()` mixes `nodeId` with `paintOrder/backendNodeId` when computing `textBefore`, so adjacent text can be attached to the wrong interactive node.  
+Recommended fixes: recurse first and prune only empty generated subtrees for the nano tree path, and compute `textBefore` from one consistent traversal order (ideally a single DFS visit index) instead of comparing mixed identifier domains.  
+I appended this review and lessons learned to `coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md`, and I verified the monthly memory already included the prior-day rollup so no monthly backfill was needed.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         11m 16s
+Total session time:     11m 47s
+Total code changes:     +0 -0
+Breakdown by AI model:
+ gpt-5.4                 1.1m in, 15.5k out, 960.0k cached (Est. 1 Premium request)

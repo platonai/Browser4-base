@@ -385,7 +385,7 @@ class DOMStateBuilderTest {
 
         val domState = DOMState(root)
 
-        val rendered = domState.render()
+        val ariaSnapshot = domState.ariaSnapshot
 
         assertEquals(
             """
@@ -397,7 +397,7 @@ class DOMStateBuilderTest {
               - heading "Playwright enables reliable end-to-end testing for modern web apps." [level=1] [ref=e6]
               - generic [ref=e10]: Playwright
             """.trimIndent(),
-            rendered
+            ariaSnapshot
         )
     }
 
@@ -433,16 +433,16 @@ class DOMStateBuilderTest {
             children = listOf(TinyNode(originalNode = anchorNode, interactiveIndex = 1))
         )
 
-        val rendered = DOMStateBuilder.build(root).render()
+        val ariaSnapshot = DOMStateBuilder.build(root).ariaSnapshot
 
-        assertTrue(rendered.contains("- link \"Example Link\" [ref=e101] [cursor=pointer]:"))
-        assertTrue(rendered.contains("- /url: https://example.com"))
+        assertTrue(ariaSnapshot.contains("- link \"Example Link\" [ref=e101] [cursor=pointer]:"))
+        assertTrue(ariaSnapshot.contains("- /url: https://example.com"))
     }
 
     @Disabled("Feature disabled temporarily")
     @Test
         @DisplayName("test href and navigation attributes are preserved in NanoDOMTree")
-    fun testHrefAndNavigationAttributesArePreservedInNanodomtree() {
+    fun testHrefAndNavigationAttributesArePreservedInNanoDOMTree() {
         // Create an anchor node with href attribute
         val anchorNode = DOMTreeNodeEx(
             nodeId = 1,

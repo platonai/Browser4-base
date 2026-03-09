@@ -68,7 +68,7 @@ open class TextToAction(
             mapOf(
                 "ACTION_DESCRIPTIONS" to actionDescriptions,
                 "TOOL_CALL_SPECIFICATION" to toolCallExpressions,
-                "NANO_TREE_LAZY_JSON" to domState.nanoTreeLazyJson,
+                "RENDERED_ARIA_SNAPSHOT" to domState.ariaSnapshot,
                 "OUTPUT_SCHEMA_ACT" to buildObserveResultSchema(true),
             )
         )

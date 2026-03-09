@@ -32,7 +32,7 @@ class SnapshotServiceE2ETest : WebDriverTestBase() {
         val domNodeCount: Int? = null,
         val axNodeCount: Int? = null,
         val snapshotEntryCount: Int? = null,
-        val serializeJsonSize: Int? = null,
+        val renderedAriaSnapshotSize: Int? = null,
         val notes: String? = null,
         val differenceType: String = "meta"
     )
@@ -67,7 +67,7 @@ class SnapshotServiceE2ETest : WebDriverTestBase() {
         assertTrue { enhancedRoot.children.isNotEmpty() }
         kotlin.test.assertTrue { simplified.children.isNotEmpty() }
 
-        assertTrue(domState.nanoTreeLazyJson.length > 50, "Serialized JSON should not be trivial")
+        assertTrue(domState.ariaSnapshot.length > 50, "Serialized Aria Snapshot should not be trivial")
         assertTrue(domState.selectorMap.isNotEmpty(), "Selector map should contain entries")
 
         // Probe a stable element
@@ -86,7 +86,7 @@ class SnapshotServiceE2ETest : WebDriverTestBase() {
             domNodeCount = domCount,
             axNodeCount = trees.axTree.size,
             snapshotEntryCount = trees.snapshotByBackendId.size,
-            serializeJsonSize = domState.nanoTreeLazyJson.length,
+            renderedAriaSnapshotSize = domState.ariaSnapshot.length,
             notes = "End-to-end validation with LLM serialization"
         )
 
@@ -119,7 +119,7 @@ class SnapshotServiceE2ETest : WebDriverTestBase() {
 
         path = reportDir.resolve("dom-state-nano-$ident.yaml")
         path.parent.createDirectories()
-        Files.writeString(path, domState.nanoTree.toYaml())
+        Files.writeString(path, domState.ariaSnapshot)
         logger.info("Nano tree written | {}", path.toUri())
     }
 

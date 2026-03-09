@@ -555,17 +555,10 @@ data class NanoDOMTreeNode(
     val microTreeNode: MicroDOMTree? = null,
 ) {
     @get:JsonIgnore
-    val lazyJson: String by lazy { DOMSerializer.toJson(this) }
-
-    @get:JsonIgnore
-    val lazyYaml: String by lazy { DOMSerializer.toYaml(this) }
+    val ariaSnapshot: String by lazy { AriaSnapshotRenderer.render(this) }
 
     @get:JsonIgnore
     val ref: Int get() = FBNLocator.parseRelaxed(locator)?.backendNodeId ?: 0
-
-    fun toJson() = lazyJson
-
-    fun toYaml() = lazyYaml
 
     fun toPicoDOMTreeNode(): PicoDOMTreeNode {
         return PicoDOMTreeNode(
@@ -615,23 +608,7 @@ data class DOMState constructor(
     val locatorMap: LocatorMap = LocatorMap()
 ) {
     @get:JsonIgnore
-    val nanoTreeLazyJson: String get() = microTree.toNanoTree().lazyJson
-
-    @get:JsonIgnore
-    val nanoTreeLazyYaml: String get() = microTree.toNanoTree().lazyYaml
-
-    @get:JsonIgnore
-    val nanoTree get() = microTree.toNanoTree()
-
-    @get:JsonIgnore
-    val renderedAriaSnapshot: String by lazy { AriaSnapshotRenderer.render(microTree.toNanoTreeUnfiltered()) }
-
-    /**
-     * Render the DOM state as a Playwright-style ARIA snapshot YAML string.
-     */
-    fun render(): String {
-        return renderedAriaSnapshot
-    }
+    val ariaSnapshot: String by lazy { microTree.toNanoTreeUnfiltered().ariaSnapshot }
 
     fun getAbsoluteFBNLocator(locator: String?): FBNLocator? {
         if (locator == null) {

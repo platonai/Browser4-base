@@ -1,0 +1,228 @@
+● SQL: Initialize todos
+  └ Schema operation completed successfully.
+
+● Read coworker\tasks\2working\translate-promptbuilder-to-english.md
+  └ 5 lines read
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md
+  └ 23 lines read
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md
+  └ 57 lines read
+
+● Todo started: inspect-task
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt
+  └ 1 line read
+
+● Grep "PromptBuilder" in *.kt (D:\workspace\Browser4\Browser4-4.6)
+  └ 17 lines found
+
+● Check worktree status
+  $ git --no-pager status --short
+  └ 23 lines...
+
+● Create session plan
+  $ @'
+  # Plan
+  1. Inspect PromptBuilder.kt and nearby tests/usages to identify Chinese text and prompt
+  structure.
+  2. Translate Chinese strings to English and tighten prompt wording while preserving behavior....
+  └ 6 lines...
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines 1-260
+
+  └ 260 lines read
+
+● Read pulsar-agentic\src\test\kotlin\ai\platon\pulsar\agentic\prompts\MainSystemPromptCustomSkillInj
+  ectionTest.kt
+  └ 103 lines read
+
+● Grep "[\p{Han}]" (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotlin\ai\platon\puls
+ar\agentic\inference\PromptBuilder.kt)
+  └ 5 lines found
+
+● Show PromptBuilder diff
+  $ git --no-pager diff --
+  pulsar-agentic/src/main/kotlin/ai/platon/pulsar/agentic/inference/PromptBuilder.kt
+  └ 90 lines...
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  261-520
+  └ 260 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  521-900
+  └ 380 lines read
+
+● List non-ASCII lines
+  $ python - <<'PY'
+  from pathlib import Path
+  p = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotlin\ai\platon\pulsar\
+  agentic\inference\PromptBuilder.kt')
+  for i, line in enumerate(p.read_text(encoding='utf-8').splitlines(), 1):...
+  └ 14 lines...
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  901-1200
+  └ 3 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\prompts\MainSystemPrompt.kt lines
+  1-260
+  └ 200 lines read
+
+● Grep "[一-龥]" (D:\workspace\Browser4\Browser4-4.6\pulsar-agentic\src\main\kotlin\ai\platon\pulsar
+\agentic\inference\PromptBuilder.kt)
+  └ 5 lines found
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\action\TextToAction.kt lines
+   1-220
+  └ 220 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\InferencePromptBuilder.kt
+  lines 1-220
+  └ 57 lines read
+
+● List unicode lines
+  $ python -c "from pathlib import Path; p = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-agenti
+  c\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt');
+  lines=p.read_text(encoding='utf-8').splitlines(); [print(f'{i+1}: {line}') for i,line in
+  enumerate(lines) if any(ord(ch)>127 for ch in line)]"
+  └ 137 lines...
+
+● Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt
+
+● Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt
+
+✗ Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt
+  Failed to apply patch: Error: Failed to find expected lines in D:\workspace\Browser4\Browser4-4.6\
+  pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt:
+          val instruction2 = when {
+              !instruction.isNullOrBlank() -> instruction
+              isZH -> """
+  Based on the context and current progress, select the most appropriate tool to advance the task
+  toward user completion.
+                  """.trimIndent()
+
+              else -> """
+  Based on the context and current progress, select the most appropriate tool to advance the task
+  toward user completion.
+                  """.trimIndent()
+          }
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  736-872
+  └ 137 lines read
+
+● Recheck unicode lines
+  $ python -c "from pathlib import Path; p = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-agenti
+  c\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt');
+  lines=p.read_text(encoding='utf-8').splitlines(); [print(f'{i+1}: {line}') for i,line in
+  enumerate(lines) if any(ord(ch)>127 for ch in line)]"
+  └ 18 lines...
+
+● Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  60-220
+  └ 160 lines read
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  292-460
+  └ 168 lines read
+
+● Check remaining unicode
+  $ python -c "from pathlib import Path; p = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-agenti
+  c\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt');
+  lines=p.read_text(encoding='utf-8').splitlines(); [print(f'{i+1}: {line}') for i,line in
+  enumerate(lines) if any(ord(ch)>127 for ch in line)]"
+  └ 3 lines...
+
+● Read pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt lines
+  460-740
+  └ 281 lines read
+
+● Grep "TOOL_CALL_RULE_CONTENT_EN" in *.kt (D:\workspace\Browser4\Browser4-4.6)
+  └ 1 line found
+
+● Edit pulsar-agentic\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt
+
+● Todo started: implement-task
+
+● Verify no non-ASCII remains
+  $ python -c "from pathlib import Path; p = Path(r'D:\workspace\Browser4\Browser4-4.6\pulsar-agenti
+  c\src\main\kotlin\ai\platon\pulsar\agentic\inference\PromptBuilder.kt');
+  lines=p.read_text(encoding='utf-8').splitlines(); [print(f'{i+1}: {line}') for i,line in
+  enumerate(lines) if any(ord(ch)>127 for ch in line)]"
+  └ 1 line...
+
+● Compile pulsar-agentic
+  $ .\mvnw.cmd -pl pulsar-agentic -am -DskipTests compile
+  └ 86 lines...
+
+● read_powershell
+  └ 86 lines...
+
+● read_powershell
+  └ 256 lines...
+
+● read_powershell
+  └ 4 lines...
+
+● read_powershell
+  └ 4 lines...
+
+● list_powershell
+  └ Active shell sessions:
+
+● Review PromptBuilder diff
+  $ git --no-pager diff --
+  pulsar-agentic/src/main/kotlin/ai/platon/pulsar/agentic/inference/PromptBuilder.kt
+  └ 6 lines...
+
+● read_powershell
+  └ 8 lines...
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md
+  └ 23 lines read
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md
+  └ 57 lines read
+
+● Inspect PromptBuilder diff
+  $ git --no-pager diff --
+  "pulsar-agentic/src/main/kotlin/ai/platon/pulsar/agentic/inference/PromptBuilder.kt"
+  └ 6 lines...
+
+● Memory stored: build commands
+  └ PromptBuilder or agentic-only changes can be validated with `.\mvnw.cmd -pl puls…
+
+● Append daily memory
+  $ @'
+
+  - **PromptBuilder English translation cleanup:** Translated all remaining Chinese prompt text
+  in `PromptBuilder.kt` into concise English, including tool-use rules, extraction guidance,
+  observe/summary prompts, browser-state messaging, and task metadata strings. Removed the ...
+  └ 12 lines...
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md lines 20-80
+  └ 8 lines read
+
+● Grep "Daily Rollup Update \(2026-03-01 to 2026-03-08\)"
+(D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md)
+  └ 1 line found
+
+Completed: `PromptBuilder.kt` now uses concise English prompt text throughout, with the duplicated English rule block collapsed to the canonical rules and `language` normalized to `Chinese`/`English`.  
+Validated with `.\mvnw.cmd -pl pulsar-agentic -am -DskipTests compile` and a non-ASCII scan of `PromptBuilder.kt`; both passed.  
+Appended the task summary to `coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md`, and confirmed the monthly memory already includes the 2026-03-08 rollup so no monthly append was needed.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         7m 3s
+Total session time:     10m 0s
+Total code changes:     +137 -177
+Breakdown by AI model:
+ gpt-5.4                 1.5m in, 16.6k out, 1.3m cached (Est. 1 Premium request)

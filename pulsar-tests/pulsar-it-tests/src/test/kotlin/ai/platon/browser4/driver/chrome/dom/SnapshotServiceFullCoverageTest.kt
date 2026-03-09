@@ -56,7 +56,7 @@ class SnapshotServiceFullCoverageTest : WebDriverTestBase() {
         assertTrue(tinyTree.children.isNotEmpty())
 
         val domState = service.buildDOMState(tinyTree)
-        assertTrue(domState.nanoTreeLazyJson.length > 100)
+        assertTrue(domState.ariaSnapshot.length > 100)
         assertTrue(domState.selectorMap.isNotEmpty())
 
         val nanoTree = domState.microTree.toNanoTree()
@@ -65,7 +65,7 @@ class SnapshotServiceFullCoverageTest : WebDriverTestBase() {
 
         val path = Paths.get("logs").resolve("tests").resolve("nano.tree.yaml")
         path.parent.createDirectories()
-        Files.writeString(path, domState.microTree.toNanoTreeInRange().lazyYaml)
+        Files.writeString(path, domState.microTree.toNanoTreeInRange().ariaSnapshot)
 
         // Selector map should include at least node: and possibly xpath: keys for some nodes
         val anySelectorKey = domState.selectorMap.keys.any { it.startsWith("node:") || it.startsWith("xpath:") }

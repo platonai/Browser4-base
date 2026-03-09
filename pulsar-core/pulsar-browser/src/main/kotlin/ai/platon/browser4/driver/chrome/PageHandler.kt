@@ -121,7 +121,7 @@ class PageHandler(
      * */
     suspend fun ariaSnapshot(): String {
         val buState = snapshotService.getBrowserUseState(PageTarget(), SnapshotOptions())
-        val snapshot = buState.domState.render()
+        val snapshot = buState.domState.ariaSnapshot
         lastBrowserUseState = buState
         return snapshot
     }
