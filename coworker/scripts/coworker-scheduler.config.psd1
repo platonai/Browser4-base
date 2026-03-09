@@ -17,7 +17,7 @@
                 'coworker\tasks\1created'
                 'coworker\tasks\5approved'
             )
-            ScriptPath      = 'coworker\scripts\deprecated\process-coworker-queue.ps1'
+            ScriptPath      = 'coworker\scripts\process-coworker-queue.ps1'
             Arguments       = @('-Once')
         }
         @{
@@ -26,7 +26,7 @@
             Enabled         = $true
             IntervalSeconds = 15
             PendingPaths    = @('coworker\tasks\0draft\refine\1ready')
-            ScriptPath      = 'coworker\scripts\deprecated\process-draft-refinement-queue.ps1'
+            ScriptPath      = 'coworker\scripts\process-draft-refinement-queue.ps1'
             Arguments       = @('-Once')
         }
         @{
@@ -34,7 +34,7 @@
             Description     = 'Poll configured task sources and dispatch new tasks.'
             Enabled         = $false
             IntervalSeconds = 60
-            ScriptPath      = 'coworker\scripts\deprecated\task-source-monitor.ps1'
+            ScriptPath      = 'coworker\scripts\task-source-monitor.ps1'
             Arguments       = @('-Once')
         }
     )

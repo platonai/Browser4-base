@@ -22,10 +22,10 @@
 ● Read coworker\scripts\coworker-scheduler.ps1
   └ 372 lines read
 
-● Read coworker\scripts\deprecated\process-coworker-queue.ps1
+● Read coworker\scripts\process-coworker-queue.ps1
   └ 250 lines read
 
-● Read coworker\scripts\deprecated\process-draft-refinement-queue.ps1
+● Read coworker\scripts\process-draft-refinement-queue.ps1
   └ 71 lines read
 
 ● Create session plan
@@ -109,8 +109,8 @@
   Write-Host 'Scheduler config import passed.'
   └ 2 lines...
 
-Done: `coworker-scheduler.ps1` now supports per-task `PendingPaths`, so the scheduler skips launching child PowerShell processes when the coworker or draft-refinement queues are empty; I also documented the new config behavior in `coworker/README*.md`.  
-Validated with a targeted temporary-config harness (`coworker-scheduler.ps1 -Once`) that confirmed empty queues stay in `WaitingForWork` without launching a worker, while queued files still trigger a successful run; `coworker-scheduler.config.psd1` also imports cleanly.  
+Done: `coworker-scheduler.ps1` now supports per-task `PendingPaths`, so the scheduler skips launching child PowerShell processes when the coworker or draft-refinement queues are empty; I also documented the new config behavior in `coworker/README*.md`.
+Validated with a targeted temporary-config harness (`coworker-scheduler.ps1 -Once`) that confirmed empty queues stay in `WaitingForWork` without launching a worker, while queued files still trigger a successful run; `coworker-scheduler.config.psd1` also imports cleanly.
 I appended the task summary to `coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md`, and the monthly memory already included the 2026-03-08 rollup so no monthly append was needed.
 
 

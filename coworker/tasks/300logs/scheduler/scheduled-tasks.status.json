@@ -1,0 +1,80 @@
+{
+  "GeneratedAtUtc": "2026-03-09T13:50:33.1002877Z",
+  "ConfigPath": "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\scripts\\coworker-scheduler.config.psd1",
+  "TickSeconds": 5,
+  "Tasks": [
+    {
+      "Name": "coworker",
+      "Description": "Process queued coworker tasks.",
+      "Enabled": true,
+      "IntervalSeconds": 15,
+      "DependsOn": [
+        "task-source-monitor"
+      ],
+      "PendingPaths": [
+        "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\tasks\\1created",
+        "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\tasks\\5approved"
+      ],
+      "ScriptPath": "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\scripts\\process-coworker-queue.ps1",
+      "Arguments": [
+        "-Once"
+      ],
+      "Status": "WaitingForWork",
+      "LastStartedUtc": null,
+      "LastFinishedUtc": null,
+      "LastExitCode": null,
+      "LastDurationSeconds": null,
+      "CurrentPid": null,
+      "NextRunUtc": "2026-03-09T13:50:38.0707304Z",
+      "StdOutLogPath": null,
+      "StdErrLogPath": null,
+      "RunCount": 0
+    },
+    {
+      "Name": "draft-refinement",
+      "Description": "Process the draft refinement queue.",
+      "Enabled": true,
+      "IntervalSeconds": 15,
+      "DependsOn": [],
+      "PendingPaths": [
+        "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\tasks\\0draft\\refine\\1ready"
+      ],
+      "ScriptPath": "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\scripts\\process-draft-refinement-queue.ps1",
+      "Arguments": [
+        "-Once"
+      ],
+      "Status": "WaitingForWork",
+      "LastStartedUtc": null,
+      "LastFinishedUtc": null,
+      "LastExitCode": null,
+      "LastDurationSeconds": null,
+      "CurrentPid": null,
+      "NextRunUtc": "2026-03-09T13:50:38.0707304Z",
+      "StdOutLogPath": null,
+      "StdErrLogPath": null,
+      "RunCount": 0
+    },
+    {
+      "Name": "task-source-monitor",
+      "Description": "Poll configured task sources and dispatch new tasks.",
+      "Enabled": false,
+      "IntervalSeconds": 60,
+      "DependsOn": [],
+      "PendingPaths": [],
+      "ScriptPath": "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\scripts\\task-source-monitor.ps1",
+      "Arguments": [
+        "-Once"
+      ],
+      "Status": "Disabled",
+      "LastStartedUtc": null,
+      "LastFinishedUtc": null,
+      "LastExitCode": null,
+      "LastDurationSeconds": null,
+      "CurrentPid": null,
+      "NextRunUtc": "2026-03-09T13:48:22.5788238Z",
+      "StdOutLogPath": null,
+      "StdErrLogPath": null,
+      "RunCount": 0
+    }
+  ]
+}

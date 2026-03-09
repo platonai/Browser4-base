@@ -65,7 +65,7 @@
 ● Read coworker\scripts\deprecated\run_draft_refinement_periodically.ps1
   └ 71 lines read
 
-● Read coworker\scripts\deprecated\task-source-monitor.ps1
+● Read coworker\scripts\task-source-monitor.ps1
   └ 163 lines read
 
 ● Read coworker\scripts\deprecated\run_coworker_periodically.ps1
@@ -125,7 +125,7 @@
   $oldCoworker = Join-Path $deprecatedDir 'run_coworker_periodically.ps1'...
   └ 83 lines...
 
-● Read coworker\scripts\deprecated\process-coworker-queue.ps1 lines 220-235
+● Read coworker\scripts\process-coworker-queue.ps1 lines 220-235
   └ 15 lines read
 
 ● Read coworker\scripts\process-coworker-queue.ps1
@@ -143,15 +143,15 @@
 ● Read coworker\scripts\deprecated\run_draft_refinement_periodically.ps1
   └ 27 lines read
 
-● Read coworker\scripts\deprecated\process-draft-refinement-queue.ps1 lines 1-80
+● Read coworker\scripts\process-draft-refinement-queue.ps1 lines 1-80
   └ 71 lines read
 
-● Edit coworker\scripts\deprecated\process-coworker-queue.ps1
+● Edit coworker\scripts\process-coworker-queue.ps1
   Edit coworker\scripts\coworker-scheduler.config.psd1
   Edit coworker\README.md
   Edit coworker\README.zh.md
 
-● Read coworker\scripts\deprecated\process-coworker-queue.ps1 lines 222-230
+● Read coworker\scripts\process-coworker-queue.ps1 lines 222-230
   └ 9 lines read
 
 ● Read coworker\README.md lines 79-155
@@ -242,8 +242,8 @@
 ● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md lines 6-12
   └ 4 lines read
 
-Renamed the legacy coworker periodic entrypoints to clearer queue-oriented names by adding `coworker\scripts\process-coworker-queue.ps1` and `coworker\scripts\process-draft-refinement-queue.ps1`, moving the scheduler-backed implementations to matching `coworker\scripts\deprecated\process-*.ps1` files, updating `coworker-scheduler.config.psd1`, and refreshing the English/Chinese coworker docs while keeping the old `run_*_periodically.ps1` names as deprecation shims.  
-Validated the change by PowerShell-parsing every touched `.ps1` file and importing `coworker\scripts\coworker-scheduler.config.psd1` to confirm the configured script paths resolve successfully.  
+Renamed the legacy coworker periodic entrypoints to clearer queue-oriented names by adding `coworker\scripts\process-coworker-queue.ps1` and `coworker\scripts\process-draft-refinement-queue.ps1`, moving the scheduler-backed implementations to matching `coworker\scripts\deprecated\process-*.ps1` files, updating `coworker-scheduler.config.psd1`, and refreshing the English/Chinese coworker docs while keeping the old `run_*_periodically.ps1` names as deprecation shims.
+Validated the change by PowerShell-parsing every touched `.ps1` file and importing `coworker\scripts\coworker-scheduler.config.psd1` to confirm the configured script paths resolve successfully.
 Appended the required 2026-03-09 daily memory entry to `coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md`; the monthly memory already included the 2026-03-08 rollup, so no monthly append was needed.
 
 
