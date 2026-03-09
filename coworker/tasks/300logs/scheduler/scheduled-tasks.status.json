@@ -1,5 +1,5 @@
 {
-  "GeneratedAtUtc": "2026-03-09T15:46:43.0311929Z",
+  "GeneratedAtUtc": "2026-03-09T15:47:28.1574938Z",
   "ConfigPath": "D:\\workspace\\Browser4\\Browser4-4.6\\coworker\\scripts\\coworker-scheduler.config.psd1",
   "TickSeconds": 5,
   "Tasks": [
@@ -49,7 +49,7 @@
       "LastExitCode": null,
       "LastDurationSeconds": null,
       "CurrentPid": null,
-      "NextRunUtc": "2026-03-09T15:46:47.9937806Z",
+      "NextRunUtc": "2026-03-09T15:47:33.1157612Z",
       "StdOutLogPath": null,
       "StdErrLogPath": null,
       "RunCount": 0
