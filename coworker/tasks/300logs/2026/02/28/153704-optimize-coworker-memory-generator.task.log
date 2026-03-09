@@ -148,7 +148,7 @@ After completing the task, you MUST update your daily memory file: D:\workspace\
 ### Task: Improve TimeZone Handling in Coworker Scripts
 - **Description**: Updated coworker scripts to use UTC time for all date-time operations to avoid timezone discrepancies.
 - **Changes**:
-    - Modified `coworker.ps1`, `coworker.sh`, `coworker-daily-memory-generator.ps1`, `coworker-daily-memory-generator.sh`, `run_coworker_periodically.ps1`, `run_coworker_periodically.sh`, `task-source-monitor.ps1`, and `task-source-monitor.sh`.
+    - Modified `coworker.ps1`, `coworker.sh`, `coworker-daily-memory-generator.ps1`, `coworker-daily-memory-generator.sh`, `run_coworker_periodically.ps1`, `run_coworker_periodically.sh`, `monitor-task-source.ps1`, and `monitor-task-source.sh`.
     - Replaced `Get-Date` with `(Get-Date).ToUniversalTime()` in PowerShell scripts.
     - Replaced `date` with `date -u` in Bash scripts.
     - Ensured consistent ISO 8601 formatting using UTC.

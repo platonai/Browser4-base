@@ -52,7 +52,7 @@
 ● Read coworker\scripts\run_coworker_periodically.sh
   └ 29 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 27 lines read
 
 ● Read coworker\scripts\run_draft_refinement_periodically.ps1
@@ -67,7 +67,7 @@
 ● Read coworker\deprecated\run_draft_refinement_periodically.ps1
   └ 71 lines read
 
-● Read coworker\deprecated\task-source-monitor.ps1
+● Read coworker\deprecated\monitor-task-source.ps1
   └ 163 lines read
 
 ● List directory coworker\scripts\deprecated
@@ -75,7 +75,7 @@
 ● Read coworker\deprecated\run_draft_refinement_periodically.sh
   └ 99 lines read
 
-● Read coworker\deprecated\task-source-monitor.sh
+● Read coworker\deprecated\monitor-task-source.sh
   └ 162 lines read
 
 ● Retarget deprecated scheduler paths and move scripts
@@ -111,7 +111,7 @@
 ● Read coworker\scripts\run_draft_refinement_periodically.ps1
   └ 27 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 27 lines read
 
 ● Todo started: implement-fix
@@ -119,7 +119,7 @@
 ● Validate shell scripts and inspect diff stat
   $ Set-Location 'D:\workspace\Browser4\Browser4-4.6'; bash -n
   coworker/scripts/run_coworker_periodically.sh
-  coworker/scripts/run_draft_refinement_periodically.sh coworker/scripts/task-source-monitor.sh
+  coworker/scripts/run_draft_refinement_periodically.sh coworker/scripts/monitor-task-source.sh
   coworker/scripts/deprecated/run_coworker_periodically.sh
   coworker/scripts/deprecated/run_draft_refinement_periodically.sh ...
   └ 23 lines...
@@ -129,7 +129,7 @@
   $psFiles = @(
       'coworker\scripts\run_coworker_periodically.ps1',
       'coworker\scripts\run_draft_refinement_periodically.ps1',
-      'coworker\scripts\task-source-monitor.ps1',...
+      'coworker\scripts\monitor-task-source.ps1',...
   └ 49 lines...
 
 ● Check updated file status
@@ -139,9 +139,9 @@
 ● Revalidate PowerShell scripts
   $ $repo='D:\workspace\Browser4\Browser4-4.6'; $errors=$null; $psFiles=@('coworker\scripts\run_co
   worker_periodically.ps1','coworker\scripts\run_draft_refinement_periodically.ps1','coworker\sc
-  ripts\task-source-monitor.ps1','coworker\scripts\deprecated\run_coworker_periodically.ps1','co
+  ripts\monitor-task-source.ps1','coworker\scripts\deprecated\run_coworker_periodically.ps1','co
   worker\scripts\deprecated\run_draft_refinement_periodically.ps1','coworker\scripts\deprecated\
-  task-source-monitor.ps1','coworker\scripts\coworker-scheduler.ps1') | ForEach-Object { ...
+  monitor-task-source.ps1','coworker\scripts\coworker-scheduler.ps1') | ForEach-Object { ...
   └ 9 lines...
 
 ● Todo started: validate-changes
@@ -196,8 +196,8 @@
   Select-Object -Last 3
   └ 3 lines...
 
-Done: I moved the legacy scheduler implementations to `coworker\scripts\deprecated`, retargeted the scheduler config and compatibility shims, and updated both `coworker\README.md` and `coworker\README.zh.md` to the corrected paths.  
-Validation passed via PowerShell parse/import checks, scheduler target existence checks, and `bash -n` on the shim and deprecated shell scripts.  
+Done: I moved the legacy scheduler implementations to `coworker\scripts\deprecated`, retargeted the scheduler config and compatibility shims, and updated both `coworker\README.md` and `coworker\README.zh.md` to the corrected paths.
+Validation passed via PowerShell parse/import checks, scheduler target existence checks, and `bash -n` on the shim and deprecated shell scripts.
 I also appended the 2026-03-08 daily memory entry and verified the March monthly memory already includes the prior-day rollup, so no monthly append was needed.
 
 

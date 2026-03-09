@@ -84,47 +84,47 @@
 
 ● Edit coworker\scripts\run_coworker_periodically.sh (+1 -1)
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 159 lines read
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 153 lines read
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
 ● Read coworker\scripts\workers\git-sync.sh
   └ 14 lines read
@@ -154,7 +154,7 @@ The task of improving timezone handling in coworker scripts has been completed.
     *   `coworker.ps1` / `coworker.sh`
     *   `coworker-daily-memory-generator.ps1` / `coworker-daily-memory-generator.sh`
     *   `run_coworker_periodically.ps1` / `run_coworker_periodically.sh`
-    *   `task-source-monitor.ps1` / `task-source-monitor.sh`
+    *   `monitor-task-source.ps1` / `monitor-task-source.sh`
 
 2.  **Changes Implemented**:
     *   **PowerShell**: Replaced `Get-Date` usages (e.g., `-Format "yyyy-MM-dd"`) with `(Get-Date).ToUniversalTime()` equivalents to ensure UTC timestamps are used for logging, file paths, and memory generation.

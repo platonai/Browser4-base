@@ -35,9 +35,9 @@
 [2026-02-28 14:41:17] [INFO] [PUSHED] Task: optimize-webdriver-kdoc-for-mcp.md (updated 02/28/2026 01:17:39)
 [2026-02-28 14:41:17] [DEBUG] renameScript path: D:\workspace\Browser4\Browser4-feat\coworker\scripts\workers\rename.ps1
 [2026-02-28 14:41:17] [DEBUG] Test-Path renameScript: True
-[2026-02-28 14:41:35] [INFO] Renamed in created: 1.md -> optimize-task-source-monitor-duplication.md
-[2026-02-28 14:41:35] [INFO] Moved to working: D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-task-source-monitor-duplication.md
-[2026-02-28 14:41:35] [DEBUG] Task log will be written to: D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\02\28\144117-optimize-task-source-monitor-duplication.task.log
-[2026-02-28 14:41:35] [INFO] Executing Copilot for task: optimize-task-source-monitor-duplication
+[2026-02-28 14:41:35] [INFO] Renamed in created: 1.md -> optimize-monitor-task-source-duplication.md
+[2026-02-28 14:41:35] [INFO] Moved to working: D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-monitor-task-source-duplication.md
+[2026-02-28 14:41:35] [DEBUG] Task log will be written to: D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\02\28\144117-optimize-monitor-task-source-duplication.task.log
+[2026-02-28 14:41:35] [INFO] Executing Copilot for task: optimize-monitor-task-source-duplication
 [2026-02-28 14:41:35] [DEBUG] Prompt length: 206 characters
 [2026-02-28 14:41:35] [INFO] === Starting Copilot execution ===

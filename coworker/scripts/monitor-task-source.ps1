@@ -1,7 +1,7 @@
-# task-source-monitor.ps1 — Monitor GitHub issues and a specified URL, dispatch tasks to coworker workflow.
+# monitor-task-source.ps1 — Monitor GitHub issues and a specified URL, dispatch tasks to coworker workflow.
 #
 # Usage:
-#   .\bin\task-source-monitor.ps1 [options]
+#   .\bin\monitor-task-source.ps1 [options]
 #
 # Options:
 #   -Repo      GitHub repository in "owner/repo" format  (default: platonai/Browser4)
@@ -12,8 +12,8 @@
 #   -Once      Run once and exit (no loop)
 #
 # Examples:
-#   .\bin\task-source-monitor.ps1 -Repo platonai/Browser4 -Url https://example.com/tasks
-#   .\bin\task-source-monitor.ps1 -Once
+#   .\bin\monitor-task-source.ps1 -Repo platonai/Browser4 -Url https://example.com/tasks
+#   .\bin\monitor-task-source.ps1 -Once
 
 param(
     [string]$Repo     = "platonai/Browser4",

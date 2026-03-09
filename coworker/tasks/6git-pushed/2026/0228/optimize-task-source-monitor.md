@@ -57,5 +57,5 @@ LEARN MORE
 
 ## 涉及文件
 
-[task-source-monitor.ps1](../../scripts/task-source-monitor.ps1)
-[task-source-monitor.sh](../../scripts/task-source-monitor.sh)
+[monitor-task-source.ps1](../../scripts/monitor-task-source.ps1)
+[monitor-task-source.sh](../../scripts/monitor-task-source.sh)

@@ -20,8 +20,8 @@ The scheduler must periodically run coworker, draft refinement, task source moni
 - [run_coworker_periodically.sh](../../scripts/run_coworker_periodically.sh)
 - [run_draft_refinement_periodically.ps1](../../scripts/run_draft_refinement_periodically.ps1)
 - [run_draft_refinement_periodically.sh](../../scripts/run_draft_refinement_periodically.sh)
-- [task-source-monitor.ps1](../../scripts/task-source-monitor.ps1)
-- [task-source-monitor.sh](../../scripts/task-source-monitor.sh)
+- [monitor-task-source.ps1](../../scripts/monitor-task-source.ps1)
+- [monitor-task-source.sh](../../scripts/monitor-task-source.sh)
 
 ## Proposed Improvements
 

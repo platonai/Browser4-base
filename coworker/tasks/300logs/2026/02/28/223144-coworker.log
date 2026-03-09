@@ -18,12 +18,12 @@
 [2026-02-28 22:31:44] [INFO] [PUSHED] Task: implement-coworker-memory-system.2.md (updated 02/28/2026 22:03:04)
 [2026-02-28 22:31:44] [INFO] [PUSHED] Task: implement-coworker-memory-system.md (updated 02/28/2026 22:03:04)
 [2026-02-28 22:31:44] [INFO] [PUSHED] Task: monitor-github-and-url-tasks.md.md (updated 02/28/2026 22:03:04)
-[2026-02-28 22:31:44] [INFO] [PUSHED] Task: optimize-task-source-monitor.md (updated 02/28/2026 22:03:04)
+[2026-02-28 22:31:44] [INFO] [PUSHED] Task: optimize-monitor-task-source.md (updated 02/28/2026 22:03:04)
 [2026-02-28 22:31:44] [INFO] [PUSHED] Task: optimize-tool-spec-description-extraction.md (updated 02/28/2026 22:03:04)
 [2026-02-28 22:31:44] [INFO] [PUSHED] Task: optimize-webdriver-kdoc-for-mcp.md (updated 02/28/2026 22:03:04)
 [2026-02-28 22:31:44] [INFO] [PUSHED] Task: optimize-webdriver-mcp-kdoc.md.md (updated 02/28/2026 22:03:04)
 [2026-02-28 22:31:44] [INFO] [PUSHED] Task: refine-coworker-readme.md.md (updated 02/28/2026 22:03:04)
-[2026-02-28 22:31:44] [INFO] [PUSHED] Task: task-source-monitor-deduplication.md (updated 02/28/2026 22:03:04)
+[2026-02-28 22:31:44] [INFO] [PUSHED] Task: monitor-task-source-deduplication.md (updated 02/28/2026 22:03:04)
 [2026-02-28 22:31:44] [DEBUG] renameScript path: D:\workspace\Browser4\Browser4-4.6\coworker\scripts\workers\rename.ps1
 [2026-02-28 22:31:44] [DEBUG] Test-Path renameScript: True
 [2026-02-28 22:32:09] [INFO] Renamed in created: 1772288929923 -> implement-documentation-link-checker

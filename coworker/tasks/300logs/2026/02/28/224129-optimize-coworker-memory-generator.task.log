@@ -135,8 +135,8 @@ After completing the task, you MUST update your daily memory file: D:\workspace\
 ### Task: Add Task Monitor Option to Periodic Runner
 - Modified `run_coworker_periodically.ps1` to accept `-Monitor` switch.
 - Modified `run_coworker_periodically.sh` to accept `--monitor` flag.
-- Both scripts now execute `task-source-monitor` script (once per loop iteration) if the flag is provided.
-- **Fixed Bug:** Updated `task-source-monitor.ps1` and `task-source-monitor.sh` to output tasks to `coworker/tasks/1created` instead of `coworker/tasks/2working`. This ensures `coworker` script (which only scans `1created`) picks up the generated tasks.
+- Both scripts now execute `monitor-task-source` script (once per loop iteration) if the flag is provided.
+- **Fixed Bug:** Updated `monitor-task-source.ps1` and `monitor-task-source.sh` to output tasks to `coworker/tasks/1created` instead of `coworker/tasks/2working`. This ensures `coworker` script (which only scans `1created`) picks up the generated tasks.
 
 ### Task: Coworker Daily Memory Generator
 - Created `coworker/scripts/workers/coworker-daily-memory-generator.ps1` and `.sh` to automate daily memory generation from logs.

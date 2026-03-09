@@ -225,7 +225,7 @@ Set-Location $repoRoot
 $scriptPath = Join-Path $repoRoot 'coworker\scripts\coworker.ps1'
 $scriptName = 'coworker.ps1'
 $wrapperName = 'process-coworker-queue.ps1'
-$monitorScriptPath = Join-Path $repoRoot 'coworker\scripts\task-source-monitor.ps1'
+$monitorScriptPath = Join-Path $repoRoot 'coworker\scripts\monitor-task-source.ps1'
 
 Write-Host "Monitoring $scriptName..."
 Write-Host "Script path: $scriptPath"

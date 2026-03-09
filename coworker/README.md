@@ -93,9 +93,9 @@ Default scheduled tasks:
 
 - `coworker` — processes queued coworker tasks after task-source monitoring
 - `draft-refinement` — processes the draft refinement queue
-- `task-source-monitor` — polls configured task sources and dispatches new tasks when enabled
+- `monitor-task-source` — polls configured task sources and dispatches new tasks when enabled
 
-The scheduler invokes the legacy one-shot implementations from `coworker/scripts/deprecated/`. The clearer PowerShell entry points are `coworker/scripts/process-coworker-queue.ps1`, `coworker/scripts/process-draft-refinement-queue.ps1`, and `coworker/scripts/task-source-monitor.ps1`. The older `run_*_periodically.ps1` names remain as compatibility shims and print a deprecation warning before delegating.
+The scheduler invokes the legacy one-shot implementations from `coworker/scripts/deprecated/`. The clearer PowerShell entry points are `coworker/scripts/process-coworker-queue.ps1`, `coworker/scripts/process-draft-refinement-queue.ps1`, and `coworker/scripts/monitor-task-source.ps1`. The older `run_*_periodically.ps1` names remain as compatibility shims and print a deprecation warning before delegating.
 
 ## Legacy Queue Processors
 
@@ -103,13 +103,13 @@ For direct one-shot or looped execution, use the clearer legacy queue processors
 
 - `coworker/scripts/process-coworker-queue.ps1`
 - `coworker/scripts/process-draft-refinement-queue.ps1`
-- `coworker/scripts/task-source-monitor.ps1`
+- `coworker/scripts/monitor-task-source.ps1`
 
 The scheduler-backed implementations live in:
 
 - `coworker/scripts/deprecated/process-coworker-queue.ps1`
 - `coworker/scripts/deprecated/process-draft-refinement-queue.ps1`
-- `coworker/scripts/deprecated/task-source-monitor.ps1`
+- `coworker/scripts/deprecated/monitor-task-source.ps1`
 
 The older names remain available as deprecated aliases for backward compatibility:
 

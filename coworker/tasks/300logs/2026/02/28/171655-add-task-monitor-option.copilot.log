@@ -13,10 +13,10 @@
 ● Read coworker\scripts\run_coworker_periodically.sh
   └ 94 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 159 lines read
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 153 lines read
 
 ● Edit coworker\scripts\run_coworker_periodically.ps1 (+4)
@@ -38,15 +38,15 @@
 ● Read coworker\scripts\coworker.ps1
   └ 695 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 159 lines read
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 153 lines read
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
 ● Read coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md
   └ 29 lines read
@@ -81,9 +81,9 @@
 
 The task is complete.
 
-1.  **Modified `run_coworker_periodically.ps1`**: Added a `-Monitor` parameter. When provided, it invokes `task-source-monitor.ps1 -Once` inside the loop.
-2.  **Modified `run_coworker_periodically.sh`**: Added a `--monitor` parameter. When provided, it invokes `task-source-monitor.sh --once` inside the loop.
-3.  **Fixed Bug in Monitor Scripts**: I noticed that `task-source-monitor.ps1` and `task-source-monitor.sh` were outputting new tasks to `coworker/tasks/2working`. However, the `coworker.ps1` script only scans for new tasks in `coworker/tasks/1created`. To fix this disconnect and ensure generated tasks are actually processed, I updated both monitor scripts to output to `coworker/tasks/1created`.
+1.  **Modified `run_coworker_periodically.ps1`**: Added a `-Monitor` parameter. When provided, it invokes `monitor-task-source.ps1 -Once` inside the loop.
+2.  **Modified `run_coworker_periodically.sh`**: Added a `--monitor` parameter. When provided, it invokes `monitor-task-source.sh --once` inside the loop.
+3.  **Fixed Bug in Monitor Scripts**: I noticed that `monitor-task-source.ps1` and `monitor-task-source.sh` were outputting new tasks to `coworker/tasks/2working`. However, the `coworker.ps1` script only scans for new tasks in `coworker/tasks/1created`. To fix this disconnect and ensure generated tasks are actually processed, I updated both monitor scripts to output to `coworker/tasks/1created`.
 4.  **Updated Memory**: I have appended a summary of these changes to the daily memory file `D:\workspace\Browser4\Browser4-feat\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md`.
 
 The scripts are now ready to support continuous task source monitoring when the new flag is used.

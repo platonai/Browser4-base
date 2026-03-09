@@ -6,19 +6,19 @@
 
 ● Todo added: Read monitoring scripts
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 153 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 159 lines read
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+10 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+10 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+1 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+4)
+● Edit coworker\scripts\monitor-task-source.ps1 (+4)
 
 ● Check PowerShell date comparison behavior
   $ $d = [DateTime]"2026-03-01T10:00:00Z"
@@ -43,11 +43,11 @@ So the logic should be:
 ```powershell
         $createdAt = $issue.createdAt
         if (-not $createdAt) { $createdAt = $issue.created_at }
-        
+
         if ($createdAt -le "2026-02-28") { continue }
 ```
 
-Let's update `task-source-monitor.ps1` again.
+Let's update `monitor-task-source.ps1` again.
 I previously wrote:
 ```powershell
         # Check if created after 2026-02-28
@@ -58,7 +58,7 @@ This is WRONG if `$issue` comes from `gh` (which has `createdAt`).
 
 I will fix this.
 
-Also, I should verify `task-source-monitor.sh` python script.
+Also, I should verify `monitor-task-source.sh` python script.
 ```python
     created_at = issue.get('created_at', '')
 ```
@@ -67,12 +67,12 @@ If input comes from `gh`, the key is `createdAt`. The python script will fail to
 
 I need to fix both scripts.
 
-For `task-source-monitor.sh` (Python part):
+For `monitor-task-source.sh` (Python part):
 ```python
     created_at = issue.get('createdAt') or issue.get('created_at') or ''
 ```
 
-For `task-source-monitor.ps1`:
+For `monitor-task-source.ps1`:
 ```powershell
         $createdAt = if ($issue.createdAt) { $issue.createdAt } else { $issue.created_at }
 ```
@@ -90,7 +90,7 @@ If I use `curl`, I get `created_at`.
 
 So I must handle both.
 
-Let's fix `task-source-monitor.sh` first.
+Let's fix `monitor-task-source.sh` first.
 
 ```python
     created_at = issue.get('created_at', '')
@@ -100,7 +100,7 @@ Change to:
     created_at = issue.get('createdAt') or issue.get('created_at', '')
 ```
 
-And `task-source-monitor.ps1`.
+And `monitor-task-source.ps1`.
 
 ```powershell
         $createdAt = $issue.created_at
@@ -118,16 +118,16 @@ Or simpler:
 
 Let's execute the edits.
 
-For `task-source-monitor.sh`, I need to replace the python block.
+For `monitor-task-source.sh`, I need to replace the python block.
 
-For `task-source-monitor.ps1`, I need to replace the loop logic.
+For `monitor-task-source.ps1`, I need to replace the loop logic.
 
-Also, in `task-source-monitor.sh`, `gh` command uses `--json ... createdAt ...`.
+Also, in `monitor-task-source.sh`, `gh` command uses `--json ... createdAt ...`.
 So `issue.get('createdAt')` is correct.
 The `curl` command returns standard JSON with `created_at`.
 So `issue.get('created_at')` is correct.
 
-Wait, looking at `task-source-monitor.sh` again.
+Wait, looking at `monitor-task-source.sh` again.
 The `gh` command is inside `if command -v gh`.
 The `curl` command is in `elif`.
 The output of BOTH is piped to the `python` script.
@@ -165,43 +165,43 @@ So:
 ```
 This is safe.
 
-Let's edit `task-source-monitor.sh` first.
+Let's edit `monitor-task-source.sh` first.
 I'll replace the whole python script block to be safe.
 
-And for `task-source-monitor.ps1`, I'll replace the filtering block.
+And for `monitor-task-source.ps1`, I'll replace the filtering block.
 
-Also, I noticed I used `$issue.created_at` in the previous edit of `task-source-monitor.ps1`. This was definitely wrong for `gh` case.
+Also, I noticed I used `$issue.created_at` in the previous edit of `monitor-task-source.ps1`. This was definitely wrong for `gh` case.
 
-And I used `created_at = issue.get('created_at', '')` in `task-source-monitor.sh`. This was also wrong for `gh` case.
+And I used `created_at = issue.get('created_at', '')` in `monitor-task-source.sh`. This was also wrong for `gh` case.
 
 So both need fixing.
 
-I'll start with `task-source-monitor.sh`.
+I'll start with `monitor-task-source.sh`.
 
 ```bash
     # ...
-    # Check if created after 2026-02-28. 
+    # Check if created after 2026-02-28.
     # created_at format is usually 'YYYY-MM-DDTHH:MM:SSZ'
     created_at = issue.get('createdAt') or issue.get('created_at') or ''
     if created_at > '2026-02-28':
         print(json.dumps(issue, ensure_ascii=False))
 ```
 
-And `task-source-monitor.ps1`:
+And `monitor-task-source.ps1`:
 
 ```powershell
     foreach ($issue in $issues) {
         # Check if created after 2026-02-28
         $createdAt = $issue.createdAt
         if (-not $createdAt) { $createdAt = $issue.created_at }
-        
+
         if ($createdAt -le "2026-02-28") { continue }
 
         $content = $issue | ConvertTo-Json -Depth 10 -Compress
         # ...
 ```
 
-Wait, in `task-source-monitor.ps1`, `gh` command output `jsonText` is piped to `ConvertFrom-Json`.
+Wait, in `monitor-task-source.ps1`, `gh` command output `jsonText` is piped to `ConvertFrom-Json`.
 Then `$issues` is iterated.
 If `gh` command was used, `$issue` has `createdAt`.
 If `curl` was used, `$issue` has `created_at`.
@@ -228,7 +228,7 @@ If I say "I will come after Monday", I mean Tuesday.
 If I say "I will come after 5pm", I mean 5:01pm.
 So "after 2026-02-28" likely means >= 2026-03-01.
 
-However, the file `task-source-monitor.ps1` changes I made:
+However, the file `monitor-task-source.ps1` changes I made:
 `created:>2026-02-28` in GH search.
 And `if ($createdAt -le "2026-02-28") { continue }`.
 
@@ -291,16 +291,16 @@ I will stick to the string comparison with "2026-02-28" which matches the text i
 Let's apply the fixes.
 
 **Plan:**
-1. Fix `task-source-monitor.sh`: Update python script to handle `createdAt` (from gh) and `created_at` (from curl).
-2. Fix `task-source-monitor.ps1`: Update logic to handle `createdAt` and `created_at` properties.
+1. Fix `monitor-task-source.sh`: Update python script to handle `createdAt` (from gh) and `created_at` (from curl).
+2. Fix `monitor-task-source.ps1`: Update logic to handle `createdAt` and `created_at` properties.
 
-I'll do `task-source-monitor.sh` first.
+I'll do `monitor-task-source.sh` first.
 
 ```python
 filtered_issues = []
 for issue in data:
     created_at = issue.get('created_at', '')
-    # Check if created after 2026-02-28. 
+    # Check if created after 2026-02-28.
     # created_at format is usually 'YYYY-MM-DDTHH:MM:SSZ'
     if created_at > '2026-02-28':
         print(json.dumps(issue, ensure_ascii=False))
@@ -310,7 +310,7 @@ Replacement:
 for issue in data:
     # Handle keys from both 'gh' (createdAt) and 'curl' (created_at)
     created_at = issue.get('createdAt') or issue.get('created_at') or ''
-    
+
     # Check if created after 2026-02-28.
     if created_at > '2026-02-28':
         print(json.dumps(issue, ensure_ascii=False))
@@ -322,7 +322,7 @@ for issue in data:
 ```
 So I should keep it streaming-like.
 
-Now `task-source-monitor.ps1`:
+Now `monitor-task-source.ps1`:
 
 ```powershell
     foreach ($issue in $issues) {
@@ -347,13 +347,13 @@ Replacement:
 
 Ready to execute.
 
-One detail: in `task-source-monitor.sh`, I also need to update the part where it extracts `issue_number`.
+One detail: in `monitor-task-source.sh`, I also need to update the part where it extracts `issue_number`.
 ```bash
         issue_number=$(echo "$issue_json" | python3 -c "import sys, json; print(json.load(sys.stdin).get('number', ''))")
 ```
 This is fine, `number` is standard.
 
-Wait, looking at `task-source-monitor.sh` edit again.
+Wait, looking at `monitor-task-source.sh` edit again.
 I previously edited:
 ```bash
     # Accumulate JSON output
@@ -369,7 +369,7 @@ if not isinstance(data, list):
 filtered_issues = []
 for issue in data:
     created_at = issue.get('created_at', '')
-    # Check if created after 2026-02-28. 
+    # Check if created after 2026-02-28.
     # created_at format is usually 'YYYY-MM-DDTHH:MM:SSZ'
     if created_at > '2026-02-28':
         print(json.dumps(issue, ensure_ascii=False))
@@ -379,11 +379,11 @@ I need to match this block EXACTLY in `old_str` to replace it.
 The block starts with `  done | python3 -c "`.
 I'll try to match a larger chunk to be unique.
 
-For `task-source-monitor.ps1`, I need to match the `foreach` loop.
+For `monitor-task-source.ps1`, I need to match the `foreach` loop.
 
 Let's do it.
 
-One more check: `task-source-monitor.ps1` previously had:
+One more check: `monitor-task-source.ps1` previously had:
 ```powershell
     foreach ($issue in $issues) {
         $content = $issue | ConvertTo-Json -Depth 10 -Compress
@@ -403,7 +403,7 @@ Now I want to change it to:
         # Check if created after 2026-02-28
         $createdAt = $issue.createdAt
         if (-not $createdAt) { $createdAt = $issue.created_at }
-        
+
         if ($createdAt -le "2026-02-28") { continue }
 
         $content = $issue | ConvertTo-Json -Depth 10 -Compress
@@ -411,15 +411,15 @@ Now I want to change it to:
 
 I will use `edit` tool.
 
-I will verify `task-source-monitor.sh` current content first to be sure about `old_str`.
+I will verify `monitor-task-source.sh` current content first to be sure about `old_str`.
 I'll read it again. I suspect `filtered_issues = []` line might be indentation sensitive.
 
 Wait, I can just use `read_powershell` or `view` to check the current content again if I'm unsure. I'll use `view` on both.
 Better safe than sorry.
 
-And I should remove the `from datetime import datetime` import I added in the previous edit to `task-source-monitor.sh` since I'm not using it (using string comparison). It's harmless but cleaner to remove.
+And I should remove the `from datetime import datetime` import I added in the previous edit to `monitor-task-source.sh` since I'm not using it (using string comparison). It's harmless but cleaner to remove.
 
-Also, `task-source-monitor.ps1` edit:
+Also, `monitor-task-source.ps1` edit:
 ```powershell
         $createdAt = $issue.created_at
         if ($createdAt -le "2026-02-28") { continue }
@@ -466,14 +466,14 @@ I'll check it too.
 
 I'll view 3 files.
 
-Also, the `task-source-monitor.sh` python script indentation.
+Also, the `monitor-task-source.sh` python script indentation.
 The previous edit used `import sys, json` then `from datetime import datetime`.
 And `filtered_issues = []`.
 I need to match that.
 
 Let's view.
 
-One thought: The `task-source-monitor.ps1` uses `Set-StrictMode -Version Latest`.
+One thought: The `monitor-task-source.ps1` uses `Set-StrictMode -Version Latest`.
 If `$issue.createdAt` does not exist, it might throw an error depending on strict mode.
 `Set-StrictMode -Version Latest` usually disallows references to uninitialized variables.
 But `$issue` is an object. accessing non-existent property on a `PSCustomObject` usually returns $null and doesn't throw.
@@ -499,12 +499,12 @@ Or check `Get-Member`?
 This is safe even in strict mode?
 Let's verify with a quick powershell script.
 
-Also for `task-source-monitor.sh`, python `issue.get('key')` is safe.
+Also for `monitor-task-source.sh`, python `issue.get('key')` is safe.
 
 So only PowerShell is risky.
 
 I'll run a test script to check StrictMode behavior.
-This is important because `task-source-monitor.ps1` has `Set-StrictMode -Version Latest`.
+This is important because `monitor-task-source.ps1` has `Set-StrictMode -Version Latest`.
 
 The check:
 ```powershell
@@ -539,7 +539,7 @@ Note: `MEMORY.20260228.md` path. `D:\workspace\Browser4\Browser4-4.6\coworker\ta
 
 Let's go.
 
-Refining `task-source-monitor.ps1` logic in my head:
+Refining `monitor-task-source.ps1` logic in my head:
 If strict mode blocks property access:
 ```powershell
 $createdAt = if ($issue.PSObject.Properties['createdAt']) { $issue.createdAt } else { $issue.PSObject.Properties['created_at'].Value }
@@ -555,7 +555,7 @@ So one of them should exist.
 
 Let's verify strict mode behavior first.
 
-Also, in `task-source-monitor.sh`, I'll remove `from datetime import datetime`.
+Also, in `monitor-task-source.sh`, I'll remove `from datetime import datetime`.
 
 Okay, initiating tool calls.
 
@@ -565,8 +565,8 @@ One call for `view` (can I view multiple files in one call? No, `view` takes `pa
 
 I will make 4 tool calls.
 1. `powershell` strict mode test.
-2. `view` task-source-monitor.ps1.
-3. `view` task-source-monitor.sh.
+2. `view` monitor-task-source.ps1.
+3. `view` monitor-task-source.sh.
 4. `view` MEMORY.20260228.md.
 
 Wait, `MEMORY.20260228.md` might not exist if today is the first task of the day?
@@ -582,14 +582,14 @@ And "After completing the task, you MUST update your daily memory file: D:\works
 Okay.
 
 One more thing:
-`task-source-monitor.ps1` logic.
+`monitor-task-source.ps1` logic.
 If strict mode is strict, even `$issue.created_at` will fail if the object is from `gh` (only `createdAt`).
 So I must check `PSObject.Properties['created_at']` before accessing `$issue.created_at` if I'm not sure.
 Safe way:
 ```powershell
 $val = $issue.PSObject.Properties['createdAt']
-if ($val) { 
-    $createdAt = $val.Value 
+if ($val) {
+    $createdAt = $val.Value
 } else {
     $createdAt = $issue.created_at  # Assumes created_at exists if createdAt doesn't.
 }
@@ -617,7 +617,7 @@ I should verify the `coworker` directory structure if `300logs` exists.
 `view` on directory `coworker/tasks` might be useful if memory file fails.
 But I'll trust the prompt path for now.
 
-One small thing: `task-source-monitor.sh` uses `python3`.
+One small thing: `monitor-task-source.sh` uses `python3`.
 I should ensure python logic is correct. `json.dumps(issue)` works.
 
 Okay.
@@ -648,7 +648,7 @@ No, I'll just use a new shell for the test.
 
 Ready.
 
-One last check on `task-source-monitor.ps1`.
+One last check on `monitor-task-source.ps1`.
 If I use `PSObject.Properties['createdAt']`, I need to make sure `$issue` HAS `PSObject`.
 `ConvertFrom-Json` usually returns `PSCustomObject`, which has `PSObject`.
 But if `$issues` is a single object, it works.
@@ -670,12 +670,12 @@ Write-Host "Has PSObject: $(if ($obj.PSObject) { 'Yes' } else { 'No' })"
 
 Okay.
 
-Also, `task-source-monitor.ps1` starts with:
+Also, `monitor-task-source.ps1` starts with:
 `Set-StrictMode -Version Latest`
 So I must respect it.
 
 Executing tools.
-I'll use `view` for `task-source-monitor.sh` and `task-source-monitor.ps1`.
+I'll use `view` for `monitor-task-source.sh` and `monitor-task-source.ps1`.
 I'll skip viewing memory file for now, I'll view it later when I'm ready to write to it. I want to focus on the code first.
 Actually, viewing memory file now helps me plan the update text.
 I'll view all 3.
@@ -695,13 +695,13 @@ Three tool calls for `view`.
 And `report_intent` first.
 
 Wait, the paths for `view`.
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1`
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.sh`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.sh`
 `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md`
 
 Okay.
 
-One minor point: `task-source-monitor.sh` modification.
+One minor point: `monitor-task-source.sh` modification.
 I added `from datetime import datetime`. I will see it in `view` output.
 I will remove it in the next edit.
 
@@ -719,14 +719,14 @@ Let's go.
 I'll also include the `report_intent`.
 "Verifying code and strict mode behavior"
 
-One detail: `task-source-monitor.sh` path. I used `D:\...`. This is correct.
+One detail: `monitor-task-source.sh` path. I used `D:\...`. This is correct.
 
 Okay.
 
 I'll execute.
 "Use PARALLEL TOOL CALLING".
 
-Note: `view` tool has `view_range`. I'll read full files. `task-source-monitor.ps1` is ~160 lines. `task-source-monitor.sh` is ~150. Memory file ~100.
+Note: `view` tool has `view_range`. I'll read full files. `monitor-task-source.ps1` is ~160 lines. `monitor-task-source.sh` is ~150. Memory file ~100.
 Safe to read all.
 
 Okay.
@@ -771,15 +771,15 @@ If `Set-StrictMode -Version Latest` fails, I need to know.
 
 Okay.
 
-One more thing. `task-source-monitor.sh` uses `python3`.
+One more thing. `monitor-task-source.sh` uses `python3`.
 I should check if `python3` is available?
 The environment says "You can run Python... with `python`".
-`task-source-monitor.sh` calls `python3`.
+`monitor-task-source.sh` calls `python3`.
 The script I'm viewing uses `python3`.
 If `python3` is not in path, the script fails.
 But I'm just editing the script. I assume the environment where the script runs has `python3`.
-The current environment is Windows. `task-source-monitor.sh` is a bash script, likely for WSL or Git Bash.
-`task-source-monitor.ps1` is for PowerShell.
+The current environment is Windows. `monitor-task-source.sh` is a bash script, likely for WSL or Git Bash.
+`monitor-task-source.ps1` is for PowerShell.
 So I should make sure my edits are correct for the intended environment.
 `python3` is standard in Bash environments.
 In PowerShell script, I am using PowerShell logic.
@@ -794,7 +794,7 @@ I'll let it create a new one.
 
 Let's go.
 
-One final check on `task-source-monitor.ps1` strict mode.
+One final check on `monitor-task-source.ps1` strict mode.
 If I find that `$obj.b` fails, I will use `$obj.PSObject.Properties['b']`.
 If `$obj.PSObject` fails, I am in trouble.
 But `PSCustomObject` should have `PSObject`.
@@ -802,13 +802,13 @@ But `PSCustomObject` should have `PSObject`.
 Okay.
 I'll send it.
 
-One correction: `task-source-monitor.ps1` line 125: `$files = Get-ChildItem ...`.
+One correction: `monitor-task-source.ps1` line 125: `$files = Get-ChildItem ...`.
 The script is designed for PowerShell 5.1+ or Core.
 My edit is in `Fetch-GitHubIssues`.
 
 Okay.
 
-One thing: `task-source-monitor.sh` uses `gh`.
+One thing: `monitor-task-source.sh` uses `gh`.
 The `gh` cli outputs JSON.
 `gh issue list` outputs `createdAt`.
 
@@ -818,15 +818,15 @@ I'll start with `report_intent`.
 Then `powershell`.
 Then `view`s.
 
-I will view `task-source-monitor.ps1` to see exactly where I inserted the code.
-I will view `task-source-monitor.sh` to see exactly where I inserted the code.
+I will view `monitor-task-source.ps1` to see exactly where I inserted the code.
+I will view `monitor-task-source.sh` to see exactly where I inserted the code.
 I will view `MEMORY.20260228.md` to see where to append.
 
 Okay.
 
 Wait, `view` tool path argument.
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1`
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.sh`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.sh`
 `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md`
 
 Let's go.
@@ -864,7 +864,7 @@ So multiline string is fine.
 Okay.
 Ready.
 
-One last check. `task-source-monitor.ps1`
+One last check. `monitor-task-source.ps1`
 `$issue.createdAt`
 If `$issue` is `@{ createdAt = ... }` (Hashtable), `ConvertFrom-Json` in PS 7 might return object?
 In PS 5, `ConvertFrom-Json` returns `PSCustomObject`.
@@ -889,7 +889,7 @@ Six tool calls.
 I'll do it.
 
 Wait, I have to be careful with `view` on large files.
-`task-source-monitor.ps1` is small.
+`monitor-task-source.ps1` is small.
 `MEMORY` files might be large?
 Daily memory is for one day, so small.
 Monthly memory might be larger.
@@ -897,7 +897,7 @@ I'll view them.
 
 Okay.
 
-One check: `task-source-monitor.ps1` line 88: `$issues = $jsonText | ConvertFrom-Json`.
+One check: `monitor-task-source.ps1` line 88: `$issues = $jsonText | ConvertFrom-Json`.
 Line 91: `foreach ($issue in $issues)`.
 If `$issues` is array of PSCustomObjects.
 
@@ -911,7 +911,7 @@ I'll add `update-memory` todo.
 
 Okay.
 
-One detail: `task-source-monitor.ps1` has `Set-StrictMode -Version Latest`.
+One detail: `monitor-task-source.ps1` has `Set-StrictMode -Version Latest`.
 I should check if `PSObject` property is available in strict mode.
 My test script does that.
 
@@ -926,7 +926,7 @@ Okay.
 Go.
 
 One last thought.
-The previous edit to `task-source-monitor.ps1` was:
+The previous edit to `monitor-task-source.ps1` was:
 ```powershell
         # Check if created after 2026-02-28
         $createdAt = $issue.created_at
@@ -964,8 +964,8 @@ Okay.
 Go.
 
 One last thing.
-`task-source-monitor.sh` uses `mktemp`.
-`task-source-monitor.ps1` uses `[System.IO.Path]::GetTempFileName()`.
+`monitor-task-source.sh` uses `mktemp`.
+`monitor-task-source.ps1` uses `[System.IO.Path]::GetTempFileName()`.
 These are fine.
 
 Okay.
@@ -1012,7 +1012,7 @@ Go.
 
 Wait, "Do not move **this** task file...".
 I will not move `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\filter-monitored-issues-by-date.md`.
-The script `task-source-monitor` moves *generated* task files.
+The script `monitor-task-source` moves *generated* task files.
 My task is to modify the script.
 The *task file* defining my work is in `2working`.
 The scripts put new tasks in `1created`.
@@ -1027,7 +1027,7 @@ Wait, I'll add `fix-ps1` and `fix-sh` to todos.
 Okay.
 Sending.
 
-One last check. `task-source-monitor.sh` edit.
+One last check. `monitor-task-source.sh` edit.
 Old string:
 ```python
 import sys, json
@@ -1040,7 +1040,7 @@ if not isinstance(data, list):
 filtered_issues = []
 for issue in data:
     created_at = issue.get('created_at', '')
-    # Check if created after 2026-02-28. 
+    # Check if created after 2026-02-28.
     # created_at format is usually 'YYYY-MM-DDTHH:MM:SSZ'
     if created_at > '2026-02-28':
         print(json.dumps(issue, ensure_ascii=False))
@@ -1072,7 +1072,7 @@ I'll put it in one line with `;`.
 Okay.
 Go.
 
-One last check. `task-source-monitor.ps1` uses `Set-StrictMode -Version Latest`.
+One last check. `monitor-task-source.ps1` uses `Set-StrictMode -Version Latest`.
 I should check if `$issue.PSObject` throws.
 My test script:
 `$obj.PSObject.Properties['b']`
@@ -1090,8 +1090,8 @@ Okay.
 Go.
 
 Wait, `view` expects absolute path.
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1`
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.sh`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.sh`
 `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md`
 `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\MEMORY.202602.md`
 
@@ -1115,7 +1115,7 @@ Okay.
 
 Ready.
 
-One last thing. `task-source-monitor.sh`
+One last thing. `monitor-task-source.sh`
 The previous edit was:
 ```bash
   done | python3 -c "
@@ -1129,7 +1129,7 @@ if not isinstance(data, list):
 filtered_issues = []
 for issue in data:
     created_at = issue.get('created_at', '')
-    # Check if created after 2026-02-28. 
+    # Check if created after 2026-02-28.
     # created_at format is usually 'YYYY-MM-DDTHH:MM:SSZ'
     if created_at > '2026-02-28':
         print(json.dumps(issue, ensure_ascii=False))
@@ -1207,8 +1207,8 @@ Okay.
 Go.
 
 Wait, `view` response might be large.
-`task-source-monitor.ps1` 160 lines.
-`task-source-monitor.sh` 150 lines.
+`monitor-task-source.ps1` 160 lines.
+`monitor-task-source.sh` 150 lines.
 Memory files - unknown.
 Total tokens ~ 1-2k.
 Budget 256 tokens is for THINKING. Response can be larger.
@@ -1243,7 +1243,7 @@ Okay.
 Go.
 
 Wait, I'll simplify `view` calls.
-I'll view `task-source-monitor.ps1` and `task-source-monitor.sh` first.
+I'll view `monitor-task-source.ps1` and `monitor-task-source.sh` first.
 Then check memory in next turn?
 No, parallel is better.
 
@@ -1278,8 +1278,8 @@ Okay.
 Go.
 
 Wait, `view` calls.
-Path 1: `D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1`
-Path 2: `D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.sh`
+Path 1: `D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1`
+Path 2: `D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.sh`
 Path 3: `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\28\MEMORY.20260228.md`
 Path 4: `D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\02\MEMORY.202602.md`
 
@@ -1442,13 +1442,13 @@ Okay.
 Go.
 
 Wait, `view` of ps1 script.
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1`
 
 Okay.
 Go.
 
 Wait, `view` of sh script.
-`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.sh`
+`D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.sh`
 
 Okay.
 Go.

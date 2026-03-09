@@ -10,10 +10,10 @@
 [2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: build-browser4-nodejs-sdk.md.md
 [2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: implement-coworker-memory-system.md
 [2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: monitor-github-and-url-tasks.md.md
-[2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: optimize-task-source-monitor.md
+[2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: optimize-monitor-task-source.md
 [2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: optimize-webdriver-mcp-kdoc.md.md
 [2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: refine-coworker-readme.md.md
-[2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: task-source-monitor-deduplication.md
+[2026-02-28 16:17:27] [INFO] [COMPLETE] Task waiting for review: monitor-task-source-deduplication.md
 [2026-02-28 16:17:27] [INFO] [PUSHED] Task: fix-coworker-ps1-encoding-issues.md (updated 02/26/2026 21:46:46)
 [2026-02-28 16:17:27] [INFO] [PUSHED] Task: implement-webdriver-dblclick-dialog-resize.md (updated 02/26/2026 21:46:46)
 [2026-02-28 16:17:27] [INFO] [PUSHED] Task: implement-webdriver-select-option.md (updated 02/26/2026 21:46:46)

@@ -25,14 +25,14 @@
 ● Read coworker\scripts\run_draft_refinement_periodically.sh
   └ 99 lines read
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 162 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 163 lines read
 
 ● Grep
-"run_coworker_periodically|run_draft_refinement_periodically|task-source-monitor|coworker-scheduler"
+"run_coworker_periodically|run_draft_refinement_periodically|monitor-task-source|coworker-scheduler"
  in *.{md,ps1,sh,psd1} (D:\workspace\Browser4\Browser4-4.6\coworker)
   └ 80 lines found
 
@@ -107,10 +107,10 @@
 ● Read coworker\scripts\run_draft_refinement_periodically.ps1 lines 1-25
   └ 25 lines read
 
-● Read coworker\deprecated\task-source-monitor.ps1 lines 1-20
+● Read coworker\deprecated\monitor-task-source.ps1 lines 1-20
   └ 20 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1 lines 1-20
+● Read coworker\scripts\monitor-task-source.ps1 lines 1-20
   └ 20 lines read
 
 ● Read coworker\deprecated\run_draft_refinement_periodically.ps1 lines 1-25
@@ -128,10 +128,10 @@
 ● Read coworker\deprecated\run_coworker_periodically.sh lines 1-25
   └ 25 lines read
 
-● Read coworker\scripts\task-source-monitor.sh lines 1-25
+● Read coworker\scripts\monitor-task-source.sh lines 1-25
   └ 25 lines read
 
-● Read coworker\deprecated\task-source-monitor.sh lines 1-25
+● Read coworker\deprecated\monitor-task-source.sh lines 1-25
   └ 25 lines read
 
 ● Grep "Write-Warning|WARNING: .*deprecated" in *.{ps1,sh}
@@ -148,7 +148,7 @@
 
 ● Todo started: validate-scheduler-deprecation
 
-● Grep "run_coworker_periodically|run_draft_refinement_periodically|task-source-monitor" in
+● Grep "run_coworker_periodically|run_draft_refinement_periodically|monitor-task-source" in
 README*.md (D:\workspace\Browser4\Browser4-4.6\coworker)
   └ 24 lines found
 
@@ -255,13 +255,13 @@ scheduler|旧版草稿润色定时入口" in README*.md (D:\workspace\Browser4\B
   coworker\scripts\coworker-scheduler.config.psd1 coworker\scripts\run_coworker_periodically.ps1
    coworker\scripts\run_coworker_periodically.sh
   coworker\scripts\run_draft_refinement_periodically.ps1
-  coworker\scripts\run_draft_refinement_periodically.sh coworker\scripts\task-source-monitor.ps1...
+  coworker\scripts\run_draft_refinement_periodically.sh coworker\scripts\monitor-task-source.ps1...
   └ 26 lines...
 
 ● Check diff after line ending normalization
   $ git --no-pager diff --stat -- coworker\README.md coworker\README.zh.md
   coworker\scripts\coworker-scheduler.config.psd1 coworker\scripts\run_coworker_periodically.ps1
-  coworker\scripts\run_draft_refinement_periodically.ps1 coworker\scripts\task-source-monitor.ps1
+  coworker\scripts\run_draft_refinement_periodically.ps1 coworker\scripts\monitor-task-source.ps1
   coworker\tasks\0draft\README.md coworker\tasks\0draft\README.zh.md
   coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md
   └ 16 lines...
@@ -274,8 +274,8 @@ scheduler|旧版草稿润色定时入口" in README*.md (D:\workspace\Browser4\B
       'coworker/README.md',...
   └ 20 lines...
 
-Done: I moved the legacy scheduler implementations into `coworker/deprecated`, left deprecation-warning compatibility shims at the original `coworker/scripts/*` paths, updated `coworker-scheduler.config.psd1` plus the coworker README/0draft docs to point to the unified scheduler and deprecated locations, and appended today’s task summary to `coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md`.  
-I also verified the monthly memory already contained the 2026-03-07 rollup, so no monthly append was needed.  
+Done: I moved the legacy scheduler implementations into `coworker/deprecated`, left deprecation-warning compatibility shims at the original `coworker/scripts/*` paths, updated `coworker-scheduler.config.psd1` plus the coworker README/0draft docs to point to the unified scheduler and deprecated locations, and appended today’s task summary to `coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md`.
+I also verified the monthly memory already contained the 2026-03-07 rollup, so no monthly append was needed.
 Validation passed via PowerShell parser checks and `bash -n` across all touched shim and deprecated scripts.
 
 

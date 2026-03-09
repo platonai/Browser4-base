@@ -1,27 +1,27 @@
-● Read coworker\tasks\2working\task-source-monitor-deduplication.md
+● Read coworker\tasks\2working\monitor-task-source-deduplication.md
   └ 13 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 135 lines read
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 139 lines read
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+14 -2)
+● Edit coworker\scripts\monitor-task-source.ps1 (+14 -2)
 
-● Edit coworker\scripts\task-source-monitor.sh (+16 -2)
+● Edit coworker\scripts\monitor-task-source.sh (+16 -2)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+5 -2)
+● Edit coworker\scripts\monitor-task-source.ps1 (+5 -2)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+4 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+4 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+2 -2)
+● Edit coworker\scripts\monitor-task-source.sh (+2 -2)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+5 -1)
+● Edit coworker\scripts\monitor-task-source.ps1 (+5 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+2 -2)
+● Edit coworker\scripts\monitor-task-source.sh (+2 -2)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+6 -4)
+● Edit coworker\scripts\monitor-task-source.ps1 (+6 -4)
 
 ● Create coworker\scripts\test_dedupe.ps1 (+62)
 
@@ -54,14 +54,14 @@ The task to optimize the Task Source Monitor by implementing deduplication for U
 
 ### Changes Implemented:
 
-1.  **Modified `coworker/scripts/task-source-monitor.ps1`**:
+1.  **Modified `coworker/scripts/monitor-task-source.ps1`**:
     *   Added logic to calculate the MD5 hash of the fetched URL content.
     *   Implemented a check to search for this MD5 hash in existing files within the tasks directory.
     *   If the hash is found (duplicate), the task is skipped.
     *   If the hash is not found (new content), the task is dispatched, and the MD5 hash is appended to the task file content as a marker (`<!-- TASK_SOURCE_MONITOR_HASH: ... -->`) for future deduplication.
     *   Used efficient `Select-String` with `-SimpleMatch` and `-Quiet` for checking existing files.
 
-2.  **Modified `coworker/scripts/task-source-monitor.sh`**:
+2.  **Modified `coworker/scripts/monitor-task-source.sh`**:
     *   Added equivalent logic using `md5sum` (or `md5`) to calculate the hash.
     *   Implemented deduplication check using `grep -qr` to search for the hash in the tasks directory.
     *   Appended the MD5 hash marker to the task content before dispatching.

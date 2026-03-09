@@ -16,10 +16,10 @@
 ● Read coworker\scripts\run_coworker_periodically.ps1
   └ 166 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 163 lines read
 
-● Grep "run_coworker_periodically|run_draft_refinement_periodically|task-source-monitor|scheduler"
+● Grep "run_coworker_periodically|run_draft_refinement_periodically|monitor-task-source|scheduler"
 in *.{md,ps1,sh,json,yml,yaml,toml,properties} (D:\workspace\Browser4\Browser4-4.6\coworker)
   └ 53 lines found
 
@@ -62,14 +62,14 @@ in *.{md,ps1,sh,json,yml,yaml,toml,properties} (D:\workspace\Browser4\Browser4-4
 ● Read coworker\scripts\run_draft_refinement_periodically.sh lines 1-220
   └ 99 lines read
 
-● Read coworker\scripts\task-source-monitor.sh lines 1-240
+● Read coworker\scripts\monitor-task-source.sh lines 1-240
   └ 162 lines read
 
 ● Baseline parse check for scheduler scripts
   $ $files = @(
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_coworker_periodically.ps1',
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_draft_refinement_periodically.ps1',
-    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1'
+    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1'
   )...
   └ 15 lines...
 
@@ -107,7 +107,7 @@ in *.{md,ps1,sh,json,yml,yaml,toml,properties} (D:\workspace\Browser4\Browser4-4
   $ $files = @(
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_coworker_periodically.ps1',
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_draft_refinement_periodically.ps1',
-    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1',
+    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1',
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\coworker-scheduler.ps1'...
   └ 112 lines...
 
@@ -176,7 +176,7 @@ in *.{md,ps1,sh,json,yml,yaml,toml,properties} (D:\workspace\Browser4\Browser4-4
   $ $files = @(
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_coworker_periodically.ps1',
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_draft_refinement_periodically.ps1',
-    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1',
+    'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1',
     'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\coworker-scheduler.ps1'...
   No Content
 
@@ -191,7 +191,7 @@ in *.{md,ps1,sh,json,yml,yaml,toml,properties} (D:\workspace\Browser4\Browser4-4
 ● Confirm script parsing
   $ $files = @('D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_coworker_periodically.ps1'
   ,'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\run_draft_refinement_periodically.ps1','
-  D:\workspace\Browser4\Browser4-4.6\coworker\scripts\task-source-monitor.ps1','D:\workspace\Bro
+  D:\workspace\Browser4\Browser4-4.6\coworker\scripts\monitor-task-source.ps1','D:\workspace\Bro
   wser4\Browser4-4.6\coworker\scripts\coworker-scheduler.ps1')
   foreach ($file in $files) {...
   No Content
@@ -254,7 +254,7 @@ D:\workspace\Browser4\Browser4-4.6
 ● Read coworker\tasks\300logs\2026\03\08\MEMORY.20260308.md lines 31-90
   └ 12 lines read
 
-Implemented a unified PowerShell scheduler with config-driven recurring tasks in `coworker\scripts\coworker-scheduler.ps1` + `coworker\scripts\coworker-scheduler.config.psd1`, added safe `-Once` support to `coworker\scripts\run_coworker_periodically.ps1`, documented the new flow in `coworker\README.md` / `coworker\README.zh.md`, and appended the required daily memory entry after confirming the monthly memory already included the prior-day rollup.  
+Implemented a unified PowerShell scheduler with config-driven recurring tasks in `coworker\scripts\coworker-scheduler.ps1` + `coworker\scripts\coworker-scheduler.config.psd1`, added safe `-Once` support to `coworker\scripts\run_coworker_periodically.ps1`, documented the new flow in `coworker\README.md` / `coworker\README.zh.md`, and appended the required daily memory entry after confirming the monthly memory already included the prior-day rollup.
 Validation covered PowerShell parse checks plus temp-config scheduler smoke tests verifying per-task logging/status output, dependency-aware one-shot scheduling, and optional-config default handling.
 
 

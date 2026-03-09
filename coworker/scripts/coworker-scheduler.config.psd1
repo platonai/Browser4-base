@@ -12,7 +12,7 @@
             Description     = 'Process queued coworker tasks.'
             Enabled         = $true
             IntervalSeconds = 15
-            DependsOn       = @('task-source-monitor')
+            DependsOn       = @('monitor-task-source')
             PendingPaths    = @(
                 'coworker\tasks\1created'
                 'coworker\tasks\5approved'
@@ -30,11 +30,11 @@
             Arguments       = @('-Once')
         }
         @{
-            Name            = 'task-source-monitor'
+            Name            = 'monitor-task-source'
             Description     = 'Poll configured task sources and dispatch new tasks.'
             Enabled         = $false
             IntervalSeconds = 60
-            ScriptPath      = 'coworker\scripts\task-source-monitor.ps1'
+            ScriptPath      = 'coworker\scripts\monitor-task-source.ps1'
             Arguments       = @('-Once')
         }
     )

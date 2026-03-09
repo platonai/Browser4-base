@@ -95,9 +95,9 @@
 
 - `coworker` — 在任务源监控之后处理排队中的 coworker 任务
 - `draft-refinement` — 处理草稿润色队列
-- `task-source-monitor` — 启用后轮询配置的任务源并分发新任务
+- `monitor-task-source` — 启用后轮询配置的任务源并分发新任务
 
-统一调度器会调用 `coworker/scripts/deprecated/` 中保留的旧版一次性实现。更清晰的 PowerShell 入口分别是 `coworker/scripts/process-coworker-queue.ps1`、`coworker/scripts/process-draft-refinement-queue.ps1` 和 `coworker/scripts/task-source-monitor.ps1`；旧的 `run_*_periodically.ps1` 名称仍保留为兼容包装器，并会先输出弃用警告再转发。
+统一调度器会调用 `coworker/scripts/deprecated/` 中保留的旧版一次性实现。更清晰的 PowerShell 入口分别是 `coworker/scripts/process-coworker-queue.ps1`、`coworker/scripts/process-draft-refinement-queue.ps1` 和 `coworker/scripts/monitor-task-source.ps1`；旧的 `run_*_periodically.ps1` 名称仍保留为兼容包装器，并会先输出弃用警告再转发。
 
 ## 旧版队列处理脚本
 
@@ -105,13 +105,13 @@
 
 - `coworker/scripts/process-coworker-queue.ps1`
 - `coworker/scripts/process-draft-refinement-queue.ps1`
-- `coworker/scripts/task-source-monitor.ps1`
+- `coworker/scripts/monitor-task-source.ps1`
 
 统一调度器实际调用的实现位于：
 
 - `coworker/scripts/deprecated/process-coworker-queue.ps1`
 - `coworker/scripts/deprecated/process-draft-refinement-queue.ps1`
-- `coworker/scripts/deprecated/task-source-monitor.ps1`
+- `coworker/scripts/deprecated/monitor-task-source.ps1`
 
 为了兼容旧流程，以下旧名称仍然可用，但会提示弃用：
 

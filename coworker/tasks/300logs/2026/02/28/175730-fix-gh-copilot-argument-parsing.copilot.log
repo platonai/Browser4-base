@@ -31,7 +31,7 @@
 ● Read coworker\scripts\workers\git-sync.ps1
   └ 25 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 159 lines read
 
 ● Grep "gh copilot" (D:\workspace\Browser4\Browser4-4.6\coworker\scripts)

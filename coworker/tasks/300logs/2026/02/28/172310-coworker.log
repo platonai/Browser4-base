@@ -14,10 +14,10 @@
 [2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\implement-coworker-memory-system.2.md
 [2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\implement-coworker-memory-system.md
 [2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\monitor-github-and-url-tasks.md.md
-[2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\optimize-task-source-monitor.md
+[2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\optimize-monitor-task-source.md
 [2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\optimize-webdriver-mcp-kdoc.md.md
 [2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\refine-coworker-readme.md.md
-[2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\task-source-monitor-deduplication.md
+[2026-02-28 17:23:10] [INFO] Task moved to pushed: D:\workspace\Browser4\Browser4-feat\coworker\tasks\6git-pushed\2026\0228\monitor-task-source-deduplication.md
 [2026-02-28 17:23:10] [INFO] Executing commit script for approved tasks...
 [2026-02-28 17:24:00] [INFO] Git sync executed successfully.
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: fix-coworker-ps1-encoding-issues.md (updated 02/26/2026 21:46:46)
@@ -46,12 +46,12 @@
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: implement-coworker-memory-system.2.md (updated 02/28/2026 16:27:14)
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: implement-coworker-memory-system.md (updated 02/28/2026 16:12:21)
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: monitor-github-and-url-tasks.md.md (updated 02/28/2026 14:26:48)
-[2026-02-28 17:24:00] [INFO] [PUSHED] Task: optimize-task-source-monitor.md (updated 02/28/2026 15:02:11)
+[2026-02-28 17:24:00] [INFO] [PUSHED] Task: optimize-monitor-task-source.md (updated 02/28/2026 15:02:11)
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: optimize-tool-spec-description-extraction.md (updated 02/28/2026 01:09:48)
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: optimize-webdriver-kdoc-for-mcp.md (updated 02/28/2026 01:17:39)
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: optimize-webdriver-mcp-kdoc.md.md (updated 02/28/2026 14:26:48)
 [2026-02-28 17:24:00] [INFO] [PUSHED] Task: refine-coworker-readme.md.md (updated 02/28/2026 14:26:48)
-[2026-02-28 17:24:00] [INFO] [PUSHED] Task: task-source-monitor-deduplication.md (updated 02/28/2026 15:30:41)
+[2026-02-28 17:24:00] [INFO] [PUSHED] Task: monitor-task-source-deduplication.md (updated 02/28/2026 15:30:41)
 [2026-02-28 17:24:00] [INFO] ===========================================================================
 [2026-02-28 17:24:00] [INFO] All tasks completed
 [2026-02-28 17:24:00] [INFO] Ended at: 02/28/2026 17:24:00

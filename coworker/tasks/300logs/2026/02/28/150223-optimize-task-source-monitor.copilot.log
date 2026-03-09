@@ -1,45 +1,45 @@
-● Read coworker\tasks\2working\optimize-task-source-monitor.md
+● Read coworker\tasks\2working\optimize-monitor-task-source.md
   └ 61 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 128 lines read
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 130 lines read
 
 ● Check gh issue list help for search option
   $ gh issue list --help
   └ 37 lines...
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+2 -2)
+● Edit coworker\scripts\monitor-task-source.ps1 (+2 -2)
 
-● Edit coworker\scripts\task-source-monitor.ps1 (+7)
+● Edit coworker\scripts\monitor-task-source.ps1 (+7)
 
-● Edit coworker\scripts\task-source-monitor.sh (+1 -1)
+● Edit coworker\scripts\monitor-task-source.sh (+1 -1)
 
-● Edit coworker\scripts\task-source-monitor.sh (+9)
+● Edit coworker\scripts\monitor-task-source.sh (+9)
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 135 lines read
 
-● Read coworker\scripts\task-source-monitor.sh
+● Read coworker\scripts\monitor-task-source.sh
   └ 139 lines read
 
 ● Check gh version
   $ gh --version
   └ 3 lines...
 
-The task described in `D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-task-source-monitor.md` has been completed.
+The task described in `D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-monitor-task-source.md` has been completed.
 
-I have optimized the `Task Source Monitor` scripts (`task-source-monitor.ps1` and `task-source-monitor.sh`) to prevent duplicate execution of GitHub Issues.
+I have optimized the `Task Source Monitor` scripts (`monitor-task-source.ps1` and `monitor-task-source.sh`) to prevent duplicate execution of GitHub Issues.
 
 **Changes made:**
 
-1.  **Updated `task-source-monitor.ps1`:**
+1.  **Updated `monitor-task-source.ps1`:**
     *   Modified the `gh issue list` command to use `--search "assignee:$Assignee is:open -label:processed"` instead of just `--assignee`. This ensures only unprocessed issues are fetched.
     *   Added logic to mark the issue as processed after dispatching the task using `gh issue edit $number --add-label "processed"`.
 
-2.  **Updated `task-source-monitor.sh`:**
+2.  **Updated `monitor-task-source.sh`:**
     *   Similarly modified `gh issue list` to use the search query filtering out issues with the `processed` label.
     *   Added logic to extract the issue number from the JSON payload and mark the issue as processed using `gh issue edit`.
 

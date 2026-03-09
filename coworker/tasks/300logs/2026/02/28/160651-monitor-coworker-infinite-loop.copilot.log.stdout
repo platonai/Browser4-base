@@ -984,7 +984,7 @@ This is outside the `if ($Running)` check.
 My change is inside the `else` (startup) block.
 So monitoring of task source happens, then we start `coworker.ps1`.
 My `coworker.ps1` monitoring happens inside the `else` block, while `coworker.ps1` runs.
-This means `task-source-monitor.ps1` won't run *while* `coworker.ps1` is running?
+This means `monitor-task-source.ps1` won't run *while* `coworker.ps1` is running?
 In the original script:
 ```powershell
     if ($Running) { ... } else {
@@ -993,9 +993,9 @@ In the original script:
     Start-Sleep -Seconds 15
 ```
 It waits for `$ScriptPath` to finish.
-So `task-source-monitor` only ran *before* checking tasks?
-No, `task-source-monitor` runs at the start of the main loop.
-If `coworker.ps1` takes 10 minutes, `task-source-monitor` runs, then `coworker` runs (waiting 10 mins), then loop repeats.
+So `monitor-task-source` only ran *before* checking tasks?
+No, `monitor-task-source` runs at the start of the main loop.
+If `coworker.ps1` takes 10 minutes, `monitor-task-source` runs, then `coworker` runs (waiting 10 mins), then loop repeats.
 With my change:
 ```powershell
     else {
@@ -1007,7 +1007,7 @@ With my change:
     }
 ```
 We are still blocking the main loop until the job finishes (or is aborted).
-So `task-source-monitor` still won't run *while* `coworker` is running.
+So `monitor-task-source` still won't run *while* `coworker` is running.
 This preserves existing behavior (sequential).
 The difference is we now have a loop *during* execution to check for infinite loops.
 This is correct.

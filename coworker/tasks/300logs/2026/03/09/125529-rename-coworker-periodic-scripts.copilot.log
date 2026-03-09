@@ -28,7 +28,7 @@
 ● Read coworker\README.md lines 1-220
   └ 149 lines read
 
-● Grep "run_coworker_periodically|run_draft_refinement_periodically|task-source-monitor"
+● Grep "run_coworker_periodically|run_draft_refinement_periodically|monitor-task-source"
 (D:\workspace\Browser4\Browser4-4.6)
   └ 5 lines found
 
@@ -41,7 +41,7 @@
   └ 3 lines...
 
 ● Grep "rename-coworker-periodic-scripts|run_coworker_periodically|run_draft_refinement_periodically
-|task-source-monitor" in *.{md,ps1,sh,psd1,py,log,stdout,stderr}
+|monitor-task-source" in *.{md,ps1,sh,psd1,py,log,stdout,stderr}
 (D:\workspace\Browser4\Browser4-4.6\coworker)
   └ 5 lines found
 
@@ -56,7 +56,7 @@
 ● Read coworker\scripts\run_coworker_periodically.ps1
   └ 27 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 27 lines read
 
 ● Read coworker\scripts\run_draft_refinement_periodically.ps1
@@ -65,7 +65,7 @@
 ● Read coworker\scripts\deprecated\run_draft_refinement_periodically.ps1
   └ 71 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 163 lines read
 
 ● Read coworker\scripts\deprecated\run_coworker_periodically.ps1
@@ -77,10 +77,10 @@
 ✗ Read coworker\scripts\deprecated\run_draft_refinement_periodically.sh
   Path does not exist
 
-✗ Read coworker\scripts\deprecated\task-source-monitor.sh
+✗ Read coworker\scripts\deprecated\monitor-task-source.sh
   Path does not exist
 
-● Grep "task-source-monitor" in *.{md,ps1,sh,psd1,py} (D:\workspace\Browser4\Browser4-4.6\coworker)
+● Grep "monitor-task-source" in *.{md,ps1,sh,psd1,py} (D:\workspace\Browser4\Browser4-4.6\coworker)
   └ 30 lines found
 
 ● Grep "run_coworker_periodically|run_draft_refinement_periodically" in *.{md,ps1,sh,psd1,py}

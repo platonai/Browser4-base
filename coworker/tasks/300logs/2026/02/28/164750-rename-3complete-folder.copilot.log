@@ -59,7 +59,7 @@
 ● Read coworker\scripts\coworker-daily-memory-generator.ps1
   └ 176 lines read
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 159 lines read
 
 ● Read coworker\tasks\300logs\MEMORY.md
@@ -103,7 +103,7 @@ The task described in `coworker/tasks/2working/rename-3complete-folder.md` has b
 3.  Updated `coworker/scripts/workers/coworker.ps1` to reference the new folder name `3_1complete`.
 4.  Updated `coworker/README.md` to reflect the folder name change and update the task flow documentation.
 5.  Updated `coworker/README.zh.md` to reflect the folder name change in the Chinese documentation.
-6.  Verified that other scripts (`task-source-monitor.ps1`, `coworker-daily-memory-generator.ps1`) do not reference the old folder name.
+6.  Verified that other scripts (`monitor-task-source.ps1`, `coworker-daily-memory-generator.ps1`) do not reference the old folder name.
 7.  Updated the daily memory file `coworker/tasks/300logs/2026/02/28/MEMORY.20260228.md` with a summary of this task.
 
 

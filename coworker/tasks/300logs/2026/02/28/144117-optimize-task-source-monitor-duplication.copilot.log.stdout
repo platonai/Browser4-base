@@ -1,14 +1,14 @@
-● Read coworker\tasks\2working\optimize-task-source-monitor-duplication.md
+● Read coworker\tasks\2working\optimize-monitor-task-source-duplication.md
   └ 9 lines read
 
 ● List files in the current directory
   $ Get-ChildItem -Force
   └ 55 lines...
 
-● Glob "**/task-source-monitor.*"
+● Glob "**/monitor-task-source.*"
   └ 2 files found
 
-● Read coworker\scripts\task-source-monitor.ps1
+● Read coworker\scripts\monitor-task-source.ps1
   └ 128 lines read
 
 progress`?) and filtering out that label is the best approach if we want to keep it open.
@@ -43,9 +43,9 @@ progress`?) and filtering out that label is the best approach if we want to keep
     -   Where to save? Maybe in a file in `coworker/scripts/` or a temp dir? `coworker/scripts/.last_url_content` seems appropriate or somewhere in `bin`. Or just a sidecar file next to the script.
     -   Let's use `$ScriptDir\.last_url_content`.
 
-Now let's look at `task-source-monitor.sh`. I should apply similar changes.
+Now let's look at `monitor-task-source.sh`. I should apply similar changes.
 
-Let's read `task-source-monitor.sh`. I'll read it now.
+Let's read `monitor-task-source.sh`. I'll read it now.
 And I'll also check if `gh` is installed in the environment to verify my commands if possible, but I am in a non-interactive env. The environment description says `gh` is not explicitly listed in "Available tools" (which lists my agent tools), but it might be in the system. The script checks for it.
 
 Let's read the shell script.
@@ -62,7 +62,7 @@ Wait, the requirement says "1. ... GitHub Issues ... use gh tool ...".
 I will create a plan.md file to track this.
 Actually, I can just use the database or memory. The task is small enough.
 
-Let's read `task-source-monitor.sh`.
+Let's read `monitor-task-source.sh`.
 And I will create a test script or just run the modified script?
 Running it might be tricky if I don't have a valid Repo/URL. The defaults are `platonai/Browser4` and `galaxyeye`. I probably shouldn't run it against the real repo if I can avoid it, or usage of `-Once` is fine if I don't dispatch garbage.
 The script dispatches to `coworker\tasks\2working`. I can check if files are created there.
@@ -91,10 +91,10 @@ I will use `cat` (via `powershell` or `view`) to read it. `view` is better.
 I'll also check if `gh` is installed.
 I will also check if `tasks\2working` exists. The script creates it.
 
-Let's read `coworker/scripts/task-source-monitor.sh`.
+Let's read `coworker/scripts/monitor-task-source.sh`.
 And `gh --version`.
 
-Wait, the PowerShell script path I used was `D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.ps1`.
+Wait, the PowerShell script path I used was `D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.ps1`.
 I will use the same path for `.sh`.
 
 I'll also create a reproduction/test case?
@@ -112,15 +112,15 @@ The prompt says "You are running in non-interactive mode...".
 This suggests I cannot run `gh issue list` successfully.
 So I will rely on code analysis and writing correct code without live verification of the `gh` command.
 
-I will read `task-source-monitor.sh` now.
+I will read `monitor-task-source.sh` now.
 I'll also create the `plan.md` to show I'm organized.
 
 Plan:
-1.  Read `task-source-monitor.sh`.
-2.  Modify `task-source-monitor.ps1`.
+1.  Read `monitor-task-source.sh`.
+2.  Modify `monitor-task-source.ps1`.
     *   Update `Fetch-GitHubIssues` to filter by `-label:processed` and add label `processed` after dispatch.
     *   Update `Fetch-Url` to implement content change detection using a cache file.
-3.  Modify `task-source-monitor.sh`.
+3.  Modify `monitor-task-source.sh`.
     *   Update `fetch_github_issues` (or equivalent) to filter/label.
     *   Update `fetch_url` (or equivalent) to implement content change detection.
 4.  Verify syntax (if possible).
@@ -132,7 +132,7 @@ The session context says `Session folder: ...`. `Plan file: .../plan.md (not yet
 I should create it.
 
 I will execute:
-1. `view task-source-monitor.sh`
+1. `view monitor-task-source.sh`
 2. `create plan.md`
 3. `gh --version` (just to check availability)
 
@@ -154,10 +154,10 @@ So just read the file.
 And check `gh`.
 
 One more thing: The PowerShell script uses `$TasksDir = Join-Path $RepoRoot "coworker\tasks\2working"`.
-The prompt file path was `coworker\tasks\2working\optimize-task-source-monitor-duplication.md`.
+The prompt file path was `coworker\tasks\2working\optimize-monitor-task-source-duplication.md`.
 So the directory exists.
 
-Let's read `task-source-monitor.sh`.
+Let's read `monitor-task-source.sh`.
 I'll also check `gh` version.
 I'll do `powershell` to check `gh` and read file? No, `view` is better for reading.
 
@@ -184,11 +184,11 @@ Let's see.
 I will read the `.sh` file.
 And check for `gh` and `jq`.
 I'll execute this now.
-I'll also confirm the path `D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.sh`.
+I'll also confirm the path `D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.sh`.
 
 One small detail: The user said "Do not move the file, just execute the task based on its content."
 This refers to the task description file.
-I should not delete/move `D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-task-source-monitor-duplication.md`.
+I should not delete/move `D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-monitor-task-source-duplication.md`.
 
 Okay, proceeding.
 I'll use `read_powershell` after `powershell` if needed, but for version checks `initial_wait` should be enough.
@@ -199,7 +199,7 @@ Let's go.
 I'll use `mode="async"` for the version check just in case it hangs (unlikely). No, `sync` is fine.
 Actually, I'll just use `Get-Command` which is fast.
 
-Wait, `view` output of `task-source-monitor.ps1` showed:
+Wait, `view` output of `monitor-task-source.ps1` showed:
 `$ghAvailable = $null -ne (Get-Command gh -ErrorAction SilentlyContinue)`
 So the script expects `gh`.
 If I modify it, I must ensure I don't break it if `gh` is missing (the script falls back to REST API).
@@ -237,7 +237,7 @@ I'll focus on `gh` first.
 Let's read the `sh` file.
 I'll check `gh` and `jq`.
 I'll use `powershell` to check `gh` and `jq` availability.
-I'll use `view` to read `task-source-monitor.sh`.
+I'll use `view` to read `monitor-task-source.sh`.
 I'll do both in one turn.
 I'll use `ls` to check the scripts directory.
 I'll use `mode="sync"` for powershell.
@@ -247,7 +247,7 @@ I'll also check if `python` is available as a fallback for JSON parsing if `jq` 
 So python is available.
 
 Let's start.
-I'll read `task-source-monitor.sh`.
+I'll read `monitor-task-source.sh`.
 And check `gh`, `jq`.
 I'll use `Get-Command` in powershell.
 
@@ -262,12 +262,12 @@ Wait, `view` supports line numbers. `cat` via `powershell` doesn't give line num
 `view` is better for reading code.
 So `view` it is.
 
-One thought: `task-source-monitor.ps1` is in `coworker/scripts/`.
+One thought: `monitor-task-source.ps1` is in `coworker/scripts/`.
 The `sh` script is likely there too.
 
 Let's go.
 I'll also verify the task file path just in case I misread it.
-`D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-task-source-monitor-duplication.md`
+`D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-monitor-task-source-duplication.md`
 Yes.
 
 I'll start.
@@ -289,10 +289,10 @@ I'll execute now.
 I'll use `Get-Command` which is cleaner in PS.
 `Get-Command gh, jq, python -ErrorAction SilentlyContinue`
 And `ls coworker/scripts`
-And `view` `task-source-monitor.sh`.
+And `view` `monitor-task-source.sh`.
 
 Wait, the path for view must be absolute.
-`D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.sh`
+`D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.sh`
 
 Ready.
 I'll execute the `powershell` command first to get the context and then `view`.
@@ -312,7 +312,7 @@ I'll use `shellId` for powershell? No, sync is fine for checking tools.
 I'll use `dir` for listing.
 
 Final check on the plan:
-1. View `coworker/scripts/task-source-monitor.sh`
+1. View `coworker/scripts/monitor-task-source.sh`
 2. Check tools `gh`, `jq`.
 3. List `coworker/scripts`.
 4. Process results.
@@ -329,12 +329,12 @@ I'll use `powershell` for tools/ls.
 I'll use `powershell` command:
 `Get-Command gh, jq -ErrorAction SilentlyContinue | Select-Object Name, Source; Get-ChildItem D:\workspace\Browser4\Browser4-feat\coworker\scripts\`
 I'll use `view`:
-`D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.sh`
+`D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.sh`
 
 Wait, I also want to make sure I have the absolute path right.
 `D:\workspace\Browser4\Browser4-feat` is the root.
 `coworker\scripts` is the subdir.
-So `D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.sh` is correct.
+So `D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.sh` is correct.
 
 Let's do it.
 I'll verify `gh` availability.
@@ -347,8 +347,8 @@ I'll run the tools.
 I'll use `report_intent` first.
 Intent: "Reading shell monitor script and checking dependencies"
 
-One thing: `task-source-monitor.ps1` used `Split-Path -Parent $MyInvocation.MyCommand.Path` to find repo root.
-`task-source-monitor.sh` probably does something similar.
+One thing: `monitor-task-source.ps1` used `Split-Path -Parent $MyInvocation.MyCommand.Path` to find repo root.
+`monitor-task-source.sh` probably does something similar.
 I should keep that structure.
 
 Let's go.
@@ -356,12 +356,12 @@ I'll execute now.
 I'll add `initial_wait: 20` to powershell just in case.
 I'll use `mode="sync"`.
 
-I will also read `D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-task-source-monitor-duplication.md` again?
+I will also read `D:\workspace\Browser4\Browser4-feat\coworker\tasks\2working\optimize-monitor-task-source-duplication.md` again?
 No, I already read it.
 "1. 对 GitHub Issues... 2. 对一般 URL..."
 
 Okay.
-I'll read `task-source-monitor.sh`.
+I'll read `monitor-task-source.sh`.
 And check tools.
 And list scripts directory.
 
@@ -400,7 +400,7 @@ I'll use `Get-ChildItem`.
 I'll view the `.sh` file.
 
 I'll write the response now.
-I'll use `D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.sh`.
+I'll use `D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.sh`.
 And `Get-Command gh, jq -ErrorAction SilentlyContinue | Format-Table -AutoSize`.
 And `ls D:\workspace\Browser4\Browser4-feat\coworker\scripts`.
 
@@ -419,7 +419,7 @@ I'll use `view`.
 I'll use `powershell`.
 I'll maximize parallelism.
 
-One detail: `task-source-monitor.ps1` had `Fetch-GitHubIssues`.
+One detail: `monitor-task-source.ps1` had `Fetch-GitHubIssues`.
 I assume `.sh` has similar functions.
 I'll find out.
 
@@ -428,7 +428,7 @@ I'll use `report_intent`.
 I'll use `view`.
 I'll use `powershell`.
 I'll ensure paths are correct.
-`D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.sh`
+`D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.sh`
 `D:\workspace\Browser4\Browser4-feat\coworker\scripts`
 
 Response time.
@@ -450,7 +450,7 @@ I'll execute.
 I'll verify `gh` availability.
 I'll verify `jq` availability.
 I'll list `coworker/scripts`.
-I'll view `task-source-monitor.sh`.
+I'll view `monitor-task-source.sh`.
 
 (Self-correction: I should not be too verbose in thought trace)
 I'll send the tool calls.
@@ -487,7 +487,7 @@ I'll use `report_intent`.
 I'll use `view`.
 I'll use `powershell`.
 I'll proceed.
-I'll use `view` for `task-source-monitor.sh`.
+I'll use `view` for `monitor-task-source.sh`.
 I'll use `powershell` to check dependencies.
 I'll use `ls` to list files.
 I'll execute.
@@ -499,7 +499,7 @@ I'll report.
 
 One detail: `gh` might not be in PATH but in some standard location? `Get-Command` checks PATH.
 If it's not in PATH, I can't use it easily.
-The script `task-source-monitor.ps1` checks `Get-Command gh`. So it expects it in PATH.
+The script `monitor-task-source.ps1` checks `Get-Command gh`. So it expects it in PATH.
 So checking `Get-Command` is correct.
 
 Let's do it.
@@ -511,7 +511,7 @@ I'll finish.
 
 I'll send the tool calls now.
 I'll use `report_intent` with `intent="Analyzing monitor scripts"`.
-I'll use `view` with `path="D:\workspace\Browser4\Browser4-feat\coworker\scripts\task-source-monitor.sh"`.
+I'll use `view` with `path="D:\workspace\Browser4\Browser4-feat\coworker\scripts\monitor-task-source.sh"`.
 I'll use `powershell` with `command="$cmds = @('gh', 'jq'); foreach ($cmd in $cmds) { if (Get-Command $cmd -ErrorAction SilentlyContinue) { Write-Host \"$cmd is available\" } else { Write-Host \"$cmd is NOT available\" } }; Get-ChildItem D:\workspace\Browser4\Browser4-feat\coworker\scripts"`.
 I'll use `description="Check for gh and jq tools and list scripts directory"`.
 I'll use `mode="sync"`.
