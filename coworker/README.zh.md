@@ -82,7 +82,7 @@
 
 如果你希望只配置一个 Windows Task Scheduler 触发器，请使用统一调度器。它会按配置分别启动各个 PowerShell 子进程，保存 stdout/stderr 日志，并持续把任务状态写入 `coworker/tasks/300logs/scheduler/scheduled-tasks.status.json`。
 
-任务定义位于 `coworker/scripts/coworker-scheduler.config.psd1`。每个任务都可以独立启用或禁用，并单独设置 `IntervalSeconds`、脚本路径、参数，以及可选的 `DependsOn` 依赖顺序。
+任务定义位于 `coworker/scripts/coworker-scheduler.config.psd1`。每个任务都可以独立启用或禁用，并单独设置 `IntervalSeconds`、脚本路径、参数、可选的 `DependsOn` 依赖顺序，以及可选的 `PendingPaths` 输入队列。配置 `PendingPaths` 后，调度器会先检查这些文件/目录中是否真的有待处理内容，只有存在工作项时才会启动新的 PowerShell 子进程。
 
 **Windows (PowerShell)：**
 
@@ -97,31 +97,35 @@
 - `draft-refinement` — 处理草稿润色队列
 - `task-source-monitor` — 启用后轮询配置的任务源并分发新任务
 
-统一调度器会调用 `coworker/scripts/deprecated/` 中保留的旧版一次性实现。原来的 `coworker/scripts/*.ps1` 和 `.sh` 入口仍然保留为兼容包装器，但会先输出弃用警告再转发。
+统一调度器会调用 `coworker/scripts/deprecated/` 中保留的旧版一次性实现。更清晰的 PowerShell 入口分别是 `coworker/scripts/process-coworker-queue.ps1`、`coworker/scripts/process-draft-refinement-queue.ps1` 和 `coworker/scripts/task-source-monitor.ps1`；旧的 `run_*_periodically.ps1` 名称仍保留为兼容包装器，并会先输出弃用警告再转发。
 
-## 已弃用的旧版调度脚本
+## 旧版队列处理脚本
 
-旧版调度脚本仍然保留以兼容现有流程，但新的自动化应改用 `coworker-scheduler.ps1`。旧版实现现已统一移动到：
+如果你需要直接执行一次性或循环式处理，请使用这些更清晰的旧版队列处理脚本：
 
-- `coworker/scripts/deprecated/run_coworker_periodically.ps1`
-- `coworker/scripts/deprecated/run_coworker_periodically.sh`
-- `coworker/scripts/deprecated/run_draft_refinement_periodically.ps1`
-- `coworker/scripts/deprecated/run_draft_refinement_periodically.sh`
+- `coworker/scripts/process-coworker-queue.ps1`
+- `coworker/scripts/process-draft-refinement-queue.ps1`
+- `coworker/scripts/task-source-monitor.ps1`
+
+统一调度器实际调用的实现位于：
+
+- `coworker/scripts/deprecated/process-coworker-queue.ps1`
+- `coworker/scripts/deprecated/process-draft-refinement-queue.ps1`
 - `coworker/scripts/deprecated/task-source-monitor.ps1`
-- `coworker/scripts/deprecated/task-source-monitor.sh`
+
+为了兼容旧流程，以下旧名称仍然可用，但会提示弃用：
+
+- `coworker/scripts/run_coworker_periodically.ps1`
+- `coworker/scripts/run_draft_refinement_periodically.ps1`
+
+如果是定时自动化，请优先使用 `coworker-scheduler.ps1`。
 
 
 **Windows (PowerShell)：**
 
 ```powershell
-.\coworker\scripts\deprecated\run_coworker_periodically.ps1
-.\coworker\scripts\deprecated\run_coworker_periodically.ps1 -Once
-```
-
-**Linux/macOS (Bash)：**
-
-```bash
-./coworker/scripts/deprecated/run_coworker_periodically.sh
+.\coworker\scripts\process-coworker-queue.ps1
+.\coworker\scripts\process-coworker-queue.ps1 -Once
 ```
 
 ## 草稿润色
@@ -147,7 +151,7 @@
 ```bash
 ./coworker/scripts/workers/refine-drafts.sh
 ./coworker/scripts/workers/refine-drafts.sh ./coworker/tasks/0draft/refine/1ready
-./coworker/scripts/deprecated/run_draft_refinement_periodically.sh --once
+pwsh ./coworker/scripts/process-draft-refinement-queue.ps1 -Once
 ```
 
 

@@ -74,6 +74,30 @@ function Ensure-Directory {
     }
 }
 
+function Test-PathHasPendingFiles {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $false
+    }
+
+    $item = Get-Item -LiteralPath $Path -ErrorAction SilentlyContinue
+    if ($null -eq $item) {
+        return $false
+    }
+
+    if (-not $item.PSIsContainer) {
+        return $true
+    }
+
+    $pendingFile = Get-ChildItem -LiteralPath $item.FullName -File -Recurse -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    return $null -ne $pendingFile
+}
+
 function Get-TaskSnapshot {
     param(
         [Parameter(Mandatory = $true)]
@@ -86,6 +110,7 @@ function Get-TaskSnapshot {
         Enabled             = $TaskState.Enabled
         IntervalSeconds     = $TaskState.IntervalSeconds
         DependsOn           = @($TaskState.DependsOn)
+        PendingPaths        = @($TaskState.PendingPaths)
         ScriptPath          = $TaskState.ScriptPath
         Arguments           = @($TaskState.Arguments)
         Status              = $TaskState.Status
@@ -188,6 +213,38 @@ function Update-ScheduledTaskRun {
     $TaskState.Process = $null
 
     Write-Host ("[{0}] Finished {1} with exit code {2}" -f $finishedAt.ToString('o'), $TaskState.Name, $TaskState.LastExitCode)
+}
+
+function Test-ScheduledTaskHasPendingInputs {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$TaskState
+    )
+
+    $pendingPaths = @($TaskState.PendingPaths)
+    if ($pendingPaths.Count -eq 0) {
+        return $true
+    }
+
+    foreach ($pendingPath in $pendingPaths) {
+        if (Test-PathHasPendingFiles -Path $pendingPath) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Set-ScheduledTaskWaitingForWork {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$TaskState,
+        [Parameter(Mandatory = $true)]
+        [datetime]$Now
+    )
+
+    $TaskState.Status = 'WaitingForWork'
+    $TaskState.NextRunUtc = $Now.AddSeconds($TaskState.IntervalSeconds).ToString('o')
 }
 
 function Test-ScheduledTaskCanStart {
@@ -294,12 +351,24 @@ foreach ($task in $config.Tasks) {
         $dependsOn = @($rawDependsOn | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     }
 
+    $pendingPaths = @()
+    $rawPendingPaths = Get-ConfigValue -Map $task -Key 'PendingPaths' -DefaultValue @()
+    if ($null -ne $rawPendingPaths) {
+        $pendingPaths = @(
+            $rawPendingPaths |
+                ForEach-Object { [string]$_ } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                ForEach-Object { Resolve-SchedulerPath -Path $_ -RepoRoot $repoRoot -ConfigDirectory $PSScriptRoot }
+        )
+    }
+
     $taskStates[$taskName] = @{
         Name                = $taskName
         Description         = [string](Get-ConfigValue -Map $task -Key 'Description' -DefaultValue '')
         Enabled             = $enabled
         IntervalSeconds     = $intervalSeconds
         DependsOn           = $dependsOn
+        PendingPaths        = $pendingPaths
         ScriptPath          = $resolvedScriptPath
         Arguments           = @((Get-ConfigValue -Map $task -Key 'Arguments' -DefaultValue @()))
         Status              = if ($enabled) { 'Idle' } else { 'Disabled' }
@@ -332,8 +401,13 @@ if ($Once) {
 
         foreach ($taskState in $taskStates.Values | Sort-Object Name) {
             if (Test-ScheduledTaskCanStart -TaskState $taskState -TaskStates $taskStates -Now $now -OnceMode) {
-                Start-ScheduledTaskRun -TaskState $taskState -PowerShellExecutable $powerShellExecutable -RepoRoot $repoRoot -LogDirectory $logDirectory
-                $runningCount++
+                if (Test-ScheduledTaskHasPendingInputs -TaskState $taskState) {
+                    Start-ScheduledTaskRun -TaskState $taskState -PowerShellExecutable $powerShellExecutable -RepoRoot $repoRoot -LogDirectory $logDirectory
+                    $runningCount++
+                }
+                else {
+                    Set-ScheduledTaskWaitingForWork -TaskState $taskState -Now $now
+                }
             }
         }
 
@@ -341,7 +415,7 @@ if ($Once) {
         if ($runningCount -gt 0) {
             Start-Sleep -Seconds 1
         }
-    } while ($runningCount -gt 0 -or ($taskStates.Values | Where-Object { $_.Enabled -and $_.RunCount -eq 0 }))
+    } while ($runningCount -gt 0)
 
     $failed = $taskStates.Values | Where-Object { $_.Enabled -and $_.LastExitCode -ne 0 }
     exit $(if ($failed) { 1 } else { 0 })
@@ -363,7 +437,12 @@ while ($true) {
         }
 
         if (Test-ScheduledTaskCanStart -TaskState $taskState -TaskStates $taskStates -Now $now) {
-            Start-ScheduledTaskRun -TaskState $taskState -PowerShellExecutable $powerShellExecutable -RepoRoot $repoRoot -LogDirectory $logDirectory
+            if (Test-ScheduledTaskHasPendingInputs -TaskState $taskState) {
+                Start-ScheduledTaskRun -TaskState $taskState -PowerShellExecutable $powerShellExecutable -RepoRoot $repoRoot -LogDirectory $logDirectory
+            }
+            else {
+                Set-ScheduledTaskWaitingForWork -TaskState $taskState -Now $now
+            }
         }
     }
 

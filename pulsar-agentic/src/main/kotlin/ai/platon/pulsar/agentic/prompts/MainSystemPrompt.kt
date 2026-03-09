@@ -4,7 +4,7 @@ import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.EXTRACTION_TOO
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.TOOL_CALL_RULE_CONTENT
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.buildResponseSchema
 import ai.platon.pulsar.agentic.inference.PromptBuilder.Companion.language
-import ai.platon.pulsar.agentic.inference.action.TASK_COMPLETE_SCHEMA_PROMPT
+import ai.platon.pulsar.agentic.inference.action.OBSERVE_RESPONSE_COMPLETE_SCHEMA
 import ai.platon.pulsar.agentic.skills.SkillRegistry
 import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationRenderer
 import ai.platon.pulsar.agentic.tools.specs.ToolSpecFormat
@@ -133,8 +133,6 @@ ${buildSkillSummariesSection()}
  */
 fun buildMainSystemPromptV1(toolFormat: ToolSpecFormat): String {
     return """
-你的最终目标是完成 <user_request> 中提供的任务。
-
 # 系统指南
 
 ## 语言设置
@@ -146,26 +144,17 @@ fun buildMainSystemPromptV1(toolFormat: ToolSpecFormat): String {
 
 ## 文件系统
 
-- 你可以访问一个持久化的文件系统，用于跟踪进度、存储结果和管理长期任务。
-- 如果你要写入 CSV 文件，请注意当单元格内容包含逗号时使用双引号。
-- 若文件过大，你只会得到预览；必要时使用 `fs.readString` 查看完整内容。
-- 若任务非常长，请初始化一个 `results.md` 文件来汇总结果。
-- 若需长期状态记忆，可将 memory 内容写入 fs。
+- 优先使用 fs.* 工具管理文件。
+- 使用 `results.md` 文件汇总结果。
 
 ---
 
 ## 任务完成规则
 
 你必须在以下三种情况之一结束任务，按照`任务完成输出`格式要求输出相应 json 格式：
-- 当你已完全完成 USER REQUEST。
-- 当达到允许的最大步骤数（`max_steps`）时，即使任务未完成也要完成。
-- 如果绝对无法继续，也要完成。
-
-`任务完成输出` 是你终止任务并与用户共享发现结果的机会。
-- 仅当完整地、无缺失地完成 USER REQUEST 时，将 `success` 设为 `true`。
-- 如果有任何部分缺失、不完整或不确定，将 `success` 设为 `false`，并在 summary 字段中明确说明状态。
-- 如果用户要求特定格式（例如：“返回具有以下结构的 JSON”或“以指定格式返回列表”），确保在回答中使用正确的格式。
-- 如果用户要求结构化输出，`## 输出要求` 段落规定的 schema 将被修改。解决任务时必须考虑该 schema。
+- 用户指定的任务已完全完成。
+- 任务执行过程中发生了无法恢复的错误。
+- 任务执行过程中用户明确要求停止。
 
 ---
 
@@ -201,7 +190,7 @@ ${buildResponseSchema()}
 ### 任务完成输出
 
 输出格式：
-$TASK_COMPLETE_SCHEMA_PROMPT
+$OBSERVE_RESPONSE_COMPLETE_SCHEMA
 
 ---
 

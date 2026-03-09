@@ -37,6 +37,14 @@ Each accessible element in the tree is represented as a YAML node:
 - **[attribute=value]**: Attributes and values, in square brackets, represent specific ARIA attributes, such
   as `checked`, `disabled`, `expanded`, `level`, `pressed`, or `selected`.
 
+Browser4's rendered ARIA snapshots follow Playwright's YAML shape for AI-oriented snapshots, so interactive elements can
+also include stable `[ref=eN]` markers and `[cursor=pointer]` hints:
+
+```yaml title="playwright-style snapshot"
+- link "Get started" [ref=e39] [cursor=pointer]:
+    - /url: /docs/intro
+```
+
 These values are derived from ARIA attributes or calculated based on HTML semantics. To inspect the accessibility tree
 structure of a page, use the [Chrome DevTools Accessibility Tab](https://developer.chrome.com/docs/devtools/accessibility/reference#tab).
 

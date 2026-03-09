@@ -119,7 +119,7 @@ open class TextToAction(
         val mapper = pulsarObjectMapper()
         return when {
             contentStart.contains("\"taskComplete\"") -> {
-                val complete: ObserveResponseComplete = mapper.readValue(content)
+                val complete: ModelObserveResponseComplete = mapper.readValue(content)
                 ActionDescription(
                     instruction = instruction,
                     isComplete = complete.taskComplete,

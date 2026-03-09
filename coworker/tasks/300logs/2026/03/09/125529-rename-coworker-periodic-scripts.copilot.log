@@ -1,0 +1,258 @@
+✗ Todo added: Inspect rename coworker periodic scripts task
+
+● Read coworker\tasks\2working\rename-coworker-periodic-scripts.md
+
+● Check repo status
+  $ git --no-pager status --short
+  └ 14 lines...
+
+● Todo added: Inspect rename coworker periodic scripts task
+
+● Inspect task file details
+  $ $task='D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\rename-coworker-periodic-scrip
+  ts.md'; Get-Item $task | Select-Object FullName,Length,LastWriteTime; Write-Host '---CONTENT---';
+  Get-Content -LiteralPath $task -Raw
+  └ 5 lines...
+
+● List coworker scripts
+  $ Get-ChildItem -LiteralPath 'D:\workspace\Browser4\Browser4-4.6\coworker\scripts' -File |
+  Select-Object Name; Write-Host '---'; Get-ChildItem -LiteralPath
+  'D:\workspace\Browser4\Browser4-4.6\coworker\scripts\deprecated' -File | Select-Object Name
+  └ 16 lines...
+
+● Todo started: inspect-rename-task
+
+● Read coworker\scripts\coworker-scheduler.config.psd1
+  └ 36 lines read
+
+● Read coworker\README.md lines 1-220
+  └ 149 lines read
+
+● Grep "run_coworker_periodically|run_draft_refinement_periodically|task-source-monitor"
+(D:\workspace\Browser4\Browser4-4.6)
+  └ 5 lines found
+
+● Create plan file
+  $ $plan='C:\Users\pereg\.copilot\session-state\2e9bab4f-dd32-4c9c-a013-2e5111a09ba4\plan.md'; @'
+  # Plan
+  1. Inspect coworker periodic-script task context, current script names, and all references.
+  2. Rename/update periodic coworker script entrypoints and dependent references/docs/configs
+  with compatibility preserved if needed....
+  └ 3 lines...
+
+● Grep "rename-coworker-periodic-scripts|run_coworker_periodically|run_draft_refinement_periodically
+|task-source-monitor" in *.{md,ps1,sh,psd1,py,log,stdout,stderr}
+(D:\workspace\Browser4\Browser4-4.6\coworker)
+  └ 5 lines found
+
+● Inspect task logs
+  $ Get-ChildItem -LiteralPath 'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working' |
+  Select-Object Name,Length,LastWriteTime; Write-Host '---'; Get-Content -LiteralPath
+  'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\09\125529-rename-coworker-p
+  eriodic-scripts.task.log' -Raw; Write-Host '---STDOUT---'; Get-Content -LiteralPath
+  'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\09\125529-rename-coworker-p...
+  └ 157 lines...
+
+● Read coworker\scripts\run_coworker_periodically.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\task-source-monitor.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\run_draft_refinement_periodically.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\deprecated\run_draft_refinement_periodically.ps1
+  └ 71 lines read
+
+● Read coworker\scripts\deprecated\task-source-monitor.ps1
+  └ 163 lines read
+
+● Read coworker\scripts\deprecated\run_coworker_periodically.ps1
+  └ 250 lines read
+
+✗ Read coworker\scripts\deprecated\run_coworker_periodically.sh
+  Path does not exist
+
+✗ Read coworker\scripts\deprecated\run_draft_refinement_periodically.sh
+  Path does not exist
+
+✗ Read coworker\scripts\deprecated\task-source-monitor.sh
+  Path does not exist
+
+● Grep "task-source-monitor" in *.{md,ps1,sh,psd1,py} (D:\workspace\Browser4\Browser4-4.6\coworker)
+  └ 30 lines found
+
+● Grep "run_coworker_periodically|run_draft_refinement_periodically" in *.{md,ps1,sh,psd1,py}
+(D:\workspace\Browser4\Browser4-4.6\coworker)
+  └ 42 lines found
+
+● Glob "**/*periodic*.{ps1,sh,md,psd1}" in D:\workspace\Browser4\Browser4-4.6\coworker
+  └ 6 files found
+
+● Read coworker\tasks\0draft\2.md
+  └ 8 lines read
+
+● Read coworker\tasks\6git-pushed\2026\0308\deprecate-old-schedulers.md lines 1-220
+  └ 17 lines read
+
+● Read coworker\tasks\6git-pushed\2026\0308\unify-scheduled-coworker-tasks.md lines 1-220
+  └ 32 lines read
+
+● Explore: Assess rename targets
+  ● Read coworker\README.md lines 125-149
+    └ 25 lines read
+  ● Read coworker\README.zh.md lines 127-151
+    └ 25 lines read
+
+● Read coworker\scripts\coworker-scheduler.ps1 lines 1-220
+  └ 220 lines read
+
+● Read coworker\README.zh.md lines 75-170
+  └ 77 lines read
+
+● Glob "**/*.sh" in D:\workspace\Browser4\Browser4-4.6\coworker\scripts
+  └ No matches found
+
+● Glob "**/*.sh" in D:\workspace\Browser4\Browser4-4.6\coworker
+  └ No matches found
+
+● Rename and add coworker script entrypoints
+  $ $root = 'D:\workspace\Browser4\Browser4-4.6'
+  $deprecatedDir = Join-Path $root 'coworker\scripts\deprecated'
+  $topDir = Join-Path $root 'coworker\scripts'
+
+  $oldCoworker = Join-Path $deprecatedDir 'run_coworker_periodically.ps1'...
+  └ 83 lines...
+
+● Read coworker\scripts\deprecated\process-coworker-queue.ps1 lines 220-235
+  └ 15 lines read
+
+● Read coworker\scripts\process-coworker-queue.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\process-draft-refinement-queue.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\run_coworker_periodically.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\deprecated\run_coworker_periodically.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\deprecated\run_draft_refinement_periodically.ps1
+  └ 27 lines read
+
+● Read coworker\scripts\deprecated\process-draft-refinement-queue.ps1 lines 1-80
+  └ 71 lines read
+
+● Edit coworker\scripts\deprecated\process-coworker-queue.ps1
+  Edit coworker\scripts\coworker-scheduler.config.psd1
+  Edit coworker\README.md
+  Edit coworker\README.zh.md
+
+● Read coworker\scripts\deprecated\process-coworker-queue.ps1 lines 222-230
+  └ 9 lines read
+
+● Read coworker\README.md lines 79-155
+  └ 74 lines read
+
+● Read coworker\README.zh.md lines 81-158
+  └ 75 lines read
+
+● Read coworker\scripts\coworker-scheduler.config.psd1
+  └ 36 lines read
+
+● Grep "run_coworker_periodically|run_draft_refinement_periodically" in *.{md,ps1,psd1}
+(D:\workspace\Browser4\Browser4-4.6\coworker)
+  └ 27 lines found
+
+● Todo started: implement-rename-task
+
+● Review git diff
+  $ git --no-pager diff -- coworker\scripts\coworker-scheduler.config.psd1
+  coworker\scripts\run_coworker_periodically.ps1
+  coworker\scripts\run_draft_refinement_periodically.ps1
+  coworker\scripts\process-coworker-queue.ps1
+  coworker\scripts\process-draft-refinement-queue.ps1 ...
+  └ 11 lines...
+
+● Parse scripts and verify config paths
+  $ $root = 'D:\workspace\Browser4\Browser4-4.6'
+  $files = @(
+    'coworker\scripts\process-coworker-queue.ps1',
+    'coworker\scripts\process-draft-refinement-queue.ps1',
+    'coworker\scripts\run_coworker_periodically.ps1',...
+  └ 68 lines...
+
+● Todo started: implement-rename-task
+
+● Check changed files status
+  $ git --no-pager status --short -- coworker\README.md coworker\README.zh.md
+  coworker\scripts\coworker-scheduler.config.psd1 coworker\scripts\run_coworker_periodically.ps1
+   coworker\scripts\run_draft_refinement_periodically.ps1
+  coworker\scripts\process-coworker-queue.ps1
+  coworker\scripts\process-draft-refinement-queue.ps1 ...
+  └ 16 lines...
+
+● Parse scripts and verify config paths
+  $ $root = 'D:\workspace\Browser4\Browser4-4.6'
+  $files = @(
+    'coworker\scripts\process-coworker-queue.ps1',
+    'coworker\scripts\process-draft-refinement-queue.ps1',
+    'coworker\scripts\run_coworker_periodically.ps1',...
+  └ 31 lines...
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md lines 1-end
+  └ 5 lines read
+
+● Read coworker\tasks\300logs\2026\03\MEMORY.202603.md lines 1-end
+  └ 57 lines read
+
+● Todo started: validate-rename-task
+
+● Memory stored: coworker scripts
+  └ Coworker recurring queue processors now use process-coworker-queue.ps1 and proce…
+
+● Append daily memory entry
+  $ $daily =
+  'D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md'
+  $entry = @"
+
+  - **Coworker periodic-script rename cleanup:** Renamed the legacy periodic coworker ...
+  └ 20 lines...
+
+● Todo completed: update-memory-task
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md lines 1-end
+  └ 9 lines read
+
+● Check final changed files
+  $ git --no-pager status --short -- coworker\README.md coworker\README.zh.md
+  coworker\scripts\coworker-scheduler.config.psd1 coworker\scripts\run_coworker_periodically.ps1
+   coworker\scripts\run_draft_refinement_periodically.ps1
+  coworker\scripts\process-coworker-queue.ps1
+  coworker\scripts\process-draft-refinement-queue.ps1 ...
+  └ 18 lines...
+
+● Edit coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md
+
+● Todo completed: update-memory-task
+
+● Read coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md lines 6-12
+  └ 4 lines read
+
+Renamed the legacy coworker periodic entrypoints to clearer queue-oriented names by adding `coworker\scripts\process-coworker-queue.ps1` and `coworker\scripts\process-draft-refinement-queue.ps1`, moving the scheduler-backed implementations to matching `coworker\scripts\deprecated\process-*.ps1` files, updating `coworker-scheduler.config.psd1`, and refreshing the English/Chinese coworker docs while keeping the old `run_*_periodically.ps1` names as deprecation shims.  
+Validated the change by PowerShell-parsing every touched `.ps1` file and importing `coworker\scripts\coworker-scheduler.config.psd1` to confirm the configured script paths resolve successfully.  
+Appended the required 2026-03-09 daily memory entry to `coworker\tasks\300logs\2026\03\09\MEMORY.20260309.md`; the monthly memory already included the 2026-03-08 rollup, so no monthly append was needed.
+
+
+=== COPILOT STDERR ===
+
+
+Total usage est:        1 Premium request
+API time spent:         12m 36s
+Total session time:     14m 4s
+Total code changes:     +46 -39
+Breakdown by AI model:
+ gpt-5.4                 1.5m in, 27.0k out, 1.2m cached (Est. 1 Premium request)

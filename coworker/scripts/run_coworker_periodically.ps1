@@ -20,9 +20,8 @@ function Get-RepoRoot {
 }
 
 $repoRoot = Get-RepoRoot
-$target = Join-Path $repoRoot 'coworker\scripts\deprecated\run_coworker_periodically.ps1'
+$target = Join-Path $repoRoot 'coworker\scripts\process-coworker-queue.ps1'
 
-Write-Warning 'run_coworker_periodically.ps1 is deprecated. Use coworker\scripts\coworker-scheduler.ps1 instead.'
+Write-Warning 'run_coworker_periodically.ps1 is deprecated. Use coworker\scripts\process-coworker-queue.ps1 for the legacy queue processor, or coworker\scripts\coworker-scheduler.ps1 for recurring runs.'
 & $target @args
 exit $LASTEXITCODE
-

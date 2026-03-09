@@ -12,7 +12,7 @@ import ai.platon.pulsar.agentic.model.DetailedActResult
  * This structure is parsed in [TextToAction.modelResponseToActionDescription] when the model output contains
  * a `taskComplete` field.
  */
-data class ObserveResponseComplete(
+data class ModelObserveResponseComplete(
     /**
      * Whether the agent believes the whole task is complete.
      */
@@ -44,7 +44,7 @@ data class ObserveResponseComplete(
     val nextSuggestions: List<String>? = null,
 )
 
-const val TASK_COMPLETE_SCHEMA_PROMPT = """
+const val OBSERVE_RESPONSE_COMPLETE_SCHEMA = """
 {"taskComplete":bool,"success":bool,"errorCause":string?,"summary":string,"keyFindings":[string],"nextSuggestions":[string]}
 """
 
@@ -72,7 +72,7 @@ data class ModelObserveResponseElements(
  * Serialization notes:
  * - [arguments] uses `Any` to allow booleans/numbers/strings/objects. Keep values JSON-serializable.
  *
- * See also: [OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT]
+ * See also: [OBSERVE_RESPONSE_ELEMENT_SCHEMA]
  */
 data class ModelObserveResponseElement(
     /**
@@ -135,7 +135,7 @@ data class ModelObserveResponseElement(
     val nextGoal: String? = null,
 )
 
-const val OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT = """
+const val OBSERVE_RESPONSE_ELEMENT_SCHEMA = """
 {
   "elements": [
     {

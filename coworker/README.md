@@ -80,7 +80,7 @@ After tasks are approved, push changes to your repository using the git-sync scr
 
 Use the unified scheduler when you want a single Windows Task Scheduler trigger to manage all recurring coworker jobs. The scheduler launches each configured task in its own PowerShell process, records stdout/stderr logs, and continuously writes task status to `coworker/tasks/300logs/scheduler/scheduled-tasks.status.json`.
 
-Task definitions live in `coworker/scripts/coworker-scheduler.config.psd1`. Each entry can be enabled or disabled independently and sets its own `IntervalSeconds`, script path, arguments, and optional `DependsOn` task ordering.
+Task definitions live in `coworker/scripts/coworker-scheduler.config.psd1`. Each entry can be enabled or disabled independently and sets its own `IntervalSeconds`, script path, arguments, optional `DependsOn` task ordering, and optional `PendingPaths` input queues. When `PendingPaths` is configured, the scheduler checks those files/folders and skips spawning a PowerShell child process until work is actually present.
 
 **Windows (PowerShell):**
 
@@ -95,31 +95,34 @@ Default scheduled tasks:
 - `draft-refinement` — processes the draft refinement queue
 - `task-source-monitor` — polls configured task sources and dispatches new tasks when enabled
 
-The scheduler invokes the legacy one-shot implementations from `coworker/scripts/deprecated/`. The original `coworker/scripts/*.ps1` and `.sh` entry points remain as compatibility shims and print a deprecation warning before delegating.
+The scheduler invokes the legacy one-shot implementations from `coworker/scripts/deprecated/`. The clearer PowerShell entry points are `coworker/scripts/process-coworker-queue.ps1`, `coworker/scripts/process-draft-refinement-queue.ps1`, and `coworker/scripts/task-source-monitor.ps1`. The older `run_*_periodically.ps1` names remain as compatibility shims and print a deprecation warning before delegating.
 
-## Deprecated Legacy Schedulers
+## Legacy Queue Processors
 
-The legacy schedulers are preserved for backward compatibility, but new automation should use `coworker-scheduler.ps1`. The deprecated implementations now live in:
+For direct one-shot or looped execution, use the clearer legacy queue processors:
 
-- `coworker/scripts/deprecated/run_coworker_periodically.ps1`
-- `coworker/scripts/deprecated/run_coworker_periodically.sh`
-- `coworker/scripts/deprecated/run_draft_refinement_periodically.ps1`
-- `coworker/scripts/deprecated/run_draft_refinement_periodically.sh`
+- `coworker/scripts/process-coworker-queue.ps1`
+- `coworker/scripts/process-draft-refinement-queue.ps1`
+- `coworker/scripts/task-source-monitor.ps1`
+
+The scheduler-backed implementations live in:
+
+- `coworker/scripts/deprecated/process-coworker-queue.ps1`
+- `coworker/scripts/deprecated/process-draft-refinement-queue.ps1`
 - `coworker/scripts/deprecated/task-source-monitor.ps1`
-- `coworker/scripts/deprecated/task-source-monitor.sh`
 
+The older names remain available as deprecated aliases for backward compatibility:
+
+- `coworker/scripts/run_coworker_periodically.ps1`
+- `coworker/scripts/run_draft_refinement_periodically.ps1`
+
+For recurring automation, prefer `coworker-scheduler.ps1`.
 
 **Windows (PowerShell):**
 
 ```powershell
-.\coworker\scripts\deprecated\run_coworker_periodically.ps1
-.\coworker\scripts\deprecated\run_coworker_periodically.ps1 -Once
-```
-
-**Linux/macOS (Bash):**
-
-```bash
-./coworker/scripts/deprecated/run_coworker_periodically.sh
+.\coworker\scripts\process-coworker-queue.ps1
+.\coworker\scripts\process-coworker-queue.ps1 -Once
 ```
 
 ## Draft Refinement
@@ -145,6 +148,6 @@ You can refine a single file or every file in a folder. When a folder is provide
 ```bash
 ./coworker/scripts/workers/refine-drafts.sh
 ./coworker/scripts/workers/refine-drafts.sh ./coworker/tasks/0draft/refine/1ready
-./coworker/scripts/deprecated/run_draft_refinement_periodically.sh --once
+pwsh ./coworker/scripts/process-draft-refinement-queue.ps1 -Once
 ```
 

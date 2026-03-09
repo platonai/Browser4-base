@@ -20,8 +20,8 @@ function Get-RepoRoot {
 }
 
 $repoRoot = Get-RepoRoot
-$target = Join-Path $repoRoot 'coworker\scripts\deprecated\process-draft-refinement-queue.ps1'
+$target = Join-Path $repoRoot 'coworker\scripts\deprecated\process-coworker-queue.ps1'
 
-Write-Warning 'run_draft_refinement_periodically.ps1 is deprecated. Use coworker\scripts\process-draft-refinement-queue.ps1 for the legacy queue processor, or coworker\scripts\coworker-scheduler.ps1 for recurring runs.'
+
 & $target @args
 exit $LASTEXITCODE

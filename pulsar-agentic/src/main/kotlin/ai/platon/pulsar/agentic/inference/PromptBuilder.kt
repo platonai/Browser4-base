@@ -2,14 +2,13 @@ package ai.platon.pulsar.agentic.inference
 
 import ai.platon.browser4.driver.chrome.dom.DOMSerializer
 import ai.platon.browser4.driver.chrome.dom.model.TabState
-import ai.platon.pulsar.agentic.inference.action.OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT
+import ai.platon.pulsar.agentic.inference.action.OBSERVE_RESPONSE_ELEMENT_SCHEMA
 import ai.platon.pulsar.agentic.inference.action.TASK_COMPLETE_SCHEMA_PROMPT
 import ai.platon.pulsar.agentic.model.AgentHistory
 import ai.platon.pulsar.agentic.model.AgentState
 import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.prompts.buildMainSystemPromptV1
 import ai.platon.pulsar.agentic.prompts.buildToolUseSections
-import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationRenderer
 import ai.platon.pulsar.common.KStrings
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.ai.llm.PromptTemplate
@@ -48,7 +47,7 @@ class PromptBuilder() {
          * */
         fun buildObserveResultSchema(returnAction: Boolean): String {
             // English is better for LLM to understand JSON
-            val schema1 = OBSERVE_RESPONSE_ELEMENT_SCHEMA_PROMPT
+            val schema1 = OBSERVE_RESPONSE_ELEMENT_SCHEMA
 
             val schema2 = """
 {
@@ -65,7 +64,7 @@ class PromptBuilder() {
         }
 
         val TOOL_CALL_RULE_CONTENT = """
-- domain: 工具域，如 driver, browser, skill.debug.scraping 等，可用点号区分子域
+- domain: 工具域，如 driver, browser, skill.debug.scraping 等，用点号区分子域
 - method: 方法名，如 click, fill, extract 等
 - 输出结果中，定位节点时 `selector` 字段始终填入 `locator` 的值
 - 确保 `locator` 与对应的可交互元素列表中的 `locator` 完全匹配，或者与无障碍树节点属性完全匹配，准确定位该节点

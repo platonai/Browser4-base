@@ -70,6 +70,7 @@ object DefaultIncludeAttributes {
     val ATTRIBUTES = listOf(
         "title", "type", "checked", "id", "name", "role", "value",
         "placeholder", "data-date-format", "alt", "aria-label",
+        "href",
         "aria-expanded", "data-state", "aria-checked", "aria-valuemin",
         "aria-valuemax", "aria-valuenow", "aria-placeholder", "pattern",
         "min", "max", "minlength", "maxlength", "step", "pseudo",
@@ -621,6 +622,16 @@ data class DOMState constructor(
 
     @get:JsonIgnore
     val nanoTree get() = microTree.toNanoTree()
+
+    @get:JsonIgnore
+    val renderedAriaSnapshot: String by lazy { AriaSnapshotRenderer.render(microTree.toNanoTreeUnfiltered()) }
+
+    /**
+     * Render the DOM state as a Playwright-style ARIA snapshot YAML string.
+     */
+    fun render(): String {
+        return renderedAriaSnapshot
+    }
 
     fun getAbsoluteFBNLocator(locator: String?): FBNLocator? {
         if (locator == null) {

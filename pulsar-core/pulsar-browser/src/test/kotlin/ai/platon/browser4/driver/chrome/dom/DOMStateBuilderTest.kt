@@ -308,6 +308,137 @@ class DOMStateBuilderTest {
         }
     }
 
+    @Test
+    @DisplayName("render formats Playwright-style aria snapshot output")
+    fun renderFormatsPlaywrightStyleAriaSnapshotOutput() {
+        val textLeaf = MicroDOMTreeNode(
+            originalNode = cleanedNode(
+                locator = "0,11",
+                backendNodeId = 11,
+                nodeName = "#text",
+                nodeValue = "Playwright"
+            )
+        )
+        val root = MicroDOMTreeNode(
+            originalNode = cleanedNode(
+                locator = "0,2",
+                backendNodeId = 2,
+                nodeName = "body"
+            ),
+            children = listOf(
+                MicroDOMTreeNode(
+                    originalNode = cleanedNode(
+                        locator = "0,4",
+                        backendNodeId = 4,
+                        nodeName = "section",
+                        attributes = mapOf("role" to "region", "ax_name" to "Skip to main content")
+                    ),
+                    children = listOf(
+                        MicroDOMTreeNode(
+                            interactiveIndex = 1,
+                            originalNode = cleanedNode(
+                                locator = "0,3",
+                                backendNodeId = 3,
+                                nodeName = "a",
+                                isInteractable = true,
+                                attributes = mapOf(
+                                    "role" to "link",
+                                    "ax_name" to "Skip to main content",
+                                    "href" to "#__docusaurus_skipToContent_fallback"
+                                )
+                            )
+                        )
+                    )
+                ),
+                MicroDOMTreeNode(
+                    interactiveIndex = 2,
+                    originalNode = cleanedNode(
+                        locator = "0,5",
+                        backendNodeId = 5,
+                        nodeName = "button",
+                        isInteractable = true,
+                        attributes = mapOf("role" to "button", "ax_name" to "Node.js")
+                    )
+                ),
+                MicroDOMTreeNode(
+                    originalNode = cleanedNode(
+                        locator = "0,6",
+                        backendNodeId = 6,
+                        nodeName = "h1",
+                        attributes = mapOf(
+                            "role" to "heading",
+                            "ax_name" to "Playwright enables reliable end-to-end testing for modern web apps.",
+                            "level" to "1"
+                        )
+                    )
+                ),
+                MicroDOMTreeNode(
+                    originalNode = cleanedNode(
+                        locator = "0,10",
+                        backendNodeId = 10,
+                        nodeName = "span"
+                    ),
+                    children = listOf(textLeaf)
+                )
+            )
+        )
+
+        val domState = DOMState(root)
+
+        val rendered = domState.render()
+
+        assertEquals(
+            """
+            - generic [ref=e2]:
+              - region "Skip to main content" [ref=e4]:
+                - link "Skip to main content" [ref=e3] [cursor=pointer]:
+                  - /url: "#__docusaurus_skipToContent_fallback"
+              - button "Node.js" [ref=e5] [cursor=pointer]
+              - heading "Playwright enables reliable end-to-end testing for modern web apps." [level=1] [ref=e6]
+              - generic [ref=e10]: Playwright
+            """.trimIndent(),
+            rendered
+        )
+    }
+
+    @Test
+    @DisplayName("render includes link urls from default DOM state build")
+    fun renderIncludesLinkUrlsFromDefaultDomStateBuild() {
+        val anchorNode = DOMTreeNodeEx(
+            nodeId = 1,
+            backendNodeId = 101,
+            nodeName = "A",
+            attributes = mapOf(
+                "href" to "https://example.com",
+                "title" to "Example Link"
+            ),
+            axNode = AXNodeEx(
+                axNodeId = "ax-1",
+                role = "link",
+                name = "Example Link",
+                backendNodeId = 101
+            ),
+            isVisible = true,
+            isInteractable = true
+        )
+        val rootOriginal = DOMTreeNodeEx(
+            nodeId = 0,
+            backendNodeId = 100,
+            nodeName = "DIV",
+            children = listOf(anchorNode),
+            isVisible = true
+        )
+        val root = TinyNode(
+            originalNode = rootOriginal,
+            children = listOf(TinyNode(originalNode = anchorNode, interactiveIndex = 1))
+        )
+
+        val rendered = DOMStateBuilder.build(root).render()
+
+        assertTrue(rendered.contains("- link \"Example Link\" [ref=e101] [cursor=pointer]:"))
+        assertTrue(rendered.contains("- /url: https://example.com"))
+    }
+
     @Disabled("Feature disabled temporarily")
     @Test
         @DisplayName("test href and navigation attributes are preserved in NanoDOMTree")
@@ -404,5 +535,40 @@ class DOMStateBuilderTest {
         assertNotNull(formAttrs, "Form node should have attributes")
         assertTrue(formAttrs.has("action"), "Form node should have 'action' attribute")
         assertEquals("/submit", formAttrs.get("action").asText())
+    }
+
+    private fun cleanedNode(
+        locator: String,
+        backendNodeId: Int,
+        nodeName: String,
+        nodeValue: String? = null,
+        attributes: Map<String, Any>? = null,
+        isInteractable: Boolean? = null
+    ): CleanedDOMTreeNode {
+        return CleanedDOMTreeNode(
+            locator = locator,
+            frameId = "0",
+            xpath = null,
+            elementHash = null,
+            nodeId = backendNodeId,
+            backendNodeId = backendNodeId,
+            nodeType = if (nodeName == "#text") NodeType.TEXT_NODE.value else NodeType.ELEMENT_NODE.value,
+            nodeName = nodeName,
+            nodeValue = nodeValue,
+            attributes = attributes,
+            sessionId = null,
+            isScrollable = null,
+            isVisible = true,
+            isInteractable = isInteractable,
+            interactiveIndex = null,
+            clientRects = null,
+            scrollRects = null,
+            bounds = null,
+            absoluteBounds = null,
+            viewportIndex = 1,
+            paintOrder = null,
+            stackingContexts = null,
+            contentDocument = null
+        )
     }
 }
