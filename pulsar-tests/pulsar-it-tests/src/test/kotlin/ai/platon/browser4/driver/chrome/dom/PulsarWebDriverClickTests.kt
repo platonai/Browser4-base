@@ -2,10 +2,7 @@ package ai.platon.browser4.driver.chrome.dom
 
 import ai.platon.pulsar.WebDriverTestBase
 import ai.platon.pulsar.browser.FastWebDriverService
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import org.junit.jupiter.api.Disabled
+import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import kotlin.test.Test
@@ -13,664 +10,240 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * Comprehensive end-to-end tests for PulsarWebDriver click methods:
- * - click(selector: String, count: Int)
- * - click(selector: String, modifier: String)
- *
- * Test pattern reference: PulsarWebDriverScrollTests
- * Test page: interactive-dynamic.html with various interactive elements
+ * End-to-end coverage for PulsarWebDriver click overloads against the current interactive screens page.
  */
 @Tag("E2ETest")
-@Disabled("PulsarWebDriverClickTests is disabled temporarily due to target page does not suitable to the tests")
 class PulsarWebDriverClickTests : WebDriverTestBase() {
 
     override val webDriverService get() = FastWebDriverService(browserFactory)
 
     companion object {
-        private const val SMALL_TIMEOUT = 1000L
-        private const val MEDIUM_TIMEOUT = 2000L
-        private const val LARGE_TIMEOUT = 3000L
+        private const val SHORT_TIMEOUT = 1_000L
+        private const val MEDIUM_TIMEOUT = 2_000L
     }
 
-    // ==================================================
-    // Tests for click(selector: String, count: Int)
-    // ==================================================
-
-
     @Test
-    @DisplayName("click single count on button loads content")
+    @DisplayName("click with explicit count triggers calculator button")
     fun testClickSingleCount() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#calculatorSection")
 
-        // Click load users button once
+        prepareCalculator(driver, "2", "3")
+
         driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
+        driver.click("#addButton", 1)
 
-        // Verify users loaded
-        val remainingTime = driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(remainingTime.toMillis() > 0, "Content should load")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"), "Users should be visible")
+        assertCalculatorResult(driver, "Result: 5")
     }
 
     @Test
-    @DisplayName("click with default count parameter")
+    @DisplayName("click uses default count when omitted")
     fun testClickDefaultCount() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#toggleSection")
+        assertMessageHidden(driver)
 
-        // Click without specifying count (default is 1)
         driver.bringToFront()
-        driver.click("[data-testid='tta-load-products']")
+        driver.click("#toggleMessageButton")
 
-        // Verify products loaded
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-product-']"), "Products should be visible")
+        assertMessageVisible(driver)
     }
 
     @Test
-    @DisplayName("click count zero still triggers element")
-    fun testClickCountZero() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Ensure content is clear initially
-        driver.bringToFront()
-        driver.click("[data-testid='tta-clear-content']")
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
-        }
-
-        // Click with count 0 - the implementation still triggers the element
-        // The count parameter affects click count, but the element is still focused/triggered
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 0)
-
-        // In the current implementation, even count=0 will load content
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"), "Content should load even with count=0")
-    }
-
-    @Test
-    @DisplayName("click count two triggers double click behavior")
+    @DisplayName("click count two toggles message twice")
     fun testClickCountTwo() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#toggleSection")
+        assertMessageHidden(driver)
 
-        // Add an item to the list
         driver.bringToFront()
-        driver.fill("#newItemInput", "Test Item")
-        driver.click("[data-testid='tta-add-item']", 1)
-        driver.waitUntil(MEDIUM_TIMEOUT) { driver.exists("#itemList [data-testid='tta-item-3']") }
+        driver.click("#toggleMessageButton", 2)
 
-        // Double-click edit button (count=2) should trigger edit mode
-        driver.bringToFront()
-        driver.click("[data-testid='tta-edit-3']", 2)
-
-        // In typical UI, double-click on edit might enter edit mode faster
-        // Verify edit input appears
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            driver.exists("#itemList [data-id='3'] input[type='text']")
-        }
-        assertTrue(driver.exists("#itemList [data-id='3'] input[type='text']"), "Edit input should appear")
+        assertMessageHidden(driver)
     }
 
     @Test
-    @DisplayName("click count three on button")
+    @DisplayName("click count three toggles message three times")
     fun testClickCountThree() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#toggleSection")
+        assertMessageHidden(driver)
 
-        // Triple click on add multiple items button
         driver.bringToFront()
-        driver.click("[data-testid='tta-add-multiple']", 3)
+        driver.click("#toggleMessageButton", 3)
 
-        // Each click adds 5 items, so 3 clicks should add 15 items (plus initial 2)
-        driver.waitUntil(LARGE_TIMEOUT) {
-            val count = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-            count >= 15
-        }
-
-        val finalCount = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-        assertTrue(finalCount >= 15, "Should have at least 15 items after 3 clicks: actual=$finalCount")
+        assertMessageVisible(driver)
     }
 
     @Test
-    @DisplayName("click count negative treated as zero")
-    fun testClickCountNegative() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Clear content first
-        driver.bringToFront()
-        driver.click("[data-testid='tta-clear-content']")
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
-        }
-
-        // Click with negative count - implementation handles it gracefully
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", -1)
-
-        // Implementation still triggers the element
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"), "Element should be triggered despite negative count")
-    }
-
-    @Test
-    @DisplayName("click sequential with count 1 on different elements")
+    @DisplayName("click sequential different elements on current screen")
     fun testClickSequentialDifferentElements() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#calculatorSection")
 
-        // Clear content
+        driver.scrollTo("#calculatorSection")
         driver.bringToFront()
-        driver.click("[data-testid='tta-clear-content']", 1)
+        driver.click("#addButton", 1)
         driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
+            driver.selectFirstTextOrNull("#sumResult") == "Result: Please enter valid numbers"
         }
+        assertTrue(
+            driver.selectFirstTextOrNull("#sumResult") == "Result: Please enter valid numbers",
+            "Calculator button should update the current page state before the next click"
+        )
 
-        // Click load users
+        driver.scrollTo("#toggleSection")
+        assertMessageHidden(driver)
         driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
-
-        // Click load products
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-products']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-product-']"))
-
-        // Clear again
-        driver.bringToFront()
-        driver.click("[data-testid='tta-clear-content']", 1)
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
-        }
+        driver.click("#toggleMessageButton", 1)
+        assertMessageVisible(driver)
     }
 
     @Test
-    @DisplayName("click rapid sequential same element")
+    @DisplayName("click repeated on same element keeps calculator result stable")
     fun testClickRapidSequentialSameElement() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#calculatorSection")
 
-        // Click add multiple items button 3 times rapidly
-        driver.bringToFront()
+        prepareCalculator(driver, "1.5", "2.5")
+
         repeat(3) {
-            driver.click("[data-testid='tta-add-multiple']", 1)
-        }
-
-        // Should add 5 items per click = 15 items total (plus initial 2)
-        driver.waitUntil(LARGE_TIMEOUT) {
-            val count = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-            count >= 15
-        }
-
-        val finalCount = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-        assertTrue(finalCount >= 15, "Should have at least 15 items: actual=$finalCount")
-    }
-
-    @Test
-    @DisplayName("click on dynamically added element")
-    fun testClickOnDynamicElement() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Add an item first
-        driver.bringToFront()
-        driver.fill("#newItemInput", "Dynamic Item")
-        driver.click("[data-testid='tta-add-item']", 1)
-        driver.waitUntil(MEDIUM_TIMEOUT) { driver.exists("#itemList [data-testid='tta-item-3']") }
-
-        // Click edit button on the dynamically added item
-        driver.bringToFront()
-        driver.click("[data-testid='tta-edit-3']", 1)
-        driver.waitForSelector("#itemList [data-id='3'] input[type='text']")
-
-        assertTrue(driver.exists("#itemList [data-id='3'] input[type='text']"), "Edit input should appear for dynamic element")
-    }
-
-    @Test
-    @DisplayName("click on element that triggers async operation")
-    fun testClickAsyncOperation() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click load users (2s delay)
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-
-        // Verify loading state
-        driver.waitUntil(SMALL_TIMEOUT) { driver.exists("#dynamicContent.loading") }
-
-        // Wait for completion
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
-
-        val status = driver.selectFirstTextOrNull("#loadingStatus span")
-        assertTrue(status?.contains("loaded successfully") == true)
-    }
-
-    @Test
-    @DisplayName("click count large number")
-    fun testClickCountLarge() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click with large count (10)
-        driver.bringToFront()
-        driver.click("[data-testid='tta-add-multiple']", 10)
-
-        // Should add 5 items per click = 50 items (plus initial 2)
-        driver.waitUntil(LARGE_TIMEOUT) {
-            val count = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-            count >= 50
-        }
-
-        val finalCount = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-        assertTrue(finalCount >= 50, "Should have at least 50 items after 10 clicks: actual=$finalCount")
-    }
-
-    @Test
-    @DisplayName("click concurrent same element")
-    fun testClickConcurrentSameElement() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Concurrent clicks on the same button
-        driver.bringToFront()
-        coroutineScope {
-            val deferredClicks = List(3) {
-                async { driver.click("[data-testid='tta-add-multiple']", 1) }
-            }
-            deferredClicks.awaitAll()
-        }
-
-        // Should add items (at least 5 from one successful click)
-        driver.waitUntil(LARGE_TIMEOUT) {
-            val count = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-            count >= 7 // initial 2 + at least 5
-        }
-
-        val finalCount = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-        assertTrue(finalCount >= 7, "Should have at least 7 items: actual=$finalCount")
-    }
-
-    @Test
-    @DisplayName("click concurrent different elements")
-    fun testClickConcurrentDifferentElements() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Concurrent clicks on different buttons
-        driver.bringToFront()
-        coroutineScope {
-            val clicks = listOf(
-                async { driver.click("[data-testid='tta-add-images']", 1) },
-                async { driver.click("[data-testid='tta-add-multiple']", 1) },
-                async { driver.click("[data-testid='tta-load-users']", 1) }
-            )
-            clicks.awaitAll()
-        }
-
-        // Verify at least one operation succeeded
-        driver.waitUntil(LARGE_TIMEOUT) {
-            driver.exists("#dynamicContent [data-testid^='tta-user-']") ||
-            driver.exists("#itemList .list-item") ||
-            (driver.evaluateValue("document.querySelectorAll('#imageGrid .lazy-image').length") as? Number)?.toInt() ?: 0 > 3
-        }
-    }
-
-    @Test
-    @DisplayName("click return value consistency")
-    fun testClickReturnValueConsistency() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click should complete without throwing
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-
-        // Verify state changed
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
-    }
-
-    // ==================================================
-    // Tests for click(selector: String, modifier: String)
-    // ==================================================
-
-    @Test
-    @DisplayName("click with Shift modifier")
-    fun testClickWithShiftModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click button with Shift modifier
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", "Shift")
-
-        // The button should still trigger, modifier just affects how
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
-    }
-
-    @Test
-    @DisplayName("click with Control modifier")
-    fun testClickWithControlModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click with Control modifier
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-products']", "Control")
-
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-product-']"))
-    }
-
-    @Test
-    @DisplayName("click with Alt modifier")
-    fun testClickWithAltModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click with Alt modifier
-        driver.bringToFront()
-        driver.click("[data-testid='tta-clear-content']", "Alt")
-
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
-        }
-    }
-
-    @Test
-    @DisplayName("click with Meta modifier")
-    fun testClickWithMetaModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Fill input first
-        driver.bringToFront()
-        driver.fill("#newItemInput", "Meta Test Item")
-
-        // Click with Meta modifier (Command on Mac, Windows key on Windows)
-        driver.bringToFront()
-        driver.click("[data-testid='tta-add-item']", "Meta")
-
-        // Button should still work
-        driver.waitUntil(MEDIUM_TIMEOUT) { driver.exists("#itemList [data-testid='tta-item-3']") }
-        assertTrue(driver.exists("#itemList [data-testid='tta-item-3']"))
-    }
-
-    @Test
-    @DisplayName("click with modifier on link element")
-    fun testClickWithModifierOnLink() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Load users to get links
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
-
-        // Click a user link with Ctrl modifier (typically opens in new tab)
-        if (driver.exists("#dynamicContent a[data-testid^='tta-user-']")) {
             driver.bringToFront()
-            driver.click("#dynamicContent a[data-testid^='tta-user-']", "Control")
-            // Note: In headless mode, new tab behavior may differ
-        }
-    }
-
-    @Test
-    @DisplayName("click with empty modifier string")
-    fun testClickWithEmptyModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click with empty modifier should work like normal click
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", "")
-
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
-    }
-
-    @Test
-    @DisplayName("click with modifier sequential different elements")
-    fun testClickWithModifierSequential() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click multiple buttons with different modifiers
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", "Shift")
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
-
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-products']", "Control")
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-product-']"))
-
-        driver.bringToFront()
-        driver.click("[data-testid='tta-clear-content']", "Alt")
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
-        }
-    }
-
-    @Test
-    @DisplayName("click with modifier on dynamically added element")
-    fun testClickWithModifierOnDynamicElement() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Add item
-        driver.bringToFront()
-        driver.fill("#newItemInput", "Modifier Test")
-        driver.click("[data-testid='tta-add-item']", 1)
-        driver.waitUntil(MEDIUM_TIMEOUT) { driver.exists("#itemList [data-testid='tta-item-3']") }
-
-        // Click edit button with modifier
-        driver.bringToFront()
-        driver.click("[data-testid='tta-edit-3']", "Shift")
-        driver.waitForSelector("#itemList [data-id='3'] input[type='text']")
-
-        assertTrue(driver.exists("#itemList [data-id='3'] input[type='text']"))
-    }
-
-    @Test
-    @DisplayName("click with modifier consistency")
-    fun testClickWithModifierConsistency() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click same button multiple times with same modifier
-        val modifiers = listOf("Shift", "Control", "Alt")
-
-        for (modifier in modifiers) {
-            driver.bringToFront()
-            driver.click("[data-testid='tta-clear-content']", modifier)
-            driver.waitUntil(MEDIUM_TIMEOUT) {
-                val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-                txt?.contains("Click a button to load content") == true
-            }
-
-            driver.bringToFront()
-            driver.click("[data-testid='tta-load-users']", modifier)
-            driver.waitForSelector("#dynamicContent.loaded")
-            assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"), "Should work with modifier: $modifier")
-        }
-    }
-
-    // ==================================================
-    // Edge cases and error handling
-    // ==================================================
-
-    @Test
-    @DisplayName("click on non-existent element should handle gracefully")
-    fun testClickNonExistentElement() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Attempt to click non-existent element
-        try {
-            driver.click("[data-testid='tta-non-existent-button']", 1)
-            // If it doesn't throw, that's also acceptable behavior
-        } catch (e: Exception) {
-            // Exception is expected for non-existent elements
-            assertTrue(e.message?.contains("not found") == true || e.message?.contains("No node") == true)
-        }
-    }
-
-    @Test
-    @DisplayName("click on disabled button should complete")
-    fun testClickDisabledButton() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Clear content first
-        driver.bringToFront()
-        driver.click("[data-testid='tta-clear-content']")
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
+            driver.click("#addButton", 1)
         }
 
-        // Disable a button via JavaScript
-        driver.evaluate("document.querySelector('[data-testid=\"tta-load-users\"]').disabled = true")
-
-        // Click should complete even if button is disabled
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-
-        // Wait and verify that disabled button doesn't trigger action
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            // Content should remain in initial state since button is disabled
-            val txt = driver.selectFirstTextOrNull("#dynamicContent p")
-            txt?.contains("Click a button to load content") == true
-        }
+        assertCalculatorResult(driver, "Result: 4")
     }
 
     @Test
-    @DisplayName("click on element that is scrolled out of view")
+    @DisplayName("click can target out of view element by auto-scrolling")
     fun testClickElementScrolledOutOfView() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#contactSection")
+        driver.scrollToBottom()
+        assertMessageHidden(driver)
 
-        // Scroll to top
-        driver.scrollToTop()
-
-        // Click element that may be out of initial viewport (driver should auto-scroll)
         driver.bringToFront()
-        driver.click("[data-testid='tta-trigger-error']", 1)
+        driver.click("#toggleMessageButton", 1)
 
-        driver.waitUntil(MEDIUM_TIMEOUT) { driver.exists("#errorBoundary.show") }
-        assertTrue(driver.exists("#errorBoundary.show"))
+        assertMessageVisible(driver)
     }
 
     @Test
-    @DisplayName("click on covered element should work with auto-scroll")
-    fun testClickCoveredElement() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Click button that may be partially covered
-        driver.bringToFront()
-        driver.click("[data-testid='tta-clear-virtual']", 1)
-
-        // Should handle scrolling and clicking
-        driver.waitUntil(MEDIUM_TIMEOUT) {
-            val txt = driver.selectFirstTextOrNull("#virtualScrollContent p")
-            txt?.contains("Click a button to generate items") == true
-        }
-    }
-
-    @Test
-    @DisplayName("click on element inside iframe would fail gracefully")
-    fun testClickInsideIframe() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
-
-        // Try to click inside a non-existent iframe (should fail gracefully)
-        try {
-            driver.click("iframe button", 1)
-            // If no exception, that's acceptable too
-        } catch (e: Exception) {
-            // Expected to fail as there's no iframe in the test page
-            // Verify exception message is meaningful
-            assertFalse(e.message.isNullOrBlank(), "Exception should have a message")
-        }
-    }
-
-    @Test
-    @DisplayName("click after page navigation")
+    @DisplayName("click remains functional after navigation")
     fun testClickAfterNavigation() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#calculatorSection")
 
-        // Click and load content
+        prepareCalculator(driver, "3", "4")
         driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
+        driver.click("#addButton", 1)
+        assertCalculatorResult(driver, "Result: 7")
 
-        // Navigate to same page again (refresh-like)
         driver.navigate(multiScreensInteractiveUrl)
-        driver.waitForSelector("h1")
+        driver.waitForSelector("#calculatorSection")
 
-        // Click should work after navigation
+        prepareCalculator(driver, "9", "6")
         driver.bringToFront()
-        driver.click("[data-testid='tta-load-products']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-product-']"))
+        driver.click("#addButton", 1)
+        assertCalculatorResult(driver, "Result: 15")
     }
 
     @Test
-    @DisplayName("click validates selector before execution")
-    fun testClickValidatesSelector() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+    @DisplayName("click with shift modifier still triggers button")
+    fun testClickWithShiftModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        driver.waitForSelector("#toggleSection")
+        assertMessageHidden(driver)
 
-        // Valid selector should work
         driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
+        driver.click("#toggleMessageButton", "Shift")
 
-        // Invalid selector should be handled
-        var exceptionThrown = false
-        try {
-            driver.click("", 1)
-        } catch (e: Exception) {
-            // Empty selector should fail
-            exceptionThrown = true
-            assertFalse(e.message.isNullOrBlank(), "Exception should have a meaningful message")
-        }
-        assertTrue(exceptionThrown || driver.exists("#dynamicContent [data-testid^='tta-user-']"),
-            "Either exception thrown or valid state exists")
+        assertMessageVisible(driver)
     }
 
     @Test
-    @DisplayName("click idempotency on already triggered state")
-    fun testClickIdempotency() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+    @DisplayName("click with control modifier still triggers button")
+    fun testClickWithControlModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        driver.waitForSelector("#calculatorSection")
 
-        // Click load users
+        prepareCalculator(driver, "4", "5")
+
         driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
+        driver.click("#addButton", "Control")
 
-        // Click again on same button
-        driver.bringToFront()
-        driver.click("[data-testid='tta-load-users']", 1)
-        driver.waitForSelector("#dynamicContent.loaded")
-
-        // Should still show users (idempotent operation)
-        assertTrue(driver.exists("#dynamicContent [data-testid^='tta-user-']"))
+        assertCalculatorResult(driver, "Result: 9")
     }
 
     @Test
-    @DisplayName("click performance with rapid succession")
-    fun testClickPerformanceRapidSuccession() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-        driver.waitForSelector("h1")
+    @DisplayName("click with alt modifier still triggers button")
+    fun testClickWithAltModifier() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        driver.waitForSelector("#toggleSection")
+        assertMessageHidden(driver)
 
-        val startTime = System.currentTimeMillis()
-
-        // Click 5 times rapidly on add multiple items (which adds 5 items per click)
-        // This tests rapid button clicking without requiring input field
         driver.bringToFront()
-        repeat(5) {
-            driver.click("[data-testid='tta-add-multiple']", 1)
+        driver.click("#toggleMessageButton", "Alt")
+
+        assertMessageVisible(driver)
+    }
+
+    @Test
+    @DisplayName("click on non-existent element is a no-op")
+    fun testClickNonExistentElement() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        driver.waitForSelector("#toggleSection")
+        assertMessageHidden(driver)
+
+        driver.bringToFront()
+        driver.click("[data-testid='missing-button']", 1)
+
+        assertMessageHidden(driver)
+        assertTrue(
+            driver.selectFirstAttributeOrNull("#toggleMessageButton", "aria-expanded") == "false",
+            "A missing-element click should not change page state"
+        )
+    }
+
+    @Test
+    @DisplayName("click on disabled button does not execute onclick handler")
+    fun testClickDisabledButton() = runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+        driver.waitForSelector("#calculatorSection")
+
+        prepareCalculator(driver, "10", "5")
+        driver.evaluate("document.querySelector('#addButton').disabled = true")
+
+        driver.bringToFront()
+        driver.click("#addButton", 1)
+
+        driver.waitUntil(SHORT_TIMEOUT) {
+            driver.selectFirstTextOrNull("#sumResult").isNullOrBlank()
+        }
+        assertTrue(driver.selectFirstTextOrNull("#sumResult").isNullOrBlank(), "Disabled button should not update result")
+    }
+
+    private suspend fun prepareCalculator(driver: WebDriver, first: String, second: String) {
+        driver.fill("#num1", first)
+        driver.fill("#num2", second)
+    }
+
+    private suspend fun assertCalculatorResult(driver: WebDriver, expected: String) {
+        driver.waitUntil(MEDIUM_TIMEOUT) {
+            driver.selectFirstTextOrNull("#sumResult") == expected
+        }
+        assertTrue(driver.selectFirstTextOrNull("#sumResult") == expected, "Expected calculator result: $expected")
+    }
+
+    private suspend fun assertMessageVisible(driver: WebDriver) {
+        driver.waitUntil(MEDIUM_TIMEOUT) {
+            !driver.exists("#hiddenMessage.hidden") &&
+                driver.selectFirstAttributeOrNull("#toggleMessageButton", "aria-expanded") == "true" &&
+                driver.selectFirstAttributeOrNull("#hiddenMessage", "aria-hidden") == "false"
         }
 
-        val elapsed = System.currentTimeMillis() - startTime
+        assertFalse(driver.exists("#hiddenMessage.hidden"), "Hidden message should be visible")
+        assertTrue(
+            driver.selectFirstTextOrNull("#hiddenMessage")?.contains("Surprise!") == true,
+            "Visible message text should match the current page content"
+        )
+    }
 
-        // Should complete in reasonable time (< 10 seconds for 5 clicks)
-        assertTrue(elapsed < 10000, "5 clicks should complete within 10s: actual=${elapsed}ms")
-
-        // Verify items were added (5 clicks * 5 items each = 25 items, plus initial 2)
-        driver.waitUntil(LARGE_TIMEOUT) {
-            val count = (driver.evaluateValue("document.querySelectorAll('#itemList .list-item').length") as? Number)?.toInt() ?: 0
-            count >= 25
+    private suspend fun assertMessageHidden(driver: WebDriver) {
+        driver.waitUntil(MEDIUM_TIMEOUT) {
+            driver.exists("#hiddenMessage.hidden") &&
+                driver.selectFirstAttributeOrNull("#toggleMessageButton", "aria-expanded") == "false" &&
+                driver.selectFirstAttributeOrNull("#hiddenMessage", "aria-hidden") == "true"
         }
+
+        assertTrue(driver.exists("#hiddenMessage.hidden"), "Hidden message should not be visible")
     }
 }
