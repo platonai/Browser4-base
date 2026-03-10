@@ -1,7 +1,11 @@
 package ai.platon.pulsar.rest.api.controller
 
+import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.rest.api.TestHelper.MOCK_PRODUCT_LIST_URL
 import ai.platon.pulsar.rest.api.TestHelper.MOCK_PRODUCT_DETAIL_URL
+import ai.platon.pulsar.rest.openapi.controller.MCPToolCallResponse
+import ai.platon.pulsar.rest.openapi.controller.MCPToolController
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
@@ -38,6 +42,7 @@ import kotlin.test.assertTrue
 class MCPToolControllerE2ETest : RestAPITestBase() {
     private val logger = LoggerFactory.getLogger(MCPToolControllerE2ETest::class.java)
     private val objectMapper = jacksonObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     /**
      * Complete mapping from browser4-cli commands to MCP tool names.
@@ -108,35 +113,36 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
     // Helpers
     // =========================================================================
 
-    private fun callTool(tool: String, arguments: Map<String, Any?> = emptyMap()): Map<String, Any?> {
+    private fun callTool(tool: String, arguments: Map<String, Any?> = emptyMap()): MCPToolCallResponse {
         val request = mapOf("tool" to tool, "arguments" to arguments)
         return client.post().uri("/mcp/call-tool")
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)
             .exchange()
             .expectStatus().is2xxSuccessful
-            .expectBody<Map<String, Any?>>()
+            .expectBody<MCPToolCallResponse>()
             .returnResult()
             .responseBody!!
     }
 
-    private fun textContent(response: Map<String, Any?>): String {
-        @Suppress("UNCHECKED_CAST")
-        val content = response["content"] as List<Map<String, Any?>>
-        return content.first()["text"]?.toString().orEmpty()
+    private fun textContent(response: MCPToolCallResponse): String {
+        return response.content.firstOrNull()?.text.orEmpty()
     }
 
-    private fun assertNotError(response: Map<String, Any?>) {
-        assertFalse(response["isError"] == true, "Expected successful MCP response but got: $response")
+    private fun assertNotError(response: MCPToolCallResponse) {
+        assertFalse(response.isError, "Expected successful MCP response but got: $response")
     }
 
-    private fun assertIsError(response: Map<String, Any?>) {
-        assertTrue(response["isError"] == true, "Expected error MCP response but got: $response")
+    private fun assertIsError(response: MCPToolCallResponse) {
+        assertTrue(response.isError, "Expected error MCP response but got: $response")
     }
 
     private fun assertToolRecognized(tool: String, arguments: Map<String, Any?> = emptyMap()) {
         val response = callTool(tool, arguments)
         val text = textContent(response)
+
+        printlnPro(this, "Tool '$tool' response: $response")
+
         assertFalse(text.contains("Unknown tool:"), "Tool '$tool' should be recognized, response: $response")
     }
 
@@ -181,6 +187,7 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
 
         @Suppress("UNCHECKED_CAST")
         val tools = (payload["tools"] as List<String>).toSet()
+        printlnPro(this, tools)
         val missingTools = cliCommandToMcpTool.values.filter { it !in tools }
         assertTrue(missingTools.isEmpty(), "Missing MCP tools for cli commands: $missingTools")
     }

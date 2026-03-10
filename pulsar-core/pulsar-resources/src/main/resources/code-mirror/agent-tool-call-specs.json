@@ -1,90 +1,69 @@
-[
-  {
-    "domain": "agent",
-    "method": "run",
-    "arguments": [
-      {
-        "name": "task",
-        "type": "String"
-      }
-    ],
-    "returnType": "AgentHistory",
-    "description": "High-level problem resolution entry. Implementations should construct an [ActionOptions] from the raw problem string and delegate to [run] with the options.",
-    "help": "High-level problem resolution entry. Implementations should construct an [ActionOptions] from the raw problem string and delegate to [run] with the options."
-  },
-  {
-    "domain": "agent",
-    "method": "observe",
-    "arguments": [
-      {
-        "name": "instruction",
-        "type": "String"
-      }
-    ],
-    "returnType": "List<ObserveResult>",
-    "description": "Convenience overload to observe by instruction string. Implementations typically create an [ObserveOptions] from the instruction and delegate to [observe].",
-    "help": "Convenience overload to observe by instruction string. Implementations typically create an [ObserveOptions] from the instruction and delegate to [observe]."
-  },
-  {
-    "domain": "agent",
-    "method": "summarize",
-    "arguments": [
-      {
-        "name": "instruction",
-        "type": "String?",
-        "defaultValue": "null"
-      },
-      {
-        "name": "selector",
-        "type": "String?",
-        "defaultValue": "null"
-      }
-    ],
-    "returnType": "String",
-    "description": "Summarize text captured from the current page or a specific element and return a natural-language synopsis.\n\nPassing an [instruction] tailors the tone or focus of the summary; when null, the agent relies on a default summarization prompt. Supplying a [selector] scopes the extraction to a particular DOM element; leaving it null lets the implementation infer a sensible region (for example, the main article body).",
-    "help": "Summarize text captured from the current page or a specific element and return a natural-language synopsis.\n\nPassing an [instruction] tailors the tone or focus of the summary; when null, the agent relies on a default summarization prompt. Supplying a [selector] scopes the extraction to a particular DOM element; leaving it null lets the implementation infer a sensible region (for example, the main article body)."
-  },
-  {
-    "domain": "agent",
-    "method": "act",
-    "arguments": [
-      {
-        "name": "action",
-        "type": "String"
-      }
-    ],
-    "returnType": "ActResult",
-    "description": "Convenience wrapper building [ActionOptions] from a raw action string and delegating to [act].",
-    "help": "Convenience wrapper building [ActionOptions] from a raw action string and delegating to [act]."
-  },
-  {
-    "domain": "agent",
-    "method": "extract",
-    "arguments": [
-      {
-        "name": "instruction",
-        "type": "String"
-      }
-    ],
-    "returnType": "ExtractResult",
-    "description": "Convenience overload for structured extraction. When only an instruction string is provided, the implementation should use [ExtractionSchema.DEFAULT].",
-    "help": "Convenience overload for structured extraction. When only an instruction string is provided, the implementation should use [ExtractionSchema.DEFAULT]."
-  },
-  {
-    "domain": "agent",
-    "method": "extract",
-    "arguments": [
-      {
-        "name": "instruction",
-        "type": "String"
-      },
-      {
-        "name": "schema",
-        "type": "ExtractionSchema"
-      }
-    ],
-    "returnType": "ExtractResult",
-    "description": "Convenience overload for structured extraction that constrains the result with a JSON schema.",
-    "help": "Convenience overload for structured extraction that constrains the result with a JSON schema."
-  }
-]
+[ {
+  "domain" : "agent",
+  "method" : "run",
+  "arguments" : [ {
+    "name" : "task",
+    "type" : "String"
+  } ],
+  "returnType" : "AgentHistory",
+  "description" : "High-level problem resolution entry. Implementations should construct an [ActionOptions] from the raw problem string and delegate to [run] with the options.",
+  "help" : "High-level problem resolution entry. Implementations should construct an [ActionOptions] from the raw problem string and delegate to [run] with the options."
+}, {
+  "domain" : "agent",
+  "method" : "observe",
+  "arguments" : [ {
+    "name" : "instruction",
+    "type" : "String"
+  } ],
+  "returnType" : "List<ObserveResult>",
+  "description" : "Convenience overload to observe by instruction string. Implementations typically create an [ObserveOptions] from the instruction and delegate to [observe].",
+  "help" : "Convenience overload to observe by instruction string. Implementations typically create an [ObserveOptions] from the instruction and delegate to [observe]."
+}, {
+  "domain" : "agent",
+  "method" : "summarize",
+  "arguments" : [ {
+    "name" : "instruction",
+    "type" : "String?",
+    "defaultValue" : "null"
+  }, {
+    "name" : "selector",
+    "type" : "String?",
+    "defaultValue" : "null"
+  } ],
+  "returnType" : "String",
+  "description" : "Summarize text captured from the current page or a specific element and return a natural-language synopsis.\n\nPassing an [instruction] tailors the tone or focus of the summary; when null, the agent relies on a default summarization prompt. Supplying a [selector] scopes the extraction to a particular DOM element; leaving it null lets the implementation infer a sensible region (for example, the main article body).",
+  "help" : "Summarize text captured from the current page or a specific element and return a natural-language synopsis.\n\nPassing an [instruction] tailors the tone or focus of the summary; when null, the agent relies on a default summarization prompt. Supplying a [selector] scopes the extraction to a particular DOM element; leaving it null lets the implementation infer a sensible region (for example, the main article body)."
+}, {
+  "domain" : "agent",
+  "method" : "act",
+  "arguments" : [ {
+    "name" : "action",
+    "type" : "String"
+  } ],
+  "returnType" : "ActResult",
+  "description" : "Convenience wrapper building [ActionOptions] from a raw action string and delegating to [act].",
+  "help" : "Convenience wrapper building [ActionOptions] from a raw action string and delegating to [act]."
+}, {
+  "domain" : "agent",
+  "method" : "extract",
+  "arguments" : [ {
+    "name" : "instruction",
+    "type" : "String"
+  } ],
+  "returnType" : "ExtractResult",
+  "description" : "Convenience overload for structured extraction. When only an instruction string is provided, the implementation should use [ExtractionSchema.DEFAULT].",
+  "help" : "Convenience overload for structured extraction. When only an instruction string is provided, the implementation should use [ExtractionSchema.DEFAULT]."
+}, {
+  "domain" : "agent",
+  "method" : "extract",
+  "arguments" : [ {
+    "name" : "instruction",
+    "type" : "String"
+  }, {
+    "name" : "schema",
+    "type" : "ExtractionSchema"
+  } ],
+  "returnType" : "ExtractResult",
+  "description" : "Convenience overload for structured extraction that constrains the result with a JSON schema.",
+  "help" : "Convenience overload for structured extraction that constrains the result with a JSON schema."
+} ]

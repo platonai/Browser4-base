@@ -85,7 +85,7 @@ if (-not [string]::IsNullOrWhiteSpace($TaskFile)) {
         # Move directly to createdDir with original name
         $destPath = Join-Path $createdDir $fileItem.Name
         Move-Item -Path $fileItem.FullName -Destination $destPath -Force
-        Write-Host "Moved specified task file to: $destPath"
+        Write-ConsoleLine -Message "Moved specified task file to: $destPath"
     } else {
         Write-Error "Specified task file not found: $TaskFile"
         exit 1
@@ -126,6 +126,30 @@ function Format-CopilotCommand {
     return Format-GHCopilotCommand -Executable $script:copilotExecutable -Arguments $Arguments
 }
 
+function Write-ConsoleLine {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        [System.ConsoleColor]$ForegroundColor,
+        [switch]$ErrorStream
+    )
+
+    $isRedirected = if ($ErrorStream) { [Console]::IsErrorRedirected } else { [Console]::IsOutputRedirected }
+    if ($isRedirected) {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($Message + [Environment]::NewLine)
+        $stream = if ($ErrorStream) { [Console]::OpenStandardError() } else { [Console]::OpenStandardOutput() }
+        $stream.Write($bytes, 0, $bytes.Length)
+        $stream.Flush()
+        return
+    }
+
+    if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
+        Write-Host $Message -ForegroundColor $ForegroundColor
+    } else {
+        Write-Host $Message
+    }
+}
+
 # ============================================================================
 # Logging Functions
 # ============================================================================
@@ -144,9 +168,9 @@ function Write-LogMessage {
 
     # Write to console
     switch ($Level) {
-        'INFO' { Write-Host $logEntry }
-        'WARN' { Write-Host $logEntry -ForegroundColor Yellow }
-        'ERROR' { Write-Host $logEntry -ForegroundColor Red }
+        'INFO' { Write-ConsoleLine -Message $logEntry }
+        'WARN' { Write-ConsoleLine -Message $logEntry -ForegroundColor Yellow }
+        'ERROR' { Write-ConsoleLine -Message $logEntry -ForegroundColor Red }
     }
 
     # Append to script log file
@@ -367,7 +391,7 @@ foreach ($taskRoot in $taskRoots) {
         if ($approvedFiles.Count -gt 0) {
             # Move files to pushed directory
             foreach ($file in $approvedFiles) {
-                Write-Host "Moving approved task to pushed: $($file.FullName)" -ForegroundColor Green
+                Write-ConsoleLine -Message "Moving approved task to pushed: $($file.FullName)" -ForegroundColor Green
 
                 # Create date-based subdirectory: YYYY/MMDD
                 $pushedSubDir = Join-Path $pushedDir "$currentYear\$currentDate"
@@ -593,7 +617,7 @@ Copilot Execution Output:
                         $newLines = $currentLines[$lastOutputLineCount..($currentLineCount - 1)]
                         foreach ($line in $newLines) {
                             if (-not [string]::IsNullOrWhiteSpace($line)) {
-                                Write-Host $line
+                                Write-ConsoleLine -Message $line
                             }
                         }
                         $lastOutputLineCount = $currentLineCount
@@ -608,7 +632,7 @@ Copilot Execution Output:
                         if ($elapsed.TotalSeconds -gt $copilotRunTimeoutSeconds) {
                             Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
                             Write-LogMessage "Copilot timed out after ${copilotRunTimeoutSeconds}s" WARN
-                            Write-Host "[TIMEOUT] Copilot execution exceeded ${copilotRunTimeoutSeconds}s timeout" -ForegroundColor Yellow
+                            Write-ConsoleLine -Message "[TIMEOUT] Copilot execution exceeded ${copilotRunTimeoutSeconds}s timeout" -ForegroundColor Yellow
                             break
                         }
                     }
@@ -624,7 +648,7 @@ Copilot Execution Output:
                     $newLines = $remainingLines[$lastOutputLineCount..($remainingLines.Count - 1)]
                     foreach ($line in $newLines) {
                         if (-not [string]::IsNullOrWhiteSpace($line)) {
-                            Write-Host $line
+                            Write-ConsoleLine -Message $line
                         }
                     }
                 }
@@ -634,10 +658,10 @@ Copilot Execution Output:
             if (Test-Path $stdErrLog) {
                 $errContent = @(Get-Content $stdErrLog -Encoding UTF8 -ErrorAction SilentlyContinue)
                 if ($errContent) {
-                    Write-Host "`n[STDERR OUTPUT]" -ForegroundColor Yellow
+                    Write-ConsoleLine -Message "`n[STDERR OUTPUT]" -ForegroundColor Yellow -ErrorStream
                     foreach ($line in $errContent) {
                         if (-not [string]::IsNullOrWhiteSpace($line)) {
-                            Write-Host $line -ForegroundColor Yellow
+                            Write-ConsoleLine -Message $line -ForegroundColor Yellow -ErrorStream
                         }
                     }
                 }

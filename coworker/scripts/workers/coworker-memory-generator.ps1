@@ -28,9 +28,6 @@ $configPath = Join-Path (Split-Path -Parent $PSScriptRoot) "config.ps1"
 $repoRoot = Get-WorkspaceRoot
 $ghCopilotHelper = Join-Path $PSScriptRoot 'gh-copilot.ps1'
 . $ghCopilotHelper
-$copilotCommand = Get-GHCopilotCommand -RepoRoot $repoRoot
-$copilotExecutable = $copilotCommand.Executable
-$copilotBaseArgs = $copilotCommand.BaseArgs
 
 $parsedDate = Get-Date $Date
 $year = $parsedDate.ToString("yyyy")
@@ -40,7 +37,7 @@ $day = $parsedDate.ToString("dd")
 $logsBaseDir = Resolve-TasksPath '300logs'
 
 # Function to run gh copilot
-function Invoke-GhCopilot {
+function Invoke-CoworkerMemoryCopilot {
     param(
         [string]$Prompt,
         [switch]$CaptureOutput
@@ -52,23 +49,7 @@ function Invoke-GhCopilot {
         $Prompt = $Prompt.Substring(0, 25000) + " ... [Truncated]"
     }
 
-    if ($CaptureOutput) {
-        return Invoke-GHCopilot -Prompt $Prompt -AdditionalArguments @('--allow-all-tools') -RepoRoot $repoRoot -WorkingDirectory $repoRoot -CaptureOutput
-    } else {
-        # Arguments for Start-Process (might need quotes for complex strings depending on PS version/OS)
-        # But generally, Start-Process ArgumentList array is safe.
-        # The original code added quotes, let's keep it for safety in the Start-Process path.
-        $safePrompt = $Prompt.Replace('"', '\"')
-        $processArgs = @($copilotBaseArgs + @(
-            '--',
-            '-p',
-            "`"$safePrompt`"",
-            '--allow-all-tools'
-        ))
-
-        # Use Start-Process to handle arguments safely and stream to console
-        Start-Process -FilePath $copilotExecutable -ArgumentList $processArgs -WorkingDirectory $repoRoot -NoNewWindow -Wait
-    }
+    return Invoke-GHCopilot -Prompt $Prompt -AdditionalArguments @('--allow-all-tools') -RepoRoot $repoRoot -WorkingDirectory $repoRoot -CaptureOutput:$CaptureOutput
 }
 
 if ($Type -eq "daily") {
@@ -140,7 +121,7 @@ DAILY MEMORIES:
 $combinedContent
 "@
 
-    Invoke-GhCopilot -Prompt $prompt
+    Invoke-CoworkerMemoryCopilot -Prompt $prompt
 }
 elseif ($Type -eq "yearly") {
     $targetDir = "$logsBaseDir\$year"
@@ -203,7 +184,7 @@ MONTHLY MEMORIES:
 $combinedContent
 "@
 
-    Invoke-GhCopilot -Prompt $prompt
+    Invoke-CoworkerMemoryCopilot -Prompt $prompt
 }
 elseif ($Type -eq "global") {
     $targetFile = "$logsBaseDir\MEMORY.md"
@@ -229,7 +210,7 @@ elseif ($Type -eq "global") {
         $combinedContent += "`n`n=== MEMORY: $($file.Name) ===`n$content"
     }
 
-    Invoke-GhCopilot -Prompt $prompt
+    Invoke-CoworkerMemoryCopilot -Prompt $prompt
 }
 elseif ($Type -eq "init") {
     $year = $parsedDate.ToString("yyyy")
@@ -265,10 +246,8 @@ elseif ($Type -eq "init") {
             # Compress
             $compressPrompt = "Compress the following daily memory content to under 3000 characters. Preserve key insights and structural learnings. content:`n$dailyContent"
 
-            # Compress using gh copilot
-            # We need to capture the output here.
-            # But wait, Invoke-GhCopilot prints to host by default unless I use -CaptureOutput
-            $compressedContent = Invoke-GhCopilot -Prompt $compressPrompt -CaptureOutput
+            # Compress using gh copilot and capture the replacement markdown for the memory file.
+            $compressedContent = Invoke-CoworkerMemoryCopilot -Prompt $compressPrompt -CaptureOutput
 
             if (-not [string]::IsNullOrWhiteSpace($compressedContent)) {
                  # The output might contain explanation text. Copilot CLI usually just answers if prompted correctly.
