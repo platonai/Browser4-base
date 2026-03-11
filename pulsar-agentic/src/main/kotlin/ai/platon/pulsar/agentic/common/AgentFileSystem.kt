@@ -164,7 +164,7 @@ data class FileSystemState(
  * the base name. No path separators allowed (flat file structure only).
  *
  * @property baseDir The base directory for the file system (default: "target")
- * @property createDefaultFiles Whether to create default files (e.g., todolist.md) on init
+ * @property createDefaultFiles Whether to create default files on init
  */
 class AgentFileSystem(
     private val baseDir: Path = Path.of("target"),
@@ -593,8 +593,7 @@ class AgentFileSystem(
      * Describes all files in the agent file system with a preview of their content.
      *
      * For small files, shows the full content. For large files, shows the first and
-     * last portions with a line count for the middle. The todolist.md file is excluded
-     * from the description.
+     * last portions with a line count for the middle.
      *
      * @return A formatted description of all files
      */

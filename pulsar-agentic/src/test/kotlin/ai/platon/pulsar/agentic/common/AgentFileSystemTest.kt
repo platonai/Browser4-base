@@ -332,17 +332,6 @@ class AgentFileSystemTest {
     }
 
     @Test
-    @DisplayName("describe excludes todolist.md")
-    fun describeExcludesTodolistMd() = runBlocking {
-        fs.writeString("todolist.md", "Task 1\nTask 2")
-        fs.writeString("other.txt", "Other content")
-
-        val description = fs.describe()
-        assertFalse(description.contains("todolist.md"))
-        assertTrue(description.contains("other.txt"))
-    }
-
-    @Test
     @DisplayName("describe truncates large files with preview")
     fun describeTruncatesLargeFilesWithPreview() = runBlocking {
         val largeContent = (1..100).joinToString("\n") { "Line $it with some content to make it longer" }
