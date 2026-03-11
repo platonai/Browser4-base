@@ -1,7 +1,0 @@
-[31;1mWhere-Object: [0mD:\workspace\Browser4\Browser4-4.6\coworker\scripts\process-coworker-queue.ps1:37[0m
-[31;1m[0m[36;1mLine |[0m
-[31;1m[0m[36;1m[36;1m  37 | [0m         [36;1mWhere-Object { Test-CoworkerPendingFile -Item $_ }[0m
-[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mThe term 'Test-CoworkerPendingFile' is not recognized as a name of a cmdlet, function, script file, or[0m
-[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m     | [31;1mexecutable program. Check the spelling of the name, or if a path was included, verify that the path is correct[0m
-[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m     | [31;1mand try again.[0m

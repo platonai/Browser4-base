@@ -61,3 +61,9 @@
 - Continued maturing coworker automation by renaming periodic queue processors, keeping compatibility shims for legacy scheduler entrypoints, skipping empty scheduler launches via `PendingPaths`, relocating runtime status artifacts, and documenting the live queue-based workflow in `SKILL.md`.
 - Tightened prompt and review quality across agentic surfaces by normalizing prompt language/rules to concise English and surfacing correctness risks in DOM tree helper traversal/text-association logic.
 - Reinforced execution hygiene: prefer active/generated fixtures over stale ones, keep scheduler/runtime artifacts in ignored operational locations, and place queue-awareness/path resolution in shared orchestration layers instead of duplicated worker logic.
+
+### Daily Rollup Update (2026-03-01 to 2026-03-10)
+- Rebuilt and stabilized Browser4 MCP, controller, and test coverage across the month, including official-SDK mock server alignment, broader controller/E2E validation, restored compatibility layers where needed, and follow-up fixes for stale artifacts or serialization mismatches.
+- Expanded Browser4 product capabilities with WebDriver/API improvements, CLI and MCP/tool-spec alignment, revived browser and DOM behavior coverage, and continued contract/doc mirror refreshes so exposed capabilities match implemented behavior.
+- Continued maturing coworker automation through architect/orchestrator workflow work, shared Copilot/config helpers, scheduler and queue-processing refinements, placeholder-aware queue detection, path-handling centralization, and more reliable cross-shell script invocation.
+- Reinforced recurring execution hygiene: prefer repo-root or config-derived absolute paths, validate PowerShell quoting and argument passing carefully, keep generated/spec artifacts in sync with code, watch for stale `target/` outputs, and use `-am` or local installs when cross-module dependencies are involved.
