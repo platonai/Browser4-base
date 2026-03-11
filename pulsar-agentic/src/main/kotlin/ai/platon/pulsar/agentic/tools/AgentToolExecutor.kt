@@ -168,11 +168,11 @@ class AgentToolExecutor constructor(
      * @return A [TcEvaluate] with the execution result or exception.
      */
     @Throws(UnsupportedOperationException::class)
-    suspend fun executeToolCall(tc: ToolCall): TcEvaluate {
+    suspend fun executeToolCall(tc: ToolCall): ToolCallResult {
         val normalized = normalizeToolCall(tc)
         var topDomain = normalized.domain.split(".").first()
         topDomain = domainAlias.getOrDefault(topDomain, topDomain)
-        return when (topDomain) {
+        val evaluate = when (topDomain) {
             "driver" -> executor.callFunctionOn(normalized, driver)
             "browser" -> executor.callFunctionOn(normalized, driver.browser)
             "fs" -> executor.callFunctionOn(normalized, fs)
@@ -193,6 +193,8 @@ class AgentToolExecutor constructor(
                 }
             }
         }
+
+        return onDidToolCall(tc, evaluate)
     }
 
     @Throws(UnsupportedOperationException::class)
@@ -211,60 +213,7 @@ class AgentToolExecutor constructor(
         try {
             val tc = normalizeToolCall(requireNotNull(actionDescription.toolCall) { "Tool call is required" })
 
-            val topDomain = tc.domain.split(".").first()
-            // First try built-in tool domains
-            val evaluate = when (topDomain) {
-                "driver" -> executor.callFunctionOn(tc, driver)
-                "browser" -> executor.callFunctionOn(tc, driver.browser)
-                "fs" -> executor.callFunctionOn(tc, fs)
-                "shell" -> executor.callFunctionOn(tc, shell)
-                "agent" -> executor.callFunctionOn(tc, agent)
-                "system" -> executor.callFunctionOn(tc, system)
-                "skill" -> executor.callFunctionOn(tc, skillTarget)
-                "mcp" -> executor.callFunctionOn(tc, Any())
-                else -> {
-                    // Check if this is a custom tool domain
-                    val customExecutor = CustomToolRegistry.instance.get(tc.domain)
-                    if (customExecutor != null) {
-                        val target = _customTargets[tc.domain]
-                            ?: throw UnsupportedOperationException(
-                                "❓ Custom domain '${tc.domain}' is registered but no target object is available. " +
-                                        "Use registerCustomTarget() to provide the target object."
-                            )
-                        customExecutor.callFunctionOn(tc, target)
-                    } else {
-                        throw UnsupportedOperationException("❓ Unsupported domain: ${tc.domain} | $tc")
-                    }
-                }
-            }
-
-            val tcResult = ToolCallResult(
-                success = true,
-                evaluate = evaluate,
-                message = message,
-                actionDescription = actionDescription,
-            )
-
-            val method = tc.method
-            when (method) {
-                "switchTab" -> onDidSwitchTab(evaluate)
-                "navigate" -> onDidNavigate(driver, tc, evaluate)
-            }
-
-            val timeoutMs = 3_000L
-            val oldUrl = actionDescription.agentState?.browserUseState?.browserState?.url
-            val pseudoExpression = actionDescription.pseudoExpression
-            val maybeNavMethod = method in ToolSpecification.MAY_NAVIGATE_ACTIONS
-            if (oldUrl != null && maybeNavMethod) {
-                val remainingTime = driver.waitForNavigation(oldUrl, timeoutMs)
-                if (remainingTime <= 0) {
-                    val navError = "⏳ Navigation timeout after ${timeoutMs}ms for expression: $pseudoExpression"
-                    logger.warn(navError)
-                    return tcResult
-                }
-            }
-
-            return tcResult
+            return executeToolCall(tc)
         } catch (e: Exception) {
             logger.warn("Failed to execute tool call | $actionDescription", e)
 
@@ -277,6 +226,40 @@ class AgentToolExecutor constructor(
                 actionDescription = actionDescription,
             )
         }
+    }
+
+    private suspend fun onDidToolCall(
+        tc: ToolCall, evaluate: TcEvaluate, actionDescription: ActionDescription? = null, message: String? = null
+    ): ToolCallResult {
+        val tcResult = ToolCallResult(
+            success = true,
+            evaluate = evaluate,
+            message = message,
+            actionDescription = actionDescription,
+        )
+
+        val method = tc.method
+        when (method) {
+            "switchTab" -> onDidSwitchTab(evaluate)
+            "navigate" -> onDidNavigate(driver, tc, evaluate)
+        }
+
+        if (actionDescription != null) {
+            val timeoutMs = 3_000L
+            val oldUrl = actionDescription.agentState?.browserUseState?.browserState?.url
+            val pseudoExpression = actionDescription.pseudoExpression
+            val maybeNavMethod = method in ToolSpecification.MAY_NAVIGATE_ACTIONS
+            if (oldUrl != null && maybeNavMethod) {
+                val remainingTime = driver.waitForNavigation(oldUrl, timeoutMs)
+                if (remainingTime <= 0) {
+                    val navError = "⏳ Navigation timeout after ${timeoutMs}ms for expression: $pseudoExpression"
+                    logger.warn(navError)
+                    return tcResult
+                }
+            }
+        }
+
+        return tcResult
     }
 
     /**
@@ -299,27 +282,14 @@ class AgentToolExecutor constructor(
         session.bindDriver(frontDriver)
     }
 
+    /**
+     * TODO: add an option to driver.navigate() to wait
+     * */
     @Suppress("UNUSED_PARAMETER")
     private suspend fun onDidNavigate(driver: WebDriver, toolCall: ToolCall, evaluate: TcEvaluate) {
         driver.waitForNavigation()
         driver.waitForSelector("body")
         delay(3000)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private suspend fun onDidScrollToBottom(driver: WebDriver, toolCall: ToolCall, evaluate: TcEvaluate) {
-        val expression = """
-(() => {
-    const docEl = document.documentElement, body = document.body;
-    if (!docEl || !body) return true;
-    const total = Math.min(Math.max(docEl.scrollHeight, body.scrollHeight, docEl.clientHeight), 15000);
-    const vh = window.innerHeight || docEl.clientHeight || 800;
-    const target = Math.max(0, total - vh);
-    return Math.abs(window.scrollY - target) < 2;
-})()
-"""
-
-        driver.waitUntil(5_000) { (driver.evaluateValue(expression) as? Boolean) == true }
     }
 
     private fun normalizeDomain(domain: String): String {
