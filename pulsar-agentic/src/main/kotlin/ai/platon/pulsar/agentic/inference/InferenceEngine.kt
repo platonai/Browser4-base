@@ -114,9 +114,9 @@ class InferenceEngine(
                 "timestamp" to timestamp,
                 "llmInputFile" to llmInputFile,
                 "llmOutputFile" to llmOutputFile,
-                "inputTokenCount" to modelResponse.tokenUsage.inputTokenCount,
-                "outputTokenCount" to modelResponse.tokenUsage.outputTokenCount,
-                "totalTokenCount" to modelResponse.tokenUsage.totalTokenCount,
+                "inputToken" to modelResponse.tokenUsage.inputTokenCount,
+                "outputToken" to modelResponse.tokenUsage.outputTokenCount,
+                "totalToken" to modelResponse.tokenUsage.totalTokenCount,
                 "inferenceTimeMillis" to DateTimes.elapsedTime(startTime).toMillis()
             )
         )
@@ -168,9 +168,9 @@ class InferenceEngine(
                 "timestamp" to timestamp,
                 "llmInputFile" to llmInputFile,
                 "llmOutputFile" to extractOutputFile,
-                "inputTokenCount" to extractResponse.tokenUsage.inputTokenCount,
-                "outputTokenCount" to extractResponse.tokenUsage.outputTokenCount,
-                "totalTokenCount" to extractResponse.tokenUsage.totalTokenCount,
+                "inputToken" to extractResponse.tokenUsage.inputTokenCount,
+                "outputToken" to extractResponse.tokenUsage.outputTokenCount,
+                "totalToken" to extractResponse.tokenUsage.totalTokenCount,
                 "inferenceTimeMillis" to DateTimes.elapsedTime(extractStartTime).toMillis()
             )
         )
@@ -193,9 +193,9 @@ class InferenceEngine(
             payload = mapOf(
                 "extractInferenceType" to "metadata",
                 "timestamp" to timestamp,
-                "inputTokenCount" to metadataResponse.tokenUsage.inputTokenCount,
-                "outputTokenCount" to metadataResponse.tokenUsage.outputTokenCount,
-                "totalTokenCount" to metadataResponse.tokenUsage.totalTokenCount,
+                "inputToken" to metadataResponse.tokenUsage.inputTokenCount,
+                "outputToken" to metadataResponse.tokenUsage.outputTokenCount,
+                "totalToken" to metadataResponse.tokenUsage.totalTokenCount,
                 "inferenceTimeMillis" to DateTimes.elapsedTime(metadataStartTime).toMillis()
             )
         )
@@ -213,9 +213,9 @@ class InferenceEngine(
                 put("progress", progress)
                 put("completed", completed)
             })
-            put("inputTokenCount", inputTokenCount)
-            put("outputTokenCount", outputTokenCount)
-            put("totalTokenCount", totalTokenCount)
+            put("inputToken", inputTokenCount)
+            put("outputToken", outputTokenCount)
+            put("totalToken", totalTokenCount)
             put("inferenceTimeMillis", totalInferenceTimeMillis)
         }
 
@@ -293,9 +293,9 @@ class InferenceEngine(
                 "step" to context.step,
                 "actionType" to actionType,
                 "duration" to inferenceTimeMillis,
-                "inputTokenCount" to modelResponse.tokenUsage.inputTokenCount,
-                "outputTokenCount" to modelResponse.tokenUsage.outputTokenCount,
-                "totalTokenCount" to modelResponse.tokenUsage.totalTokenCount
+                "inputToken" to modelResponse.tokenUsage.inputTokenCount,
+                "outputToken" to modelResponse.tokenUsage.outputTokenCount,
+                "totalToken" to modelResponse.tokenUsage.totalTokenCount
             )
         )
 
@@ -338,9 +338,9 @@ class InferenceEngine(
                 "completed" to inferenceResult.completed,
                 "progress" to inferenceResult.progress,
                 "duration" to inferenceResult.totalInferenceTimeMillis,
-                "inputTokenCount" to inferenceResult.inputTokenCount,
-                "outputTokenCount" to inferenceResult.outputTokenCount,
-                "totalTokenCount" to inferenceResult.totalTokenCount
+                "inputToken" to inferenceResult.inputTokenCount,
+                "outputToken" to inferenceResult.outputTokenCount,
+                "totalToken" to inferenceResult.totalTokenCount
             )
         )
 
@@ -390,9 +390,9 @@ class InferenceEngine(
                 "instruction" to instruction,
                 "resultLength" to response.content.length,
                 "duration" to inferenceTimeMillis,
-                "inputTokenCount" to response.tokenUsage.inputTokenCount,
-                "outputTokenCount" to response.tokenUsage.outputTokenCount,
-                "totalTokenCount" to response.tokenUsage.totalTokenCount
+                "inputToken" to response.tokenUsage.inputTokenCount,
+                "outputToken" to response.tokenUsage.outputTokenCount,
+                "totalToken" to response.tokenUsage.totalTokenCount
             )
         )
 
