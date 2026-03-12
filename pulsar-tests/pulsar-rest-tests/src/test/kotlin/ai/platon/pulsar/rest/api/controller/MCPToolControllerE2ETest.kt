@@ -3,9 +3,9 @@ package ai.platon.pulsar.rest.api.controller
 import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.rest.api.TestHelper.MOCK_PRODUCT_LIST_URL
 import ai.platon.pulsar.rest.api.TestHelper.MOCK_PRODUCT_DETAIL_URL
-import ai.platon.pulsar.rest.openapi.controller.MCPToolCallResponse
-import ai.platon.pulsar.rest.openapi.controller.MCPToolController
-import ai.platon.pulsar.rest.openapi.service.SessionManager
+import ai.platon.pulsar.rest.mcp.controller.MCPToolCallResponse
+import ai.platon.pulsar.rest.mcp.controller.MCPToolController
+import ai.platon.pulsar.rest.mcp.service.SessionManager
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

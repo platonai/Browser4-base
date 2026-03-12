@@ -11,7 +11,7 @@ import org.springframework.test.context.ContextConfiguration
 @ComponentScan(
     "ai.platon.pulsar.boot.autoconfigure",
     "ai.platon.pulsar.rest.api",
-    "ai.platon.pulsar.rest.openapi",
+    "ai.platon.pulsar.rest.mcp",
     "ai.platon.pulsar.app",
 )
 @ImportResource("classpath:rest-beans/app-context.xml")

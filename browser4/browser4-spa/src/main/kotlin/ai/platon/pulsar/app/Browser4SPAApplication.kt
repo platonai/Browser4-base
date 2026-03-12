@@ -22,7 +22,7 @@ import org.springframework.context.support.AbstractApplicationContext
 @ComponentScan(
     "ai.platon.pulsar.boot.autoconfigure",
     "ai.platon.pulsar.rest.api",
-    "ai.platon.pulsar.rest.openapi",
+    "ai.platon.pulsar.rest.mcp",
     "ai.platon.pulsar.app.api",
 )
 class Browser4Application(

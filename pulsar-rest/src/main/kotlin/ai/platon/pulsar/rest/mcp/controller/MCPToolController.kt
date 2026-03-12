@@ -1,9 +1,9 @@
-package ai.platon.pulsar.rest.openapi.controller
+package ai.platon.pulsar.rest.mcp.controller
 
 import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
 import ai.platon.pulsar.agentic.model.ToolCall
 import ai.platon.pulsar.agentic.tools.AgentToolExecutor
-import ai.platon.pulsar.rest.openapi.service.SessionManager
+import ai.platon.pulsar.rest.mcp.service.SessionManager
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSetter
@@ -101,7 +101,7 @@ class MCPToolController(
                 "kill_all_sessions" -> handleKillAllSessions()
                 "delete_session_data" -> handleDeleteSessionData(request)
                 // All other tools are dispatched to the session's MCP Server
-                else -> dispatchToMCPServer(request)
+                else -> dispatchToToolExtractor(request)
             }
         } catch (e: Exception) {
             logger.error("MCP tool call failed | tool={} | {}", request.tool, e.message, e)
@@ -206,7 +206,7 @@ class MCPToolController(
      * This replaces the manual tool implementation by delegating to the central
      * tool registry in [AgentToolExecutor].
      */
-    private suspend fun dispatchToMCPServer(request: MCPToolCallRequest): ResponseEntity<MCPToolCallResponse> {
+    private suspend fun dispatchToToolExtractor(request: MCPToolCallRequest): ResponseEntity<MCPToolCallResponse> {
         val sessionId = requireSessionId(request)
         val managed = sessionManager.getSession(sessionId)
             ?: return ResponseEntity.ok(errorResponse("Session not found: $sessionId"))

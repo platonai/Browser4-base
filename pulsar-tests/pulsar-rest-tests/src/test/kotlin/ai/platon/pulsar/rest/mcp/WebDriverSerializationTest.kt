@@ -1,4 +1,4 @@
-package ai.platon.pulsar.rest.openapi
+package ai.platon.pulsar.rest.mcp
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll

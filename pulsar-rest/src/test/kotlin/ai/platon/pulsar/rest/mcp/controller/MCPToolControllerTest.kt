@@ -1,4 +1,4 @@
-package ai.platon.pulsar.rest.openapi.controller
+package ai.platon.pulsar.rest.mcp.controller
 
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
@@ -7,8 +7,8 @@ import ai.platon.pulsar.agentic.tools.AgentToolExecutor
 import ai.platon.pulsar.agentic.model.TcEvaluate
 import ai.platon.pulsar.agentic.model.ToolCallResult
 import ai.platon.pulsar.agentic.model.ToolSpec
-import ai.platon.pulsar.rest.openapi.service.SessionManager
-import ai.platon.pulsar.rest.openapi.service.SessionManager.ManagedSession
+import ai.platon.pulsar.rest.mcp.service.SessionManager
+import ai.platon.pulsar.rest.mcp.service.SessionManager.ManagedSession
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.runBlocking
