@@ -451,14 +451,14 @@ $userInstructions
         val agentState = requireNotNull(context.agentState)
         val toolCallResult = requireNotNull(context.agentState.prevState?.toolCallResult)
         val evaluate = toolCallResult.evaluate
-        val evalResult = evaluate?.value?.toString()
-        val exception = evaluate?.exception?.cause
+        val evalResult = evaluate.value?.toString()
+        val exception = evaluate.exception?.cause
         val evalMessage = when {
             exception != null -> "[Execution Error]\n" + exception.brief()
             evalResult.isNullOrBlank() -> "[Execution Succeeded]"
             else -> "[Execution Succeeded] Output: $evalResult"
         }.let { Strings.compactInline(it, 5000) }
-        val help = evaluate?.exception?.help?.takeIf { it.isNotBlank() }
+        val help = evaluate.exception?.help?.takeIf { it.isNotBlank() }
         val helpMessage = help?.let { "Help:\n```\n$it\n```" } ?: ""
         val lastModelError = agentState.actionDescription?.modelResponse?.modelError
         val lastModelMessage = if (lastModelError != null) {

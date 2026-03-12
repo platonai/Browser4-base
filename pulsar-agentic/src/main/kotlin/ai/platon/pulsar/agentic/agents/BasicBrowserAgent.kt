@@ -737,14 +737,14 @@ open class BasicBrowserAgent(
                 snapshotService.addHighlights(interactiveElements)
             }
 
-            context.screenshotB64 = activeDriver.screenshot()
+//            val screenshotB64 = activeDriver.screenshot()
+//            val context = context.copy(screenshotB64 = screenshotB64)
 
             val actionDescription = withTimeout(config.llmInferenceTimeoutMs) {
                 inference.observe(params, context)
             }
 
             val observeResults = actionDescription.toObserveResults(context.agentState)
-            // observeResults.forEach { it.setContext(context) }
 
             return ObserveActResult(observeResults, actionDescription)
         } finally {
@@ -752,35 +752,6 @@ open class BasicBrowserAgent(
                 snapshotService.removeHighlights()
             }
         }
-    }
-
-    protected suspend fun captureScreenshotWithRetry(context: ExecutionContext): String? {
-        val attempts = 2
-        var lastEx: Exception? = null
-        for (i in 1..attempts) {
-            try {
-                val screenshot = activeDriver.screenshot()
-                if (screenshot != null) {
-                    logger.info(
-                        "📸✅ screenshot.ok sid={} step={} size={} attempt={} ",
-                        context.sid, context.step, screenshot.length, i
-                    )
-                    return screenshot
-                } else {
-                    logger.info("📸⚪ screenshot.null sid={} step={} attempt={}", context.sid, context.step, i)
-                }
-            } catch (e: Exception) {
-                lastEx = e
-                logger.warn("📸⚠️ screenshot attempt {} failed: {}", i, e.message)
-                delay(200)
-            }
-        }
-
-        if (lastEx != null) {
-            logger.error("📸❌ screenshot.fail sid={} msg={}", context.sid, lastEx.message, lastEx)
-        }
-
-        return null
     }
 
     override suspend fun clearHistory() {

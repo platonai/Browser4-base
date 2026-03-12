@@ -12,25 +12,23 @@ import java.util.UUID
  * Structured logging context for better debugging
  */
 data class ExecutionContext constructor(
-    var step: Int,
+    val step: Int,
 
-    var instruction: String = "",
-    var screenshotB64: String? = null,
+    val instruction: String = "",
+    val screenshotB64: String? = null,
 
-    var event: String,
-    var targetUrl: String? = null,
+    val event: String,
+    val targetUrl: String? = null,
 
     val agentState: AgentState,
+    val stepStartTime: Instant = Instant.now(),
     val stateHistory: AgentHistory,
 
     val config: AgentConfig,
-
     val sessionId: String,
-    val stepStartTime: Instant = Instant.now()
+    val uuid: String = UUID.randomUUID().toString(),
 ) {
     val sid get() = sessionId.take(8)
-
-    val uuid = UUID.randomUUID().toString()
 
     val prevAgentState: AgentState? get() = agentState.prevState
 

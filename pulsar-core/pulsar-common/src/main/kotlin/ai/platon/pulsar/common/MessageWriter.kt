@@ -1,3 +1,4 @@
+@file:Suppress("unused")
 package ai.platon.pulsar.common
 
 import ai.platon.pulsar.common.MessageWriter.Companion.CHECK_SIZE_EACH_WRITES
@@ -61,7 +62,6 @@ class MessageWriter(
 
     companion object {
         /** Disable level-aware logging. */
-        @Suppress("unused")
         const val OFF = 0
 
         /** Error level for level-aware logging. */
@@ -98,7 +98,7 @@ class MessageWriter(
         /**
          * The default idle timeout used by [idleTimeout].
          */
-        var IDLE_TIMEOUT = Duration.ofMinutes(5)
+        var IDLE_TIMEOUT: Duration = Duration.ofMinutes(5)
 
         private val ID_SUPPLIER = AtomicLong()
 

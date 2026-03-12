@@ -65,7 +65,6 @@ data class AgentConfig(
     val actTimeoutMs: Long = 10.minutes.inWholeMilliseconds,
     val llmInferenceTimeoutMs: Long = 10.minutes.inWholeMilliseconds,
     val maxResultsToTry: Int = 3,
-    val screenshotEveryNSteps: Int = 1,
     val domSettleTimeoutMs: Long = 5000,
     val domSettleCheckIntervalMs: Long = 100,
     val allowLocalhost: Boolean = false,
@@ -77,10 +76,6 @@ data class AgentConfig(
     // Circuit breaker configuration
     val maxConsecutiveLLMFailures: Int = 5,
     val maxConsecutiveValidationFailures: Int = 8,
-    // Checkpointing configuration
-    val enableCheckpointing: Boolean = false,
-    val checkpointIntervalSteps: Int = 10,
-    val maxCheckpointsPerSession: Int = 5,
 )
 
 open class RobustBrowserAgent(
