@@ -155,9 +155,9 @@ class Browser4MCPServerToolManagerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("navigate tool handler routes call through AgentToolManager.executeToolCall")
+    @DisplayName("navigate tool handler routes call through AgentToolManager.execute")
     fun navigateToolRoutesCallThroughManager() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = null)
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = null)
 
         val tool = mcpServer.server.tools["navigate"]!!
         val request = buildRequest("navigate", mapOf("url" to "https://example.com"))
@@ -173,9 +173,9 @@ class Browser4MCPServerToolManagerTest {
     }
 
     @Test
-    @DisplayName("fs_write_string tool handler routes call through AgentToolManager.executeToolCall")
+    @DisplayName("fs_write_string tool handler routes call through AgentToolManager.execute")
     fun fsWriteStringToolRoutesCallThroughManager() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "OK")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "OK")
 
         val tool = mcpServer.server.tools["fs_write_string"]!!
         val request = buildRequest("fs_write_string", mapOf("filename" to "out.txt", "content" to "hello"))
@@ -193,7 +193,7 @@ class Browser4MCPServerToolManagerTest {
     @Test
     @DisplayName("tool handler returns the result value from AgentToolManager")
     fun toolHandlerReturnsResultFromManager() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "navigated")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "navigated")
 
         val tool = mcpServer.server.tools["navigate"]!!
         val result = tool.handler(buildRequest("navigate", mapOf("url" to "https://example.com")))
@@ -223,7 +223,7 @@ class Browser4MCPServerToolManagerTest {
             expression = "driver.navigate(url=\"bad\")",
             cause = RuntimeException("navigation failed"),
         )
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(evaluate = evaluate)
+        coEvery { toolManager.execute(any()) } returns toolCallResult(evaluate = evaluate)
 
         val tool = mcpServer.server.tools["navigate"]!!
         val result = tool.handler(buildRequest("navigate", mapOf("url" to "https://bad.url")))

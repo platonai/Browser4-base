@@ -190,7 +190,7 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("navigate succeeds and returns result over full MCP protocol")
     fun navigateSucceedsViaMCP() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "Navigated to https://example.com")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "Navigated to https://example.com")
 
         val result = client.callTool("navigate", mapOf("url" to "https://example.com"))
         assertFalse(result.isError == true)
@@ -202,7 +202,7 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("current_url returns the URL result from AgentToolManager over MCP")
     fun currentUrlReturnsDriverUrlViaMCP() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "https://example.com/page")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "https://example.com/page")
 
         val result = client.callTool("current_url", emptyMap())
         assertFalse(result.isError == true)
@@ -213,7 +213,7 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("click succeeds and returns result over MCP")
     fun clickSucceedsViaMCP() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "Clicked #submit-btn")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "Clicked #submit-btn")
 
         val result = client.callTool("click", mapOf("selector" to "#submit-btn"))
         assertFalse(result.isError == true)
@@ -224,7 +224,7 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("get_text returns element text over MCP")
     fun getTextReturnsElementTextViaMCP() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "Welcome")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "Welcome")
 
         val result = client.callTool("get_text", mapOf("selector" to "h1"))
         assertFalse(result.isError == true)
@@ -235,7 +235,7 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("evaluate returns JavaScript result over MCP")
     fun evaluateReturnsJsResultViaMCP() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "My Page Title")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "My Page Title")
 
         val result = client.callTool("evaluate", mapOf("expression" to "document.title"))
         assertFalse(result.isError == true)
@@ -246,7 +246,7 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("reload succeeds over MCP")
     fun reloadSucceedsViaMCP() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "Page reloaded")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "Page reloaded")
 
         val result = client.callTool("reload", emptyMap())
         assertFalse(result.isError == true)
@@ -273,7 +273,7 @@ class Browser4MCPServerE2ETest {
     @DisplayName("TcEvaluate with exception propagates as isError=true over MCP")
     fun evaluateExceptionPropagatesAsErrorViaMCP() = runBlocking {
         val evaluate = TcEvaluate(expression = "evaluate(expression=\"bad\")", cause = RuntimeException("SyntaxError"))
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(evaluate = evaluate)
+        coEvery { toolManager.execute(any()) } returns toolCallResult(evaluate = evaluate)
 
         val result = client.callTool("evaluate", mapOf("expression" to "{{bad"))
         assertTrue(result.isError == true)
@@ -286,9 +286,9 @@ class Browser4MCPServerE2ETest {
     @Test
     @DisplayName("multiple sequential tool calls succeed over a single MCP connection")
     fun multipleSequentialCallsSucceedViaMCP() = runBlocking {
-        coEvery { toolManager.executeToolCall(match { it.method == "navigate" }) } returns toolCallResult(value = "navigated")
-        coEvery { toolManager.executeToolCall(match { it.method == "getText" }) } returns toolCallResult(value = "headline")
-        coEvery { toolManager.executeToolCall(match { it.method == "evaluate" }) } returns toolCallResult(value = "42")
+        coEvery { toolManager.execute(match { it.method == "navigate" }) } returns toolCallResult(value = "navigated")
+        coEvery { toolManager.execute(match { it.method == "getText" }) } returns toolCallResult(value = "headline")
+        coEvery { toolManager.execute(match { it.method == "evaluate" }) } returns toolCallResult(value = "42")
 
         val nav = client.callTool("navigate", mapOf("url" to "https://example.com"))
         assertFalse(nav.isError == true, "navigate failed")
@@ -307,9 +307,9 @@ class Browser4MCPServerE2ETest {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("all tool calls route through AgentToolManager.executeToolCall with correct domain and method")
+    @DisplayName("all tool calls route through AgentToolManager.execute with correct domain and method")
     fun allToolCallsRouteThroughManager() = runBlocking {
-        coEvery { toolManager.executeToolCall(any()) } returns toolCallResult(value = "ok")
+        coEvery { toolManager.execute(any()) } returns toolCallResult(value = "ok")
 
         // Call navigate - should route to domain=driver, method=navigate
         client.callTool("navigate", mapOf("url" to "https://example.com"))
@@ -317,18 +317,15 @@ class Browser4MCPServerE2ETest {
         // Call fill - should route to domain=driver, method=fill
         client.callTool("fill", mapOf("selector" to "input", "text" to "hello"))
 
-        // Verify all calls went through executeToolCall
+        // Verify all calls went through execute
         io.mockk.coVerify(exactly = 2) { toolManager.execute(any()) }
     }
-
 
     private fun toolCallResult(value: Any? = null, evaluate: TcEvaluate? = null): ToolCallResult {
         val resolvedEvaluate = evaluate ?: TcEvaluate(value = value)
         return ToolCallResult(
-            success = resolvedEvaluate.exception == null,
             evaluate = resolvedEvaluate,
             message = resolvedEvaluate.exception?.message,
         )
     }
-
 }

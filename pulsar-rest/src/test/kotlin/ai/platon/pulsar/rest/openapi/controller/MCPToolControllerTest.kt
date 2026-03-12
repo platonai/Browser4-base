@@ -235,8 +235,8 @@ class MCPToolControllerTest {
             arguments = mapOf("sessionId" to sessionId)
         )
 
-        // Mock executeToolCall to return a value
-        `when`(agentToolExecutor.executeToolCall(anyToolCall())).thenReturn(toolCallResult("My Page Title"))
+        // Mock execute to return a value
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("My Page Title"))
 
         val result = controller.callTool(request, response)
 
@@ -258,8 +258,8 @@ class MCPToolControllerTest {
             tool = "switch_tab",
             arguments = mapOf("sessionId" to sessionId, "index" to 1)
         )
-        
-        `when`(agentToolExecutor.executeToolCall(anyToolCall())).thenReturn(toolCallResult("ok"))
+
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("ok"))
 
         val result = controller.callTool(request, response)
         assertEquals(HttpStatus.OK, result.statusCode)
@@ -390,8 +390,8 @@ class MCPToolControllerTest {
             tool = "tab_new",
             arguments = mapOf("sessionId" to sessionId, "url" to "about:blank")
         )
-        
-        `when`(agentToolExecutor.executeToolCall(anyToolCall())).thenReturn(toolCallResult("ok"))
+
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("ok"))
 
         val result = controller.callTool(request, response)
         assertEquals(HttpStatus.OK, result.statusCode)
@@ -411,8 +411,8 @@ class MCPToolControllerTest {
             tool = "tab_list",
             arguments = mapOf("sessionId" to sessionId)
         )
-        
-        `when`(agentToolExecutor.executeToolCall(anyToolCall())).thenReturn(toolCallResult("[]"))
+
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("[]"))
 
         val result = controller.callTool(request, response)
         assertEquals(HttpStatus.OK, result.statusCode)
@@ -432,8 +432,8 @@ class MCPToolControllerTest {
             tool = "tab_close",
             arguments = mapOf("sessionId" to sessionId)
         )
-        
-        `when`(agentToolExecutor.executeToolCall(anyToolCall())).thenReturn(toolCallResult("ok"))
+
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("ok"))
 
         val result = controller.callTool(request, response)
         assertEquals(HttpStatus.OK, result.statusCode)
@@ -495,9 +495,9 @@ class MCPToolControllerTest {
         )
         `when`(agentToolExecutor.getAllToolSpecs()).thenReturn(toolSpecs)
 
-        // Ensure executeToolCall returns success
+        // Ensure execute returns success
         runBlocking {
-            `when`(agentToolExecutor.executeToolCall(anyToolCall())).thenReturn(toolCallResult("ok"))
+            `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("ok"))
         }
     }
 

@@ -222,13 +222,13 @@ class MCPToolController(
             ?: return ResponseEntity.ok(errorResponse("Unknown tool: $toolName"))
 
         return try {
-            val result = agent.toolExtractor.executeToolCall(toolCall)
+            val result = agent.toolExtractor.execute(toolCall)
             val evaluate = result.evaluate
-            val exception = evaluate?.exception
+            val exception = evaluate.exception
             if (exception != null) {
                 ResponseEntity.ok(errorResponse("$toolName failed: ${exception.cause?.message} help: ${exception.help}"))
             } else {
-                ResponseEntity.ok(textResponse(evaluate?.value?.toString() ?: ""))
+                ResponseEntity.ok(textResponse(evaluate.value?.toString() ?: ""))
             }
         } catch (e: Exception) {
             logger.error("MCP tool execution failed | tool={} | {}", toolName, e.message, e)
