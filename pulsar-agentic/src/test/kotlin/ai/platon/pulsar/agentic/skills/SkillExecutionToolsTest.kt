@@ -21,7 +21,7 @@ class SkillExecutionToolsTest {
                     domain = "skill",
                     functionName = "readReference",
                     args = mapOf("id" to "pdf", "path" to "references/../SKILL.md"),
-                    target = target
+                    receiver = target
                 )
             }
         }
@@ -44,7 +44,7 @@ class SkillExecutionToolsTest {
                         "path" to "scripts/connections.py",
                         "args" to emptyList<String>()
                     ),
-                    target = target
+                    receiver = target
                 )
             }
 

@@ -13,7 +13,7 @@ class SkillScriptToolExecutor(
 ) : AbstractToolExecutor(), ToolCallSpecificationProvider {
     private val logger = getLogger(this)
     override val domain: String = "skill"
-    override val targetClass: KClass<*> = SkillToolTarget::class
+    override val receiverClass: KClass<*> = SkillToolTarget::class
     init {
         toolSpec["readReference"] = ToolSpec(
             domain = domain,
@@ -45,10 +45,10 @@ class SkillScriptToolExecutor(
         domain: String,
         functionName: String,
         args: Map<String, Any?>,
-        target: Any
+        receiver: Any
     ): Any? {
         require(domain == this.domain) { "Unsupported domain: $domain" }
-        require(target is SkillToolTarget) { "Target must be a SkillToolTarget" }
+        require(receiver is SkillToolTarget) { "Target must be a SkillToolTarget" }
         return when (functionName) {
             "readReference" -> {
                 validateArgs(args, allowed = setOf("id", "path"), required = setOf("id", "path"), functionName)

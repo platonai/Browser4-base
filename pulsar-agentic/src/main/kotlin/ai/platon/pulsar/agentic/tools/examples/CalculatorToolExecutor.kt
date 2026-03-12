@@ -35,7 +35,7 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
 
     override val domain = "calc"
 
-    override val targetClass: KClass<*> = Calculator::class
+    override val receiverClass: KClass<*> = Calculator::class
 
     init {
         toolSpec["add"] = ToolSpec(
@@ -97,13 +97,13 @@ class CalculatorToolExecutor : AbstractToolExecutor() {
         domain: String,
         functionName: String,
         args: Map<String, Any?>,
-        target: Any
+        receiver: Any
     ): Any? {
         require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
-        require(target is Calculator) { "Target must be a Calculator instance" }
+        require(receiver is Calculator) { "Target must be a Calculator instance" }
 
-        val calc = target
+        val calc = receiver
 
         return when (functionName) {
             "add" -> {

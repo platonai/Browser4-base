@@ -10,9 +10,9 @@ import kotlin.reflect.KClass
 interface ToolExecutor {
 
     val domain: String
-    val targetClass: KClass<*>
+    val receiverClass: KClass<*>
 
-    suspend fun callFunctionOn(tc: ToolCall, target: Any = Any()): TcEvaluate
+    suspend fun callFunctionOn(tc: ToolCall, receiver: Any = Any()): TcEvaluate
 
     fun help(): String
     fun help(method: String): String
@@ -43,14 +43,14 @@ abstract class AbstractToolExecutor : ToolExecutor {
         """.trimIndent()
     }
 
-    override suspend fun callFunctionOn(tc: ToolCall, target: Any): TcEvaluate {
+    override suspend fun callFunctionOn(tc: ToolCall, receiver: Any): TcEvaluate {
         val domain = tc.domain
         val functionName = tc.method
         val args = tc.arguments
         val pseudoExpression = tc.pseudoExpression
 
         return try {
-            val r = callFunctionOn(domain, functionName, args, target)
+            val r = callFunctionOn(domain, functionName, args, receiver)
 
             val className = if (r == null) "null" else r::class.qualifiedName
             val value = if (r == Unit) null else r
@@ -63,7 +63,7 @@ abstract class AbstractToolExecutor : ToolExecutor {
     }
 
     @Throws(IllegalArgumentException::class)
-    abstract suspend fun callFunctionOn(domain: String, functionName: String, args: Map<String, Any?>, target: Any): Any?
+    abstract suspend fun callFunctionOn(domain: String, functionName: String, args: Map<String, Any?>, receiver: Any): Any?
 
     // ---------------- Shared helpers for named parameter executors ----------------
     protected fun validateArgs(

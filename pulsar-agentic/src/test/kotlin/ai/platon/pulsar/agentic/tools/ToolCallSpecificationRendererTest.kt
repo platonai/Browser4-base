@@ -433,13 +433,13 @@ class ToolCallSpecificationRendererTest {
 
     private class DbToolExecutor : AbstractToolExecutor() {
         override val domain: String = "db"
-        override val targetClass: KClass<*> = Any::class
+        override val receiverClass: KClass<*> = Any::class
 
         override suspend fun callFunctionOn(
             domain: String,
             functionName: String,
             args: Map<String, Any?>,
-            target: Any
+            receiver: Any
         ): Any? {
             return null
         }
@@ -447,13 +447,13 @@ class ToolCallSpecificationRendererTest {
 
     private class MockServiceToolExecutor : AbstractToolExecutor() {
         override val domain: String = "service.test-server"
-        override val targetClass: KClass<*> = Any::class
+        override val receiverClass: KClass<*> = Any::class
 
         override suspend fun callFunctionOn(
             domain: String,
             functionName: String,
             args: Map<String, Any?>,
-            target: Any
+            receiver: Any
         ): Any? {
             return null
         }
@@ -461,13 +461,13 @@ class ToolCallSpecificationRendererTest {
 
     private class ComplexToolExecutor : AbstractToolExecutor() {
         override val domain: String = "complex"
-        override val targetClass: KClass<*> = Any::class
+        override val receiverClass: KClass<*> = Any::class
 
         override suspend fun callFunctionOn(
             domain: String,
             functionName: String,
             args: Map<String, Any?>,
-            target: Any
+            receiver: Any
         ): Any? {
             return null
         }

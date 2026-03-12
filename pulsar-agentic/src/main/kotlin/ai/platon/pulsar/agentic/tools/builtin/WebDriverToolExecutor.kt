@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 class WebDriverToolExecutor: AbstractToolExecutor() {
     override val domain = "driver"
 
-    override val targetClass: KClass<*> = WebDriver::class
+    override val receiverClass: KClass<*> = WebDriver::class
 
     init {
         ToolSpecGenerator.apply {
@@ -33,9 +33,9 @@ class WebDriverToolExecutor: AbstractToolExecutor() {
      */
     @Suppress("UNUSED_PARAMETER")
     override suspend fun callFunctionOn(
-        domain: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, receiver: Any
     ): Any? {
-        val driver = requireNotNull(target as? WebDriver) { "The target must be a WebDriver" }
+        val driver = requireNotNull(receiver as? WebDriver) { "The target must be a WebDriver" }
 
         fun allowed(vararg names: String) = names.toSet()
 

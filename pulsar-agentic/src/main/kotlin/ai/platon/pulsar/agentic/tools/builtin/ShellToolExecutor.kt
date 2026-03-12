@@ -35,7 +35,7 @@ class ShellToolExecutor : AbstractToolExecutor() {
 
     override val domain = "shell"
 
-    override val targetClass: KClass<*> = AgentShell::class
+    override val receiverClass: KClass<*> = AgentShell::class
 
     init {
         toolSpec["execute"] = ToolSpec(
@@ -86,13 +86,13 @@ class ShellToolExecutor : AbstractToolExecutor() {
     @Suppress("UNUSED_PARAMETER")
     @Throws(IllegalArgumentException::class)
     override suspend fun callFunctionOn(
-        domain: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, receiver: Any
     ): Any? {
         require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
-        require(target is AgentShell) { "Target must be an AgentShell" }
+        require(receiver is AgentShell) { "Target must be an AgentShell" }
 
-        val shell = target
+        val shell = receiver
 
         return when (functionName) {
             // shell.execute(command: String, timeoutSeconds?: Long, workingDir?: String)

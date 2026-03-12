@@ -41,7 +41,7 @@ class SkillScriptExecutionIntegrationTest {
                     "timeoutMillis" to 10_000,
                     "maxOutputChars" to 10_000
                 ),
-                target = target
+                receiver = target
             ) as Map<String, Any?>
 
             assertEquals(0, result["exitCode"])

@@ -12,7 +12,7 @@ class SystemToolExecutor(
 
     override val domain = "system"
 
-    override val targetClass: KClass<*> = SystemToolExecutor::class
+    override val receiverClass: KClass<*> = SystemToolExecutor::class
 
     init {
         toolSpec["help"] = ToolSpec(
@@ -37,7 +37,7 @@ class SystemToolExecutor(
     @Suppress("UNUSED_PARAMETER")
     @Throws(IllegalArgumentException::class)
     override suspend fun callFunctionOn(
-        domain: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, receiver: Any
     ): Any? {
         require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }

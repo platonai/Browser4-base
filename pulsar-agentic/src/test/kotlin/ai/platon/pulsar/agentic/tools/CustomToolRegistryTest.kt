@@ -156,13 +156,13 @@ class CustomToolRegistryTest {
 
     class TestToolExecutor : AbstractToolExecutor() {
         override val domain = "test"
-        override val targetClass: KClass<*> = TestTarget::class
+        override val receiverClass: KClass<*> = TestTarget::class
 
         override suspend fun callFunctionOn(
             domain: String,
             functionName: String,
             args: Map<String, Any?>,
-            target: Any
+            receiver: Any
         ): Any? {
             // require(target is TestTarget) { "Target must be TestTarget" }
             return when (functionName) {
@@ -177,13 +177,13 @@ class CustomToolRegistryTest {
 
     class AnotherTestToolExecutor : AbstractToolExecutor() {
         override val domain = "another"
-        override val targetClass: KClass<*> = TestTarget::class
+        override val receiverClass: KClass<*> = TestTarget::class
 
         override suspend fun callFunctionOn(
             domain: String,
             functionName: String,
             args: Map<String, Any?>,
-            target: Any
+            receiver: Any
         ): Any? {
             return "another"
         }
@@ -191,13 +191,13 @@ class CustomToolRegistryTest {
 
     class BlankDomainToolExecutor : AbstractToolExecutor() {
         override val domain = ""
-        override val targetClass: KClass<*> = TestTarget::class
+        override val receiverClass: KClass<*> = TestTarget::class
 
         override suspend fun callFunctionOn(
             domain: String,
             functionName: String,
             args: Map<String, Any?>,
-            target: Any
+            receiver: Any
         ): Any? {
             return null
         }

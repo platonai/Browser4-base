@@ -1,15 +1,10 @@
 package ai.platon.pulsar.agentic.tools
 
-import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.model.TcEvaluate
 import ai.platon.pulsar.agentic.model.ToolCall
 import ai.platon.pulsar.agentic.tools.builtin.BrowserToolExecutor
 import ai.platon.pulsar.agentic.tools.builtin.ToolExecutor
 import ai.platon.pulsar.agentic.tools.builtin.WebDriverToolExecutor
-import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
-import javax.script.ScriptEngineManager
 import kotlin.reflect.full.isSuperclassOf
 
 /**
@@ -37,10 +32,10 @@ open class BasicToolCallExecutor(
     val toolExecutors: List<ToolExecutor> = listOf(WebDriverToolExecutor(), BrowserToolExecutor())
 ) {
     @Throws(UnsupportedOperationException::class)
-    suspend fun callFunctionOn(tc: ToolCall, target: Any): TcEvaluate {
+    suspend fun callFunctionOn(tc: ToolCall, receiver: Any): TcEvaluate {
         return toolExecutors
-            .firstOrNull { it.targetClass.isSuperclassOf(target::class) }
-            ?.callFunctionOn(tc, target)
-            ?: throw UnsupportedOperationException("❓ Unsupported target ${target::class}")
+            .firstOrNull { it.receiverClass.isSuperclassOf(receiver::class) }
+            ?.callFunctionOn(tc, receiver)
+            ?: throw UnsupportedOperationException("❓ Unsupported receiver ${receiver::class}")
     }
 }

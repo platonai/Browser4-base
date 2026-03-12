@@ -24,7 +24,7 @@ class SkillToolExecutor(
 
     override val domain: String = "skill"
 
-    override val targetClass: KClass<*> = SkillToolTarget::class
+    override val receiverClass: KClass<*> = SkillToolTarget::class
 
     init {
         // 1) Discovery surface
@@ -76,21 +76,21 @@ class SkillToolExecutor(
         domain: String,
         functionName: String,
         args: Map<String, Any?>,
-        target: Any
+        receiver: Any
     ): Any? {
         require(domain == this.domain) { "Unsupported domain: $domain" }
-        require(target is SkillToolTarget) { "Target must be a SkillToolTarget" }
-        
+        require(receiver is SkillToolTarget) { "Target must be a SkillToolTarget" }
+
         // Get agentId from SkillToolTarget context if available
-        val agentId = target.context.sessionId
+        val agentId = receiver.context.sessionId
 
         return when (functionName) {
             "list" -> {
                 val maxChars = (args["maxDescriptionChars"] as? Number)?.toInt() ?: 512
                 val skills = registry.listSkillSummaries(maxDescriptionChars = maxChars)
-                
+
                 onSkillsListed(agentId, skills.size, maxChars)
-                
+
                 skills
             }
 
@@ -98,9 +98,9 @@ class SkillToolExecutor(
                 validateArgs(args, allowed = setOf("id"), required = setOf("id"), functionName)
                 val id = paramString(args, "id", functionName)!!
                 val activation = registry.activateSkill(id)
-                
+
                 onSkillActivated(agentId, id)
-                
+
                 activation
             }
 
@@ -128,7 +128,7 @@ class SkillToolExecutor(
                 val startTime = System.currentTimeMillis()
 
                 return try {
-                    val result = target.execute(id, paramsMap)
+                    val result = receiver.execute(id, paramsMap)
                     val duration = System.currentTimeMillis() - startTime
 
                     onDidRunSkill(agentId, id, duration, result)

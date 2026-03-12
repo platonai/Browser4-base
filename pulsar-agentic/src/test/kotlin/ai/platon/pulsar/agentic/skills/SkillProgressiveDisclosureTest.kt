@@ -21,7 +21,7 @@ class SkillProgressiveDisclosureTest {
             domain = "skill",
             functionName = "list",
             args = mapOf("maxDescriptionChars" to 120),
-            target = target
+            receiver = target
         )
 
         @Suppress("UNCHECKED_CAST")
@@ -47,7 +47,7 @@ class SkillProgressiveDisclosureTest {
             domain = "skill",
             functionName = "activate",
             args = mapOf("id" to "web-scraping"),
-            target = target
+            receiver = target
         )
 
         val activation = result as SkillRegistry.SkillActivation

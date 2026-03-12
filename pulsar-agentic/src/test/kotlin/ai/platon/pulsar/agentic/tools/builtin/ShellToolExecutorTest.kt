@@ -195,6 +195,6 @@ class ShellToolExecutorTest {
 
     @Test
     fun testTargetClassIsAgentShell() {
-        assertEquals(AgentShell::class, executor.targetClass)
+        assertEquals(AgentShell::class, executor.receiverClass)
     }
 }

@@ -11,7 +11,7 @@ class WebDriverExToolExecutor: AbstractToolExecutor() {
     override val domain = "driverEx"
 
     // target must be AbstractWebDriver (was Browser before, incorrect)
-    override val targetClass: KClass<*> = AbstractWebDriver::class
+    override val receiverClass: KClass<*> = AbstractWebDriver::class
 
     init {
         toolSpec["extract"] = ToolSpec(
@@ -31,11 +31,11 @@ class WebDriverExToolExecutor: AbstractToolExecutor() {
     @Suppress("UNUSED_PARAMETER")
     @Throws(IllegalArgumentException::class)
     override suspend fun callFunctionOn(
-        domain: String, functionName: String, args: Map<String, Any?>, target: Any
+        domain: String, functionName: String, args: Map<String, Any?>, receiver: Any
     ): Any? {
         require(domain == this.domain) { "Unsupported domain: $domain" }
         require(functionName.isNotBlank()) { "Function name must not be blank" }
-        val driver = requireNotNull(target as? AbstractWebDriver) { "Target must be AbstractWebDriver" }
+        val driver = requireNotNull(receiver as? AbstractWebDriver) { "Target must be AbstractWebDriver" }
 
         return when (functionName) {
             "extract" -> {

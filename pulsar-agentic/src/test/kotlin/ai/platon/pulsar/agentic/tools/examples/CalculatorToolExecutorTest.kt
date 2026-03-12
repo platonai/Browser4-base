@@ -150,7 +150,7 @@ class CalculatorToolExecutorTest {
     @Test
         @DisplayName("test calculator target class property")
     fun testCalculatorTargetClassProperty() {
-        assertEquals(Calculator::class, executor.targetClass)
+        assertEquals(Calculator::class, executor.receiverClass)
     }
 
     @Test
