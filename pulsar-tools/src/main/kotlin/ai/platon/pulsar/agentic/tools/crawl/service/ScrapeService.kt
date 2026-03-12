@@ -42,13 +42,13 @@ class ScrapeService(
 
         request.onBrowserLaunchedActions?.let { actions ->
             be.onBrowserLaunched.addLast { page, driver ->
-                actions.forEach { session.plainActs(it) }
+                actions.forEach { session.act(it) }
             }
         }
 
         request.onPageReadyActions?.let { actions ->
             be.onDocumentFullyLoaded.addLast { page, driver ->
-                actions.forEach { session.plainActs(it) }
+                actions.forEach { session.act(it) }
             }
         }
 

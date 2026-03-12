@@ -3,7 +3,6 @@ package ai.platon.pulsar.agentic
 import ai.platon.pulsar.agentic.agents.RobustBrowserAgent
 import ai.platon.pulsar.agentic.context.AbstractAgenticContext
 import ai.platon.pulsar.agentic.inference.SessionActExecutor
-import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.ToolCallResult
 import ai.platon.pulsar.common.config.VolatileConfig
 import ai.platon.pulsar.ql.SessionConfig
@@ -24,7 +23,7 @@ interface AgenticSession : PulsarSession {
      * @param action The textual prompt that describes the actions to be performed by the webdriver.
      * @return The response from the model, though in this implementation, the return value is not explicitly used.
      */
-    suspend fun plainActs(action: String): List<ToolCallResult>
+    suspend fun act(action: String): List<ToolCallResult>
 }
 
 abstract class AbstractAgenticSession(
@@ -44,7 +43,7 @@ open class BasicAgenticSession(
 
     private val executor by lazy { SessionActExecutor(this) }
 
-    override suspend fun plainActs(action: String) = executor.performActs(action)
+    override suspend fun act(action: String) = executor.performActs(action)
 
     @Synchronized
     private fun createCompanionAgent(): RobustBrowserAgent {
@@ -63,7 +62,7 @@ open class AbstractAgenticQLSession(
 
     private val executor by lazy { SessionActExecutor(this) }
 
-    override suspend fun plainActs(action: String) = executor.performActs(action)
+    override suspend fun act(action: String) = executor.performActs(action)
 
     @Synchronized
     private fun createCompanionAgent(): RobustBrowserAgent {

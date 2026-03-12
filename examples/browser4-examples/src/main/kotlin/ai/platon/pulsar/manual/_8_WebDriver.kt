@@ -251,7 +251,7 @@ internal class WebDriverDemo(private val session: AgenticSession = AgenticContex
         println("Using plain language, tell the browser to click $selector ...")
         // Only works when LLM is configured
         session.bindDriver(driver)
-        session.plainActs("scroll to middle")
+        session.act("scroll to middle")
     }
 }
 

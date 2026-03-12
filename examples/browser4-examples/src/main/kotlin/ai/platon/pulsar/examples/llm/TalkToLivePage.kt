@@ -31,7 +31,7 @@ get the text of the element with id 'productTitle'
                 println(OffsetDateTime.now())
                 println(">>> $action")
                 session.bindDriver(driver)
-                val results = session.plainActs(action)
+                val results = session.act(action)
                 println(results.joinToString { it.modelResponse ?: "" })
 
                 results.forEach { result ->
