@@ -144,7 +144,8 @@ open class TextToAction(
         var content = modelResponse.content.trim()
 
         val errorMessage =
-            "不合格响应，必须按照`## 输出格式`要求输出合法 JSON 格式。客户端已经修正，但以后务必严格遵循格式要求输出。"
+            "Non-compliant response. You must output in a valid JSON format as required by the `## Output Format`. " +
+                    "The client has been corrected, but you must strictly adhere to the format requirements for all future outputs."
         val heading20 = content.take(30)
         val tailing20 = content.takeLast(30)
 
@@ -183,7 +184,6 @@ open class TextToAction(
             return action
         }
 
-        // requireNotNull(action.agentState) { "Agent state has to be available" }
         val observeElements = action.observeElements?.map { reviseObserveElement(it, action) }
         return action.copy(observeElements = observeElements)
     }
