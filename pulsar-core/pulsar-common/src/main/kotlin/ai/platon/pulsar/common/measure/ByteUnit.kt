@@ -1,6 +1,7 @@
+@file:Suppress("Unused")
 package ai.platon.pulsar.common.measure
 
-import ai.platon.pulsar.common.measure.BitUnit
+import kotlin.math.pow
 
 /*
 * Copyright 2011 Fabian Barney
@@ -324,16 +325,16 @@ enum class ByteUnit {
     }
 
     companion object {
-        val C_KIB = Math.pow(2.0, 10.0)
-        val C_MIB = Math.pow(2.0, 20.0)
-        val C_GIB = Math.pow(2.0, 30.0)
-        val C_TIB = Math.pow(2.0, 40.0)
-        val C_PIB = Math.pow(2.0, 50.0)
-        val C_KB = Math.pow(10.0, 3.0)
-        val C_MB = Math.pow(10.0, 6.0)
-        val C_GB = Math.pow(10.0, 9.0)
-        val C_TB = Math.pow(10.0, 12.0)
-        val C_PB = Math.pow(10.0, 15.0)
+        val C_KIB = 2.0.pow(10.0)
+        val C_MIB = 2.0.pow(20.0)
+        val C_GIB = 2.0.pow(30.0)
+        val C_TIB = 2.0.pow(40.0)
+        val C_PIB = 2.0.pow(50.0)
+        val C_KB = 10.0.pow(3.0)
+        val C_MB = 10.0.pow(6.0)
+        val C_GB = 10.0.pow(9.0)
+        val C_TB = 10.0.pow(12.0)
+        val C_PB = 10.0.pow(15.0)
 
         private const val MAX = Double.MAX_VALUE
 

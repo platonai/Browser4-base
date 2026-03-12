@@ -175,7 +175,6 @@ open class CachedBrowserChatModel(
             DigestUtils.md5Hex(imageUrl)
         } else ""
 
-        // TODO: optimize calculating the md5 for long text
         val cacheKey = DigestUtils.md5Hex("$trimmedUserMessage|$systemMessage$attachmentKeyPart")
 
         // Check if the response is already cached
@@ -185,7 +184,6 @@ open class CachedBrowserChatModel(
             return it
         }
 
-        // 记录请求
         val requestId = llmLogger.logRequestUmSm(trimmedUserMessage, systemMessage, category)
 
         // Build user message, optionally with b64Image content parts
@@ -210,13 +208,9 @@ open class CachedBrowserChatModel(
 
         val response: ChatResponse = try {
             if (systemMessage.isBlank()) {
-                // langchainModel.chat(um)
-                // sendChatMessageInIOThread(um)
                 sendChatMessageWithRetry(um)
             } else {
                 val sm = SystemMessage.systemMessage(systemMessage)
-                // langchainModel.chat(sm, um)
-                // sendChatMessageInIOThread(sm, um)
                 sendChatMessageWithRetry(sm, um)
             }
         } catch (e: ChatModelException) {
@@ -257,12 +251,11 @@ open class CachedBrowserChatModel(
                 modelResponse.tokenUsage.totalTokenCount, modelResponse.content.length, log)
         }
 
-        // 记录响应
         llmLogger.logResponse(requestId, modelResponse, category)
 
         // Cache the response
         responseCache.put(cacheKey, modelResponse)
-        logger.debug("Cached response for key: $cacheKey")
+        logger.debug("Cached response for key: {}", cacheKey)
 
         return modelResponse
     }

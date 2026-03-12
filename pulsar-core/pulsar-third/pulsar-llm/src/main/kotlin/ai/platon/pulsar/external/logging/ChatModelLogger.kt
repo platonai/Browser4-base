@@ -70,7 +70,7 @@ class ChatModelLogger : AutoCloseable {
             sb.append(";;USER MESSAGE:\n${pair.userMessage}\n")
             sb.append(";;RESPONSE TIMESTAMP: ${pair.responseTimestamp}\n")
             sb.append(";;RESPONSE STATE: ${pair.response?.state}\n")
-            sb.append(";;TOKEN USAGE: ${pair.response?.tokenUsage?.totalTokenCount ?: "N/A"}\n")
+            sb.append(";;TOKEN USAGE: ${pair.response?.tokenUsage ?: "N/A"}\n")
             sb.append(";;RESPONSE CONTENT:\n${pair.response?.content ?: "No response"}")
 
             val path = auxRunLogDir.resolve("chat-$dataTimeStr.$category1.user.log")
