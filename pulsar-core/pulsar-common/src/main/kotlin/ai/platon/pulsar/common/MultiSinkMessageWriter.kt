@@ -27,9 +27,9 @@ open class MultiSinkMessageWriter(
         Files.createDirectories(baseDir)
     }
 
-    fun getPath(filename: String) = pathOf(filename)
+    fun getPath(filename: String): Path = pathOf(filename)
 
-    fun pathOf(filename: String) = baseDir.resolve(filename)
+    fun pathOf(filename: String): Path = baseDir.resolve(filename)
 
     fun readAllLines(filename: String): List<String> {
         val path = getPath(filename)
