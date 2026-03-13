@@ -155,7 +155,7 @@ class Browser4MCPServer(
     private fun toMcpToolName(domain: String, method: String): String {
         val snake = method.replace(Regex("([A-Z])")) { "_${it.groupValues[1].lowercase()}" }
         return when (domain) {
-            "driver", "system" -> snake
+            "tab", "system" -> snake
             else -> "${domain}_$snake"
         }
     }

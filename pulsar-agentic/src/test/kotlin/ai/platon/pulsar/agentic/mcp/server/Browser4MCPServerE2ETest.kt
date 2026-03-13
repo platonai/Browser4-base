@@ -74,28 +74,28 @@ class Browser4MCPServerE2ETest {
     fun setUp() = runBlocking {
         // Set up driver executor with a representative set of tool specs
         driverExecutor = mockk(relaxed = true)
-        every { driverExecutor.domain } returns "driver"
+        every { driverExecutor.domain } returns "tab"
         every { driverExecutor.getToolSpecs() } returns mapOf(
-            "navigate" to ToolSpec("driver", "navigate",
+            "navigate" to ToolSpec("tab", "navigate",
                 listOf(ToolSpec.Arg("url", "String", null)), "Unit", "Navigate the browser to a URL."),
-            "reload" to ToolSpec("driver", "reload",
+            "reload" to ToolSpec("tab", "reload",
                 emptyList(), "Unit", "Reload the current page."),
-            "goBack" to ToolSpec("driver", "goBack",
+            "goBack" to ToolSpec("tab", "goBack",
                 emptyList(), "Unit", "Navigate back."),
-            "goForward" to ToolSpec("driver", "goForward",
+            "goForward" to ToolSpec("tab", "goForward",
                 emptyList(), "Unit", "Navigate forward."),
-            "click" to ToolSpec("driver", "click",
+            "click" to ToolSpec("tab", "click",
                 listOf(ToolSpec.Arg("selector", "String", null)), "Unit", "Click an element."),
-            "fill" to ToolSpec("driver", "fill",
+            "fill" to ToolSpec("tab", "fill",
                 listOf(ToolSpec.Arg("selector", "String", null), ToolSpec.Arg("text", "String", null)),
                 "Unit", "Fill an input."),
-            "getText" to ToolSpec("driver", "getText",
+            "getText" to ToolSpec("tab", "getText",
                 listOf(ToolSpec.Arg("selector", "String", null)), "String?", "Get element text."),
-            "evaluate" to ToolSpec("driver", "evaluate",
+            "evaluate" to ToolSpec("tab", "evaluate",
                 listOf(ToolSpec.Arg("expression", "String", null)), "Any?", "Evaluate JavaScript."),
-            "waitForSelector" to ToolSpec("driver", "waitForSelector",
+            "waitForSelector" to ToolSpec("tab", "waitForSelector",
                 listOf(ToolSpec.Arg("selector", "String", null)), "Unit", "Wait for a selector."),
-            "currentUrl" to ToolSpec("driver", "currentUrl",
+            "currentUrl" to ToolSpec("tab", "currentUrl",
                 emptyList(), "String", "Return the current URL."),
         )
 

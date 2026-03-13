@@ -40,7 +40,7 @@ class AgentToolExecutor constructor(
             sharedResources = mutableMapOf(
                 "session" to session,
                 "agent" to agent,
-                "driver" to driver,
+                "tab" to driver,
             ),
         )
     }
@@ -127,7 +127,7 @@ class AgentToolExecutor constructor(
     /**
      * Returns the tool specification for a specific domain and method, or null if not found.
      *
-     * @param domain The tool domain (e.g. "driver", "fs").
+     * @param domain The tool domain (e.g. "tab", "fs").
      * @param method The method name within the domain.
      * @return The [ToolSpec] for the given domain and method, or null.
      */
@@ -163,7 +163,7 @@ class AgentToolExecutor constructor(
         var topDomain = normalized.domain.split(".").first()
         topDomain = domainAlias.getOrDefault(topDomain, topDomain)
         val evaluate = when (topDomain) {
-            "driver" -> executor.callFunctionOn(normalized, driver)
+            "tab" -> executor.callFunctionOn(normalized, driver)
             "browser" -> executor.callFunctionOn(normalized, driver.browser)
             "fs" -> executor.callFunctionOn(normalized, fs)
             "shell" -> executor.callFunctionOn(normalized, shell)

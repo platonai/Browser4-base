@@ -242,18 +242,18 @@ class MCPToolController(
 
         // 1. Explicit mapping for legacy/special names
         when (toolName) {
-            "page_title" -> return ToolCall("driver", "title", args1)
-            "page_url" -> return ToolCall("driver", "currentUrl", args1) // or just rely on pageUrl if it exists
+            "page_title" -> return ToolCall("tab", "title", args1)
+            "page_url" -> return ToolCall("tab", "currentUrl", args1) // or just rely on pageUrl if it exists
             "switch_tab", "tab_select" -> return ToolCall("browser", "switchTab", args1)
             "tab_new" -> return ToolCall("browser", "newTab", args1)
             "tab_list" -> return ToolCall("browser", "listTabs", args1)
             "tab_close", "close_tab" -> return ToolCall("browser", "closeTab", args1)
-            "keydown", "browser_keydown" -> return ToolCall("driver", "keyDown", args1)
-            "keyup", "browser_keyup" -> return ToolCall("driver", "keyUp", args1)
-            "mousemove", "browser_mouse_move_xy" -> return ToolCall("driver", "mouseMove", args1)
-            "mousedown", "browser_mouse_down" -> return ToolCall("driver", "mouseDown", args1)
-            "mouseup", "browser_mouse_up" -> return ToolCall("driver", "mouseUp", args1)
-            "mousewheel", "browser_mouse_wheel" -> return ToolCall("driver", "mouseWheel", args1)
+            "keydown", "browser_keydown" -> return ToolCall("tab", "keyDown", args1)
+            "keyup", "browser_keyup" -> return ToolCall("tab", "keyUp", args1)
+            "mousemove", "browser_mouse_move_xy" -> return ToolCall("tab", "mouseMove", args1)
+            "mousedown", "browser_mouse_down" -> return ToolCall("tab", "mouseDown", args1)
+            "mouseup", "browser_mouse_up" -> return ToolCall("tab", "mouseUp", args1)
+            "mousewheel", "browser_mouse_wheel" -> return ToolCall("tab", "mouseWheel", args1)
         }
 
         // 2. Generic mapping
@@ -277,7 +277,7 @@ class MCPToolController(
     private fun toMcpToolName(domain: String, method: String): String {
         val snake = method.replace(Regex("([A-Z])")) { "_${it.groupValues[1].lowercase()}" }
         return when (domain) {
-            "driver", "tab", "system" -> snake
+            "tab", "tab", "system" -> snake
             else -> "${domain}_$snake"
         }
     }

@@ -163,7 +163,7 @@ class MCPToolControllerTest {
 
     @Test
     fun `test goto command maps to navigate`() = runBlocking {
-        mockTool("driver", "navigate")
+        mockTool("tab", "navigate")
 
         val request = MCPToolCallRequest(
             tool = "navigate",
@@ -178,14 +178,14 @@ class MCPToolControllerTest {
         Mockito.verify(agentToolExecutor).execute(capture(captor))
         val toolCall = captor.value
 
-        assertEquals("driver", toolCall.domain)
+        assertEquals("tab", toolCall.domain)
         assertEquals("navigate", toolCall.method)
         assertEquals("https://example.com", toolCall.arguments["url"])
     }
 
     @Test
     fun `test click command`() = runBlocking {
-        mockTool("driver", "click")
+        mockTool("tab", "click")
 
         val request = MCPToolCallRequest(
             tool = "click",
@@ -200,14 +200,14 @@ class MCPToolControllerTest {
         Mockito.verify(agentToolExecutor).execute(capture(captor))
         val toolCall = captor.value
 
-        assertEquals("driver", toolCall.domain)
+        assertEquals("tab", toolCall.domain)
         assertEquals("click", toolCall.method)
         assertEquals("#btn", toolCall.arguments["selector"])
     }
 
     @Test
     fun `test fill command`() = runBlocking {
-        mockTool("driver", "fill")
+        mockTool("tab", "fill")
 
         val request = MCPToolCallRequest(
             tool = "fill",
@@ -222,7 +222,7 @@ class MCPToolControllerTest {
         Mockito.verify(agentToolExecutor).execute(capture(captor))
         val toolCall = captor.value
 
-        assertEquals("driver", toolCall.domain)
+        assertEquals("tab", toolCall.domain)
         assertEquals("fill", toolCall.method)
         assertEquals("text", toolCall.arguments["text"])
     }
@@ -247,7 +247,7 @@ class MCPToolControllerTest {
         Mockito.verify(agentToolExecutor).execute(capture(captor))
         val toolCall = captor.value
 
-        assertEquals("driver", toolCall.domain)
+        assertEquals("tab", toolCall.domain)
         assertEquals("title", toolCall.method)
     }
 
@@ -275,7 +275,7 @@ class MCPToolControllerTest {
 
     @Test
     fun `test snake case arguments normalize for drag`() = runBlocking {
-        mockTool("driver", "drag")
+        mockTool("tab", "drag")
 
         val request = MCPToolCallRequest(
             tool = "drag",
@@ -289,7 +289,7 @@ class MCPToolControllerTest {
         Mockito.verify(agentToolExecutor).execute(capture(captor))
         val toolCall = captor.value
 
-        assertEquals("driver", toolCall.domain)
+        assertEquals("tab", toolCall.domain)
         assertEquals("drag", toolCall.method)
         assertEquals("#a", toolCall.arguments["sourceSelector"])
         assertEquals("#b", toolCall.arguments["targetSelector"])
@@ -298,29 +298,29 @@ class MCPToolControllerTest {
     @Test
     fun `test generic commands`() = runBlocking {
         val commands = listOf(
-            Triple("go_back", "driver", "go_back"),
-            Triple("reload", "driver", "reload"),
-            Triple("press", "driver", "press"),
-            Triple("hover", "driver", "hover"),
-            Triple("screenshot", "driver", "screenshot"),
-            Triple("dblclick", "driver", "dblclick"),
-            Triple("drag", "driver", "drag"),
-            Triple("select_option", "driver", "select_option"),
-            Triple("upload", "driver", "upload"),
-            Triple("check", "driver", "check"),
-            Triple("uncheck", "driver", "uncheck"),
-            Triple("type", "driver", "type"),
-            Triple("evaluate", "driver", "evaluate"),
-            Triple("evaluate_value", "driver", "evaluateValue"),
-            Triple("dialog_accept", "driver", "dialog_accept"),
-            Triple("dialog_dismiss", "driver", "dialog_dismiss"),
-            Triple("resize", "driver", "resize"),
-            Triple("keydown", "driver", "keyDown"),
-            Triple("keyup", "driver", "keyUp"),
-            Triple("mousemove", "driver", "mouseMove"),
-            Triple("mousedown", "driver", "mouseDown"),
-            Triple("mouseup", "driver", "mouseUp"),
-            Triple("mousewheel", "driver", "mouseWheel")
+            Triple("go_back", "tab", "go_back"),
+            Triple("reload", "tab", "reload"),
+            Triple("press", "tab", "press"),
+            Triple("hover", "tab", "hover"),
+            Triple("screenshot", "tab", "screenshot"),
+            Triple("dblclick", "tab", "dblclick"),
+            Triple("drag", "tab", "drag"),
+            Triple("select_option", "tab", "select_option"),
+            Triple("upload", "tab", "upload"),
+            Triple("check", "tab", "check"),
+            Triple("uncheck", "tab", "uncheck"),
+            Triple("type", "tab", "type"),
+            Triple("evaluate", "tab", "evaluate"),
+            Triple("evaluate_value", "tab", "evaluateValue"),
+            Triple("dialog_accept", "tab", "dialog_accept"),
+            Triple("dialog_dismiss", "tab", "dialog_dismiss"),
+            Triple("resize", "tab", "resize"),
+            Triple("keydown", "tab", "keyDown"),
+            Triple("keyup", "tab", "keyUp"),
+            Triple("mousemove", "tab", "mouseMove"),
+            Triple("mousedown", "tab", "mouseDown"),
+            Triple("mouseup", "tab", "mouseUp"),
+            Triple("mousewheel", "tab", "mouseWheel")
         )
 
         for ((tool, domain, method) in commands) {
@@ -360,7 +360,7 @@ class MCPToolControllerTest {
         )
 
         for ((tool, method) in commands) {
-            mockTool("driver", method)
+            mockTool("tab", method)
 
             val request = MCPToolCallRequest(
                 tool = tool,
@@ -368,7 +368,7 @@ class MCPToolControllerTest {
             )
 
             Mockito.reset(agentToolExecutor)
-            mockTool("driver", method)
+            mockTool("tab", method)
 
             val result = controller.callTool(request, response)
 
@@ -378,7 +378,7 @@ class MCPToolControllerTest {
             Mockito.verify(agentToolExecutor).execute(capture(captor))
             val toolCall = captor.value
 
-            assertEquals("driver", toolCall.domain)
+            assertEquals("tab", toolCall.domain)
             assertEquals(method, toolCall.method)
         }
     }

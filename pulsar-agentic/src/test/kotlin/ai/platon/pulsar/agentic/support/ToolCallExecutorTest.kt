@@ -14,7 +14,7 @@ class ToolCallExecutorTest {
         val tc = parser.parseFunctionExpression("driver.goBack()")
         assertNotNull(tc)
         tc!!
-        assertEquals("driver", tc.domain)
+        assertEquals("tab", tc.domain)
         assertEquals("goBack", tc.method)
         assertTrue(tc.arguments.isEmpty())
     }
@@ -25,7 +25,7 @@ class ToolCallExecutorTest {
         val tc = parser.parseFunctionExpression("driver.scrollToMiddle(0.4)")
         assertNotNull(tc)
         tc!!
-        assertEquals("driver", tc.domain)
+        assertEquals("tab", tc.domain)
         assertEquals("scrollToMiddle", tc.method)
         assertEquals("0.4", tc.arguments["0"])
     }
@@ -37,7 +37,7 @@ class ToolCallExecutorTest {
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
         tc!!
-        assertEquals("driver", tc.domain)
+        assertEquals("tab", tc.domain)
         assertEquals("clickTextMatches", tc.method)
         assertEquals("a.link", tc.arguments["0"]) // first arg
         assertEquals("hello, world", tc.arguments["1"]) // quoted comma preserved
@@ -51,7 +51,7 @@ class ToolCallExecutorTest {
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
         tc!!
-        assertEquals("driver", tc.domain)
+        assertEquals("tab", tc.domain)
         assertEquals("fill", tc.method)
         assertEquals("#input", tc.arguments["0"]) // unquoted
         assertEquals("He said 'hi' and \\path", tc.arguments["1"]) // unescaped
@@ -65,7 +65,7 @@ class ToolCallExecutorTest {
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
         tc!!
-        assertEquals("driver", tc.domain)
+        assertEquals("tab", tc.domain)
         assertEquals("evaluate", tc.method)
         assertEquals(arg, tc.arguments["0"]) // content preserved
     }
@@ -100,7 +100,7 @@ class ToolCallExecutorTest {
         val input = "driver.open(\"https://t.tt\")"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("open", result?.method)
         assertEquals(mutableMapOf("0" to "https://t.tt"), result?.arguments)
     }
@@ -110,7 +110,7 @@ class ToolCallExecutorTest {
         val input = "driver.scrollToTop()"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("scrollToTop", result?.method)
         assertTrue(result?.arguments?.isEmpty() ?: false)
     }
@@ -120,7 +120,7 @@ class ToolCallExecutorTest {
         val input = "driver.scrollToMiddle(0.4)"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("scrollToMiddle", result?.method)
         assertEquals(mutableMapOf("0" to "0.4"), result?.arguments)
     }
@@ -130,7 +130,7 @@ class ToolCallExecutorTest {
         val input = "driver.mouseWheelUp(2, 200, 200)"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("mouseWheelUp", result?.method)
         assertEquals(mutableMapOf("0" to "2", "1" to "200", "2" to "200"), result?.arguments)
     }
@@ -140,7 +140,7 @@ class ToolCallExecutorTest {
         val input = "driver.mouseWheelUp(2, 200, 200, 100)"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("mouseWheelUp", result?.method)
         assertEquals(mutableMapOf("0" to "2", "1" to "200", "2" to "200", "3" to "100"), result?.arguments)
     }
@@ -161,7 +161,7 @@ class ToolCallExecutorTest {
 
     @Test
     fun testParseSimpleFunctionCall_noMethodCall() {
-        val input = "driver"
+        val input = "tab"
         val result = parser.parseFunctionExpression(input)
         assertNull(result)
     }
@@ -185,7 +185,7 @@ class ToolCallExecutorTest {
         val input = "  driver  .  open  (  \"https://t.tt\"  )  "
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("open", result?.method)
         assertEquals(mutableMapOf("0" to "https://t.tt"), result?.arguments)
     }
@@ -195,7 +195,7 @@ class ToolCallExecutorTest {
         val input = "driver.open(   )"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("open", result?.method)
         assertTrue(result?.arguments?.isEmpty() ?: false)
     }
@@ -204,7 +204,7 @@ class ToolCallExecutorTest {
     fun testParseSimpleFunctionCall_malformedArguments() {
         val input = "driver.open(\"https://t.tt\", )"
         val result = parser.parseFunctionExpression(input)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("open", result?.method)
         assertEquals(mutableMapOf("0" to "https://t.tt"), result?.arguments)
     }
@@ -213,7 +213,7 @@ class ToolCallExecutorTest {
     fun testParseSimpleFunctionCall_unquotedStringArgument() {
         val input = "driver.open(https://t.tt)"
         val result = parser.parseFunctionExpression(input)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("open", result?.method)
         assertEquals(mutableMapOf("0" to "https://t.tt"), result?.arguments)
     }
@@ -223,7 +223,7 @@ class ToolCallExecutorTest {
         val input = "driver.open(\"https://t.tt?query=123&param=abc\")"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("open", result?.method)
         assertEquals(mutableMapOf("0" to "https://t.tt?query=123&param=abc"), result?.arguments)
     }
@@ -235,7 +235,7 @@ class ToolCallExecutorTest {
         val input = "driver.open(\"https://t.tt\");"
         val result = parser.parseFunctionExpression(input)
         assertNotNull(result)
-        assertEquals("driver", result?.domain)
+        assertEquals("tab", result?.domain)
         assertEquals("open", result?.method)
         assertEquals(mutableMapOf("0" to "https://t.tt"), result?.arguments)
     }
@@ -247,7 +247,7 @@ class ToolCallExecutorTest {
         val tc = parser.parseFunctionExpression(src)
         assertNotNull(tc)
         tc!!
-        assertEquals("driver", tc.domain)
+        assertEquals("tab", tc.domain)
         assertEquals("fill", tc.method)
         assertEquals("#input", tc.arguments["0"]) // unquoted
         assertEquals("He said \"hi\" and \\path", tc.arguments["1"]) // unescaped

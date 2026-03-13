@@ -137,10 +137,6 @@ data class ObserveOptions(
 )
 
 data class ObserveResult constructor(
-    // the DOM node locator, format is `frameIndex,backendNodeId`
-    @Deprecated("Locator is deprecated and will be removed in future versions. Use backendNodeId directly for element identification.")
-    val locator: String? = null,
-
     // the domain of the tool call, `driver`, `browser`, `fs`, `agent`, etc
     val domain: String? = null,
     // the tool call method, `click`, `type`, `scrollBy`, etc
@@ -149,6 +145,11 @@ data class ObserveResult constructor(
     val arguments: Map<String, Any?>? = null,
     // the tool call description
     val description: String? = null,
+
+    val backendNodeId: Int? = null,
+    // the DOM node locator, format is `frameIndex,backendNodeId`
+    @Deprecated("Locator is deprecated and will be removed in future versions. Use backendNodeId directly for element identification.")
+    val locator: String? = null,
 
     val screenshotContentSummary: String? = null,
     val currentPageContentSummary: String? = null,
@@ -163,14 +164,12 @@ data class ObserveResult constructor(
     // AI: completion next suggestions
     var nextSuggestions: List<String>? = null,
 
-    val backendNodeId: Int? = null,
-
     val observeElement: ObserveElement? = null,
 
     // internal
     val actionDescription: ActionDescription? = null,
 
-    // internal
+    // internal, always update before/after an action
     val agentState: AgentState
 )
 

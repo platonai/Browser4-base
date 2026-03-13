@@ -39,17 +39,17 @@ class Browser4MCPServerToolManagerTest {
     fun setUp() {
         // Create minimal executor mocks with representative tool specs
         driverExecutor = mockk(relaxed = true)
-        every { driverExecutor.domain } returns "driver"
+        every { driverExecutor.domain } returns "tab"
         every { driverExecutor.getToolSpecs() } returns mapOf(
             "navigate" to ToolSpec(
-                domain = "driver",
+                domain = "tab",
                 method = "navigate",
                 arguments = listOf(ToolSpec.Arg("url", "String", null)),
                 returnType = "Unit",
                 description = "Navigate the browser to the given URL."
             ),
             "click" to ToolSpec(
-                domain = "driver",
+                domain = "tab",
                 method = "click",
                 arguments = listOf(
                     ToolSpec.Arg("selector", "String", null),
@@ -59,7 +59,7 @@ class Browser4MCPServerToolManagerTest {
                 description = "Click on an element."
             ),
             "scrollToTop" to ToolSpec(
-                domain = "driver",
+                domain = "tab",
                 method = "scrollToTop",
                 arguments = emptyList(),
                 returnType = "Double",
@@ -166,7 +166,7 @@ class Browser4MCPServerToolManagerTest {
         assertFalse(result.isError == true, "Expected success result")
         coVerify(exactly = 1) {
             toolManager.execute(match { tc ->
-                tc.domain == "driver" && tc.method == "navigate" &&
+                tc.domain == "tab" && tc.method == "navigate" &&
                         tc.arguments["url"] == "https://example.com"
             })
         }

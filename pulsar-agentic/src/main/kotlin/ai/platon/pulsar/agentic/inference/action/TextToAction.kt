@@ -201,7 +201,7 @@ open class TextToAction(
         val domain = toolCall.domain
         val method = toolCall.method
 
-//        if (domain != "driver" && domain != "WebDriver") {
+//        if (domain != "tab" && domain != "WebDriver") {
 //            return observeElement
 //        }
 

@@ -1,5 +1,5 @@
 [ {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "open",
   "arguments" : [ {
     "name" : "url",
@@ -9,7 +9,7 @@
   "description" : "Opens the specified URL in the web driver.",
   "help" : "Opens the specified URL in the web driver.\n\nThis function navigates the web driver to the provided URL and waits for the navigation to complete. It is a suspend function, meaning it can be used within coroutines for asynchronous execution.\n\nExample usage: ```kotlin driver.open(\"https://www.example.com\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "navigate",
   "arguments" : [ {
     "name" : "url",
@@ -19,7 +19,7 @@
   "description" : "Navigates current page to the given URL.",
   "help" : "Navigates current page to the given URL.\n\n```kotlin driver.navigate(\"https://www.example.com\") driver.waitForNavigation() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "navigate",
   "arguments" : [ {
     "name" : "entry",
@@ -29,73 +29,73 @@
   "description" : "Navigates current page to the given URL.",
   "help" : "Navigates current page to the given URL.\n\n```kotlin val entry = NavigateEntry(\"https://www.example.com?timestamp=11712067353\", pageUrl = \"https://www.example.com\") driver.navigate(entry) driver.waitForNavigation() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "reload",
   "returnType" : "Unit",
   "description" : "Reloads the current page.",
   "help" : "Reloads the current page.\n\nThis method should trigger a reload of the current page, similar to how a user would refresh the page in a browser."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "goBack",
   "returnType" : "Unit",
   "description" : "Navigates the browser to the previous page in the navigation history.",
   "help" : "Navigates the browser to the previous page in the navigation history.\n\nThis method is expected to use the browser's navigation history to move back to the previous page. It should handle any exceptions that may occur during the navigation process."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "goForward",
   "returnType" : "Unit",
   "description" : "Navigates the browser to the next page in the navigation history.",
   "help" : "Navigates the browser to the next page in the navigation history.\n\nThis method is expected to use the browser's navigation history to move forward to the next page. It should handle any exceptions that may occur during the navigation process."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "currentUrl",
   "returnType" : "String",
   "description" : "Returns a string representing the current URL that the browser is looking at.",
   "help" : "Returns a string representing the current URL that the browser is looking at.\n\nThe current url is always the main frame's `document.documentURI` if the browser succeed to return it, and is displayed in the browser's address bar.\n\nIf the browser failed to return a proper url, returns the passed in url to navigate, just like a real user enter a url in the address bar but the browser failed to load the page.\n\nNOTE: the url can be non-standard, for example:\n\nabout:blank chrome://newtab chrome://settings\n\nsee [ai.platon.cdt.kt.protocol.types.page.NavigationEntry.userTypedURL]"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "url",
   "returnType" : "String",
   "description" : "The URL read-only property of the Document interface returns the document location as a string.",
   "help" : "The URL read-only property of the Document interface returns the document location as a string.\n\nThis property equals to javascript `document.URL`. The `document.URL` property returns the same value. The `document.documentURI` property can be used on any document types, while the `document.URL` property can only be used on HTML documents."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "documentURI",
   "returnType" : "String",
   "description" : "Returns the document location as a string.",
   "help" : "Returns the document location as a string.\n\nThis property equals to javascript `document.documentURI`.\n\nThe `document.URL` property which returns the same value. The `document.documentURI` property can be used on any document types, while the `document.URL` property can only be used on HTML documents."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "baseURI",
   "returnType" : "String",
   "description" : "Returns the document's baseURI.",
   "help" : "Returns the document's baseURI.\n\nThe baseURI is a property of Node, it's the absolute base URL of the document containing the node. A baseURI is used to resolve relative URLs.\n\nThe base URL is determined as follows: 1. By default, the base URL is the location of the document (as determined by window.location). 2. If the document has an `<base>` element, its href attribute is used."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "referrer",
   "returnType" : "String",
   "description" : "The referrer property returns the URI of the page that linked to this page.",
   "help" : "The referrer property returns the URI of the page that linked to this page.\n\nThe value is an empty string if the user navigated to the page directly (not through a link, but, for example, by using a bookmark).\n\nInside an <iframe>, the referrer will initially be set to the same value as the href of the parent window's Window.location."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "pageSource",
   "returnType" : "String?",
   "description" : "Returns the source of the last loaded page.",
   "help" : "Returns the source of the last loaded page.\n\nIf the page has been modified after loading (for example, by JavaScript) there is no guarantee that the returned text is that of the modified page.\n\nPageSource and outerHTML:\n\n- pageSource: returns document HTML markup, will support non-HTML document - outerHTML: returns document HTML markup, for HTML document only\n\n```kotlin val pageSource = driver.pageSource() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "title",
   "returnType" : "String",
   "description" : "Returns the title of the current page.",
   "help" : "Returns the title of the current page."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "nanoDOMTree",
   "returnType" : "NanoDOMTree?",
   "description" : "Retrieves a lightweight version of the DOM tree (NanoDOMTree).",
   "help" : "Retrieves a lightweight version of the DOM tree (NanoDOMTree).\n\nThe NanoDOMTree is based on the accessibility tree and enhanced with DOM and document snapshot information. It is designed to be a compact representation suitable for AI processing and analysis."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "chat",
   "arguments" : [ {
     "name" : "prompt",
@@ -108,13 +108,13 @@
   "description" : "Interact with an AI model using the context of the element selected by [selector].",
   "help" : "Interact with an AI model using the context of the element selected by [selector].\n\nThe AI model receives the element's content and structure as context along with the provided prompt."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "getCookies",
   "returnType" : "List<Map<String, String>>",
   "description" : "Returns the cookies of the current page.",
   "help" : "Returns the cookies of the current page.\n\n```kotlin val cookies = driver.getCookies() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "deleteCookies",
   "arguments" : [ {
     "name" : "name",
@@ -136,13 +136,13 @@
   "description" : "Deletes browser cookies with matching name and url or domain/path pair.",
   "help" : "Deletes browser cookies with matching name and url or domain/path pair.\n\n```kotlin driver.deleteCookies(\"name\", \"https://www.example.com\") ```\n\n> NOTE: At least one of the url and domain needs to be specified\n\nmatch provided URL."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "clearBrowserCookies",
   "returnType" : "Unit",
   "description" : "Clears browser cookies.",
   "help" : "Clears browser cookies.\n\n```kotlin driver.clearBrowserCookies() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForSelector",
   "arguments" : [ {
     "name" : "selector",
@@ -152,7 +152,7 @@
   "description" : "Wait until the element identified by the selector becomes present in the DOM or timeout.",
   "help" : "Wait until the element identified by the selector becomes present in the DOM or timeout.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForSelector",
   "arguments" : [ {
     "name" : "selector",
@@ -165,7 +165,7 @@
   "description" : "Wait until the element identified by the selector becomes present in the DOM or timeout.",
   "help" : "Wait until the element identified by the selector becomes present in the DOM or timeout.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", 30000) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForSelector",
   "arguments" : [ {
     "name" : "selector",
@@ -178,7 +178,7 @@
   "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
   "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", Duration.ofSeconds(30)) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForSelector",
   "arguments" : [ {
     "name" : "selector",
@@ -191,7 +191,7 @@
   "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
   "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\") { driver.scrollDown() } ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForSelector",
   "arguments" : [ {
     "name" : "selector",
@@ -207,7 +207,7 @@
   "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
   "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", 30000) { driver.scrollDown() } ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForSelector",
   "arguments" : [ {
     "name" : "selector",
@@ -223,7 +223,7 @@
   "description" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.",
   "help" : "Wait for the element identified by the selector to become present in the DOM, or until timeout.\n\nThis method periodically checks for the existence of the element. If the element is not found during a check, the action will be executed, such as scrolling the page down.\n\n```kotlin val remainingTime = driver.waitForSelector(\"h2.title\", Duration.ofSeconds(30)) { driver.scrollDown() } ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForNavigation",
   "arguments" : [ {
     "name" : "oldUrl",
@@ -233,7 +233,7 @@
   "description" : "Wait until the current url changes or timeout.",
   "help" : "Wait until the current url changes or timeout.\n\n```kotlin val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation() if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url) } ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForNavigation",
   "arguments" : [ {
     "name" : "oldUrl",
@@ -246,7 +246,7 @@
   "description" : "Wait until the current url changes or timeout.",
   "help" : "Wait until the current url changes or timeout.\n\n```kotlin val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation(1000) if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url, 1000) } ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForNavigation",
   "arguments" : [ {
     "name" : "oldUrl",
@@ -259,7 +259,7 @@
   "description" : "Wait until the current url changes or timeout.",
   "help" : "Wait until the current url changes or timeout.\n\n```kotlin val timeout = Duration.ofSeconds(30) val url = \"https://www.example.com\" driver.navigate(url) var remainingTime = driver.waitForNavigation(timeout) if (remainingTime > 0) { driver.click(\"a[href='/next']\") remainingTime = driver.waitForNavigation(url, timeout) } ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "waitForPage",
   "arguments" : [ {
     "name" : "url",
@@ -272,7 +272,7 @@
   "description" : "Await navigation to the specified URL page or timeout if necessary.",
   "help" : "Await navigation to the specified URL page or timeout if necessary.\n\n```kotlin val newDriver = driver.waitForPage(\"https://www.example.com\", Duration.ofSeconds(30)) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "exists",
   "arguments" : [ {
     "name" : "selector",
@@ -282,7 +282,7 @@
   "description" : "Returns whether the element exists.",
   "help" : "Returns whether the element exists.\n\n```kotlin driver.exists(\"h2.title\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "isHidden",
   "arguments" : [ {
     "name" : "selector",
@@ -292,7 +292,7 @@
   "description" : "Returns whether the element is hidden.",
   "help" : "Returns whether the element is hidden.\n\n```kotlin driver.isHidden(\"input[name='q']\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "isVisible",
   "arguments" : [ {
     "name" : "selector",
@@ -302,7 +302,7 @@
   "description" : "Returns whether the element is visible.",
   "help" : "Returns whether the element is visible.\n\n```kotlin driver.isVisible(\"input[name='q']\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "isChecked",
   "arguments" : [ {
     "name" : "selector",
@@ -312,13 +312,13 @@
   "description" : "Returns whether the element is checked.",
   "help" : "Returns whether the element is checked.\n\n```kotlin driver.isChecked(\"input[name='agree']\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "bringToFront",
   "returnType" : "Unit",
   "description" : "Brings the browser window to the front.",
   "help" : "Brings the browser window to the front.\n\n```kotlin driver.bringToFront() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "hover",
   "arguments" : [ {
     "name" : "selector",
@@ -328,7 +328,7 @@
   "description" : "This method hovers over the element.",
   "help" : "This method hovers over the element.\n\n1. Scroll the element into view if needed. 2. Move mouse to hover over a random position near the center of the element.\n\n```kotlin driver.hover(\"h1\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "focus",
   "arguments" : [ {
     "name" : "selector",
@@ -338,7 +338,7 @@
   "description" : "This method fetches an element with `selector` and focuses it.",
   "help" : "This method fetches an element with `selector` and focuses it.\n\nIf there's no element matching `selector`, nothing to do.\n\n```kotlin driver.focus(\"input[name='q']\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "type",
   "arguments" : [ {
     "name" : "selector",
@@ -351,7 +351,7 @@
   "description" : "This method emulates inserting text that doesn't come from a key press.",
   "help" : "This method emulates inserting text that doesn't come from a key press.\n\n```kotlin driver.type(\"input[name='q']\", \"Hello, World!\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "fill",
   "arguments" : [ {
     "name" : "selector",
@@ -364,7 +364,7 @@
   "description" : "This method emulates inserting text that doesn't come from a key press.",
   "help" : "This method emulates inserting text that doesn't come from a key press.\n\nUnlike [type], this method clears the existing value before typing.\n\n```kotlin driver.fill(\"input[name='q']\", \"Hello, World!\") ```\n\nof an element to focus, and then fill text into it. If there are multiple elements satisfying the selector, the first will be focused."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "press",
   "arguments" : [ {
     "name" : "selector",
@@ -377,7 +377,7 @@
   "description" : "Shortcut for keyboard down and keyboard up.",
   "help" : "Shortcut for keyboard down and keyboard up.\n\nThe key is specified as a string, which can be a single character, a key name, or a combination of both. For example, 'a', 'A', 'KeyA', 'Enter', 'Shift+A', and 'Control+Shift+Tab' are all valid keys.\n\n```kotlin driver.press(\"input[name='q']\", \"Enter\") ```\n\nof an element to focus, and then press a key. If there are multiple elements satisfying the selector, the first will be focused. See [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "keyDown",
   "arguments" : [ {
     "name" : "key",
@@ -387,7 +387,7 @@
   "description" : "Presses and holds a keyboard key on the currently focused element.",
   "help" : "Presses and holds a keyboard key on the currently focused element.\n\n```kotlin driver.keyDown(\"Shift\") driver.keyDown(\"Control\") ```\n\nSee [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "keyUp",
   "arguments" : [ {
     "name" : "key",
@@ -397,7 +397,7 @@
   "description" : "Releases a previously pressed keyboard key on the currently focused element.",
   "help" : "Releases a previously pressed keyboard key on the currently focused element.\n\n```kotlin driver.keyUp(\"Shift\") driver.keyUp(\"Control\") ```\n\nSee [Code values for keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values)"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "click",
   "arguments" : [ {
     "name" : "selector",
@@ -411,7 +411,7 @@
   "description" : "This method focuses an element with [selector] and clicks it.",
   "help" : "This method focuses an element with [selector] and clicks it.\n\nIf there's no element matching `selector`, nothing to do.\n\n```kotlin driver.click(\"button[type='submit']\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "click",
   "arguments" : [ {
     "name" : "selector",
@@ -424,7 +424,7 @@
   "description" : "Focus on an element with [selector] and click it with [modifier] pressed.",
   "help" : "Focus on an element with [selector] and click it with [modifier] pressed."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "dblclick",
   "arguments" : [ {
     "name" : "selector",
@@ -434,7 +434,7 @@
   "description" : "Focus on an element with [selector] and double-click it.",
   "help" : "Focus on an element with [selector] and double-click it."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "dblclick",
   "arguments" : [ {
     "name" : "selector",
@@ -447,7 +447,7 @@
   "description" : "Focus on an element with [selector] and double-click it with [modifier] pressed.",
   "help" : "Focus on an element with [selector] and double-click it with [modifier] pressed."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "resize",
   "arguments" : [ {
     "name" : "width",
@@ -460,7 +460,7 @@
   "description" : "Resizes the viewport to the specified width and height.",
   "help" : "Resizes the viewport to the specified width and height."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "dialogAccept",
   "arguments" : [ {
     "name" : "promptText",
@@ -471,13 +471,13 @@
   "description" : "Accepts the dialog.",
   "help" : "Accepts the dialog."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "dialogDismiss",
   "returnType" : "Unit",
   "description" : "Dismisses the dialog.",
   "help" : "Dismisses the dialog."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "clickTextMatches",
   "arguments" : [ {
     "name" : "selector",
@@ -494,7 +494,7 @@
   "description" : "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.",
   "help" : "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickTextMatches(\"button\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "clickMatches",
   "arguments" : [ {
     "name" : "selector",
@@ -514,7 +514,7 @@
   "description" : "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it.",
   "help" : "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element has no attribute [attrName], or the element's attribute value doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickAttributeMatches(\"button\", \"type\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectOption",
   "arguments" : [ {
     "name" : "selector",
@@ -527,7 +527,7 @@
   "description" : "Selects one or more options in a <select> element.",
   "help" : "Selects one or more options in a <select> element."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectOption",
   "arguments" : [ {
     "name" : "selector",
@@ -540,7 +540,7 @@
   "description" : "Selects an option in a <select> element.",
   "help" : "Selects an option in a <select> element."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "clickNthAnchor",
   "arguments" : [ {
     "name" : "n",
@@ -554,7 +554,7 @@
   "description" : "Clicks the nth anchor element in the DOM.",
   "help" : "Clicks the nth anchor element in the DOM.\n\nThis function searches for all anchor (`<a>`) elements within the specified root element, and clicks the nth anchor element (0-based index). If the anchor element exists, it returns the `href` attribute of the clicked anchor element. If the element does not exist, it returns null.\n\n```kotlin driver.clickNthAnchor(100, \"body\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "check",
   "arguments" : [ {
     "name" : "selector",
@@ -564,7 +564,7 @@
   "description" : "This method check an element with [selector]. If there's no element matching [selector], nothing to do.",
   "help" : "This method check an element with [selector]. If there's no element matching [selector], nothing to do.\n\n[selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) of an element to check. If there are multiple elements satisfying the selector, the first will be checked."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "uncheck",
   "arguments" : [ {
     "name" : "selector",
@@ -574,7 +574,7 @@
   "description" : "This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do.",
   "help" : "This method uncheck an element with [selector]. If there's no element matching [selector], nothing to do.\n\n[selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) of an element to uncheck. If there are multiple elements satisfying the selector, the first will be focused."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollTo",
   "arguments" : [ {
     "name" : "selector",
@@ -584,7 +584,7 @@
   "description" : "This method fetches an element with [selector], scrolls it into view if needed.",
   "help" : "This method fetches an element with [selector], scrolls it into view if needed.\n\nIf there's no element matching [selector], the method does nothing.\n\n```kotlin driver.scrollTo(\"h2.title\") ```\n\nthe [selector], the first will be selected."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollDown",
   "arguments" : [ {
     "name" : "count",
@@ -595,7 +595,7 @@
   "description" : "The current page frame scrolls down for [count] times.",
   "help" : "The current page frame scrolls down for [count] times.\n\n```kotlin driver.scrollDown(3) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollUp",
   "arguments" : [ {
     "name" : "count",
@@ -606,7 +606,7 @@
   "description" : "The current page frame scrolls up for [count] times.",
   "help" : "The current page frame scrolls up for [count] times.\n\n```kotlin driver.scrollUp(3) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollBy",
   "arguments" : [ {
     "name" : "pixels",
@@ -621,19 +621,19 @@
   "description" : "Scrolls the current page frame vertically by the given number of pixels.",
   "help" : "Scrolls the current page frame vertically by the given number of pixels.\n\nPositive values scroll down, negative values scroll up. The target position is clamped to the scrollable range [0, scrollHeight - viewportHeight].\n\nWhen [smooth] is true a deterministic, step‑wise scrolling algorithm is used (instead of relying on the browser's native smooth scrolling) for higher stability: it issues incremental `window.scrollTo()` calls and waits for the viewport to settle after each step. This reduces race conditions with lazy‑loaded content or async layout changes and yields more predictable final positions.\n\nTypical usage: ```kotlin // Scroll down 200px smoothly (default) driver.scrollBy() // Scroll up 500px immediately driver.scrollBy(-500.0, smooth = false) // Scroll down one viewport height, smooth val y = driver.scrollBy(driver.viewportHeight(), smooth = true) ```\n\n`window.scrollTo()` is executed."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollToTop",
   "returnType" : "Double",
   "description" : "The current page frame scrolls to the top.",
   "help" : "The current page frame scrolls to the top.\n\n```kotlin driver.scrollToTop() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollToBottom",
   "returnType" : "Double",
   "description" : "The current page frame scrolls to the bottom.",
   "help" : "The current page frame scrolls to the bottom.\n\n```kotlin driver.scrollToBottom() ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollToMiddle",
   "arguments" : [ {
     "name" : "ratio",
@@ -643,7 +643,7 @@
   "description" : "The current page frame scrolls to the middle.",
   "help" : "The current page frame scrolls to the middle.\n\n```kotlin driver.scrollToMiddle(0.2) driver.scrollToMiddle(0.5) driver.scrollToMiddle(0.8) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "scrollToViewport",
   "arguments" : [ {
     "name" : "n",
@@ -657,7 +657,7 @@
   "description" : "Scroll to the 2.5th viewport position.",
   "help" : "Scroll to the 2.5th viewport position.\n\n```kotlin driver.scrollToViewport(1.0) driver.scrollToViewport(1.5) driver.scrollToViewport(2.5) driver.scrollToViewport(3.0) ```\n\n1.00 means at the top of the first screen, 2.50 means halfway through the second screen."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "mouseWheelDown",
   "arguments" : [ {
     "name" : "count",
@@ -680,7 +680,7 @@
   "description" : "The mouse wheels down for [count] times.",
   "help" : "The mouse wheels down for [count] times.\n\n```kotlin driver.mouseWheelDown(3) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "mouseWheelUp",
   "arguments" : [ {
     "name" : "count",
@@ -703,7 +703,7 @@
   "description" : "The mouse wheels up for [count] times.",
   "help" : "The mouse wheels up for [count] times.\n\n```kotlin driver.mouseWheelUp(3) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "mouseWheel",
   "arguments" : [ {
     "name" : "deltaX",
@@ -718,7 +718,7 @@
   "description" : "Scrolls the mouse wheel by the provided deltas.",
   "help" : "Scrolls the mouse wheel by the provided deltas.\n\nPositive [deltaY] scrolls down and negative [deltaY] scrolls up.\n\n```kotlin driver.mouseWheel(0.0, 150.0) driver.mouseWheel(0.0, -150.0) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "moveMouseTo",
   "arguments" : [ {
     "name" : "x",
@@ -731,7 +731,7 @@
   "description" : "The mouse moves to the position specified by [x] and [y].",
   "help" : "The mouse moves to the position specified by [x] and [y].\n\n```kotlin driver.moveMouseTo(100.0, 200.0) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "mouseMove",
   "arguments" : [ {
     "name" : "x",
@@ -744,7 +744,7 @@
   "description" : "Moves the mouse to the position specified by [x] and [y].",
   "help" : "Moves the mouse to the position specified by [x] and [y].\n\n```kotlin driver.mouseMove(100.0, 200.0) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "mouseDown",
   "arguments" : [ {
     "name" : "button",
@@ -759,7 +759,7 @@
   "description" : "Presses a mouse button at the current mouse position.",
   "help" : "Presses a mouse button at the current mouse position.\n\n```kotlin driver.mouseDown() driver.mouseDown(\"right\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "mouseUp",
   "arguments" : [ {
     "name" : "button",
@@ -774,7 +774,7 @@
   "description" : "Releases a mouse button at the current mouse position.",
   "help" : "Releases a mouse button at the current mouse position.\n\n```kotlin driver.mouseUp() driver.mouseUp(\"right\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "moveMouseTo",
   "arguments" : [ {
     "name" : "selector",
@@ -791,7 +791,7 @@
   "description" : "The mouse moves to the element with [selector].",
   "help" : "The mouse moves to the element with [selector].\n\n```kotlin driver.moveMouseTo(\"h2.title\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "dragAndDrop",
   "arguments" : [ {
     "name" : "selector",
@@ -808,7 +808,7 @@
   "description" : "Performs a drag, dragenter, dragover, and drop in sequence.",
   "help" : "Performs a drag, dragenter, dragover, and drop in sequence."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "drag",
   "arguments" : [ {
     "name" : "sourceSelector",
@@ -821,13 +821,13 @@
   "description" : "Drags the element identified by [sourceSelector] onto the element identified by [targetSelector].",
   "help" : "Drags the element identified by [sourceSelector] onto the element identified by [targetSelector].\n\nThe implementation measures the centers of the source and target elements in the DOM and then delegates to [dragAndDrop] using the computed offset."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "outerHTML",
   "returnType" : "String?",
   "description" : "Returns the document's HTML markup.",
   "help" : "Returns the document's HTML markup.\n\n```kotlin val html = driver.outerHTML() ```\n\nIf the document does not exist, returns null."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "outerHTML",
   "arguments" : [ {
     "name" : "selector",
@@ -837,7 +837,7 @@
   "description" : "Returns the node's HTML markup, the node is located by [selector].",
   "help" : "Returns the node's HTML markup, the node is located by [selector].\n\nIf the node does not exist, returns null.\n\n```kotlin val html = driver.outerHTML(\"h2.title\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "textContent",
   "arguments" : [ {
     "name" : "selector",
@@ -848,7 +848,7 @@
   "description" : "Returns the text content of the document or a specific element.",
   "help" : "Returns the text content of the document or a specific element.\n\nIf [selector] is null, returns the text content of the entire document (usually `document.body.innerText`). If [selector] is provided, returns the text content of the first matching element.\n\nIf the document or element does not exist, returns null.\n\n```kotlin val bodyText = driver.textContent() val titleText = driver.textContent(\"h1.title\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectFirstTextOrNull",
   "arguments" : [ {
     "name" : "selector",
@@ -858,7 +858,7 @@
   "description" : "Returns the node's text content, the node is located by [selector].",
   "help" : "Returns the node's text content, the node is located by [selector].\n\nIf the node does not exist, returns null.\n\n```kotlin val text = driver.selectFirstTextOrNull(\"h2.title\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectTextAll",
   "arguments" : [ {
     "name" : "selector",
@@ -868,7 +868,7 @@
   "description" : "Returns a list of text contents of all the elements matching the specified selector within the page.",
   "help" : "Returns a list of text contents of all the elements matching the specified selector within the page.\n\nIf no elements match the selector, returns an empty list.\n\n```kotlin val texts = driver.selectTextAll(\"h2\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectFirstAttributeOrNull",
   "arguments" : [ {
     "name" : "selector",
@@ -881,7 +881,7 @@
   "description" : "Returns the node's attribute value, the node is located by [selector], the attribute is [attrName].",
   "help" : "Returns the node's attribute value, the node is located by [selector], the attribute is [attrName].\n\nIf the node does not exist, or the attribute does not exist, returns null.\n\n```kotlin val classes = driver.selectFirstAttributeOrNull(\"h2.title\", \"class\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectAttributes",
   "arguments" : [ {
     "name" : "selector",
@@ -891,7 +891,7 @@
   "description" : "Returns the node's attribute values, the node is located by [selector].",
   "help" : "Returns the node's attribute values, the node is located by [selector].\n\nIf the node do not exist, or the attribute does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectAttributes(\"h2.title\", \"class\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectAttributeAll",
   "arguments" : [ {
     "name" : "selector",
@@ -912,7 +912,7 @@
   "description" : "Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName].",
   "help" : "Returns the nodes' attribute values, the nodes are located by [selector], the attribute is [attrName].\n\nIf the nodes do not exist, or the attribute does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectAttributeAll(\"h2.title\", \"class\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "setAttribute",
   "arguments" : [ {
     "name" : "selector",
@@ -928,7 +928,7 @@
   "description" : "Set the attribute of an element located by [selector].",
   "help" : "Set the attribute of an element located by [selector].\n\n```kotlin driver.setAttribute(\"h2.title\", \"class\", \"header\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "setAttributeAll",
   "arguments" : [ {
     "name" : "selector",
@@ -944,7 +944,7 @@
   "description" : "Set the attribute of all elements matching the CSS query.",
   "help" : "Set the attribute of all elements matching the CSS query.\n\n```kotlin driver.setAttributeAll(\"h2.title\", \"class\", \"header\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectFirstPropertyValueOrNull",
   "arguments" : [ {
     "name" : "selector",
@@ -957,7 +957,7 @@
   "description" : "Returns the node's property value, the node is located by [selector], the property is [propName].",
   "help" : "Returns the node's property value, the node is located by [selector], the property is [propName].\n\nIf the node does not exist, or the property does not exist, returns null.\n\n```kotlin val classes = driver.selectFirstPropertyOrNull(\"input#input\", \"value\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectPropertyValueAll",
   "arguments" : [ {
     "name" : "selector",
@@ -978,7 +978,7 @@
   "description" : "Returns the nodes' property values, the nodes are located by [selector], the property is [propName].",
   "help" : "Returns the nodes' property values, the nodes are located by [selector], the property is [propName].\n\nIf the nodes do not exist, or the property does not exist, returns an empty list.\n\n```kotlin val classes = driver.selectPropertyAll(\"input#input\", \"value\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "setProperty",
   "arguments" : [ {
     "name" : "selector",
@@ -994,7 +994,7 @@
   "description" : "Set the property of an element located by [selector].",
   "help" : "Set the property of an element located by [selector].\n\n```kotlin driver.setProperty(\"input#input\", \"value\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "setPropertyAll",
   "arguments" : [ {
     "name" : "selector",
@@ -1010,7 +1010,7 @@
   "description" : "Set the property of all elements matching the CSS query.",
   "help" : "Set the property of all elements matching the CSS query.\n\n```kotlin driver.setPropertyAll(\"input#input\", \"value\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectHyperlinks",
   "arguments" : [ {
     "name" : "selector",
@@ -1028,7 +1028,7 @@
   "description" : "Find hyperlinks in elements matching the CSS query.",
   "help" : "Find hyperlinks in elements matching the CSS query.\n\n```kotlin val hyperlinks = driver.selectHyperlinks(\"a.product-link\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectAnchors",
   "arguments" : [ {
     "name" : "selector",
@@ -1046,7 +1046,7 @@
   "description" : "Find anchor elements matching the CSS query.",
   "help" : "Find anchor elements matching the CSS query.\n\n```kotlin val anchors = driver.selectAnchors(\"a.product-link\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "selectImages",
   "arguments" : [ {
     "name" : "selector",
@@ -1064,7 +1064,7 @@
   "description" : "Find image elements matching the CSS query.",
   "help" : "Find image elements matching the CSS query.\n\n```kotlin val images = driver.selectImages(\"img.product-image\") ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "evaluate",
   "arguments" : [ {
     "name" : "expression",
@@ -1074,7 +1074,7 @@
   "description" : "Executes JavaScript in the context of the currently selected frame or window.",
   "help" : "Executes JavaScript in the context of the currently selected frame or window.\n\nIf the result is not JavaScript object, it is not returned.\n\nIf you want to execute a function, convert it to IIFE (Immediately Invoked Function Expression).\n\n```kotlin val title = driver.evaluate(\"document.title\") ```\n\nMulti-line JavaScript code:\n\n```kotlin val code = \"\"\" () => { const a = 10; const b = 20; return a * b; } \"\"\".trimIndent()\n\nval result = driver.evaluate(code) ```\n\n### 🔍 Notes: * **Wrap the code in an IIFE (Immediately Invoked Function Expression)** to return a value. * **Escape line breaks** with `\\n`."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "evaluateDetail",
   "arguments" : [ {
     "name" : "expression",
@@ -1084,7 +1084,7 @@
   "description" : "returns detailed evaluation metadata (beta).",
   "help" : "returns detailed evaluation metadata (beta)."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "evaluateValue",
   "arguments" : [ {
     "name" : "expression",
@@ -1094,7 +1094,7 @@
   "description" : "Executes JavaScript and returns the result as a JSON-serializable value.",
   "help" : "Executes JavaScript and returns the result as a JSON-serializable value.\n\nIf the result is an object, it is serialized to a Map or List. If the result is a primitive, it is returned as is. If the result is null or undefined, null is returned."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "evaluateValueDetail",
   "arguments" : [ {
     "name" : "expression",
@@ -1104,7 +1104,7 @@
   "description" : "Returns detailed value evaluation metadata (beta).",
   "help" : "Returns detailed value evaluation metadata (beta)."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "evaluateValue",
   "arguments" : [ {
     "name" : "selector",
@@ -1116,7 +1116,7 @@
   "returnType" : "Any?",
   "description" : "Evaluate Value"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "evaluateValueDetail",
   "arguments" : [ {
     "name" : "selector",
@@ -1128,7 +1128,7 @@
   "returnType" : "JsEvaluation?",
   "description" : "Evaluate Value Detail"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "screenshot",
   "arguments" : [ {
     "name" : "fullPage",
@@ -1139,7 +1139,7 @@
   "description" : "Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout.",
   "help" : "Capture a screenshot of the current viewport (or primary browsing context) after ensuring any pending layout.\n\nIf the backend supports element-centric capture this may represent the full page; implementation specific.\n\nThe target element (if any) is scrolled into view before capture.\n\n```kotlin val base64 = driver.screenshot() val bytes = Base64.getDecoder().decode(base64) ```"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "screenshot",
   "arguments" : [ {
     "name" : "selector",
@@ -1149,7 +1149,7 @@
   "description" : "Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box.",
   "help" : "Scroll the element matched by [selector] into view (if needed) then take a screenshot of that element's bounding box.\n\nReturns a Base64 encoded image (implementation usually PNG/JPEG), PNG by default."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "screenshot",
   "arguments" : [ {
     "name" : "rect",
@@ -1159,12 +1159,12 @@
   "description" : "Take a screenshot of the rectangle specified by [rect] in the current page coordinate space.",
   "help" : "Take a screenshot of the rectangle specified by [rect] in the current page coordinate space.\n\nCaller is responsible for ensuring the rectangle is visible or scrolled into view if the implementation requires it."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "ariaSnapshot",
   "returnType" : "String",
   "description" : "Aria Snapshot"
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "clickablePoint",
   "arguments" : [ {
     "name" : "selector",
@@ -1174,7 +1174,7 @@
   "description" : "Calculate the clickable point of an element located by [selector].",
   "help" : "Calculate the clickable point of an element located by [selector].\n\nIf the element does not exist, or is not clickable, returns null."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "boundingBox",
   "arguments" : [ {
     "name" : "selector",
@@ -1184,13 +1184,13 @@
   "description" : "Return the bounding box of an element located by [selector].",
   "help" : "Return the bounding box of an element located by [selector].\n\nIf the element does not exist, returns null."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "newJsoupSession",
   "returnType" : "Connection",
   "description" : "Create a new Jsoup session with the last page's context, which means, the same headers and cookies.",
   "help" : "Create a new Jsoup session with the last page's context, which means, the same headers and cookies."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "loadJsoupResource",
   "arguments" : [ {
     "name" : "url",
@@ -1200,7 +1200,7 @@
   "description" : "Load the url as a resource with Jsoup rather than browser rendering, with the last page's context.",
   "help" : "Load the url as a resource with Jsoup rather than browser rendering, with the last page's context.\n\nThis means, the same headers and cookies."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "loadResource",
   "arguments" : [ {
     "name" : "url",
@@ -1210,7 +1210,7 @@
   "description" : "Load the url as a resource without browser rendering, with the last page's context.",
   "help" : "Load the url as a resource without browser rendering, with the last page's context.\n\nThis means, the same headers and cookies."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "delay",
   "arguments" : [ {
     "name" : "millis",
@@ -1221,7 +1221,7 @@
   "description" : "Delay for a given amount of time.",
   "help" : "Delay for a given amount of time."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "delay",
   "arguments" : [ {
     "name" : "duration",
@@ -1231,7 +1231,7 @@
   "description" : "Delay for a given amount of time.",
   "help" : "Delay for a given amount of time."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "delay",
   "arguments" : [ {
     "name" : "duration",
@@ -1241,7 +1241,7 @@
   "description" : "Delay for a given amount of time.",
   "help" : "Delay for a given amount of time."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "upload",
   "arguments" : [ {
     "name" : "selector",
@@ -1254,13 +1254,13 @@
   "description" : "Upload files to the element located by [selector].",
   "help" : "Upload files to the element located by [selector]."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "pause",
   "returnType" : "Unit",
   "description" : "Force the page pauses all navigations and PENDING resource fetches.",
   "help" : "Force the page pauses all navigations and PENDING resource fetches.\n\nIf the page loading pauses, the user can still interact with the page, and therefore resources can continue to load."
 }, {
-  "domain" : "driver",
+  "domain" : "tab",
   "method" : "stop",
   "returnType" : "Unit",
   "description" : "Force the page stop all navigations and RELEASES all resources.",

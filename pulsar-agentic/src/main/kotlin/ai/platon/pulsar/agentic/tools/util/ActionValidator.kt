@@ -37,7 +37,7 @@ class ActionValidator(
             return false
         }
 
-        if (toolCall.domain != "driver") {
+        if (toolCall.domain != "tab") {
             return true
         }
 

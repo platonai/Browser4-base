@@ -44,12 +44,12 @@ class SystemToolExecutorTest {
     @Test
         @DisplayName("system help method executes correctly")
     fun systemHelpMethodExecutesCorrectly() = runBlocking {
-        every { agentToolExecutor.help("driver", "click") } returns "Click help text"
+        every { agentToolExecutor.help("tab", "click") } returns "Click help text"
 
         val tc = ToolCall(
             domain = "system",
             method = "help",
-            arguments = mutableMapOf("domain" to "driver", "method" to "click")
+            arguments = mutableMapOf("domain" to "tab", "method" to "click")
         )
 
         val result = executor.callFunctionOn(tc, executor)

@@ -17,11 +17,11 @@ class AgentToolExecutorNormalizeToolCallTest {
     @Test
     fun normalizeToolCallMapsDriverPositionalArgsToNamedArgs() {
         val executor = AgentToolExecutor(Files.createTempDirectory("agent-tool-normalize"), agent)
-        val toolCall = ToolCall("driver", "fill", mutableMapOf("0" to "#search", "1" to "Browser4"))
+        val toolCall = ToolCall("tab", "fill", mutableMapOf("0" to "#search", "1" to "Browser4"))
 
         val normalized = executor.normalizeToolCall(toolCall)
 
-        assertEquals("driver", normalized.domain)
+        assertEquals("tab", normalized.domain)
         assertEquals("#search", normalized.arguments["selector"])
         assertEquals("Browser4", normalized.arguments["text"])
     }

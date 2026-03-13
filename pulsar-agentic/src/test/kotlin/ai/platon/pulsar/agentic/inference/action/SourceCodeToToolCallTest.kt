@@ -14,9 +14,9 @@ class SourceCodeToToolCallTest {
     fun extractMethodsFromWebdriverResource() {
         val sourceCode =
             LLMUtils.readSourceFileFromResource("pulsar-core", "WebDriver.kt")
-        val tools = ToolSpecGenerator.extractInterface("driver", sourceCode, "WebDriver")
+        val tools = ToolSpecGenerator.extractInterface("tab", sourceCode, "WebDriver")
         assertTrue(tools.isNotEmpty(), "Tool list should not be empty")
-        val click = tools.firstOrNull { it.domain == "driver" && it.method == "click" }
+        val click = tools.firstOrNull { it.domain == "tab" && it.method == "click" }
         assertNotNull(click, "Should contain driver.click method")
         assertTrue(click!!.arguments.map { it.name }.contains("selector"), "click should have selector argument")
     }
@@ -26,10 +26,10 @@ class SourceCodeToToolCallTest {
     fun extractKDocFullCommentAsHelp() {
         val sourceCode =
             LLMUtils.readSourceFileFromResource("pulsar-core", "WebDriver.kt")
-        val tools = ToolSpecGenerator.extractInterface("driver", sourceCode, "WebDriver")
+        val tools = ToolSpecGenerator.extractInterface("tab", sourceCode, "WebDriver")
         assertTrue(tools.isNotEmpty(), "Tool list should not be empty")
 
-        val click = tools.firstOrNull { it.domain == "driver" && it.method == "click" && it.arguments.any { arg -> arg.name == "count" } }
+        val click = tools.firstOrNull { it.domain == "tab" && it.method == "click" && it.arguments.any { arg -> arg.name == "count" } }
         assertNotNull(click, "Should contain driver.click method")
 
         val help = click!!.help
@@ -64,7 +64,7 @@ class SourceCodeToToolCallTest {
             }
         """.trimIndent()
 
-        val tools = ToolSpecGenerator.extractInterface("driver", sourceCode, "Demo")
+        val tools = ToolSpecGenerator.extractInterface("tab", sourceCode, "Demo")
 
         assertTrue(tools.any { it.method == "clickNow" }, "Annotated method with KDoc should be included")
         assertTrue(tools.any { it.method == "noDocsHere" }, "Annotated method without KDoc should be included")

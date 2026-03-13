@@ -6,31 +6,31 @@ object ToolSpecification {
      * The `TOOL_CALL_LIST` is written using kotlin syntax to express the tool's `domain`, `method`, `arguments`.
      * */
     const val TOOL_CALL_SPECIFICATION = """
-// domain: driver (WebDriver)
-driver.navigate(url: String)
-driver.reload()
-driver.goBack()
-driver.goForward()
-driver.waitForSelector(selector: String, timeoutMillis: Long = 3000)
-driver.exists(selector: String): Boolean
-driver.isVisible(selector: String): Boolean
-driver.focus(selector: String)
-driver.hover(selector: String)
-driver.click(selector: String)                         // focus on an element with [selector] and click it
-driver.click(selector: String, modifier: String)       // focus on an element with [selector] and click it with modifier pressed
-driver.fill(selector: String, text: String)
-driver.type(selector: String, text: String)
-driver.press(selector: String, key: String)
-driver.check(selector: String)
-driver.uncheck(selector: String)
-driver.scrollTo(selector: String)
-driver.scrollToTop()
-driver.scrollToBottom()
-driver.scrollToMiddle(ratio: Double = 0.5)
-driver.scrollBy(pixels: Double = 200.0): Double
-driver.textContent(): String?                            // Returns the document's text content.
-driver.selectFirstTextOrNull(selector: String): String?  // Returns the first node's text content (descendants included). Returns null if no node.
-driver.delay(millis: Long)
+// domain: tab
+tab.navigate(url: String)
+tab.reload()
+tab.goBack()
+tab.goForward()
+tab.waitForSelector(selector: String, timeoutMillis: Long = 3000)
+tab.exists(selector: String): Boolean
+tab.isVisible(selector: String): Boolean
+tab.focus(selector: String)
+tab.hover(selector: String)
+tab.click(selector: String)                         // focus on an element with [selector] and click it
+tab.click(selector: String, modifier: String)       // focus on an element with [selector] and click it with modifier pressed
+tab.fill(selector: String, text: String)
+tab.type(selector: String, text: String)
+tab.press(selector: String, key: String)
+tab.check(selector: String)
+tab.uncheck(selector: String)
+tab.scrollTo(selector: String)
+tab.scrollToTop()
+tab.scrollToBottom()
+tab.scrollToMiddle(ratio: Double = 0.5)
+tab.scrollBy(pixels: Double = 200.0): Double
+tab.textContent(): String?                            // Returns the document's text content.
+tab.selectFirstTextOrNull(selector: String): String?  // Returns the first node's text content (descendants included). Returns null if no node.
+tab.delay(millis: Long)
 
 // domain: browser
 browser.switchTab(tabId: String): Int
