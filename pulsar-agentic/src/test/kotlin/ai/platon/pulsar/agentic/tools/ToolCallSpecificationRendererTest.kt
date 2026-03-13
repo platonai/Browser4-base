@@ -38,7 +38,7 @@ class ToolCallSpecificationRendererTest {
 
     @Test
     @DisplayName("render should keep ToolSpecification verbatim and append custom tools")
-    fun renderShouldKeepToolspecificationVerbatimAndAppendCustomTools() {
+    fun renderShouldKeepToolSpecificationVerbatimAndAppendCustomTools() {
         val executor = DbToolExecutor()
         val specs = listOf(
             ToolSpec(
