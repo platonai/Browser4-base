@@ -212,7 +212,7 @@ class MCPToolController(
         val managed = sessionManager.getSession(sessionId)
             ?: return ResponseEntity.ok(errorResponse("Session not found: $sessionId"))
 
-        val agent = managed.pulsarSession.companionAgent as? BasicBrowserAgent
+        val agent = managed.agenticSession.companionAgent as? BasicBrowserAgent
             ?: return ResponseEntity.ok(errorResponse("Session agent does not support tools"))
 
         val toolName = request.tool
@@ -277,7 +277,7 @@ class MCPToolController(
     private fun toMcpToolName(domain: String, method: String): String {
         val snake = method.replace(Regex("([A-Z])")) { "_${it.groupValues[1].lowercase()}" }
         return when (domain) {
-            "tab", "tab", "system" -> snake
+            "tab", "system" -> snake
             else -> "${domain}_$snake"
         }
     }

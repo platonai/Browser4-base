@@ -58,7 +58,7 @@ class MCPToolControllerTest {
 
         // Setup session structure
         `when`(sessionManager.getSession(sessionId)).thenReturn(managedSession)
-        `when`(managedSession.pulsarSession).thenReturn(agenticSession)
+        `when`(managedSession.agenticSession).thenReturn(agenticSession)
         `when`(agenticSession.companionAgent).thenReturn(basicBrowserAgent)
         `when`(basicBrowserAgent.toolExtractor).thenReturn(agentToolExecutor)
     }

@@ -3,7 +3,6 @@ package ai.platon.pulsar.rest.mcp.service
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.context.AgenticContext
-import ai.platon.pulsar.skeleton.context.PulsarContext
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -16,14 +15,14 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.minutes
 
 /**
- * Manages WebDriver sessions with real PulsarSession and AgenticSession instances.
+ * Manages WebDriver sessions with real AgenticContext instances.
  * Handles session lifecycle, cleanup, and browser integration.
- * Only active when PulsarContext is available (production mode).
+ * Only active when AgenticContext is available (production mode).
  */
 @Service
-@ConditionalOnBean(PulsarContext::class)
+@ConditionalOnBean(AgenticContext::class)
 class SessionManager(
-    val pulsarContext: PulsarContext
+    val agenticContext: AgenticContext
 ) {
     private val logger = LoggerFactory.getLogger(SessionManager::class.java)
 
@@ -35,7 +34,7 @@ class SessionManager(
      */
     data class ManagedSession(
         val sessionId: String,
-        val pulsarSession: AgenticSession,
+        val agenticSession: AgenticSession,
         val capabilities: Map<String, Any?>?,
         var url: String? = null,
         var status: String = "active", // active, paused, stopped
@@ -44,8 +43,8 @@ class SessionManager(
     ) {
         val mutex: Mutex = Mutex()
 
-        val driver get() = pulsarSession.getOrCreateBoundDriver()
-        val agent: PerceptiveAgent get() = pulsarSession.companionAgent
+        val driver get() = agenticSession.getOrCreateBoundDriver()
+        val agent: PerceptiveAgent get() = agenticSession.companionAgent
 
         suspend inline fun <R> withLock(block: ManagedSession.() -> R): R {
             return mutex.withLock(null) {
@@ -78,12 +77,12 @@ class SessionManager(
     fun createSession(capabilities: Map<String, Any?>? = null): ManagedSession {
         val sessionId = UUID.randomUUID().toString()
 
-        val context = pulsarContext as AgenticContext
+        val context = agenticContext as AgenticContext
         val agenticSession = context.createSession()
 
         val session = ManagedSession(
             sessionId = sessionId,
-            pulsarSession = agenticSession,
+            agenticSession = agenticSession,
             capabilities = capabilities
         )
 
@@ -119,7 +118,7 @@ class SessionManager(
             session.agent.close()
 
             // Close sessions
-            session.pulsarSession.close()
+            session.agenticSession.close()
 
             logger.info("Deleted session {} and released resources", sessionId)
         } catch (e: Exception) {
