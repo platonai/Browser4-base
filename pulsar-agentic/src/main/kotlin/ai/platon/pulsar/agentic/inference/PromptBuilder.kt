@@ -66,7 +66,7 @@ class PromptBuilder(
         val TOOL_CALL_RULE_CONTENT_V1 = """
 Browser tool rules:
 
-- `domain`: tool domain such as `driver`, `browser`, or `skill.debug.scraping`; subdomains use dots.
+- `domain`: tool domain such as `tab`, `browser`, or `skill.debug.scraping`; subdomains use dots.
 - `method`: tool method such as `click`, `fill`, or `extract`.
 - When selecting a node, always set `selector` to the same value as `locator`.
 - `locator` must exactly match either the interactive element list or the relevant accessibility-tree node attributes.
@@ -90,7 +90,7 @@ Browser tool rules:
         val TOOL_CALL_RULE_CONTENT_V2 = """
 Browser tool rules:
 
-- `domain`: tool domain such as `driver`, `browser`, or `skill.debug.scraping`; subdomains use dots.
+- `domain`: tool domain such as `tab`, `browser`, or `skill.debug.scraping`; subdomains use dots.
 - When selecting a node, always set `selector` to the same value as `locator`.
 - Output JSON only. Do not add any explanatory text.
 - When entering text, do not pre-scroll or pre-focus. You may still need to press Enter, click Search, or choose a dropdown option.
@@ -223,7 +223,7 @@ Choose the single best tool call for the requested browser action.
 ## Output Requirements
 
 - Output JSON only. No extra text.
-- `domain` must be `driver`.
+- `domain` must be `tab`.
 - `method` and `arguments` must match the function expressions in `## Tool List`.
 
 Output format:
@@ -254,7 +254,7 @@ Output format:
     {
       "locator": "Web page node locator",
       "description": "Description of the current locator and tool selection",
-      "domain": "Tool domain, such as `driver`",
+      "domain": "Tool domain, such as `tab`",
       "method": "Method name, such as `click`",
       "arguments": [
         {

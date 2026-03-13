@@ -139,7 +139,7 @@ const val OBSERVE_RESPONSE_ELEMENT_SCHEMA = """
 {
   "elements": [
     {
-      "domain": "Tool domain, such as `driver`",
+      "domain": "Tool domain, such as `tab`",
       "method": "Method name, such as `click`",
       "arguments": [
         {

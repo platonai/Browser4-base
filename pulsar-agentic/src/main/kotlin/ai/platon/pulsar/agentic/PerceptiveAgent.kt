@@ -137,7 +137,7 @@ data class ObserveOptions(
 )
 
 data class ObserveResult constructor(
-    // the domain of the tool call, `driver`, `browser`, `fs`, `agent`, etc
+    // the domain of the tool call, `tab`, `browser`, `fs`, `agent`, etc
     val domain: String? = null,
     // the tool call method, `click`, `type`, `scrollBy`, etc
     val method: String? = null,
