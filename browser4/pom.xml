@@ -21,7 +21,6 @@
     <name>Browser4</name>
 
     <modules>
-        <module>browser4-spa</module>
         <module>browser4-agents</module>
     </modules>
 </project>

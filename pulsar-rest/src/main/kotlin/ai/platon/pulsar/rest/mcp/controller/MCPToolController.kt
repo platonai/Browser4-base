@@ -193,6 +193,7 @@ class MCPToolController(
             driver.clearBrowserCookies()
             driver.evaluate("localStorage.clear(); sessionStorage.clear()")
         }
+
         return ResponseEntity.ok(textResponse("User data deleted for session"))
     }
 
