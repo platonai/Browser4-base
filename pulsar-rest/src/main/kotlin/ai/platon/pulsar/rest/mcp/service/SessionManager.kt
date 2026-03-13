@@ -77,7 +77,7 @@ class SessionManager(
     fun createSession(capabilities: Map<String, Any?>? = null): ManagedSession {
         val sessionId = UUID.randomUUID().toString()
 
-        val context = agenticContext as AgenticContext
+        val context = agenticContext
         val agenticSession = context.createSession()
 
         val session = ManagedSession(
@@ -126,55 +126,6 @@ class SessionManager(
         }
 
         return true
-    }
-
-    /**
-     * Updates the URL for a session.
-     *
-     * @param sessionId The session identifier.
-     * @param url The new URL.
-     * @return True if successful, false if session not found.
-     */
-    fun setSessionUrl(sessionId: String, url: String): Boolean {
-        val session = sessions[sessionId] ?: return false
-        session.url = url
-        session.lastAccessedAt = System.currentTimeMillis()
-        logger.debug("Session {} navigated to: {}", sessionId, url)
-        return true
-    }
-
-    /**
-     * Updates the status of a session.
-     *
-     * @param sessionId The session identifier.
-     * @param status The new status.
-     * @return True if successful, false if session not found.
-     */
-    fun setSessionStatus(sessionId: String, status: String): Boolean {
-        val session = sessions[sessionId] ?: return false
-        session.status = status
-        session.lastAccessedAt = System.currentTimeMillis()
-        logger.debug("Session {} status changed to: {}", sessionId, status)
-        return true
-    }
-
-    /**
-     * Checks if a session exists.
-     *
-     * @param sessionId The session identifier.
-     * @return True if the session exists.
-     */
-    fun sessionExists(sessionId: String): Boolean {
-        return sessions.containsKey(sessionId)
-    }
-
-    /**
-     * Gets the count of active sessions.
-     *
-     * @return Number of active sessions.
-     */
-    fun getActiveSessionCount(): Int {
-        return sessions.size
     }
 
     /**
