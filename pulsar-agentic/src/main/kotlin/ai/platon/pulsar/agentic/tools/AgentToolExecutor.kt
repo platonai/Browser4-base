@@ -48,6 +48,7 @@ class AgentToolExecutor constructor(
     val skills: SkillToolExecutor = SkillToolExecutor()
 
     val domainAlias = mapOf(
+        "tab" to "driver",
         "driver" to "driver",
         "WebDriver" to "driver",
 

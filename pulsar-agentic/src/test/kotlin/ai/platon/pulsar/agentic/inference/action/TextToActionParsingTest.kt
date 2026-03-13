@@ -7,10 +7,10 @@ import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.external.ModelResponse
 import ai.platon.pulsar.external.ResponseState
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 
-private class TestableTextToAction(conf: ImmutableConfig): TextToAction(conf) {
+private class TestableTextToAction(conf: ImmutableConfig) : TextToAction(conf) {
     val agentState = AgentState(1, "", BrowserUseState.DUMMY)
     fun parse(response: ModelResponse): ActionDescription = modelResponseToActionDescription("", agentState, response)
 }
@@ -20,8 +20,8 @@ class TextToActionParsingTest {
     private val tta = TestableTextToAction(ImmutableConfig())
 
     @Test
-        @DisplayName("elements JSON with click builds ToolCall with selector as arg0")
-    fun elementsJsonWithClickBuildsToolcallWithSelectorAsArg0() {
+    @DisplayName("elements JSON with click builds ToolCall with selector as arg0")
+    fun elementsJsonWithClickBuildsToolCallWithSelectorAsArg0() {
         val json = """
             {
               "elements": [
@@ -47,7 +47,7 @@ class TextToActionParsingTest {
     }
 
     @Test
-        @DisplayName("elements JSON with type maps locator to arg0 and text to arg1")
+    @DisplayName("elements JSON with type maps locator to arg0 and text to arg1")
     fun elementsJsonWithTypeMapsLocatorToArg0AndTextToArg1() {
         val json = """
             {
@@ -75,7 +75,7 @@ class TextToActionParsingTest {
     }
 
     @Test
-        @DisplayName("plain driver expression fallback is preserved")
+    @DisplayName("plain driver expression fallback is preserved")
     fun plainDriverExpressionFallbackIsPreserved() {
         val text = """
             driver.click("#ok")

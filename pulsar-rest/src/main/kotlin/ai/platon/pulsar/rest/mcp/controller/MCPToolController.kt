@@ -100,7 +100,7 @@ class MCPToolController(
                 "close_all_sessions" -> handleCloseAllSessions()
                 "kill_all_sessions" -> handleKillAllSessions()
                 "delete_session_data" -> handleDeleteSessionData(request)
-                // All other tools are dispatched to the session's MCP Server
+                // All other tools are dispatched to the session's agent
                 else -> dispatchToAgent(request)
             }
         } catch (e: Exception) {
@@ -277,7 +277,7 @@ class MCPToolController(
     private fun toMcpToolName(domain: String, method: String): String {
         val snake = method.replace(Regex("([A-Z])")) { "_${it.groupValues[1].lowercase()}" }
         return when (domain) {
-            "driver", "system" -> snake
+            "driver", "tab", "system" -> snake
             else -> "${domain}_$snake"
         }
     }
