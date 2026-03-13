@@ -1,3 +1,22 @@
+﻿Task: fix-browser4launcher-classpath
+Description: Task from fix-browser4launcher-classpath.md
+Original File: fix-browser4launcher-classpath.md
+Started: 2026-03-13 06:38:43
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\fix-browser4launcher-classpath.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\13\MEMORY.20260313.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\13\MEMORY.20260313.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Ensure you do not overwrite existing content, always append.
+
+
+[Monthly Memory (2026-03)]:
 # MEMORY.202603.md
 ## Monthly Memory - 2026-03
 
@@ -68,7 +87,9 @@
 - Continued maturing coworker automation through architect/orchestrator workflow work, shared Copilot/config helpers, scheduler and queue-processing refinements, placeholder-aware queue detection, path-handling centralization, and more reliable cross-shell script invocation.
 - Reinforced recurring execution hygiene: prefer repo-root or config-derived absolute paths, validate PowerShell quoting and argument passing carefully, keep generated/spec artifacts in sync with code, watch for stale `target/` outputs, and use `-am` or local installs when cross-module dependencies are involved.
 
-### Daily Rollup Update (2026-03-01 to 2026-03-11)
-- Continued improving Browser4 launch and packaging guidance by correcting MCP startup instructions to use `java -jar Browser4.jar --app=mcp` for the packaged executable jar and by documenting why direct `java -cp ... ai.platon.pulsar.app.Browser4Launcher` fails against the Spring Boot layout.
-- Performed coworker log hygiene work by clearing non-memory artifacts under `coworker/tasks/300logs` while preserving retained `MEMORY*.md` history and noting that active-session log files may require a later retry if another process still holds them open.
-- Reinforced recurring execution hygiene: verify the actual jar layout before debugging classpath issues, prefer module-local Maven `-f` validation when the root reactor is incomplete, and keep monthly memory rollups explicitly synchronized with the latest available daily memory date.
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 
+Copilot Log: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\13\063816-fix-browser4launcher-classpath.copilot.log
