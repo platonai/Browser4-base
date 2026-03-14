@@ -15,22 +15,6 @@ class MicroToNanoTreeHelper constructor(
 
     private var numNodes = 0
 
-    fun toNanoTreeInViewport(
-        viewportHeight: Double,
-        viewportIndex: Int = 1,
-        scale: Double = 1.0
-    ): NanoDOMTree {
-        require(viewportIndex >= 1) { "viewportIndex must be >= 1, but was $viewportIndex" }
-        require(viewportHeight > 0) { "viewportHeight must be > 0, but was $viewportHeight" }
-
-        val deltaFactor = (scale - 1).coerceAtLeast(0.0)
-        val baseY = (viewportIndex - 1) * viewportHeight
-        val startY = baseY - (deltaFactor * viewportHeight)
-        val endY = baseY + viewportHeight + (deltaFactor * viewportHeight)
-
-        return toNanoTreeInRange(startY, endY)
-    }
-
     fun toNanoTreeInRange(startY: Double = 0.0, endY: Double = 100000.0): NanoDOMTree {
         val tree = toNanoTreeInRangeRecursive(microTree, startY, endY)
 
@@ -58,9 +42,11 @@ class MicroToNanoTreeHelper constructor(
         // Recursively create child nano nodes, filter out empty placeholders
         val childNanoList = microNode.children
             ?.asSequence()
-            ?.filter { child -> !child.children.isNullOrEmpty() } /* non-empty children */
             ?.filter { inYRange(it, startY, endY) }
-            ?.map { toNanoTreeInRangeRecursive(it, startY, endY) }
+            ?.mapNotNull { child ->
+                toNanoTreeInRangeRecursive(child, startY, endY)
+                    .takeUnless { it == NanoDOMTree() }
+            }
             ?.toList()
 
         return if (childNanoList.isNullOrEmpty()) {

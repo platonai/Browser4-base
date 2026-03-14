@@ -555,7 +555,7 @@ data class NanoDOMTreeNode(
     val microTreeNode: MicroDOMTree? = null,
 ) {
     @get:JsonIgnore
-    val ariaSnapshot: String get() = AriaSnapshotRenderer.render(this)
+    val ariaSnapshot: String by lazy { AriaSnapshotRenderer.render(this) }
 
     @get:JsonIgnore
     val ref: Int get() = FBNLocator.parseRelaxed(locator)?.backendNodeId ?: 0
