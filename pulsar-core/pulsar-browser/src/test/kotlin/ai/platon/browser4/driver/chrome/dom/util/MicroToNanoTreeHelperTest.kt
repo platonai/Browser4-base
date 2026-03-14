@@ -100,6 +100,28 @@ class MicroToNanoTreeHelperTest {
         assertEquals("0,1", nanoTree.locator)
     }
 
+    @Test
+    @DisplayName("toNanoTreeInRange canonical full range matches unfiltered output")
+    fun toNanoTreeInRangeCanonicalFullRangeMatchesUnfilteredOutput() {
+        val root = microNode(
+            id = 1,
+            y = 0.0,
+            height = 200.0,
+            children = listOf(
+                microNode(id = 2),
+                microNode(id = 3, y = 0.0, height = 0.0),
+                microNode(id = 4, y = 1_000_100.0, height = 10.0)
+            )
+        )
+
+        val unfilteredNanoTree = root.toNanoTreeUnfiltered()
+        val fullRangeNanoTree = root.toNanoTreeInRange(0.0, 1_000_000.0)
+
+        assertEquals(unfilteredNanoTree, fullRangeNanoTree)
+        assertEquals(unfilteredNanoTree, root.toNanoTree())
+        assertEquals(listOf("0,2", "0,3", "0,4"), fullRangeNanoTree.children!!.mapNotNull { it.locator })
+    }
+
     private fun microNode(
         id: Int,
         nodeName: String = "div",

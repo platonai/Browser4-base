@@ -11,11 +11,19 @@ class MicroToNanoTreeHelper constructor(
     private val microTree: MicroDOMTreeNode,
     private val seenChunks: MutableList<Pair<Double, Double>>,
 ) {
+    companion object {
+        private const val CANONICAL_FULL_TREE_END_Y = 1_000_000.0
+    }
+
     private val logger = getLogger(this)
 
     private var numNodes = 0
 
-    fun toNanoTreeInRange(startY: Double = 0.0, endY: Double = 100000.0): NanoDOMTree {
+    fun toNanoTreeInRange(startY: Double = 0.0, endY: Double = CANONICAL_FULL_TREE_END_Y): NanoDOMTree {
+        if (startY <= 0.0 && endY >= CANONICAL_FULL_TREE_END_Y) {
+            return toNanoTreeUnfiltered()
+        }
+
         val tree = toNanoTreeInRangeRecursive(microTree, startY, endY)
 
         if (seenChunks.size > 1) {
@@ -34,7 +42,7 @@ class MicroToNanoTreeHelper constructor(
     fun toNanoTreeInRangeRecursive(
         microNode: MicroDOMTreeNode,
         startY: Double = 0.0,
-        endY: Double = 100000.0
+        endY: Double = CANONICAL_FULL_TREE_END_Y
     ): NanoDOMTree {
         // Create the current node from the micro node
         val root = newNode(microNode) ?: return NanoDOMTree()
