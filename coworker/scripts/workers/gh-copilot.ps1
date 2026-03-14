@@ -155,24 +155,15 @@ function Start-GHCopilotProcess {
         PassThru = $true
     }
 
-    $isWindowsPlatform = $false
-    if ($null -ne $PSVersionTable -and $PSVersionTable.PSEdition -eq 'Desktop') {
-        $isWindowsPlatform = $true
+    # Always build an escaped command-line string rather than passing the raw array.
+    # On Linux/macOS, Start-Process joins array elements with spaces without quoting, so
+    # multi-word arguments (e.g. the prompt) get split into separate arguments.
+    # The double-quote escaping used by ConvertTo-WindowsCommandLineArgument is also
+    # honoured by .NET's cross-platform argument parser on Linux/macOS.
+    $escapedArguments = foreach ($argument in $arguments) {
+        ConvertTo-WindowsCommandLineArgument -Argument $argument
     }
-    elseif ($null -ne (Get-Variable -Name IsWindows -ErrorAction SilentlyContinue)) {
-        $isWindowsPlatform = [bool]$IsWindows
-    }
-
-    if ($isWindowsPlatform) {
-        # Use one escaped command line on Windows to preserve multiline/quoted prompt text.
-        $escapedArguments = foreach ($argument in $arguments) {
-            ConvertTo-WindowsCommandLineArgument -Argument $argument
-        }
-        $startProcessArgs.ArgumentList = ($escapedArguments -join ' ')
-    }
-    else {
-        $startProcessArgs.ArgumentList = $arguments
-    }
+    $startProcessArgs.ArgumentList = ($escapedArguments -join ' ')
 
     if ($PSBoundParameters.ContainsKey('WorkingDirectory') -and -not [string]::IsNullOrWhiteSpace($WorkingDirectory)) {
         $startProcessArgs.WorkingDirectory = $WorkingDirectory
