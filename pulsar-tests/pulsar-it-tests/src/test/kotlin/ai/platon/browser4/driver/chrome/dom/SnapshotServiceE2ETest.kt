@@ -80,7 +80,7 @@ class SnapshotServiceE2ETest : WebDriverTestBase() {
         assertTrue(trees.cdpTiming.isNotEmpty(), "cdpTiming should record phases")
 
         val enhancedRoot = collectEnhancedRoot(service, options)
-        val simplified = service.buildEnhancedDOMTree(enhancedRoot)
+        val simplified = service.buildOptimizedDOMTreeNode(enhancedRoot)
         val domState = service.buildDOMState(simplified)
 
         assertTrue { enhancedRoot.children.isNotEmpty() }

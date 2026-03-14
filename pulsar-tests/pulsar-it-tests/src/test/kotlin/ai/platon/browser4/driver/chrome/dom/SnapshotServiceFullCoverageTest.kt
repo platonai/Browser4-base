@@ -51,7 +51,7 @@ class SnapshotServiceFullCoverageTest : WebDriverTestBase() {
         printlnPro(DomDebug.summarize(enhancedRoot))
         assertTrue(enhancedRoot.children.isNotEmpty())
 
-        val tinyTree = service.buildEnhancedDOMTree(enhancedRoot)
+        val tinyTree = service.buildOptimizedDOMTreeNode(enhancedRoot)
         // Print tinyTree summary and basic tree stats
         printlnPro(DomDebug.summarize(tinyTree))
         assertTrue(tinyTree.children.isNotEmpty())

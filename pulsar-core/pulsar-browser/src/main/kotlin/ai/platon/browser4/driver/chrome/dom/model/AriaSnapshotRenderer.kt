@@ -28,6 +28,10 @@ object AriaSnapshotRenderer {
             return emptyList()
         }
 
+        if (shouldCollapseGenericNode(role, accessibleName, props, children)) {
+            return children
+        }
+
         return listOf(
             AriaSnapshotFormatting.RenderChild.Node(
                 AriaSnapshotFormatting.RenderNode(
@@ -40,7 +44,7 @@ object AriaSnapshotRenderer {
                     pressed = AriaSnapshotFormatting.triState(rawState(node, "pressed", "aria-pressed")),
                     selected = AriaSnapshotFormatting.booleanAttribute(rawState(node, "selected", "aria-selected")),
                     ref = ref,
-                    cursorPointer = node.originalNode.isInteractable == true || node.interactiveIndex != null,
+                    cursorPointer = hasCursorPointer(node),
                     props = props,
                     children = children
                 )
@@ -78,7 +82,7 @@ object AriaSnapshotRenderer {
 
         val consumedProperties = setOf("checked", "disabled", "expanded", "level", "pressed", "selected", "url")
         axProperties.forEach { (name, value) ->
-            if (name !in consumedProperties) {
+            if (name !in consumedProperties && !shouldOmitSupplementalProp(name, value)) {
                 props.putIfAbsent(name, value)
             }
         }
@@ -89,12 +93,14 @@ object AriaSnapshotRenderer {
     private fun accessibleName(node: OptimizedDOMTreeNode): String? {
         val original = node.originalNode
         val role = role(node)
-        return AriaSnapshotFormatting.normalizeText(
-            original.axNode?.name
-                ?: original.attributes["aria-label"]
-                ?: original.attributes["title"]
-                ?: if (role == "img") original.attributes["alt"] else null
+        val candidates = listOfNotNull(
+            original.axNode?.name,
+            original.attributes["aria-label"],
+            original.attributes["title"],
+            if (role.equals("generic", ignoreCase = true)) original.axNode?.description else null,
+            if (role == "img") original.attributes["alt"] else null
         )
+        return candidates.firstNotNullOfOrNull(AriaSnapshotFormatting::normalizeText)
     }
 
     private fun level(node: OptimizedDOMTreeNode): String? {
@@ -132,6 +138,40 @@ object AriaSnapshotRenderer {
             is Boolean -> value.toString().lowercase(Locale.ROOT)
             is String -> AriaSnapshotFormatting.normalizeText(value)
             else -> value.toString().trim().takeIf { it.isNotEmpty() }
+        }
+    }
+
+    private fun hasCursorPointer(node: OptimizedDOMTreeNode): Boolean {
+        val snapshotNode = node.originalNode.snapshotNode
+        val styleCursorPointer = node.originalNode.attributes["style"]
+            ?.contains(Regex("""cursor\s*:\s*pointer""", RegexOption.IGNORE_CASE)) == true
+        return if (snapshotNode != null) {
+            snapshotNode.cursorStyle?.equals("pointer", ignoreCase = true) == true ||
+                    snapshotNode.isClickable == true ||
+                    styleCursorPointer
+        } else {
+            styleCursorPointer || node.originalNode.isInteractable == true || node.interactiveIndex != null
+        }
+    }
+
+    private fun shouldCollapseGenericNode(
+        role: String,
+        accessibleName: String?,
+        props: Map<String, String>,
+        children: List<AriaSnapshotFormatting.RenderChild>
+    ): Boolean {
+        return role.equals("generic", ignoreCase = true) &&
+                accessibleName.isNullOrEmpty() &&
+                props.isEmpty() &&
+                children.size == 1 &&
+                children.first() is AriaSnapshotFormatting.RenderChild.Node
+    }
+
+    private fun shouldOmitSupplementalProp(name: String, value: String): Boolean {
+        return when (name) {
+            "focusable", "focused", "editable", "settable" -> true
+            "invalid", "multiline", "readonly", "required" -> value.equals("false", ignoreCase = true)
+            else -> false
         }
     }
 

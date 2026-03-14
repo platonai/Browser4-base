@@ -16,9 +16,8 @@ class SnapshotServiceIsScrollableTest : WebDriverTestBase() {
     private val testURL get() = "$generatedAssetsBaseURL/interactive-dynamic.html"
 
     @Test
-    @Ignore("Disabled temporarily")
     @DisplayName("isScrollable basics - regular elements and overflow hidden")
-    fun isscrollableBasicsRegularElementsAndOverflowHidden() = runEnhancedWebDriverTest(testURL) { driver ->
+    fun isScrollableBasicsRegularElementsAndOverflowHidden() = runEnhancedWebDriverTest(testURL) { driver ->
         assertIs<PulsarWebDriver>(driver)
         val devTools = driver.implementation as RemoteDevTools
         val service = CDPSnapshotService(devTools)

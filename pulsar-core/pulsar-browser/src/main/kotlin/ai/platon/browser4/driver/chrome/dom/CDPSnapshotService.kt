@@ -113,7 +113,7 @@ class CDPSnapshotService(
             logger.debug("allTrees summary: \n{}", DomDebug.summarize(allTrees))
         }
 
-        val tinyTree = buildEnhancedDOMTree(allTrees)
+        val tinyTree = buildOptimizedDOMTreeNode(allTrees)
         if (logger.isDebugEnabled) {
             logger.debug("tinyTree summary: \n{}", DomDebug.summarize(tinyTree))
         }
@@ -400,35 +400,35 @@ class CDPSnapshotService(
         return merged
     }
 
-    internal fun buildEnhancedDOMTree(trees: TargetTrees): OptimizedDOMTree {
+    internal fun buildOptimizedDOMTreeNode(trees: TargetTrees): OptimizedDOMTree {
         val enhanced = buildMergedDOMTreeNode(trees)
         val hasElements = enhanced.children.isNotEmpty() ||
                 enhanced.shadowRoots.isNotEmpty() ||
                 enhanced.contentDocument != null
-        val tinyTree = OptimizedDOMTreeBuilder(enhanced).build()
+        val optimizedTree = OptimizedDOMTreeBuilder(enhanced).build()
 
-        if (!hasElements || tinyTree == null) {
+        if (!hasElements || optimizedTree == null) {
             logger.info("Empty DOM tree collected | trees: {}", DomDebug.summarize(trees))
             // throw IllegalStateException("Empty DOM tree collected (AX=${trees.axTree.size}, SNAP=${trees.snapshotByBackendId.size})")
         }
 
-        return tinyTree ?: OptimizedDOMTree(MergedDOMTreeNode())
+        return optimizedTree ?: OptimizedDOMTree(MergedDOMTreeNode())
     }
 
-    fun buildEnhancedDOMTree(root: MergedDOMTreeNode): OptimizedDOMTreeNode {
-        fun simplify(node: MergedDOMTreeNode): OptimizedDOMTreeNode {
-            val simplifiedChildren = node.children.map { simplify(it) }
+    fun buildOptimizedDOMTreeNode(root: MergedDOMTreeNode): OptimizedDOMTreeNode {
+        fun optimize(node: MergedDOMTreeNode): OptimizedDOMTreeNode {
+            val optimizedChildren = node.children.map { optimize(it) }
 
             return OptimizedDOMTreeNode(
                 originalNode = node,
-                children = simplifiedChildren,
+                children = optimizedChildren,
                 shouldDisplay = node.nodeType == NodeType.ELEMENT_NODE ||
                         node.nodeType == NodeType.TEXT_NODE,
                 interactiveIndex = node.interactiveIndex
             )
         }
 
-        return simplify(root)
+        return optimize(root)
     }
 
     fun buildDOMState(root: OptimizedDOMTreeNode, includeAttributes: List<String> = emptyList()): DOMState {
