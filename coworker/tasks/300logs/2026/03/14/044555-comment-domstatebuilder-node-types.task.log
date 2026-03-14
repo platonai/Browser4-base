@@ -1,3 +1,22 @@
+Task: comment-domstatebuilder-node-types
+Description: Task from comment-domstatebuilder-node-types.md
+Original File: comment-domstatebuilder-node-types.md
+Started: 2026-03-14 04:46:41
+Prompt:
+Finish the task described in file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\2working\comment-domstatebuilder-node-types.md.
+Do not move **this** task file, just execute the task based on its content, the system will move it after you finished the task.
+
+*** MEMORY UPDATE INSTRUCTIONS ***
+You have a memory system to help you learn and improve.
+Your memory files are located in: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs
+
+After completing the task, you MUST update your daily memory file: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\14\MEMORY.20260314.md
+1. Append a summary of this task, its outcome, and any lessons learned to D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\14\MEMORY.20260314.md.
+2. Check if the Monthly Memory file (D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\MEMORY.202603.md) has been updated with the previous day's summary. If not, summarize all daily memories from this month (excluding today) into the Monthly Memory.
+3. Ensure you do not overwrite existing content, always append.
+
+
+[Monthly Memory (2026-03)]:
 # MEMORY.202603.md
 ## Monthly Memory - 2026-03
 
@@ -76,8 +95,9 @@
 ### Daily Rollup Verification (2026-03-12)
 - Checked for a `MEMORY.20260312.md` daily file before updating the monthly rollup. No `2026-03-12` daily memory file was present, and the monthly memory already reflects the latest available pre-today daily summary through `2026-03-11`, so no additional pre-today rollup content was required.
 
-### Daily Rollup Update (2026-03-01 to 2026-03-13)
-- Continued stabilizing Browser4 MCP, launch, and DOM snapshot behavior across the month, including packaged-jar MCP startup guidance, snapshot/ARIA assertion refinements, restored navigation attributes in DOM serialization, and presentational-container fixes that preserve accessible descendants.
-- Added clearer guidance and validation around DOM serialization internals, including documenting the `DOMTreeNodeEx` -> `TinyDOMTreeNode` -> `MicroDOMTreeNode` pipeline directly in `DOMStateBuilder` while keeping focused module-local validation on `DOMStateBuilderTest`.
-- Kept coworker execution hygiene tight: empty task files were treated as no-ops, daily memory was updated append-only, and monthly memory synchronization was explicitly checked against the latest available pre-today daily summary.
-- Reinforced recurring execution hygiene: prefer module-local Maven `-f` validation when the root reactor is incomplete, validate prompt/DOM output semantically instead of via brittle size checks, and document transformation-stage model boundaries where future maintainers will read them.
+
+---
+Copilot Execution Output:
+
+Copilot Exit Code: 0
+Copilot Log: D:\workspace\Browser4\Browser4-4.6\coworker\tasks\300logs\2026\03\14\044555-comment-domstatebuilder-node-types.copilot.log

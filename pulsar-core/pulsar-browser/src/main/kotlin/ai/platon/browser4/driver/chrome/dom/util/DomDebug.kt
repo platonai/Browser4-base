@@ -61,7 +61,7 @@ object DomDebug {
         return "nodeId=${n.nodeId}, name=${n.nodeName}, label=${labelOfNode(n)}, hash=${hashShort}, bounds=${r}"
     }
 
-    private fun briefWithBounds(n: TinyNode): String {
+    private fun briefWithBounds(n: TinyDOMTreeNode): String {
         val o = n.originalNode
         val r = rectOf(o)
         val hashShort = o.elementHash?.take(12)
@@ -86,9 +86,9 @@ object DomDebug {
         return middleTwo(eligible)
     }
 
-    private fun midTwoWithBounds(root: TinyNode): Pair<TinyNode?, TinyNode?> {
-        val eligible = mutableListOf<TinyNode>()
-        fun dfs(n: TinyNode) {
+    private fun midTwoWithBounds(root: TinyDOMTreeNode): Pair<TinyDOMTreeNode?, TinyDOMTreeNode?> {
+        val eligible = mutableListOf<TinyDOMTreeNode>()
+        fun dfs(n: TinyDOMTreeNode) {
             val r = rectOf(n.originalNode)
             if (hasNonZeroXY(r)) eligible += n
             n.children.forEach { dfs(it) }
@@ -128,11 +128,11 @@ object DomDebug {
         return TreeStats(maxDepth, count, leaves)
     }
 
-    fun stats(root: TinyNode): TreeStats {
+    fun stats(root: TinyDOMTreeNode): TreeStats {
         var maxDepth = 0
         var count = 0
         var leaves = 0
-        fun dfs(n: TinyNode, d: Int) {
+        fun dfs(n: TinyDOMTreeNode, d: Int) {
             count++
             if (d > maxDepth) maxDepth = d
             if (n.children.isEmpty()) leaves++
@@ -178,11 +178,11 @@ object DomDebug {
         return BoundsStats(zero, positive, missing)
     }
 
-    fun boundsStats(root: TinyNode): BoundsStats {
+    fun boundsStats(root: TinyDOMTreeNode): BoundsStats {
         var zero = 0
         var positive = 0
         var missing = 0
-        fun dfs(n: TinyNode) {
+        fun dfs(n: TinyDOMTreeNode) {
             val o = n.originalNode
             val r = rectOf(o)
             if (r == null) missing++
@@ -255,9 +255,9 @@ object DomDebug {
         return list
     }
 
-    private fun collectXY(root: TinyNode): List<Pair<Double, Double>> {
+    private fun collectXY(root: TinyDOMTreeNode): List<Pair<Double, Double>> {
         val list = mutableListOf<Pair<Double, Double>>()
-        fun dfs(n: TinyNode) {
+        fun dfs(n: TinyDOMTreeNode) {
             xyOf(rectOf(n.originalNode))?.let { list += it }
             n.children.forEach { dfs(it) }
         }
@@ -295,7 +295,7 @@ object DomDebug {
         "bounds" to (n.snapshotNode?.clientRects ?: n.absolutePosition),
     )
 
-    fun toMidNodeMap(n: TinyNode): Map<String, Any?> = toMidNodeMap(n.originalNode)
+    fun toMidNodeMap(n: TinyDOMTreeNode): Map<String, Any?> = toMidNodeMap(n.originalNode)
     fun toMidNodeMap(n: NanoDOMTree): Map<String, Any?> = linkedMapOf(
         "locator" to n.locator,
         "label" to labelOfNano(n),
@@ -383,7 +383,7 @@ object DomDebug {
         )
     }
 
-    fun summarize(root: TinyNode): Map<String, Any?> {
+    fun summarize(root: TinyDOMTreeNode): Map<String, Any?> {
         val s = stats(root)
         val b = boundsStats(root)
         val original = root.originalNode

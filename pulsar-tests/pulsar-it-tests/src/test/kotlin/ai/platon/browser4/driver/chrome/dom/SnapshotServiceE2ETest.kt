@@ -146,7 +146,7 @@ class SnapshotServiceE2ETest : WebDriverTestBase() {
 
         path = reportDir.resolve("dom-state-aria-snapshot-$ident.yml")
         Files.writeString(path, domState.ariaSnapshot)
-        logger.info("Aria snapshot written | {}", path.toUri())
+        logger.info("Aria snapshot written (unfiltered) | {}", path.toUri())
 
         path = reportDir.resolve("dom-state-nano-aria-snapshot-$ident.yml")
         Files.writeString(path, domState.microTree.toNanoTree().ariaSnapshot)

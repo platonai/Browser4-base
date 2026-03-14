@@ -25,9 +25,9 @@ class DOMStateBuilderTest {
             elementHash = "root-hash"
         )
 
-        val root = TinyNode(
+        val root = TinyDOMTreeNode(
             originalNode = rootOriginal,
-            children = listOf(TinyNode(originalNode = childOriginal))
+            children = listOf(TinyDOMTreeNode(originalNode = childOriginal))
         )
 
         val result = DOMStateBuilder.build(root, listOf("data-id", "aria-label"))
@@ -68,9 +68,9 @@ class DOMStateBuilderTest {
             elementHash = "body-hash"
         )
 
-        val simplified = TinyNode(
+        val simplified = TinyDOMTreeNode(
             originalNode = rootOriginal,
-            children = listOf(TinyNode(originalNode = scrollableNode))
+            children = listOf(TinyDOMTreeNode(originalNode = scrollableNode))
         )
 
         val result = DOMStateBuilder.build(simplified)
@@ -107,11 +107,11 @@ class DOMStateBuilderTest {
             elementHash = "body-hash"
         )
 
-        val simplified = TinyNode(
+        val simplified = TinyDOMTreeNode(
             originalNode = rootOriginal,
             children = listOf(
-                TinyNode(originalNode = highPaintOrderNode),
-                TinyNode(originalNode = normalNode)
+                TinyDOMTreeNode(originalNode = highPaintOrderNode),
+                TinyDOMTreeNode(originalNode = normalNode)
             )
         )
 
@@ -157,12 +157,12 @@ class DOMStateBuilderTest {
             elementHash = "body-hash"
         )
 
-        val simplified = TinyNode(
+        val simplified = TinyDOMTreeNode(
             originalNode = rootOriginal,
             children = listOf(
-                TinyNode(
+                TinyDOMTreeNode(
                     originalNode = listNode,
-                    children = List(5) { TinyNode(originalNode = listItem) } // 5 children to meet threshold
+                    children = List(5) { TinyDOMTreeNode(originalNode = listItem) } // 5 children to meet threshold
                 )
             )
         )
@@ -198,7 +198,7 @@ class DOMStateBuilderTest {
             )
         )
 
-        val simplified = TinyNode(originalNode = node)
+        val simplified = TinyDOMTreeNode(originalNode = node)
 
         val options = DOMStateBuilder.CompactOptions(
             enableAttributeCasingAlignment = true,
@@ -226,7 +226,7 @@ class DOMStateBuilderTest {
             backendNodeId = 12345
         )
 
-        val simplified = TinyNode(originalNode = node)
+        val simplified = TinyDOMTreeNode(originalNode = node)
 
         val result = DOMStateBuilder.build(simplified)
 
@@ -253,7 +253,7 @@ class DOMStateBuilderTest {
             elementHash = "custom-hash"
         )
 
-        val simplified = TinyNode(originalNode = node)
+        val simplified = TinyDOMTreeNode(originalNode = node)
 
         val options = DOMStateBuilder.CompactOptions(
             preserveOriginalCasing = true
@@ -274,7 +274,7 @@ class DOMStateBuilderTest {
         val levels = 30
 
         // Build a deep chain of SlimNodes: node-1 -> node-2 -> ... -> node-29 -> node-30(leaf)
-        var leaf: TinyNode = TinyNode(
+        var leaf: TinyDOMTreeNode = TinyDOMTreeNode(
             originalNode = DOMTreeNodeEx(
                 nodeId = levels,
                 nodeName = "SPAN",
@@ -287,7 +287,7 @@ class DOMStateBuilderTest {
                 nodeName = "DIV",
                 elementHash = "node-$i"
             )
-            leaf = TinyNode(
+            leaf = TinyDOMTreeNode(
                 originalNode = parentOriginal,
                 children = listOf(leaf)
             )
@@ -439,9 +439,9 @@ class DOMStateBuilderTest {
             children = listOf(anchorNode),
             isVisible = true
         )
-        val root = TinyNode(
+        val root = TinyDOMTreeNode(
             originalNode = rootOriginal,
-            children = listOf(TinyNode(originalNode = anchorNode, interactiveIndex = 1))
+            children = listOf(TinyDOMTreeNode(originalNode = anchorNode, interactiveIndex = 1))
         )
 
         val ariaSnapshot = DOMStateBuilder.build(root).ariaSnapshot
@@ -565,12 +565,12 @@ class DOMStateBuilderTest {
             children = listOf(anchorNode, imgNode, formNode)
         )
 
-        val root = TinyNode(
+        val root = TinyDOMTreeNode(
             originalNode = rootOriginal,
             children = listOf(
-                TinyNode(originalNode = anchorNode),
-                TinyNode(originalNode = imgNode),
-                TinyNode(originalNode = formNode)
+                TinyDOMTreeNode(originalNode = anchorNode),
+                TinyDOMTreeNode(originalNode = imgNode),
+                TinyDOMTreeNode(originalNode = formNode)
             )
         )
 

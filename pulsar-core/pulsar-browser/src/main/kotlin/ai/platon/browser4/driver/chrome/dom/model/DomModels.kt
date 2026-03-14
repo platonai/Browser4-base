@@ -310,9 +310,9 @@ typealias DOMTreeEx = DOMTreeNodeEx
 /**
  * Simplified node for LLM serialization.
  */
-data class TinyNode(
+data class TinyDOMTreeNode(
     val originalNode: DOMTreeNodeEx,
-    val children: List<TinyNode> = emptyList(),
+    val children: List<TinyDOMTreeNode> = emptyList(),
     val shouldDisplay: Boolean = true,
     val interactiveIndex: Int? = null,
     val isNew: Boolean = false,
@@ -322,7 +322,7 @@ data class TinyNode(
     val isCompoundComponent: Boolean = false
 )
 
-typealias TinyTree = TinyNode
+typealias TinyDOMTreeTree = TinyDOMTreeNode
 
 /**
  * DOM interacted element for agent interaction.

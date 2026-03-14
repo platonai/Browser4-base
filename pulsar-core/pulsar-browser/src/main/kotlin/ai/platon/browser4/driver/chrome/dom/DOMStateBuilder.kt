@@ -3,18 +3,45 @@ package ai.platon.browser4.driver.chrome.dom
 import ai.platon.browser4.driver.chrome.dom.model.*
 import ai.platon.browser4.driver.chrome.dom.util.ScrollUtils
 
+/**
+ * Builds the compact `DOMState` representation that Browser4 ships to agents and serializers.
+ *
+ * The builder sits between three related node models:
+ *
+ * - `DOMTreeNodeEx` is the richest form. It is the merged DOM/AX/snapshot node produced by snapshot capture and
+ *   still contains full tree structure, geometry, accessibility metadata, and browser-facing identifiers.
+ * - `TinyDOMTreeNode` is an intermediate builder tree. Each tiny node wraps a `DOMTreeNodeEx` in `originalNode`
+ *   and adds traversal decisions made upstream, such as `shouldDisplay`, `interactiveIndex`, paint-order flags,
+ *   and other pruning hints. In other words, tiny nodes keep the original rich payload but annotate it with
+ *   "how should the builder treat this node?" metadata.
+ * - `MicroDOMTreeNode` is the final compact output. It replaces the rich `DOMTreeNodeEx` payload with a
+ *   `CleanedDOMTreeNode`, keeps only the fields that matter to downstream prompting/interaction, and recursively
+ *   serializes children into a smaller LLM-facing tree.
+ *
+ * So the pipeline is intentionally:
+ *
+ * `DOMTreeNodeEx` (raw merged browser model)
+ * -> `TinyDOMTreeNode` (builder-oriented wrapper with pruning/display decisions)
+ * -> `MicroDOMTreeNode` (compact serialized agent model)
+ */
 object DOMStateBuilder {
     /**
-     * Serialize SimplifiedNode tree to JSON string for LLM.
-     * Enhanced with paint-order pruning, compound component marking, and attribute casing alignment.
+     * Builds a `DOMState` from a preprocessed tiny tree.
      *
-     * @param root The simplified node tree root
+     * `DOMTinyTreeBuilder` does the expensive structural filtering first and hands this builder a
+     * `TinyDOMTreeNode` tree. We then preserve those filtering decisions while compacting each node's
+     * embedded `DOMTreeNodeEx` into `CleanedDOMTreeNode` entries inside the final `MicroDOMTreeNode` tree.
+     *
+     * This split keeps Browser4's internal browser model (`DOMTreeNodeEx`) available during transformation,
+     * but prevents the final payload from carrying the full DOM/AX/snapshot graph into prompts.
+     *
+     * @param root The intermediate tiny tree root that still references the original rich browser nodes
      * @param includeAttributes List of attribute names to include (empty = use defaults)
      * @param options Serialization options for enhanced features
-     * @return JSON string
+     * @return The compact DOM state containing the serialized micro tree plus lookup metadata
      */
     fun build(
-        root: TinyNode,
+        root: TinyDOMTreeNode,
         includeAttributes: List<String> = emptyList(),
         options: CompactOptions = CompactOptions()
     ): DOMState {
@@ -62,7 +89,7 @@ object DOMStateBuilder {
         }
     }
 
-    private fun collectFrameIds(root: TinyNode, frameIds: MutableSet<String>) {
+    private fun collectFrameIds(root: TinyDOMTreeNode, frameIds: MutableSet<String>) {
         root.originalNode.frameId?.let { frameIds.add(it) }
         root.children.forEach {
             collectFrameIds(it, frameIds)
@@ -70,9 +97,9 @@ object DOMStateBuilder {
     }
 
     // Find the top-level HTML node's client height to use as viewport height
-    private fun findTopLevelViewportHeight(root: TinyNode): Double? {
+    private fun findTopLevelViewportHeight(root: TinyDOMTreeNode): Double? {
         var height: Double? = null
-        fun dfs(n: TinyNode) {
+        fun dfs(n: TinyDOMTreeNode) {
             if (height != null) return
             val o = n.originalNode
             if (o.nodeName.equals("HTML", ignoreCase = true)) {
@@ -97,8 +124,19 @@ object DOMStateBuilder {
         val preserveOriginalCasing: Boolean = false
     )
 
+    /**
+     * Recursively converts one `TinyDOMTreeNode` subtree into its `MicroDOMTreeNode` equivalent.
+     *
+     * The important distinction is:
+     * - the tiny node still points at the full `DOMTreeNodeEx` via `originalNode`, so this method can inspect
+     *   geometry, AX role/name data, DOM attributes, and frame metadata while deciding how to serialize.
+     * - the returned micro node keeps only compact, prompt-safe fields and a cleaned copy of the original node.
+     *
+     * This is where the builder crosses the boundary from an internal transformation tree to the final
+     * agent-facing representation.
+     */
     private fun buildMicroDOMTree(
-        node: TinyNode,
+        node: TinyDOMTreeNode,
         includeAttributes: Set<String>,
         ancestors: List<DOMTreeNodeEx>,
         locatorMap: LocatorMap,
@@ -171,7 +209,7 @@ object DOMStateBuilder {
     /**
      * Determine if a node should be pruned based on paint order.
      */
-    private fun shouldPruneByPaintOrder(node: TinyNode, options: CompactOptions): Boolean {
+    private fun shouldPruneByPaintOrder(node: TinyDOMTreeNode, options: CompactOptions): Boolean {
         val paintOrder = node.originalNode.snapshotNode?.paintOrder ?: return false
         return paintOrder > options.maxPaintOrderThreshold
     }
@@ -179,7 +217,7 @@ object DOMStateBuilder {
     /**
      * Detect if a node represents a compound component.
      */
-    private fun detectCompoundComponent(node: TinyNode, options: CompactOptions): Boolean {
+    private fun detectCompoundComponent(node: TinyDOMTreeNode, options: CompactOptions): Boolean {
         val originalNode = node.originalNode
         val tag = originalNode.nodeName.lowercase()
 
@@ -232,7 +270,7 @@ object DOMStateBuilder {
      * Create a pruned node with minimal information for high paint-order elements.
      */
     private fun createPrunedNode(
-        node: TinyNode,
+        node: TinyDOMTreeNode,
         ancestors: List<DOMTreeNodeEx>,
         locatorMap: LocatorMap,
         frameIds: List<String>,

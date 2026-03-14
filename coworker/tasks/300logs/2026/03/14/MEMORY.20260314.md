@@ -1,0 +1,8 @@
+## Daily Memory - 2026-03-14
+
+- **Documented the DOMStateBuilder node-model pipeline:** Completed `comment-domstatebuilder-node-types.md` by adding object- and method-level KDoc to `pulsar-core\pulsar-browser\src\main\kotlin\ai\platon\browser4\driver\chrome\dom\DOMStateBuilder.kt`. The new comments explain how `DOMTreeNodeEx` is the rich merged DOM/AX/snapshot model, how `TinyDOMTreeNode` wraps that rich node with builder-stage pruning/display metadata, and how `MicroDOMTreeNode` is the compact cleaned output shipped to agents. **Learning:** In Browser4, the most useful place to explain model differences is the transformation boundary itself, because that is where readers need to understand why the code still consumes rich nodes but emits compact prompt-facing ones.
+
+- **Validated the comments change against the local browser module scope:** Ran ` .\mvnw.cmd -f pulsar-core\pulsar-browser\pom.xml -Dtest=DOMStateBuilderTest -D"surefire.failIfNoSpecifiedTests=false" test ` before and after the documentation update; both runs passed (`12` tests). **Learning:** For documentation-only work in a hot area like DOM serialization, the smallest reliable validation scope is still the focused `DOMStateBuilderTest` class, especially when the worktree already contains adjacent in-flight changes.
+
+- **Updated memory rollups append-only:** Created today's daily memory file and appended this task summary. Also detected that the monthly memory had not yet absorbed the `2026-03-13` daily memory, so a new cumulative month-to-date rollup was appended instead of editing prior entries. **Learning:** Keep coworker memory maintenance append-only and treat a missing prior-day rollup as a signal to add a fresh cumulative update rather than rewriting historical summaries.
+
