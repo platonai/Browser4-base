@@ -22,7 +22,7 @@ object DOMSerializer {
             registerModule(doubleBindModule())
         }
 
-    fun toJson(root: MicroDOMTree): String {
+    fun toJson(root: SerializableDOMTree): String {
         return MAPPER.writeValueAsString(root)
     }
 

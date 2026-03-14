@@ -120,7 +120,7 @@ class CDPSnapshotService(
 
         val domState = buildDOMState(tinyTree)
         if (logger.isDebugEnabled) {
-            val json = DOMSerializer.toJson(domState.microTree)
+            val json = DOMSerializer.toJson(domState.serializableTree)
             logger.debug("browserState summary: \n{}", DomDebug.summarize(domState))
             logger.debug("browserState.json: \nlength: {}\n{}", json.length, json)
         }

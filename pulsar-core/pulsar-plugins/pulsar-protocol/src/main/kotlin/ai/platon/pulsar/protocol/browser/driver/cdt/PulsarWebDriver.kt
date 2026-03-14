@@ -899,7 +899,7 @@ function() {
         return rpc.invokeWithRetry("nanoDOMTree") {
             val snapshotOptions = SnapshotOptions()
             val domState = snapshotService.getDOMState(snapshotOptions = snapshotOptions)
-            domState.microTree.toNanoTreeInRange()
+            domState.serializableTree.toNanoTreeInRange()
         }
     }
 

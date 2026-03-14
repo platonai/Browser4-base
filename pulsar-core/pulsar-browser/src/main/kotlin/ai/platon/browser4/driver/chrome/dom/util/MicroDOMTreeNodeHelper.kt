@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils
 import kotlin.math.max
 
 class MicroToNanoTreeHelper constructor(
-    private val microTree: MicroDOMTreeNode,
+    private val microTree: SerializableDOMTreeNode,
     private val seenChunks: MutableList<Pair<Double, Double>>,
 ) {
     companion object {
@@ -40,7 +40,7 @@ class MicroToNanoTreeHelper constructor(
     }
 
     fun toNanoTreeInRangeRecursive(
-        microNode: MicroDOMTreeNode,
+        microNode: SerializableDOMTreeNode,
         startY: Double = 0.0,
         endY: Double = CANONICAL_FULL_TREE_END_Y
     ): NanoDOMTree {
@@ -73,7 +73,7 @@ class MicroToNanoTreeHelper constructor(
         return toNanoTreeUnfilteredRecursive(microTree)
     }
 
-    private fun toNanoTreeUnfilteredRecursive(microNode: MicroDOMTreeNode): NanoDOMTree {
+    private fun toNanoTreeUnfilteredRecursive(microNode: SerializableDOMTreeNode): NanoDOMTree {
         // Create the current node from the micro node
         val root = newNode(microNode) ?: return NanoDOMTree()
 
@@ -87,7 +87,7 @@ class MicroToNanoTreeHelper constructor(
         }
     }
 
-    private fun newNode(n: MicroDOMTreeNode?): NanoDOMTree? {
+    private fun newNode(n: SerializableDOMTreeNode?): NanoDOMTree? {
         val o = n?.originalNode ?: return null
 
         // remove locator's prefix to reduce serialized size
@@ -105,7 +105,7 @@ class MicroToNanoTreeHelper constructor(
             bounds = o.bounds?.round(),
             absoluteBounds = o.absoluteBounds?.round(),
             viewportIndex = o.viewportIndex,
-            microTreeNode = n,
+            serializableTreeNode = n,
         )
     }
 
@@ -113,7 +113,7 @@ class MicroToNanoTreeHelper constructor(
      * Returns true if any portion of the node lies within the vertical interval (startY, endY],
      * where startY and endY are coordinates along the page’s y-axis.
      * */
-    fun inYRange(no: MicroDOMTreeNode, startY: Double, endY: Double): Boolean {
+    fun inYRange(no: SerializableDOMTreeNode, startY: Double, endY: Double): Boolean {
         // Invalid interval: (startY, endY] must have start < end
         if (startY.isNaN() || endY.isNaN() || startY >= endY) return false
 
@@ -172,14 +172,14 @@ class MicroToNanoTreeHelper constructor(
 }
 
 class MicroDOMTreeNodeHelper(
-    private val root: MicroDOMTreeNode,
+    private val root: SerializableDOMTreeNode,
     private val includeAllViewports: Boolean = false,
     private val currentViewportIndex: Int = 1,
     private val lastViewportIndex: Int = 10000,
     private val maxNonInteractiveTextLength: Int = 100,
 ) {
     companion object {
-        fun slimHTML(n: MicroDOMTreeNode): String? {
+        fun slimHTML(n: SerializableDOMTreeNode): String? {
             val o = n.originalNode ?: return null
 
             val nodeName = o.nodeName
@@ -241,7 +241,7 @@ class MicroDOMTreeNodeHelper(
             return s.ifEmpty { null }
         }
 
-        fun visit(n: MicroDOMTreeNode) {
+        fun visit(n: SerializableDOMTreeNode) {
             val o = n.originalNode
             val idx = n.interactiveIndex
             if (o != null && idx != null) {

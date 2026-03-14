@@ -50,7 +50,7 @@ class PageStateTracker(
         // Prefer cached microTree JSON from DOMState to avoid repeated serialization cost
 //        val domJson = browserUseState.domState.microTree.toNanoTreeInRange().lazyJson
 //        val domHash = domJson.hashCode()
-        val domHash = browserUseState.domState.microTree.hashCode()
+        val domHash = browserUseState.domState.serializableTree.hashCode()
         // Quantize scroll ratio to reduce noise from tiny jitters (bucket to percentage 0..100)
         val scrollBucket = (browserUseState.browserState.scrollState.scrollYRatio * 100).toInt()
         val scrollHash = scrollBucket

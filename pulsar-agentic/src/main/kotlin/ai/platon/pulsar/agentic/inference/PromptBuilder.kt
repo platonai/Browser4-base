@@ -547,7 +547,7 @@ ${params.instruction}
         )
         val startY = scrollState.y.coerceAtLeast(0.0)
         val endY = (scrollState.y + viewportHeight).coerceAtLeast(0.0)
-        val nanoTree = domState.microTree.toNanoTreeInRange(startY, endY)
+        val nanoTree = domState.serializableTree.toNanoTreeInRange(startY, endY)
 
         val schema = params.schema
 
@@ -725,7 +725,7 @@ $newTabsJson
         val delta = viewportHeight * 0.5
         val startY = (scrollState.y - delta).coerceAtLeast(0.0)
         val endY = (scrollState.y + viewportHeight + delta).coerceAtLeast(0.0)
-        val nanoTree = domState.microTree.toNanoTreeInRange(startY, endY)
+        val nanoTree = domState.serializableTree.toNanoTreeInRange(startY, endY)
 
         fun contentEN() = """
 ## Browser State

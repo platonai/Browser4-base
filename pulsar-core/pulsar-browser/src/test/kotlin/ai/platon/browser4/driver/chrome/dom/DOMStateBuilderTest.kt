@@ -31,7 +31,7 @@ class DOMStateBuilderTest {
         )
 
         val result = DOMStateBuilder.build(root, listOf("data-id", "aria-label"))
-        val json = DOMSerializer.toJson(result.microTree)
+        val json = DOMSerializer.toJson(result.serializableTree)
         val tree = mapper.readTree(json)
 
         val rootAttrs = tree.get("originalNode").get("attributes")
@@ -74,7 +74,7 @@ class DOMStateBuilderTest {
         )
 
         val result = DOMStateBuilder.build(simplified)
-        val json = DOMSerializer.toJson(result.microTree)
+        val json = DOMSerializer.toJson(result.serializableTree)
         val tree = mapper.readTree(json)
         val child = tree.get("children").first()
 
@@ -120,7 +120,7 @@ class DOMStateBuilderTest {
             maxPaintOrderThreshold = 1000
         )
         val result = DOMStateBuilder.build(simplified, emptyList(), options)
-        val json = DOMSerializer.toJson(result.microTree)
+        val json = DOMSerializer.toJson(result.serializableTree)
         val tree = mapper.readTree(json)
 
         val children = tree.get("children")
@@ -172,7 +172,7 @@ class DOMStateBuilderTest {
             compoundComponentMinChildren = 3
         )
         val result = DOMStateBuilder.build(simplified, emptyList(), options)
-        val json = DOMSerializer.toJson(result.microTree)
+        val json = DOMSerializer.toJson(result.serializableTree)
         val tree = mapper.readTree(json)
 
         val ulNode = tree.get("children").first()
@@ -205,7 +205,7 @@ class DOMStateBuilderTest {
             preserveOriginalCasing = false
         )
         val result = DOMStateBuilder.build(simplified, listOf("class", "for", "readonly", "customattr"), options)
-        val json = DOMSerializer.toJson(result.microTree)
+        val json = DOMSerializer.toJson(result.serializableTree)
         val tree = mapper.readTree(json)
 
         val attrs = tree.get("originalNode").get("attributes")
@@ -259,7 +259,7 @@ class DOMStateBuilderTest {
             preserveOriginalCasing = true
         )
         val result = DOMStateBuilder.build(simplified, emptyList(), options)
-        val json = DOMSerializer.toJson(result.microTree)
+        val json = DOMSerializer.toJson(result.serializableTree)
         val tree = mapper.readTree(json)
 
         assertEquals(
@@ -294,7 +294,7 @@ class DOMStateBuilderTest {
         }
 
         val result = DOMStateBuilder.build(leaf)
-        val json = DOMSerializer.toJson(result.microTree)
+        val json = DOMSerializer.toJson(result.serializableTree)
         val tree = mapper.readTree(json)
 
         // Traverse down the first-child chain and count levels
@@ -322,7 +322,7 @@ class DOMStateBuilderTest {
     @Test
     @DisplayName("render formats Playwright-style aria snapshot output")
     fun renderFormatsPlaywrightStyleAriaSnapshotOutput() {
-        val textLeaf = MicroDOMTreeNode(
+        val textLeaf = SerializableDOMTreeNode(
             originalNode = cleanedNode(
                 locator = "0,11",
                 backendNodeId = 11,
@@ -330,14 +330,14 @@ class DOMStateBuilderTest {
                 nodeValue = "Playwright"
             )
         )
-        val root = MicroDOMTreeNode(
+        val root = SerializableDOMTreeNode(
             originalNode = cleanedNode(
                 locator = "0,2",
                 backendNodeId = 2,
                 nodeName = "body"
             ),
             children = listOf(
-                MicroDOMTreeNode(
+                SerializableDOMTreeNode(
                     originalNode = cleanedNode(
                         locator = "0,4",
                         backendNodeId = 4,
@@ -345,7 +345,7 @@ class DOMStateBuilderTest {
                         attributes = mapOf("role" to "region", "ax_name" to "Skip to main content")
                     ),
                     children = listOf(
-                        MicroDOMTreeNode(
+                        SerializableDOMTreeNode(
                             interactiveIndex = 1,
                             originalNode = cleanedNode(
                                 locator = "0,3",
@@ -361,7 +361,7 @@ class DOMStateBuilderTest {
                         )
                     )
                 ),
-                MicroDOMTreeNode(
+                SerializableDOMTreeNode(
                     interactiveIndex = 2,
                     originalNode = cleanedNode(
                         locator = "0,5",
@@ -371,7 +371,7 @@ class DOMStateBuilderTest {
                         attributes = mapOf("role" to "button", "ax_name" to "Node.js")
                     )
                 ),
-                MicroDOMTreeNode(
+                SerializableDOMTreeNode(
                     originalNode = cleanedNode(
                         locator = "0,6",
                         backendNodeId = 6,
@@ -383,7 +383,7 @@ class DOMStateBuilderTest {
                         )
                     )
                 ),
-                MicroDOMTreeNode(
+                SerializableDOMTreeNode(
                     originalNode = cleanedNode(
                         locator = "0,10",
                         backendNodeId = 10,
@@ -490,7 +490,7 @@ class DOMStateBuilderTest {
 
         val domState = DOMStateBuilder.build(root)
         val ariaSnapshot = domState.ariaSnapshot
-        val legacySnapshot = domState.microTree.toNanoTreeUnfiltered().ariaSnapshot
+        val legacySnapshot = domState.serializableTree.toNanoTreeUnfiltered().ariaSnapshot
 
         assertTrue(ariaSnapshot.contains("- textbox \"Search\" [ref=e101] [cursor=pointer]:"), ariaSnapshot)
         assertTrue(ariaSnapshot.contains("- /placeholder: Search docs"), ariaSnapshot)
@@ -507,7 +507,7 @@ class DOMStateBuilderTest {
     @Test
     @DisplayName("render preserves descendants under presentational containers")
     fun renderPreservesDescendantsUnderPresentationalContainers() {
-        val root = MicroDOMTreeNode(
+        val root = SerializableDOMTreeNode(
             originalNode = cleanedNode(
                 locator = "0,2",
                 backendNodeId = 2,
@@ -515,7 +515,7 @@ class DOMStateBuilderTest {
                 attributes = mapOf("role" to "RootWebArea", "ax_name" to "Dynamic Content Test")
             ),
             children = listOf(
-                MicroDOMTreeNode(
+                SerializableDOMTreeNode(
                     originalNode = cleanedNode(
                         locator = "0,3",
                         backendNodeId = 3,
@@ -523,14 +523,14 @@ class DOMStateBuilderTest {
                         attributes = mapOf("role" to "none")
                     ),
                     children = listOf(
-                        MicroDOMTreeNode(
+                        SerializableDOMTreeNode(
                             originalNode = cleanedNode(
                                 locator = "0,4",
                                 backendNodeId = 4,
                                 nodeName = "body"
                             ),
                             children = listOf(
-                                MicroDOMTreeNode(
+                                SerializableDOMTreeNode(
                                     originalNode = cleanedNode(
                                         locator = "0,5",
                                         backendNodeId = 5,
@@ -542,7 +542,7 @@ class DOMStateBuilderTest {
                                         )
                                     )
                                 ),
-                                MicroDOMTreeNode(
+                                SerializableDOMTreeNode(
                                     interactiveIndex = 1,
                                     originalNode = cleanedNode(
                                         locator = "0,6",
@@ -632,7 +632,7 @@ class DOMStateBuilderTest {
         val result = DOMStateBuilder.build(root)
 
         // Convert to NanoDOMTree
-        val nanoTree = result.microTree.toNanoTreeUnfiltered()
+        val nanoTree = result.serializableTree.toNanoTreeUnfiltered()
         val json = DOMSerializer.toJson(nanoTree)
         val tree = mapper.readTree(json)
 

@@ -527,7 +527,7 @@ object DomDebug {
             return (name + id + klass).trim()
         }
         val sample = uniqueNodes.take(3).map { labelOf(it) }
-        val json = DOMSerializer.toJson(state.microTree)
+        val json = DOMSerializer.toJson(state.serializableTree)
         val eligible = uniqueNodes.filter { hasNonZeroXY(rectOf(it)) }
         val (mid1, mid2) = middleTwo(eligible)
         val xyAll = uniqueNodes.mapNotNull { xyOf(rectOf(it)) }

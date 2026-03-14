@@ -71,7 +71,7 @@ object DOMStateBuilder {
             topViewportHeight = topViewportHeight
         )
 
-        val interactiveNodes = mutableListOf<MicroDOMTreeNode>()
+        val interactiveNodes = mutableListOf<SerializableDOMTreeNode>()
         collectInteractiveNodes(microTree, interactiveNodes)
 
         // Export legacy selector map view for backward compatibility and diagnostics/tests
@@ -80,9 +80,9 @@ object DOMStateBuilder {
     }
 
     @Deprecated("Use DOMSerializer.toJson(root) instead", ReplaceWith("DOMSerializer.toJson(root)"))
-    fun toJson(root: MicroDOMTree) = DOMSerializer.toJson(root)
+    fun toJson(root: SerializableDOMTree) = DOMSerializer.toJson(root)
 
-    private fun collectInteractiveNodes(root: MicroDOMTree, interactiveNodes: MutableList<MicroDOMTreeNode>) {
+    private fun collectInteractiveNodes(root: SerializableDOMTree, interactiveNodes: MutableList<SerializableDOMTreeNode>) {
         root.takeIf { it.interactiveIndex != null }?.let { interactiveNodes.add(it) }
         root.children?.forEach {
             collectInteractiveNodes(it, interactiveNodes)
@@ -145,7 +145,7 @@ object DOMStateBuilder {
         depth: Int = 0,
         includeOrder: List<String> = emptyList(),
         topViewportHeight: Double?
-    ): MicroDOMTreeNode {
+    ): SerializableDOMTreeNode {
         // Apply paint-order pruning if enabled
         if (options.enablePaintOrderPruning && shouldPruneByPaintOrder(node, options)) {
             // Return a pruned node with minimal information
@@ -193,7 +193,7 @@ object DOMStateBuilder {
             )
         }
 
-        return MicroDOMTreeNode(
+        return SerializableDOMTreeNode(
             shouldDisplay = node.shouldDisplay.takeIf { it },
             interactiveIndex = node.interactiveIndex,
             ignoredByPaintOrder = node.ignoredByPaintOrder.takeIf { it },
@@ -275,7 +275,7 @@ object DOMStateBuilder {
         locatorMap: LocatorMap,
         frameIds: List<String>,
         topViewportHeight: Double?
-    ): MicroDOMTreeNode {
+    ): SerializableDOMTreeNode {
         val viewportIndex = computeViewportIndex(node.originalNode, topViewportHeight)
 
         val prunedOriginal = CleanedDOMTreeNode(
@@ -308,7 +308,7 @@ object DOMStateBuilder {
         // Add to selector map with enhanced lookup keys
         addToLocatorMap(node.originalNode, frameIds, locatorMap)
 
-        return MicroDOMTreeNode(
+        return SerializableDOMTreeNode(
             shouldDisplay = null, // Pruned nodes are not displayed (null means false)
             interactiveIndex = node.interactiveIndex,
             ignoredByPaintOrder = true, // Mark as ignored by paint order

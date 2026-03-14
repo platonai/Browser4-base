@@ -16,7 +16,7 @@ import kotlin.test.assertIs
 
 class OptimizedDOMTreeTest : WebDriverTestBase() {
 
-    private fun flattenSlim(root: OptimizedDOMTreeNode): List<OptimizedDOMTreeNode> {
+    private fun flattenOptimizedTree(root: OptimizedDOMTreeNode): List<OptimizedDOMTreeNode> {
         val out = ArrayList<OptimizedDOMTreeNode>()
         fun dfs(n: OptimizedDOMTreeNode) {
             out.add(n)
@@ -27,8 +27,8 @@ class OptimizedDOMTreeTest : WebDriverTestBase() {
     }
 
     @Test
-    @DisplayName("DOMTinyTreeBuilder invariants on interactive-dynamic page")
-    fun domTinyTreeBuilderInvariantsOnInteractiveDynamicPage() =
+    @DisplayName("OptimizedDOMTreeBuilder invariants on interactive-dynamic page")
+    fun optimizedDOMTreeBuilderInvariantsOnInteractiveDynamicPage() =
         runEnhancedWebDriverTest(interactiveDynamicURL) { driver ->
             assertIs<PulsarWebDriver>(driver)
             val devTools = driver.implementation as RemoteDevTools
@@ -50,14 +50,13 @@ class OptimizedDOMTreeTest : WebDriverTestBase() {
             printlnPro(DomDebug.summarize(enhancedRoot))
             assertTrue(enhancedRoot.children.isNotEmpty(), "Enhanced root should have children")
 
-            val tinyTree = OptimizedDOMTreeBuilder(enhancedRoot).build()
-            assertNotNull(tinyTree, "Simplified Tiny DOM should not be null")
-            tinyTree!!
-            printlnPro(DomDebug.summarize(tinyTree))
-            assertTrue(tinyTree.children.isNotEmpty(), "Simplified Tiny DOM should have children")
+            val optimizedDOMTree = OptimizedDOMTreeBuilder(enhancedRoot).build()
+            assertNotNull(optimizedDOMTree, "OptimizedDOMTree should not be null")
+            optimizedDOMTree!!
+            printlnPro(DomDebug.summarize(optimizedDOMTree))
+            assertTrue(optimizedDOMTree.children.isNotEmpty(), "OptimizedDOMTree should have children")
 
-
-            val all = flattenSlim(tinyTree)
+            val all = flattenOptimizedTree(optimizedDOMTree)
             // There should be at least one interactive element on example.com (links)
             val interactiveIndices = all.mapNotNull { it.interactiveIndex }
             assertTrue(interactiveIndices.isNotEmpty(), "Expected at least one interactive element with index")
@@ -146,7 +145,7 @@ class OptimizedDOMTreeTest : WebDriverTestBase() {
 
         val simplifiedInitial = OptimizedDOMTreeBuilder(enhancedRoot).build()
         assertNotNull(simplifiedInitial)
-        val nodesInitial = flattenSlim(simplifiedInitial!!)
+        val nodesInitial = flattenOptimizedTree(simplifiedInitial!!)
         // With empty previous set, nodes that have backend IDs should be considered new (best-effort)
         val anyNew = nodesInitial.any { it.isNew }
         assertTrue(anyNew, "Expected at least one node marked isNew on first build")
@@ -154,7 +153,7 @@ class OptimizedDOMTreeTest : WebDriverTestBase() {
         // Build again with previous IDs supplied: nodes should now be marked as not new
         val simplifiedSecond = OptimizedDOMTreeBuilder(enhancedRoot, previousBackendNodeIds = allBackendIds).build()
         assertNotNull(simplifiedSecond)
-        val nodesSecond = flattenSlim(simplifiedSecond!!)
+        val nodesSecond = flattenOptimizedTree(simplifiedSecond!!)
         nodesSecond.forEach { n ->
             val backendId = n.originalNode.backendNodeId
             if (backendId != null && backendId in allBackendIds) {
@@ -205,7 +204,7 @@ class OptimizedDOMTreeTest : WebDriverTestBase() {
 
             val simplified = OptimizedDOMTreeBuilder(enhancedRoot).build()
             assertNotNull(simplified)
-            val flat = flattenSlim(simplified!!)
+            val flat = flattenOptimizedTree(simplified!!)
 
             // Assert: the invisible wrapper should be absent from simplified DOM
             val hasWrapper = flat.any { it.originalNode.attributes["id"] == "invisibleWrapper" }

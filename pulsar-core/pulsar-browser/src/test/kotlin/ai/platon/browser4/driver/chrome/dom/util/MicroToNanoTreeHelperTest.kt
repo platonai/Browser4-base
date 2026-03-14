@@ -2,7 +2,7 @@ package ai.platon.browser4.driver.chrome.dom.util
 
 import ai.platon.browser4.driver.chrome.dom.model.CleanedDOMTreeNode
 import ai.platon.browser4.driver.chrome.dom.model.CompactRect
-import ai.platon.browser4.driver.chrome.dom.model.MicroDOMTreeNode
+import ai.platon.browser4.driver.chrome.dom.model.SerializableDOMTreeNode
 import ai.platon.browser4.driver.chrome.dom.model.NodeType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -127,11 +127,11 @@ class MicroToNanoTreeHelperTest {
         nodeName: String = "div",
         y: Double? = null,
         height: Double? = null,
-        children: List<MicroDOMTreeNode>? = null
-    ): MicroDOMTreeNode {
+        children: List<SerializableDOMTreeNode>? = null
+    ): SerializableDOMTreeNode {
         val bounds = if (y == null && height == null) null else CompactRect(x = 0.0, y = y, width = 100.0, height = height)
 
-        return MicroDOMTreeNode(
+        return SerializableDOMTreeNode(
             originalNode = cleanedNode(id = id, nodeName = nodeName, bounds = bounds),
             children = children
         )

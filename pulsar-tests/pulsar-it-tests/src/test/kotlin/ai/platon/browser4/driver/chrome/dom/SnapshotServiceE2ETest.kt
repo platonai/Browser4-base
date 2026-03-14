@@ -141,15 +141,15 @@ class SnapshotServiceE2ETest : WebDriverTestBase() {
     private fun writeDOMState(domState: DOMState) {
         var path = reportDir.resolve("dom-state-micro-$ident.yml")
         path.parent.createDirectories()
-        Files.writeString(path, domState.microTree.toYaml())
-        logger.info("Micro tree written | {}", path.toUri())
+        Files.writeString(path, domState.serializableTree.toYaml())
+        logger.info("Serializable tree written | {}", path.toUri())
 
-        path = reportDir.resolve("dom-state-aria-snapshot-$ident.yml")
+        path = reportDir.resolve("aria-snapshot-$ident.yml")
         Files.writeString(path, domState.ariaSnapshot)
         logger.info("Aria snapshot written (unfiltered) | {}", path.toUri())
 
-        path = reportDir.resolve("dom-state-nano-aria-snapshot-$ident.yml")
-        Files.writeString(path, domState.microTree.toNanoTree().ariaSnapshot)
+        path = reportDir.resolve("aria-snapshot-nano-$ident.yml")
+        Files.writeString(path, domState.serializableTree.toNanoTree().ariaSnapshot)
         logger.info("Aria snapshot written (nano) | {}", path.toUri())
     }
 

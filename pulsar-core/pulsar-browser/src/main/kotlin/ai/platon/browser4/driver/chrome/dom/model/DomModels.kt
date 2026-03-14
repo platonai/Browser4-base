@@ -478,14 +478,14 @@ class InteractiveDOMTreeNodeList(
  *
  * mini -> tiny -> micro -> nano -> pico -> femto -> atto -> zepto -> yocto
  */
-data class MicroDOMTreeNode(
+data class SerializableDOMTreeNode(
     val shouldDisplay: Boolean? = null,
     val interactiveIndex: Int? = null,
     val ignoredByPaintOrder: Boolean? = null,
     val excludedByParent: Boolean? = null,
     val isCompoundComponent: Boolean? = null,
     val originalNode: CleanedDOMTreeNode? = null,
-    val children: List<MicroDOMTreeNode>? = null,
+    val children: List<SerializableDOMTreeNode>? = null,
     val shouldShowScrollInfo: Boolean? = null,
     val scrollInfoText: String? = null
 ) {
@@ -517,7 +517,7 @@ data class MicroDOMTreeNode(
     }
 }
 
-typealias MicroDOMTree = MicroDOMTreeNode
+typealias SerializableDOMTree = SerializableDOMTreeNode
 
 /**
  * Serializable DOM tree node structure.
@@ -547,7 +547,7 @@ data class NanoDOMTreeNode(
     @JsonIgnore
     val absoluteBounds: CompactRect? = null,
     @JsonIgnore
-    val microTreeNode: MicroDOMTree? = null,
+    val serializableTreeNode: SerializableDOMTree? = null,
 ) {
     @get:JsonIgnore
     val ariaSnapshot: String by lazy { AriaSnapshotForNanoDOMTreeRenderer.render(this) }
@@ -559,17 +559,17 @@ data class NanoDOMTreeNode(
 typealias NanoDOMTree = NanoDOMTreeNode
 
 data class DOMState constructor(
-    val microTree: MicroDOMTree,
-    val interactiveNodes: List<MicroDOMTreeNode> = listOf(),
+    val serializableTree: SerializableDOMTree,
+    val interactiveNodes: List<SerializableDOMTreeNode> = listOf(),
     val frameIds: List<String> = listOf(),
     val selectorMap: Map<String, MergedDOMTreeNode> = mapOf(),
     val locatorMap: LocatorMap = LocatorMap(),
     @get:JsonIgnore
-    val enhancedTree: OptimizedDOMTree? = null
+    val optimizedDOMTree: OptimizedDOMTree? = null
 ) {
     @get:JsonIgnore
-    val ariaSnapshot: String get() = enhancedTree?.let(AriaSnapshotRenderer::render)
-        ?: microTree.toNanoTreeUnfiltered().ariaSnapshot
+    val ariaSnapshot: String get() = optimizedDOMTree?.let(AriaSnapshotRenderer::render)
+        ?: serializableTree.toNanoTreeUnfiltered().ariaSnapshot
 
     fun getAbsoluteFBNLocator(locator: String?): FBNLocator? {
         if (locator == null) {
@@ -677,7 +677,7 @@ data class BrowserUseState(
     val domState: DOMState
 ) {
     fun getAllInteractiveElements(): InteractiveDOMTreeNodeList {
-        return domState.microTree.toInteractiveDOMTreeNodeList()
+        return domState.serializableTree.toInteractiveDOMTreeNodeList()
     }
 
     fun getInteractiveElements(): InteractiveDOMTreeNodeList {
@@ -688,7 +688,7 @@ data class BrowserUseState(
         val processingViewport = scrollState.processingViewport
         val viewportsTotal = scrollState.viewportsTotal
 
-        return domState.microTree.toInteractiveDOMTreeNodeList(
+        return domState.serializableTree.toInteractiveDOMTreeNodeList(
             currentViewportIndex = processingViewport, lastViewportIndex = viewportsTotal
         )
     }
@@ -696,7 +696,7 @@ data class BrowserUseState(
     companion object {
         val DUMMY: BrowserUseState = BrowserUseState(
             BrowserState(""),
-            DOMState(MicroDOMTree())
+            DOMState(SerializableDOMTree())
         )
     }
 }
