@@ -17,6 +17,7 @@ jest.mock('../src/state', () => ({
     readState: jest.fn(() => ({baseUrl: 'http://localhost:8182'})),
     writeState: jest.fn(),
     clearState: jest.fn(),
+    resolveRef: jest.fn((ref: string) => /^e\d+$/i.test(ref) ? `backend:${ref.slice(1)}` : ref),
 }));
 
 jest.mock('../src/cli/daemon/daemon', () => ({
@@ -152,11 +153,11 @@ describe('normalizeToolCall', () => {
     it('maps legacy click variants to click and dblclick', () => {
         expect(normalizeToolCall('browser_click', {ref: 'e1'})).toEqual({
             tool: 'click',
-            args: {ref: 'e1'},
+            args: {selector: 'backend:1'},
         });
         expect(normalizeToolCall('browser_click', {ref: 'e1', doubleClick: true})).toEqual({
             tool: 'dblclick',
-            args: {ref: 'e1'},
+            args: {selector: 'backend:1'},
         });
     });
 
@@ -175,6 +176,21 @@ describe('normalizeToolCall', () => {
         expect(normalizeToolCall('browser_handle_dialog', {accept: false})).toEqual({
             tool: 'dialog_dismiss',
             args: {},
+        });
+    });
+
+    it('maps legacy selector-style command args to selector fields', () => {
+        expect(normalizeToolCall('browser_type', {ref: 'e2271', text: 'hello'})).toEqual({
+            tool: 'fill',
+            args: {selector: 'backend:2271', text: 'hello'},
+        });
+        expect(normalizeToolCall('browser_hover', {ref: '.cta'})).toEqual({
+            tool: 'hover',
+            args: {selector: '.cta'},
+        });
+        expect(normalizeToolCall('browser_drag', {startRef: 'e1', endRef: 'e2'})).toEqual({
+            tool: 'drag',
+            args: {sourceSelector: 'backend:1', targetSelector: 'backend:2'},
         });
     });
 });

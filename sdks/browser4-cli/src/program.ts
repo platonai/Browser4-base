@@ -21,7 +21,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import axios, {AxiosInstance} from 'axios';
-import {clearState, CliState, readState, writeState} from './state';
+import {clearState, CliState, readState, resolveRef, writeState} from './state';
 import {ensureServerRunning} from './cli/daemon/daemon';
 import {commands} from './cli/daemon/commands';
 import {parseCommand} from './cli/daemon/command';
@@ -70,11 +70,27 @@ function normalizeToolCall(
     tool: string,
     args: Record<string, unknown> = {},
 ): { tool: string; args: Record<string, unknown> } {
+    const withSelector = (rawArgs: Record<string, unknown>, keys: string[]): Record<string, unknown> => {
+        const normalizedArgs = {...rawArgs};
+        for (const key of keys) {
+            const value = normalizedArgs[key];
+            if (typeof value === 'string') {
+                normalizedArgs[key] = resolveRef(value);
+            }
+        }
+        return normalizedArgs;
+    };
+
     if (tool === 'browser_click') {
-        const {doubleClick, ...rest} = args;
+        const {doubleClick, ref, modifiers, ...rest} = args;
+        const selectorArgs: Record<string, unknown> = {
+            ...rest,
+            ...(typeof ref === 'string' ? {selector: resolveRef(ref)} : {}),
+            ...(Array.isArray(modifiers) && modifiers.length > 0 ? {modifier: modifiers[0]} : {}),
+        };
         return {
             tool: doubleClick ? 'dblclick' : 'click',
-            args: rest,
+            args: selectorArgs,
         };
     }
 
@@ -94,9 +110,62 @@ function normalizeToolCall(
         if (action === 'select') return {tool: 'tab_select', args: rest};
     }
 
+    if (tool === 'browser_type') {
+        const {ref, ...rest} = args;
+        return {
+            tool: 'fill',
+            args: {
+                ...rest,
+                ...(typeof ref === 'string' ? {selector: resolveRef(ref)} : {}),
+            },
+        };
+    }
+
+    if (tool === 'browser_hover' || tool === 'browser_select_option' || tool === 'browser_check' || tool === 'browser_uncheck') {
+        const {ref, ...rest} = args;
+        return {
+            tool: LEGACY_TOOL_NAME_ALIASES[tool] ?? tool,
+            args: {
+                ...rest,
+                ...(typeof ref === 'string' ? {selector: resolveRef(ref)} : {}),
+            },
+        };
+    }
+
+    if (tool === 'browser_drag') {
+        const {startRef, endRef, ...rest} = args;
+        return {
+            tool: 'drag',
+            args: {
+                ...rest,
+                ...(typeof startRef === 'string' ? {sourceSelector: resolveRef(startRef)} : {}),
+                ...(typeof endRef === 'string' ? {targetSelector: resolveRef(endRef)} : {}),
+            },
+        };
+    }
+
+    if (tool === 'browser_take_screenshot') {
+        const {ref, ...rest} = args;
+        return {
+            tool: 'screenshot',
+            args: {
+                ...rest,
+                ...(typeof ref === 'string' ? {selector: resolveRef(ref)} : {}),
+            },
+        };
+    }
+
+    if (tool === 'browser_file_upload') {
+        const rawArgs = withSelector(args, ['selector']);
+        return {
+            tool: 'upload',
+            args: rawArgs,
+        };
+    }
+
     return {
         tool: LEGACY_TOOL_NAME_ALIASES[tool] ?? tool,
-        args,
+        args: withSelector(args, ['selector']),
     };
 }
 

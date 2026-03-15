@@ -58,3 +58,21 @@ export function clearState(stateDir: string = DEFAULT_STATE_DIR): void {
     // Nothing to clear.
   }
 }
+
+/**
+ * Convert a CLI element ref into the selector format expected by Browser4.
+ *
+ * Supported forms:
+ * - `e15` -> `backend:15`
+ * - `backend:15` -> `backend:15`
+ * - CSS/XPath selectors are passed through unchanged
+ */
+export function resolveRef(rawRef: string): string {
+  const trimmed = rawRef.trim();
+  const match = /^e(\d+)$/i.exec(trimmed);
+  if (match) {
+    return `backend:${match[1]}`;
+  }
+
+  return trimmed;
+}
