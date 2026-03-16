@@ -1297,15 +1297,6 @@ function() {
         networkAPI?.deleteCookies(name, url, domain, path)
     }
 
-    private fun convertSelectorIfNecessary(selector: String): String {
-        val nodeId = if (selector.startsWith("e")) selector.substring(1).toIntOrNull() else null
-        if (nodeId != null) {
-            val ref = ElementRefCriteria(backendNodeId = nodeId)
-            return snapshotService.findElement(ref)?.cssSelector() ?: selector
-        }
-        return selector
-    }
-
     private suspend fun waitForScrollSettled(selector: String, timeout: Duration = Duration.ofMillis(5_000)) {
         val cssSelector = convertSelectorIfNecessary(selector)
         val safeSelector = Strings.escapeJsString(cssSelector)
