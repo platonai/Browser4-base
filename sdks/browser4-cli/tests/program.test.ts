@@ -24,8 +24,23 @@ jest.mock('../src/cli/daemon/daemon', () => ({
     ensureServerRunning: jest.fn(),
 }));
 
-import {normalizeToolCall, parseRawArgs, parseGlobalFlags} from '../src/program';
+import axios from 'axios';
+import {main, normalizeToolCall, parseRawArgs, parseGlobalFlags, isStaleSessionErrorMessage} from '../src/program';
 import {shouldEnsureServerRunning} from '../src/program';
+
+const stateModule = jest.requireMock('../src/state') as {
+    readState: jest.Mock;
+    writeState: jest.Mock;
+    clearState: jest.Mock;
+};
+
+const daemonModule = jest.requireMock('../src/cli/daemon/daemon') as {
+    ensureServerRunning: jest.Mock;
+};
+
+const mockedAxios = axios as unknown as {
+    create: jest.Mock;
+};
 
 describe('parseRawArgs', () => {
     it('should parse positional arguments', () => {
@@ -191,6 +206,111 @@ describe('normalizeToolCall', () => {
         expect(normalizeToolCall('browser_drag', {startRef: 'e1', endRef: 'e2'})).toEqual({
             tool: 'browser_drag',
             args: {startRef: 'backend:1', endRef: 'backend:2'},
+        });
+    });
+});
+
+describe('stale session handling', () => {
+    const originalArgv = process.argv;
+    const originalExit = process.exit;
+    const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        process.argv = ['node', 'program.js'];
+        process.exit = jest.fn(((code?: number) => {
+            throw new Error(`process.exit:${code ?? 0}`);
+        }) as typeof process.exit);
+        console.log = jest.fn();
+        console.error = jest.fn();
+        daemonModule.ensureServerRunning.mockResolvedValue(undefined);
+        stateModule.readState.mockReset();
+        stateModule.writeState.mockReset();
+        stateModule.clearState.mockReset();
+        mockedAxios.create.mockReset();
+    });
+
+    afterEach(() => {
+        process.argv = originalArgv;
+        process.exit = originalExit;
+        console.log = originalConsoleLog;
+        console.error = originalConsoleError;
+    });
+
+    it('detects expired session errors from the backend', () => {
+        expect(isStaleSessionErrorMessage('browser_navigate failed: Cannot find context with specified id')).toBe(true);
+        expect(isStaleSessionErrorMessage('Saved session expired. Run "browser4-cli open" first.')).toBe(false);
+    });
+
+    it('recreates the session and retries goto once when the saved session expired', async () => {
+        stateModule.readState
+            .mockReturnValueOnce({sessionId: 'stale-session', baseUrl: 'http://localhost:8182'})
+            .mockReturnValueOnce({sessionId: 'stale-session', baseUrl: 'http://localhost:8182'})
+            .mockReturnValue({sessionId: 'fresh-session', baseUrl: 'http://localhost:8182'});
+
+        const post = jest.fn(async (_url: string, body: { tool: string; arguments: Record<string, unknown> }) => {
+            switch (body.tool) {
+                case 'browser_navigate':
+                    if (body.arguments.sessionId === 'stale-session') {
+                        return {
+                            data: {
+                                isError: true,
+                                content: [{text: 'browser_navigate failed: Cannot find context with specified id'}],
+                            },
+                        };
+                    }
+                    return {
+                        data: {
+                            content: [{text: 'Navigated'}],
+                        },
+                    };
+                case 'open_session':
+                    return {
+                        data: {
+                            content: [{text: '{"sessionId":"fresh-session"}'}],
+                        },
+                    };
+                case 'page_url':
+                    return {data: {content: [{text: 'https://browser4.io'}]}};
+                case 'page_title':
+                    return {data: {content: [{text: 'Browser4'}]}};
+                case 'browser_snapshot':
+                    return {data: {content: [{text: 'snapshot: ok'}]}};
+                default:
+                    throw new Error(`Unexpected tool ${body.tool}`);
+            }
+        });
+
+        mockedAxios.create.mockReturnValue({
+            post,
+            get: jest.fn(),
+            defaults: {baseURL: 'http://localhost:8182'},
+        });
+
+        process.argv = ['node', 'program.js', 'goto', 'https://browser4.io'];
+
+        await main();
+
+        expect(stateModule.writeState).toHaveBeenNthCalledWith(1, {
+            sessionId: undefined,
+            baseUrl: 'http://localhost:8182',
+        });
+        expect(stateModule.writeState).toHaveBeenNthCalledWith(2, {
+            sessionId: 'fresh-session',
+            baseUrl: 'http://localhost:8182',
+        });
+        expect(post).toHaveBeenNthCalledWith(1, '/mcp/call-tool', {
+            tool: 'browser_navigate',
+            arguments: {url: 'https://browser4.io', sessionId: 'stale-session'},
+        });
+        expect(post).toHaveBeenNthCalledWith(2, '/mcp/call-tool', {
+            tool: 'open_session',
+            arguments: {},
+        });
+        expect(post).toHaveBeenNthCalledWith(3, '/mcp/call-tool', {
+            tool: 'browser_navigate',
+            arguments: {url: 'https://browser4.io', sessionId: 'fresh-session'},
         });
     });
 });

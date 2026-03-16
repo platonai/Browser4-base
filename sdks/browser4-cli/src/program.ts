@@ -215,12 +215,87 @@ function parseRawArgs(rawArgs: string[]): Record<string, unknown> & { _: string[
 // ---------------------------------------------------------------------------
 
 /** Return the current CLI state, throwing if there is no active session. */
-function requireSession(): CliState {
+type CliStateWithSession = CliState & { sessionId: string };
+
+function requireSession(): CliStateWithSession {
     const state = readState();
     if (!state.sessionId) {
         throw new Error('No active session. Run "browser4-cli open" first.');
     }
-    return state;
+    return state as CliStateWithSession;
+}
+
+function getBaseUrl(ax: AxiosInstance): string {
+    const baseUrl = ax.defaults.baseURL;
+    if (!baseUrl) {
+        throw new Error('No Browser4 server URL is configured.');
+    }
+    return String(baseUrl).replace(/\/$/, '');
+}
+
+function isStaleSessionErrorMessage(message: string): boolean {
+    const normalizedMessage = message.toLowerCase();
+    return normalizedMessage.includes('cannot find context with specified id')
+        || normalizedMessage.includes('invalid session id')
+        || normalizedMessage.includes('session not found')
+        || normalizedMessage.includes('session does not exist');
+}
+
+async function createSession(
+    ax: AxiosInstance,
+    state: CliState = readState(),
+): Promise<string> {
+    const sessionResult = await callTool(ax, 'open_session', {});
+    let sessionId: string;
+    try {
+        const parsed = JSON.parse(sessionResult);
+        sessionId = parsed.sessionId;
+    } catch {
+        sessionId = sessionResult;
+    }
+
+    writeState({
+        ...state,
+        sessionId,
+        baseUrl: getBaseUrl(ax),
+    });
+    return sessionId;
+}
+
+function invalidateSession(state: CliState, ax: AxiosInstance): void {
+    writeState({
+        ...state,
+        sessionId: undefined,
+        baseUrl: getBaseUrl(ax),
+    });
+}
+
+interface SessionCommandOptions {
+    recoverStaleSession?: boolean;
+}
+
+async function withSession<T>(
+    ax: AxiosInstance,
+    action: (sessionId: string) => Promise<T>,
+    options: SessionCommandOptions = {},
+): Promise<T> {
+    const state = requireSession();
+    try {
+        return await action(state.sessionId);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!isStaleSessionErrorMessage(message)) {
+            throw error;
+        }
+
+        invalidateSession(state, ax);
+        if (!options.recoverStaleSession) {
+            throw new Error('Saved session expired. Run "browser4-cli open" first.');
+        }
+
+        const sessionId = await createSession(ax, state);
+        return action(sessionId);
+    }
 }
 
 /** Commands that should NOT trigger a post-command snapshot. */
@@ -255,21 +330,14 @@ function printHelp(commandName?: string): void {
 /** Handle the `open` command: create a session and optionally navigate. */
 async function handleOpen(
     ax: AxiosInstance,
-    baseUrl: string,
     toolName: string,
     toolParams: Record<string, unknown>,
     sessionName?: string,
 ): Promise<void> {
-    const sessionResult = await callTool(ax, 'open_session', {});
-    let sessionId: string;
-    try {
-        const parsed = JSON.parse(sessionResult);
-        sessionId = parsed.sessionId;
-    } catch {
-        sessionId = sessionResult;
-    }
-
-    writeState({sessionId, baseUrl, sessionName});
+    const sessionId = await createSession(ax, {
+        ...readState(),
+        sessionName,
+    });
 
     if (toolParams.url && toolParams.url !== 'about:blank') {
         const result = await callTool(ax, toolName, {
@@ -376,8 +444,7 @@ async function handleList(ax: AxiosInstance): Promise<void> {
 
 /** Handle the `delete-data` command: delete session data. */
 async function handleDeleteData(ax: AxiosInstance): Promise<void> {
-    const state = requireSession();
-    const result = await callTool(ax, 'delete_session_data', {sessionId: state.sessionId});
+    const result = await withSession(ax, sessionId => callTool(ax, 'delete_session_data', {sessionId}));
     console.log(result || 'Session data deleted.');
 }
 
@@ -390,14 +457,12 @@ async function handleSnapshot(
     toolName: string,
     toolParams: Record<string, unknown>,
 ): Promise<void> {
-    const state = requireSession();
-    const sid = state.sessionId;
     const {filename, ...snapshotArgs} = toolParams;
-    const [pageUrl, pageTitle, snapshotContent] = await Promise.all([
-        callTool(ax, 'page_url', {sessionId: sid}),
-        callTool(ax, 'page_title', {sessionId: sid}),
-        callTool(ax, toolName, {sessionId: sid, ...snapshotArgs}),
-    ]);
+    const [pageUrl, pageTitle, snapshotContent] = await withSession(ax, sessionId => Promise.all([
+        callTool(ax, 'page_url', {sessionId}),
+        callTool(ax, 'page_title', {sessionId}),
+        callTool(ax, toolName, {sessionId, ...snapshotArgs}),
+    ]));
 
     const outName = (filename as string) || timestampedFilename('snapshot', 'yml');
     const outPath = path.resolve(SNAPSHOT_DIR, outName);
@@ -416,13 +481,11 @@ async function handleScreenshot(
     toolName: string,
     toolParams: Record<string, unknown>,
 ): Promise<void> {
-    const state = requireSession();
-    const sid = state.sessionId;
     const {filename, ...captureArgs} = toolParams;
-    const base64 = await callTool(ax, toolName, {
+    const base64 = await withSession(ax, sessionId => callTool(ax, toolName, {
         ...captureArgs,
-        sessionId: sid,
-    });
+        sessionId,
+    }));
 
     const outName = (filename as string) || timestampedFilename('screenshot', 'png');
     const outPath = path.resolve(SNAPSHOT_DIR, outName);
@@ -438,12 +501,12 @@ async function handleToolCommand(
     ax: AxiosInstance,
     toolName: string,
     toolParams: Record<string, unknown>,
+    options: SessionCommandOptions = {},
 ): Promise<void> {
-    const state = requireSession();
-    const result = await callTool(ax, toolName, {
+    const result = await withSession(ax, sessionId => callTool(ax, toolName, {
         ...toolParams,
-        sessionId: state.sessionId,
-    });
+        sessionId,
+    }), options);
     if (result) {
         console.log(result);
     }
@@ -464,8 +527,6 @@ async function main(): Promise<void> {
             printHelp(remaining[1]);
             return;
         }
-
-        console.log("Starting command...");
 
         // Resolve base URL: --server flag > persisted state > default
         const currentState = readState();
@@ -500,7 +561,7 @@ async function main(): Promise<void> {
         // Dispatch the command
         switch (command) {
             case 'open':
-                await handleOpen(ax, baseUrl, toolName, toolParams, sessionName);
+                await handleOpen(ax, toolName, toolParams, sessionName);
                 break;
             case 'close':
                 await handleClose(ax);
@@ -528,7 +589,9 @@ async function main(): Promise<void> {
                     console.log(`Command '${command}' is not yet implemented.`);
                     break;
                 }
-                await handleToolCommand(ax, toolName, toolParams);
+                await handleToolCommand(ax, toolName, toolParams, {
+                    recoverStaleSession: command === 'goto',
+                });
                 break;
         }
 
@@ -540,8 +603,6 @@ async function main(): Promise<void> {
             }
         }
     } catch (err) {
-        console.error(".................");
-
         const msg = err instanceof Error ? err.message : String(err);
         console.error(`Error: ${msg}`);
         process.exit(1);
@@ -556,4 +617,4 @@ if (require.main === module) {
     });
 }
 
-export {parseRawArgs, parseGlobalFlags, shouldEnsureServerRunning, normalizeToolCall};
+export {main, parseRawArgs, parseGlobalFlags, shouldEnsureServerRunning, normalizeToolCall, isStaleSessionErrorMessage};
