@@ -39,8 +39,6 @@ function makeAxios(baseUrl: string): AxiosInstance {
 }
 
 export async function ensureServerRunning(args: string[]): Promise<void> {
-    console.log("ensuring server...");
-
     const state = readState();
     let baseUrl = state.baseUrl || 'http://localhost:8182';
 
