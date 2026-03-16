@@ -33,7 +33,7 @@ class TestWebDriverPoolManager {
 
     @Test
         @DisplayName("test createUnmanagedDriverPool")
-    fun testCreateunmanageddriverpool() {
+    fun testCreateUnmanagedDriverPool() {
         val driverPool = driverPoolManager.createUnmanagedDriverPool(BrowserId.RANDOM_TEMP)
         val workingDrivers = mutableListOf<WebDriver>()
         var numDrivers = 0

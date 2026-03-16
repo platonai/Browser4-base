@@ -14,7 +14,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with id")
-    fun testSelectfirsttextornullByXpathWithId() =
+    fun testSelectFirstTextOrNullByXpathWithId() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             driver.waitForSelector("#preferencesSection")
             val text = driver.selectFirstTextOrNull("//*[@id='preferencesSection']/h2")
@@ -23,7 +23,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with data-testid")
-    fun testSelectfirsttextornullByXpathWithDataTestid() =
+    fun testSelectFirstTextOrNullByXpathWithDataTestid() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val text = driver.selectFirstTextOrNull("//section[@data-testid='calculatorSection']/h2")
             assertEquals("🧮 Quick Calculator", text)
@@ -31,7 +31,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with contains")
-    fun testSelectfirsttextornullByXpathWithContains() =
+    fun testSelectFirstTextOrNullByXpathWithContains() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val text = driver.selectFirstTextOrNull("//section[contains(@class, 'section-toggle')]/h2")
             assertEquals("🎯 Dynamic Toggle", text)
@@ -39,7 +39,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with text content")
-    fun testSelectfirsttextornullByXpathWithTextContent() =
+    fun testSelectFirstTextOrNullByXpathWithTextContent() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val text = driver.selectFirstTextOrNull("//h2[contains(text(), 'Email Validation')]")
             assertEquals("✉️ Email Validation", text)
@@ -47,7 +47,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstAttributeOrNull by xpath")
-    fun testSelectfirstattributeornullByXpath() =
+    fun testSelectFirstAttributeOrNullByXpath() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val placeholder = driver.selectFirstAttributeOrNull("//input[@id='name']", "placeholder")
             assertEquals("Type here...", placeholder)
@@ -55,7 +55,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstAttributeOrNull by xpath with data attribute")
-    fun testSelectfirstattributeornullByXpathWithDataAttribute() =
+    fun testSelectFirstAttributeOrNullByXpathWithDataAttribute() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val dataComponent = driver.selectFirstAttributeOrNull("//input[@data-testid='nameInput']", "data-component")
             assertEquals("name-input", dataComponent)
@@ -63,7 +63,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstAttributeOrNull by xpath for button")
-    fun testSelectfirstattributeornullByXpathForButton() =
+    fun testSelectFirstAttributeOrNullByXpathForButton() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val ariaLabel = driver.selectFirstAttributeOrNull("//button[@id='addButton']", "aria-label")
             assertEquals("Add the two numbers", ariaLabel)
@@ -72,7 +72,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
     @Disabled("NOT IMPLEMENTED")
     @Test
     @DisplayName("test selectTextAll by xpath with multiple elements")
-    fun testSelecttextallByXpathWithMultipleElements() =
+    fun testSelectTextAllByXpathWithMultipleElements() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val texts = driver.selectTextAll("//section/h2")
             assertTrue(texts.size >= 7)
@@ -83,7 +83,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with descendant")
-    fun testSelectfirsttextornullByXpathWithDescendant() =
+    fun testSelectFirstTextOrNullByXpathWithDescendant() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val text = driver.selectFirstTextOrNull("//section[@id='emailValidationSection']//h2")
             assertEquals("✉️ Email Validation", text)
@@ -92,7 +92,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
     @Disabled("MAY NOT SUPPORTED BY CDP")
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with parent")
-    fun testSelectfirsttextornullByXpathWithParent() =
+    fun testSelectFirstTextOrNullByXpathWithParent() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val text = driver.selectFirstTextOrNull("//input[@id='email2']/parent::section/h2")
             assertEquals("""🔒 Contact Us""", text)
@@ -101,7 +101,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
     @Disabled("MAY NOT SUPPORTED BY CDP")
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with following-sibling")
-    fun testSelectfirsttextornullByXpathWithFollowingSibling() =
+    fun testSelectFirstTextOrNullByXpathWithFollowingSibling() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val text = driver.selectFirstTextOrNull("//h1/following-sibling::p")
             assertEquals(text?.contains("demonstrates various interactive elements"), true)
@@ -109,7 +109,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
 
     @Test
     @DisplayName("test selectFirstAttributeOrNull by xpath with multiple conditions")
-    fun testSelectfirstattributeornullByXpathWithMultipleConditions() =
+    fun testSelectFirstAttributeOrNullByXpathWithMultipleConditions() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val dataRole = driver.selectFirstAttributeOrNull(
                 "//button[@data-testid='toggleMessageButton' and @data-component='toggle-message-button']",
@@ -121,7 +121,7 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
     @Disabled("NOT IMPLEMENTED")
     @Test
     @DisplayName("test selectAttributeAll by xpath for href attributes")
-    fun testSelectattributeallByXpathForHrefAttributes() =
+    fun testSelectAttributeAllByXpathForHrefAttributes() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val hrefs = driver.selectAttributeAll("//a[contains(@href, 'example.com')]", "href")
             assertTrue(hrefs.isNotEmpty())
@@ -131,61 +131,50 @@ class PulsarWebDriverXPathTests : WebDriverTestBase() {
     @Disabled("ONLY XPATH START WITH // SUPPORTED")
     @Test
     @DisplayName("test selectFirstTextOrNull by xpath with position")
-    fun testSelectfirsttextornullByXpathWithPosition() =
+    fun testSelectFirstTextOrNullByXpathWithPosition() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
             val text = driver.selectFirstTextOrNull("(//section/h2)[1]")
             assertEquals("\uD83C\uDFAF Dynamic Toggle", text)
         }
 
-    //    @Test
-//        @DisplayName("test selectFirstAttributeOrNull by xpath with ancestor")
-    fun testSelectfirstattributeornullByXpathWithAncestor() =
+    @Disabled("NOT IMPLEMENTED")
+    @Test
+    @DisplayName("test selectTextAll by xpath with specific class pattern")
+    fun testSelectTextAllByXpathWithSpecificClassPattern() =
         runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-//        val sectionId = driver.selectFirstAttributeOrNull(
-//            "//button[@id='toggleMessageButton']/ancestor::section",
-//            "id"
-//        )
-//        assertEquals("toggleSection", sectionId)
-//    }
+            val texts = driver.selectTextAll("//section[@class and contains(@class, 'section-')]/h2")
+            assertTrue(texts.size >= 5)
+        }
 
-            @Disabled("NOT IMPLEMENTED")
-            @Test
-            @DisplayName("test selectTextAll by xpath with specific class pattern")
-            fun testSelecttextallByXpathWithSpecificClassPattern() =
-                runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-                    val texts = driver.selectTextAll("//section[@class and contains(@class, 'section-')]/h2")
-                    assertTrue(texts.size >= 5)
-                }
+    @Test
+    @DisplayName("test selectFirstAttributeOrNull by xpath for select element")
+    fun testSelectFirstAttributeOrNullByXpathForSelectElement() =
+        runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+            val ariaLabel = driver.selectFirstAttributeOrNull("//select[@id='colorSelect']", "aria-label")
+            assertEquals("Favorite color selector", ariaLabel)
+        }
 
-            @Test
-            @DisplayName("test selectFirstAttributeOrNull by xpath for select element")
-            fun testSelectfirstattributeornullByXpathForSelectElement() =
-                runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-                    val ariaLabel = driver.selectFirstAttributeOrNull("//select[@id='colorSelect']", "aria-label")
-                    assertEquals("Favorite color selector", ariaLabel)
-                }
+    @Disabled("NOT IMPLEMENTED")
+    @Test
+    @DisplayName("test selectAttributeAll by xpath for all data-testid")
+    fun testSelectAttributeAllByXpathForAllDataTestid() =
+        runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+            val testIds =
+                driver.selectAttributeAll("//section[@data-testid]", "data-testid", start = 0, limit = 20)
+            assertTrue(testIds.isNotEmpty())
+            assertTrue(testIds.contains("userInformationSection"))
+            assertTrue(testIds.contains("preferencesSection"))
+        }
 
-            @Disabled("NOT IMPLEMENTED")
-            @Test
-            @DisplayName("test selectAttributeAll by xpath for all data-testid")
-            fun testSelectattributeallByXpathForAllDataTestid() =
-                runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-                    val testIds =
-                        driver.selectAttributeAll("//section[@data-testid]", "data-testid", start = 0, limit = 20)
-                    assertTrue(testIds.isNotEmpty())
-                    assertTrue(testIds.contains("userInformationSection"))
-                    assertTrue(testIds.contains("preferencesSection"))
-                }
-
-            @Test
-            @DisplayName("test selectFirstTextOrNull by xpath with not condition")
-            fun testSelectfirsttextornullByXpathWithNotCondition() =
-                runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
-                    val text = driver.selectFirstTextOrNull("//section[not(@class='hidden')]/h2[1]")
-                    assertNotNull(text)
-                    assertTrue(text.isNotEmpty())
-                }
+    @Test
+    @DisplayName("test selectFirstTextOrNull by xpath with not condition")
+    fun testSelectFirstTextOrNullByXpathWithNotCondition() =
+        runEnhancedWebDriverTest(multiScreensInteractiveUrl, browser) { driver ->
+            val text = driver.selectFirstTextOrNull("//section[not(@class='hidden')]/h2[1]")
+            assertNotNull(text)
+            assertTrue(text.isNotEmpty())
         }
 }
+
 
 
