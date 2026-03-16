@@ -31,3 +31,9 @@
 **Change:** Updated `DOMState.ariaSnapshot` in `DomModels.kt` to fallback to `serializableTree.toNanoTreeUnfiltered().ariaSnapshot` when `optimizedDOMTree` is null.
 **Validation:** `DOMStateBuilderTest` passed (16 tests).
 **Key Insight:** `DOMState` is sometimes constructed directly from `SerializableDOMTreeNode` in tests (and potentially elsewhere) where `OptimizedDOMTree` is not available. The fallback ensures `ariaSnapshot` still works via nano-tree conversion.
+
+## 5. PulsarWebDriver Selector Conversion
+**Context:** `PulsarWebDriver.waitForScrollSettled` failed with `e123` format selectors because `document.querySelector` doesn't support them.
+**Change:** Implemented `convertSelectorIfNecessary` in `PulsarWebDriver.kt` to convert `e123` format to CSS selector using `SnapshotService`. Applied it in `waitForScrollSettled`.
+**Validation:** Compiled `pulsar-protocol`.
+**Key Insight:** Methods injecting raw JS with selectors must handle `e123` -> CSS conversion manually, as they bypass `PageHandler`'s resolution logic.

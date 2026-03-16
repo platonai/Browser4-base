@@ -3,6 +3,7 @@ package ai.platon.pulsar.protocol.browser.driver.cdt
 import ai.platon.browser4.driver.chrome.*
 import ai.platon.browser4.driver.chrome.dom.SnapshotService
 import ai.platon.browser4.driver.chrome.dom.Locator
+import ai.platon.browser4.driver.chrome.dom.model.ElementRefCriteria
 import ai.platon.browser4.driver.chrome.dom.model.NanoDOMTree
 import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
 import ai.platon.browser4.driver.chrome.impl.ChromeImpl
@@ -433,19 +434,6 @@ class PulsarWebDriver(
             emulator.click(node, count, position = "center", modifier = null, delayMillis = delayMillis)
             // debugElementOnPoint(node)
         }
-    }
-
-    private suspend fun debugElementOnPoint(node: NodeRef) {
-        val point = emulator.getInteractPoint(node, "center", useRandomOffset = true) ?: return
-        val (x, y) = point
-
-        println("Debugging element at point ($x, $y):")
-
-        var result = evaluateValueDetail("__pulsar_utils__.elementFromPointDeep(100, 100)")
-        printlnPro(result?.value)
-
-        result = evaluateDetail("__pulsar_utils__.elementFromPointDeep($x, $y)")
-        printlnPro(result?.value)
     }
 
     @Throws(WebDriverException::class)
@@ -1309,8 +1297,18 @@ function() {
         networkAPI?.deleteCookies(name, url, domain, path)
     }
 
+    private fun convertSelectorIfNecessary(selector: String): String {
+        val nodeId = if (selector.startsWith("e")) selector.substring(1).toIntOrNull() else null
+        if (nodeId != null) {
+            val ref = ElementRefCriteria(backendNodeId = nodeId)
+            return snapshotService.findElement(ref)?.cssSelector() ?: selector
+        }
+        return selector
+    }
+
     private suspend fun waitForScrollSettled(selector: String, timeout: Duration = Duration.ofMillis(5_000)) {
-        val safeSelector = Strings.escapeJsString(selector)
+        val cssSelector = convertSelectorIfNecessary(selector)
+        val safeSelector = Strings.escapeJsString(cssSelector)
         val expression = """
 (() => {
   const sel = "$safeSelector";

@@ -38,7 +38,6 @@ class PageHandler(
     private val runtimeAPI get() = devTools.runtime.takeIf { isActive }
 
     private var lastBrowserUseState: BrowserUseState? = null
-    private var lastAriaSnapshot: String? = null
 
     val snapshotService: SnapshotService by lazy { CDPSnapshotService(devTools) }
 
