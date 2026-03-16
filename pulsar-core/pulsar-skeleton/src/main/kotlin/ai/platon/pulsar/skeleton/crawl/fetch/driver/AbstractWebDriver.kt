@@ -346,14 +346,12 @@ abstract class AbstractWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun isVisible(selector: String): Boolean {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         return evaluateValue("__pulsar_utils__.isVisible('$safeSelector')") == true
     }
 
     override suspend fun isChecked(selector: String): Boolean {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         return evaluateValue("__pulsar_utils__.isChecked('$safeSelector')") == true
     }
 
@@ -491,8 +489,7 @@ abstract class AbstractWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun outerHTML(selector: String): String? {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         val js = """
 (() => {
     const element = document.querySelector(selector);
@@ -518,8 +515,7 @@ abstract class AbstractWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun selectFirstTextOrNull(selector: String): String? {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         val js = """
 ((selector) => {
     const element = document.querySelector(selector);
@@ -531,22 +527,19 @@ abstract class AbstractWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun selectTextAll(selector: String): List<String> {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         val json = evaluate("__pulsar_utils__.selectTextAll('$safeSelector')")?.toString() ?: "[]"
         return jacksonObjectMapper().readValue(json)
     }
 
     @Throws(WebDriverException::class)
     override suspend fun selectFirstAttributeOrNull(selector: String, attrName: String): String? {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         return evaluateValue("__pulsar_utils__.selectFirstAttribute('$safeSelector', '$attrName')")?.toString()
     }
 
     override suspend fun selectAttributes(selector: String): Map<String, String> {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         val json = evaluate("__pulsar_utils__.selectAttributes('$safeSelector')")?.toString() ?: return mapOf()
         val attributes: List<String> = jacksonObjectMapper().readValue(json)
         return attributes.zipWithNext().associate { it }
@@ -555,8 +548,7 @@ abstract class AbstractWebDriver(
     @Throws(WebDriverException::class)
     override suspend fun selectAttributeAll(selector: String, attrName: String, start: Int, limit: Int): List<String> {
         val end = start + limit
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
 
         val expression = "__pulsar_utils__.selectAttributeAll('$safeSelector', '$attrName', $start, $end)"
         val json = evaluate(expression)?.toString() ?: return listOf()
@@ -565,23 +557,20 @@ abstract class AbstractWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun setAttribute(selector: String, attrName: String, attrValue: String) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.setAttribute('$safeSelector', '$attrName', '$attrValue')")
     }
 
     @Throws(WebDriverException::class)
     override suspend fun setAttributeAll(selector: String, attrName: String, attrValue: String) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.setAttributeAll('$safeSelector', '$attrName', '$attrValue')")
     }
 
     // --------------------------- Property helpers ---------------------------
     @Throws(WebDriverException::class)
     override suspend fun selectFirstPropertyValueOrNull(selector: String, propName: String): String? {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         return evaluateValue("__pulsar_utils__.selectFirstPropertyValue('$safeSelector', '$propName')")?.toString()
 //        val safePropName = Strings.escapeForJsString(propName)
         // return evaluateValue(selector, "function() { return this['$safePropName']; }")?.toString()
@@ -592,8 +581,7 @@ abstract class AbstractWebDriver(
         selector: String, propName: String, start: Int, limit: Int
     ): List<String> {
         val end = start + limit
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         val expression = "__pulsar_utils__.selectPropertyValueAll('$safeSelector', '$propName', $start, $end)"
         val json = evaluate(expression)?.toString() ?: return listOf()
         return jacksonObjectMapper().readValue(json)
@@ -601,15 +589,13 @@ abstract class AbstractWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun setProperty(selector: String, propName: String, propValue: String) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.setProperty('$safeSelector', '$propName', '$propValue')")
     }
 
     @Throws(WebDriverException::class)
     override suspend fun setPropertyAll(selector: String, propName: String, propValue: String) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.setPropertyAll('$safeSelector', '$propName', '$propValue')")
     }
 
@@ -637,29 +623,25 @@ abstract class AbstractWebDriver(
 
     @Throws(WebDriverException::class)
     override suspend fun clickTextMatches(selector: String, pattern: String, count: Int) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.clickTextMatches('$safeSelector', '$pattern')")
     }
 
     @Throws(WebDriverException::class)
     override suspend fun clickMatches(selector: String, attrName: String, pattern: String, count: Int) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.clickMatches('$safeSelector', '$attrName', '$pattern')")
     }
 
     @Throws(WebDriverException::class)
     override suspend fun check(selector: String) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.check('$safeSelector')")
     }
 
     @Throws(WebDriverException::class)
     override suspend fun uncheck(selector: String) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         evaluate("__pulsar_utils__.uncheck('$safeSelector')")
     }
 
@@ -780,6 +762,12 @@ abstract class AbstractWebDriver(
             return snapshotService?.findElement(ref)?.cssSelector() ?: selector
         }
         return selector
+    }
+
+    protected fun normalizeCSSSelector(selector: String): String {
+        val cssSelector = convertSelectorIfNecessary(selector)
+        val safeSelector = Strings.escapeJsString(cssSelector)
+        return safeSelector
     }
 
     private fun getHeadersAndCookies(): Pair<Map<String, String>, List<Map<String, String>>> = runBlocking {

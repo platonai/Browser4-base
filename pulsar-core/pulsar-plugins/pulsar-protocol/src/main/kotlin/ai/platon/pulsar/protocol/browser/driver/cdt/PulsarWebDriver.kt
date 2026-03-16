@@ -1298,8 +1298,7 @@ function() {
     }
 
     private suspend fun waitForScrollSettled(selector: String, timeout: Duration = Duration.ofMillis(5_000)) {
-        val cssSelector = convertSelectorIfNecessary(selector)
-        val safeSelector = Strings.escapeJsString(cssSelector)
+        val safeSelector = normalizeCSSSelector(selector)
         val expression = """
 (() => {
   const sel = "$safeSelector";
