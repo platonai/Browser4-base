@@ -562,7 +562,8 @@ data class DOMState constructor(
     val optimizedDOMTree: OptimizedDOMTree? = null
 ) {
     @get:JsonIgnore
-    val ariaSnapshot: String get() = optimizedDOMTree?.let(AriaSnapshotRenderer::render) ?: ""
+    val ariaSnapshot: String get() = optimizedDOMTree?.let(AriaSnapshotRenderer::render)
+        ?: serializableTree.toNanoTreeUnfiltered().ariaSnapshot
 
     fun getAbsoluteFBNLocator(locator: String?): FBNLocator? {
         if (locator == null) {
