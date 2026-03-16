@@ -38,7 +38,7 @@ open class ScriptLoader(
 
     private val jsCache: MutableMap<String, String> = LinkedHashMap()
     /**
-     * The javascript code to inject into the browser.
+     * The JavaScript code to inject into the browser.
      * */
     private var preloadJs = ""
 
@@ -90,7 +90,7 @@ open class ScriptLoader(
         // Note: Json-2.6.2 does not recognize MutableMap, but knows Map
         val configs = GsonBuilder().create().toJson(jsInitParameters.toMap())
 
-        // set predefined variables shared between javascript and jvm program
+        // set predefined variables shared between JavaScript and jvm program
         val configVar = confuser.confuse( "__pulsar_CONFIGS")
         return """
             ;
