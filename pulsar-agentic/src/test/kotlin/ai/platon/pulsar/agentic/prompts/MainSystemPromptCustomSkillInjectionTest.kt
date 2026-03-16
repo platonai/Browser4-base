@@ -47,7 +47,7 @@ class MainSystemPromptCustomSkillInjectionTest {
         val prompt = buildMainSystemPromptV1()
 
         val compacted = PromptBuilder.compactPrompt(prompt)
-        assertTrue(prompt.contains("## 工具列表"), compacted)
+        assertTrue(prompt.contains("### Tool List"), compacted)
         assertTrue(prompt.contains("// CustomTool"), compacted)
 
         // A concrete method name of WebScrapingSkill should appear in the rendered prompt.
@@ -69,7 +69,7 @@ class MainSystemPromptCustomSkillInjectionTest {
         val prompt = buildMainSystemPromptV1()
 
         // The prompt should contain the skill summaries section
-        assertTrue(prompt.contains("## 可用技能概要"),
+        assertTrue(prompt.contains("### Available Skills"),
             "System prompt should contain skill summaries section when skills are registered")
 
         // The prompt should list the registered skill
@@ -85,7 +85,7 @@ class MainSystemPromptCustomSkillInjectionTest {
         val prompt = buildMainSystemPromptV1()
 
         // The prompt should contain skill tool type definitions
-        assertTrue(prompt.contains("### Skill 工具类型定义"),
+        assertTrue(prompt.contains("### Skill Tool Types"),
             "System prompt should contain skill tool type definitions header")
 
         // Check for SkillSummary type definition
