@@ -218,9 +218,6 @@
     <logger name="ai.platon.pulsar.skeleton.common.collect.HyperlinkExtractor" level="WARN" additivity="false">
         <appender-ref ref="PAGES"/>
     </logger>
-    <logger name="ai.platon.pulsar.skeleton.common.collect.FatLinkExtractor" level="WARN" additivity="false">
-        <appender-ref ref="PAGES"/>
-    </logger>
     <logger name="ai.platon.pulsar.browser" level="WARN" additivity="false">
         <appender-ref ref="BROWSER"/>
     </logger>

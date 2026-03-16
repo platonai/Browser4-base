@@ -17,7 +17,7 @@ class TestRequiredComponents: TestBase() {
 
     @Test
         @DisplayName("When AmazonCrawler started then coreMetrics is working")
-    fun whenAmazoncrawlerStartedThenCoremetricsIsWorking() {
+    fun whenAmazonCrawlerStartedThenCoreMetricsIsWorking() {
         assertNotNull(fetchComponent.coreMetrics)
         assertNotNull(loadComponent.parseComponent)
         assertNotNull(loadComponent.statusTracker)

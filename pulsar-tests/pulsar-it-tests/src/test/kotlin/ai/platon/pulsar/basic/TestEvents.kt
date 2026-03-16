@@ -3,13 +3,9 @@ package ai.platon.pulsar.basic
 import ai.platon.pulsar.skeleton.common.persist.ext.options
 import ai.platon.pulsar.skeleton.crawl.common.url.StatefulListenableHyperlink
 import ai.platon.pulsar.skeleton.crawl.component.FetchComponent
-import kotlin.test.*
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 import org.junit.jupiter.api.DisplayName
+import org.springframework.beans.factory.annotation.Autowired
+import kotlin.test.*
 
 class TestEvents : TestBase() {
 
@@ -27,7 +23,7 @@ class TestEvents : TestBase() {
     }
 
     @Test
-        @DisplayName("When a page is fetched then events are fired and metrics are recorded")
+    @DisplayName("When a page is fetched then events are fired and metrics are recorded")
     fun whenAPageIsFetchedThenEventsAreFiredAndMetricsAreRecorded() {
         val metrics = fetchComponent.coreMetrics
         assertNotNull(metrics)
