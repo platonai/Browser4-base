@@ -27,3 +27,5 @@ fun Throwable.stringify(prefix: String = "", postfix: String = "") = stringifyEx
 fun Throwable.brief(prefix: String = "", postfix: String = "") = simplifyException(this, prefix, postfix)
 
 fun Throwable.compactedBrief(prefix: String = "", postfix: String = "") = Strings.compactInline(brief(prefix, postfix))
+
+fun Throwable.llmFriendlyBrief(prefix: String = "", postfix: String = "") = simplifyException(this, prefix, postfix)

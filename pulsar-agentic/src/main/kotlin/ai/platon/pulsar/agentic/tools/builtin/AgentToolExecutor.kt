@@ -94,7 +94,7 @@ class AgentToolExecutor : AbstractToolExecutor() {
         } catch (e: IllegalArgumentException) {
             val message = e.message + "\n\n" + help(functionName)
             val revised = IllegalArgumentException(message, e)
-            throw e
+            throw revised
         }
     }
 

@@ -5,6 +5,7 @@ import ai.platon.pulsar.agentic.ActResult
 import ai.platon.pulsar.agentic.ObserveResult
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.compactedBrief
+import ai.platon.pulsar.common.llmFriendlyBrief
 import ai.platon.pulsar.common.serialize.json.Pson
 import ai.platon.pulsar.external.ModelResponse
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -107,13 +108,10 @@ data class ToolCall constructor(
     val weakTypeExpression: String get() = "$domain.${method}($weakTypeNamedArguments)"
 
     /**
-     * The pseudo expression, which is used for messages
+     * The pseudo expression, which is used for LLM and messages
      * */
     @get:JsonIgnore
     val pseudoExpression: String get() = "$domain.${method}($pseudoNamedArguments)"
-
-    @get:JsonIgnore
-    val cli: String get() = "$domain $method $cliOptions"
 
     override fun toString() = pseudoExpression
 }
@@ -131,7 +129,11 @@ data class TcException(
 ) {
     val domain: String get() = expression.substringBefore('.')
     val method: String get() = StringUtils.substringBetween(expression, ".", ")")
-    val message: String? get() = cause?.message
+    val message: String? get() = cause?.llmFriendlyBrief()
+
+    override fun toString(): String {
+        return "Exception when call tool: $expression, cause: $message, help: $help"
+    }
 }
 
 data class TcEvaluate constructor(
