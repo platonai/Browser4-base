@@ -1,0 +1,316 @@
+//! Managed server process registry for the Browser4 CLI.
+//!
+//! Tracks Browser4 server processes started by this CLI so they can be shut down
+//! later via `close-all` or `kill-all`.
+
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use crate::state::resolve_default_state_dir;
+
+const DEFAULT_REGISTRY_NAME: &str = "cli-managed-processes.json";
+
+/// Information about a managed Browser4 server process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedServerProcess {
+    pub pid: u32,
+    #[serde(rename = "baseUrl")]
+    pub base_url: String,
+    pub port: u16,
+    #[serde(rename = "jarPath")]
+    pub jar_path: String,
+    #[serde(rename = "startedAt")]
+    pub started_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ManagedServerProcessRegistry {
+    processes: Vec<ManagedServerProcess>,
+}
+
+/// Resolve the path to the managed process registry file.
+pub fn managed_server_registry_path(state_dir: Option<&Path>) -> PathBuf {
+    let dir = state_dir
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(resolve_default_state_dir);
+    dir.join(DEFAULT_REGISTRY_NAME)
+}
+
+/// Read all registered managed server processes from the registry.
+pub fn read_managed_server_processes(registry_path: Option<&Path>) -> Vec<ManagedServerProcess> {
+    let path = registry_path
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| managed_server_registry_path(None));
+
+    match fs::read_to_string(&path) {
+        Ok(raw) => {
+            serde_json::from_str::<ManagedServerProcessRegistry>(&raw)
+                .map(|r| r.processes)
+                .unwrap_or_default()
+        }
+        Err(_) => vec![],
+    }
+}
+
+/// Register a new managed server process in the registry.
+pub fn register_managed_server_process(
+    process_info: ManagedServerProcess,
+    registry_path: Option<&Path>,
+) {
+    let path = registry_path
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| managed_server_registry_path(None));
+
+    let mut existing: Vec<ManagedServerProcess> = read_managed_server_processes(Some(&path))
+        .into_iter()
+        .filter(|e| e.pid != process_info.pid)
+        .collect();
+    existing.push(process_info);
+    write_managed_server_processes(&existing, &path);
+}
+
+/// Remove a managed server process from the registry by PID.
+#[allow(dead_code)]
+pub fn remove_managed_server_process(pid: u32, registry_path: Option<&Path>) {
+    let path = registry_path
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| managed_server_registry_path(None));
+
+    let remaining: Vec<ManagedServerProcess> = read_managed_server_processes(Some(&path))
+        .into_iter()
+        .filter(|e| e.pid != pid)
+        .collect();
+    write_managed_server_processes(&remaining, &path);
+}
+
+/// Clear all managed server processes from the registry.
+#[allow(dead_code)]
+pub fn clear_managed_server_processes(registry_path: Option<&Path>) {
+    let path = registry_path
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| managed_server_registry_path(None));
+    let _ = fs::remove_file(path);
+}
+
+fn write_managed_server_processes(processes: &[ManagedServerProcess], registry_path: &Path) {
+    if let Some(dir) = registry_path.parent() {
+        let _ = fs::create_dir_all(dir);
+    }
+
+    if processes.is_empty() {
+        let _ = fs::remove_file(registry_path);
+        return;
+    }
+
+    let payload = ManagedServerProcessRegistry {
+        processes: processes.to_vec(),
+    };
+    let json = serde_json::to_string_pretty(&payload).expect("serialisation should not fail");
+    let _ = fs::write(registry_path, json);
+}
+
+/// Result of a shutdown operation.
+#[derive(Debug, Default)]
+pub struct ShutdownResult {
+    pub stopped_pids: Vec<u32>,
+    pub missing_pids: Vec<u32>,
+    pub forced_pids: Vec<u32>,
+    pub remaining_pids: Vec<u32>,
+}
+
+/// Shut down all managed server processes, optionally forcing them.
+pub fn shutdown_managed_server_processes(
+    force: bool,
+    registry_path: Option<&Path>,
+    timeout_ms: u64,
+    poll_interval_ms: u64,
+) -> ShutdownResult {
+    let path = registry_path
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| managed_server_registry_path(None));
+
+    let tracked = read_managed_server_processes(Some(&path));
+    let mut result = ShutdownResult::default();
+    let mut remaining: Vec<ManagedServerProcess> = Vec::new();
+
+    for proc in &tracked {
+        let pid = proc.pid;
+        if !is_process_running(pid) {
+            result.missing_pids.push(pid);
+            continue;
+        }
+
+        if force {
+            force_stop(pid);
+            result.forced_pids.push(pid);
+            if wait_for_exit(pid, timeout_ms, poll_interval_ms) {
+                result.stopped_pids.push(pid);
+            } else {
+                remaining.push(proc.clone());
+            }
+            continue;
+        }
+
+        graceful_stop(pid);
+        if wait_for_exit(pid, timeout_ms, poll_interval_ms) {
+            result.stopped_pids.push(pid);
+            continue;
+        }
+
+        force_stop(pid);
+        result.forced_pids.push(pid);
+        if wait_for_exit(pid, timeout_ms, poll_interval_ms) {
+            result.stopped_pids.push(pid);
+        } else {
+            remaining.push(proc.clone());
+        }
+    }
+
+    write_managed_server_processes(&remaining, &path);
+    result.remaining_pids = remaining.iter().map(|p| p.pid).collect();
+    result
+}
+
+// ---------------------------------------------------------------------------
+// Platform-specific process control
+// ---------------------------------------------------------------------------
+
+fn is_process_running(pid: u32) -> bool {
+    #[cfg(unix)]
+    {
+        use std::process::Command;
+        // SIGCHECK (signal 0) returns success if process exists
+        let status = Command::new("kill").args(["-0", &pid.to_string()]).status();
+        status.map(|s| s.success()).unwrap_or(false)
+    }
+    #[cfg(windows)]
+    {
+        use std::process::Command;
+        let output = Command::new("tasklist")
+            .args(["/FI", &format!("PID eq {}", pid), "/FO", "CSV", "/NH"])
+            .output();
+        match output {
+            Ok(out) => {
+                let stdout = String::from_utf8_lossy(&out.stdout);
+                stdout.contains(&pid.to_string())
+            }
+            Err(_) => false,
+        }
+    }
+}
+
+fn graceful_stop(pid: u32) {
+    #[cfg(unix)]
+    {
+        let _ = std::process::Command::new("kill")
+            .args(["-TERM", &pid.to_string()])
+            .status();
+    }
+    #[cfg(windows)]
+    {
+        // Try jcmd first (graceful JVM exit), fallback to Stop-Process
+        let jcmd_result = std::process::Command::new("jcmd")
+            .args([&pid.to_string(), "VM.exit", "0"])
+            .status();
+        if jcmd_result.is_err() || jcmd_result.map(|s| !s.success()).unwrap_or(true) {
+            let _ = std::process::Command::new("powershell")
+                .args([
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-Command",
+                    &format!("Stop-Process -Id {}", pid),
+                ])
+                .status();
+        }
+    }
+}
+
+fn force_stop(pid: u32) {
+    #[cfg(unix)]
+    {
+        let _ = std::process::Command::new("kill")
+            .args(["-KILL", &pid.to_string()])
+            .status();
+    }
+    #[cfg(windows)]
+    {
+        let _ = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                &format!("Stop-Process -Id {} -Force", pid),
+            ])
+            .status();
+    }
+}
+
+fn wait_for_exit(pid: u32, timeout_ms: u64, poll_interval_ms: u64) -> bool {
+    let start = std::time::Instant::now();
+    let timeout = std::time::Duration::from_millis(timeout_ms);
+    let poll = std::time::Duration::from_millis(poll_interval_ms);
+    while start.elapsed() < timeout {
+        if !is_process_running(pid) {
+            return true;
+        }
+        std::thread::sleep(poll);
+    }
+    !is_process_running(pid)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_register_and_remove() {
+        let tmp = TempDir::new().unwrap();
+        let reg_path = tmp.path().join("reg.json");
+
+        let proc = ManagedServerProcess {
+            pid: 12345,
+            base_url: "http://localhost:8182".to_string(),
+            port: 8182,
+            jar_path: "/path/to/Browser4.jar".to_string(),
+            started_at: "2026-01-01T00:00:00Z".to_string(),
+        };
+
+        register_managed_server_process(proc.clone(), Some(&reg_path));
+        let procs = read_managed_server_processes(Some(&reg_path));
+        assert_eq!(procs.len(), 1);
+        assert_eq!(procs[0].pid, 12345);
+
+        remove_managed_server_process(12345, Some(&reg_path));
+        let procs = read_managed_server_processes(Some(&reg_path));
+        assert!(procs.is_empty());
+    }
+
+    #[test]
+    fn test_read_missing_registry() {
+        let tmp = TempDir::new().unwrap();
+        let reg_path = tmp.path().join("missing.json");
+        let procs = read_managed_server_processes(Some(&reg_path));
+        assert!(procs.is_empty());
+    }
+
+    #[test]
+    fn test_clear_registry() {
+        let tmp = TempDir::new().unwrap();
+        let reg_path = tmp.path().join("reg.json");
+
+        let proc = ManagedServerProcess {
+            pid: 99999,
+            base_url: "http://localhost:8182".to_string(),
+            port: 8182,
+            jar_path: "/tmp/Browser4.jar".to_string(),
+            started_at: "2026-01-01T00:00:00Z".to_string(),
+        };
+        register_managed_server_process(proc, Some(&reg_path));
+        assert!(reg_path.exists());
+
+        clear_managed_server_processes(Some(&reg_path));
+        assert!(!reg_path.exists());
+    }
+}

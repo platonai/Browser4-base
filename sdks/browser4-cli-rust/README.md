@@ -1,0 +1,205 @@
+# Browser4 CLI (Rust)
+
+A Rust implementation of the Browser4 CLI — drive a [Browser4](https://github.com/platonai/Browser4)
+server from the command line. This is a feature-equivalent port of the TypeScript
+[`browser4-cli`](../browser4-cli) package, designed for environments where a
+self-contained native binary is preferred over a Node.js dependency.
+
+## Prerequisites
+
+- A running Browser4 server (default port **8182**)
+- Rust 1.70+ (to build from source)
+
+## Build
+
+```bash
+cd sdks/browser4-cli-rust
+cargo build --release
+# Binary is at target/release/browser4-cli
+```
+
+Or run directly:
+
+```bash
+cargo run -- <command> [args] [options]
+```
+
+## Usage
+
+```
+browser4-cli <command> [args] [options]
+browser4-cli -s=<session> <command> [args] [options]
+```
+
+### Global options
+
+| Flag | Description |
+|---|---|
+| `--help [command]` | Print help (optionally for a specific command) |
+| `--version` | Print version |
+| `-s=<name>` | Named session label |
+| `--server=<url>` | Override Browser4 server URL |
+
+### Commands
+
+#### Core
+
+| Command | Description |
+|---|---|
+| `open [url]` | Open a new browser session (optionally navigate to URL) |
+| `close` | Close the active session |
+| `goto <url>` | Navigate to a URL |
+| `click <ref> [button]` | Click an element |
+| `dblclick <ref> [button]` | Double-click an element |
+| `type <ref> <text>` | Type text into an element |
+| `fill <ref> <text>` | Fill text into an editable element |
+| `hover <ref>` | Hover over an element |
+| `select <ref> <val>` | Select an option in a dropdown |
+| `upload <ref> <file>` | Upload a file |
+| `check <ref>` | Check a checkbox or radio button |
+| `uncheck <ref>` | Uncheck a checkbox or radio button |
+| `drag <startRef> <endRef>` | Drag and drop between two elements |
+| `snapshot` | Capture accessibility snapshot |
+| `eval <func> [ref]` | Evaluate JavaScript expression |
+| `dialog-accept [prompt]` | Accept a dialog |
+| `dialog-dismiss` | Dismiss a dialog |
+| `resize <w> <h>` | Resize the browser window |
+| `delete-data` | Delete session data |
+
+#### Navigation
+
+| Command | Description |
+|---|---|
+| `go-back` | Go back to the previous page |
+| `go-forward` | Go forward to the next page |
+| `reload` | Reload the current page |
+
+#### Keyboard
+
+| Command | Description |
+|---|---|
+| `press <ref> <key>` | Press a key on the keyboard |
+| `keydown <key>` | Press and hold a key |
+| `keyup <key>` | Release a key |
+
+#### Mouse
+
+| Command | Description |
+|---|---|
+| `mousemove <x> <y>` | Move mouse to coordinates |
+| `mousedown [button]` | Press mouse button |
+| `mouseup [button]` | Release mouse button |
+| `mousewheel <dx> <dy>` | Scroll the mouse wheel |
+
+#### Save as
+
+| Command | Description |
+|---|---|
+| `screenshot [ref]` | Take a screenshot |
+| `pdf` | Save page as PDF |
+
+#### Tabs
+
+| Command | Description |
+|---|---|
+| `tab-list` | List all tabs |
+| `tab-new [url]` | Create a new tab |
+| `tab-close [index]` | Close a browser tab |
+| `tab-select <index>` | Select a browser tab |
+
+#### Browser sessions
+
+| Command | Description |
+|---|---|
+| `list` | List browser sessions |
+| `close-all` | Close all browser sessions |
+| `kill-all` | Forcefully kill all browser sessions |
+
+#### DevTools
+
+| Command | Description |
+|---|---|
+| `console [min-level]` | List console messages |
+
+## Element References
+
+The `snapshot` command returns an accessibility tree where every interactive
+node is labelled with a short identifier such as `e15`. Pass this identifier
+directly to commands like `click`, `type`, or `press`; the CLI automatically
+converts it to the `backend:15` selector format required by the server.
+
+You can also pass plain CSS selectors (e.g. `.my-button`, `#search-input`) or
+fully-qualified `backend:<N>` refs directly.
+
+## State Persistence
+
+The active session ID and server URL are kept in `~/.browser4/cli-state.json`
+between invocations. Override the directory with the `BROWSER4_CLI_STATE_DIR`
+environment variable.
+
+## Snapshots
+
+After each command that modifies browser state, the CLI automatically:
+
+1. Retrieves the current page URL and title
+2. Captures an accessibility snapshot
+3. Saves the snapshot to `.browser4-cli/snapshot/page-<timestamp>.yml`
+4. Prints the snapshot path in Markdown link format
+
+## Examples
+
+```shell
+# Open a new browser window
+browser4-cli open
+
+# Navigate to a page
+browser4-cli goto https://browser4.io
+
+# Inspect the page — note the eN labels on interactive nodes
+browser4-cli snapshot
+
+# Interact using refs from the snapshot
+# e15 → backend:15 is handled automatically
+browser4-cli click e15
+browser4-cli type e15 "Hello World"
+browser4-cli press e15 Enter
+browser4-cli keydown Shift
+browser4-cli mousemove 150 300
+browser4-cli mousewheel 0 100
+browser4-cli keyup Shift
+
+# Take a screenshot and save it to disk
+browser4-cli screenshot
+
+# Use a custom server URL
+browser4-cli open --server http://localhost:9090
+
+# Close the session when done
+browser4-cli close
+```
+
+## Architecture
+
+The Rust CLI is structured as follows:
+
+| Module | Purpose |
+|---|---|
+| `main.rs` | Entry point, command dispatch, session management |
+| `args.rs` | CLI argument parsing (global flags, positional args, options) |
+| `commands.rs` | Command definitions mapping to MCP tool names and parameters |
+| `http.rs` | HTTP client for calling `/mcp/call-tool` |
+| `state.rs` | Persistent state management (`~/.browser4/cli-state.json`) |
+| `daemon.rs` | Server auto-start and health checking |
+| `managed_processes.rs` | Registry for browser4 server processes |
+| `snapshot.rs` | Snapshot and screenshot file helpers |
+| `help.rs` | Help text generation |
+
+## Testing
+
+```bash
+cargo test
+```
+
+## License
+
+Apache-2.0
