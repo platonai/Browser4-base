@@ -9,7 +9,7 @@ describe('package entrypoints', () => {
             main?: string;
         };
 
-        expect(packageJson.bin?.['browser4-cli']).toBe('dist/program.js');
+        expect(packageJson.bin?.['b4-playwright-cli']).toBe('dist/program.js');
         expect(packageJson.main).toBe('dist/program.js');
     });
 });

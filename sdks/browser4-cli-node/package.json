@@ -1,9 +1,9 @@
 {
-  "name": "@platonai/browser4-cli",
+  "name": "@platonai/b4-playwright-cli",
   "version": "0.1.0",
   "description": "Browser4 CLI — control a Browser4 server from the command line",
   "bin": {
-    "browser4-cli": "dist/program.js"
+    "b4-playwright-cli": "dist/program.js"
   },
   "main": "dist/program.js",
   "scripts": {
@@ -28,12 +28,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/platonai/Browser4.git",
-    "directory": "sdks/browser4-cli"
+    "directory": "sdks/b4-playwright-cli"
   },
   "bugs": {
     "url": "https://github.com/platonai/Browser4/issues"
   },
-  "homepage": "https://github.com/platonai/Browser4/tree/main/sdks/browser4-cli",
+  "homepage": "https://github.com/platonai/Browser4/tree/main/sdks/b4-playwright-cli",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=7.0.0"

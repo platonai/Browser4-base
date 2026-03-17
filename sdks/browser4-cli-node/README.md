@@ -1,5 +1,8 @@
 # Browser4 CLI
 
+> Use rust implementation instead for faster performance and a self-contained binary,
+> the node version is kept only for compatible with playwright.
+
 A command-line interface for controlling a [Browser4](https://github.com/platonai/Browser4)
 server. Designed for use by AI agents through SKILLS + CLI.
 
@@ -11,16 +14,16 @@ server. Designed for use by AI agents through SKILLS + CLI.
 ## Installation
 
 ```bash
-npm install -g @platonai/browser4-cli
+npm install -g @platonai/b4-playwright-cli
 ```
 
 Or build from source:
 
 ```bash
-cd sdks/browser4-cli
+cd sdks/b4-playwright-cli
 npm install
 npm run build
-npm link        # makes browser4-cli available globally
+npm link        # makes b4-playwright-cli available globally
 ```
 
 For automatic recompilation while editing locally:
@@ -29,13 +32,13 @@ For automatic recompilation while editing locally:
 npm run build:watch
 ```
 
-If you want the globally linked `browser4-cli` command to pick up changes as you save,
+If you want the globally linked `b4-playwright-cli` command to pick up changes as you save,
 run `npm link` once and keep the watch build running in a separate terminal.
 
 ## Usage
 
 ```
-browser4-cli <command> [options]
+b4-playwright-cli <command> [options]
 ```
 
 ### Commands
@@ -72,32 +75,32 @@ fully-qualified `backend:<N>` refs directly.
 
 ```shell
 # Open a new browser window
-browser4-cli open
+b4-playwright-cli open
 
 # Navigate to a page
-browser4-cli goto https://browser4.io
+b4-playwright-cli goto https://browser4.io
 
 # Inspect the page — note the eN labels on interactive nodes
-browser4-cli snapshot
+b4-playwright-cli snapshot
 
 # Interact using refs from the snapshot
 # e15 → backend:15 is handled automatically
-browser4-cli click e15
-browser4-cli type "page.click"
-browser4-cli press Enter
-browser4-cli keydown Shift
-browser4-cli mousemove 150 300
-browser4-cli mousewheel 0 100
-browser4-cli keyup Shift
+b4-playwright-cli click e15
+b4-playwright-cli type "page.click"
+b4-playwright-cli press Enter
+b4-playwright-cli keydown Shift
+b4-playwright-cli mousemove 150 300
+b4-playwright-cli mousewheel 0 100
+b4-playwright-cli keyup Shift
 
 # Take a screenshot and save it to disk
-browser4-cli screenshot output.png
+b4-playwright-cli screenshot output.png
 
 # Use a custom server URL
-browser4-cli open --server http://localhost:9090
+b4-playwright-cli open --server http://localhost:9090
 
 # Close the session when done
-browser4-cli close
+b4-playwright-cli close
 ```
 
 ## State

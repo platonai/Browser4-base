@@ -15,7 +15,7 @@ describe('managedProcesses', () => {
     let registryPath: string;
 
     beforeEach(() => {
-        tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'browser4-cli-managed-'));
+        tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'b4-playwright-cli-managed-'));
         registryPath = managedServerRegistryPath(tempStateDir);
     });
 

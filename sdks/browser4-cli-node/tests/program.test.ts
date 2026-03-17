@@ -1,5 +1,5 @@
 /**
- * Tests for browser4-cli program.ts — argument parsing and command dispatch.
+ * Tests for b4-playwright-cli program.ts — argument parsing and command dispatch.
  */
 
 // Mock axios and state before importing program
@@ -240,7 +240,7 @@ describe('stale session handling', () => {
 
     it('detects expired session errors from the backend', () => {
         expect(isStaleSessionErrorMessage('browser_navigate failed: Cannot find context with specified id')).toBe(true);
-        expect(isStaleSessionErrorMessage('Saved session expired. Run "browser4-cli open" first.')).toBe(false);
+        expect(isStaleSessionErrorMessage('Saved session expired. Run "b4-playwright-cli open" first.')).toBe(false);
     });
 
     it('recreates the session and retries goto once when the saved session expired', async () => {

@@ -2,7 +2,7 @@
  * Persistent state management for the Browser4 CLI.
  *
  * State is stored in ~/.browser4/cli-state.json and shared across
- * all browser4-cli invocations in the same terminal session.
+ * all b4-playwright-cli invocations in the same terminal session.
  */
 
 import * as fs from 'fs';

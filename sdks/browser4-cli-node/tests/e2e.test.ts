@@ -530,7 +530,7 @@ async function readPersistedSessionId(): Promise<string> {
 
 async function resetCliArtifacts(): Promise<void> {
     await fs.promises.rm(fixtureContext.stateDir, {recursive: true, force: true});
-    await fs.promises.rm(path.join(fixtureContext.workspaceDir, '.browser4-cli'), {recursive: true, force: true});
+    await fs.promises.rm(path.join(fixtureContext.workspaceDir, '.b4-playwright-cli'), {recursive: true, force: true});
 }
 
 function sleep(timeoutMs: number): Promise<void> {
@@ -561,7 +561,7 @@ function extractTabId(output: string, url: string): string {
     return match[1];
 }
 
-describeE2E('browser4-cli real backend e2e', () => {
+describeE2E('b4-playwright-cli real backend e2e', () => {
     jest.setTimeout(300_000);
 
     beforeAll(async () => {
@@ -574,14 +574,14 @@ describeE2E('browser4-cli real backend e2e', () => {
             throw new Error(`CLI program not found at ${cliProgramPath}. Run npm run build first.`);
         }
 
-        const tempRoot = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'browser4-cli-e2e-'));
+        const tempRoot = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'b4-playwright-cli-e2e-'));
         const workspaceDir = path.join(tempRoot, 'workspace');
         const stateDir = path.join(tempRoot, 'state');
         await fs.promises.mkdir(workspaceDir, {recursive: true});
         await fs.promises.mkdir(stateDir, {recursive: true});
 
         const uploadFilePath = path.join(tempRoot, 'upload.txt');
-        await fs.promises.writeFile(uploadFilePath, 'browser4-cli e2e upload payload', 'utf-8');
+        await fs.promises.writeFile(uploadFilePath, 'b4-playwright-cli e2e upload payload', 'utf-8');
 
         fixtureServer = await startFixtureServer();
         const fixtureAddress = fixtureServer.address();
@@ -710,11 +710,11 @@ describeE2E('browser4-cli real backend e2e', () => {
 
         const snapshotResult = await runCommand('snapshot', '--filename=interactive.yml');
         expect(snapshotResult.stdout).toContain('[Snapshot](');
-        const snapshotPath = path.join(fixtureContext.workspaceDir, '.browser4-cli', 'snapshot', 'interactive.yml');
+        const snapshotPath = path.join(fixtureContext.workspaceDir, '.b4-playwright-cli', 'snapshot', 'interactive.yml');
         expect(fs.existsSync(snapshotPath)).toBe(true);
 
         await runCommand('screenshot', '--filename=interactive.png');
-        const screenshotPath = path.join(fixtureContext.workspaceDir, '.browser4-cli', 'snapshot', 'interactive.png');
+        const screenshotPath = path.join(fixtureContext.workspaceDir, '.b4-playwright-cli', 'snapshot', 'interactive.png');
         expect(fs.statSync(screenshotPath).size).toBeGreaterThan(0);
 
         await runCommandExpectingFailure('pdf', ['--filename=interactive.pdf'], /Unknown tool: browser_pdf_save/);

@@ -49,7 +49,7 @@ function generateCommandHelp(command: AnyCommandSchema) {
   // Generates the help text for a specific command, including usage, description, arguments, and options.
   const args = commandArgs(command);
   const lines: string[] = [
-    `browser4-cli ${command.name} ${commandArgsText(args)}`,
+    `b4-playwright-cli ${command.name} ${commandArgsText(args)}`,
     '',
     command.description,
     '',
@@ -91,8 +91,8 @@ const categories: { name: Category, title: string }[] = [
 export function generateHelp() {
   // Generates the global help text listing all available commands categorized by group.
   const lines: string[] = [];
-  lines.push('Usage: browser4-cli <command> [args] [options]');
-  lines.push('Usage: browser4-cli -s=<session> <command> [args] [options]');
+  lines.push('Usage: b4-playwright-cli <command> [args] [options]');
+  lines.push('Usage: b4-playwright-cli -s=<session> <command> [args] [options]');
 
   const commandsByCategory = new Map<string, AnyCommandSchema[]>();
   for (const c of categories)
@@ -155,7 +155,7 @@ function generateHelpEntry(command: AnyCommandSchema): string {
 function generateReadmeEntry(command: AnyCommandSchema): string {
   // Formats a single command entry for the README output.
   const args = commandArgs(command);
-  const prefix = `browser4-cli ${command.name} ${commandArgsText(args)}`;
+  const prefix = `b4-playwright-cli ${command.name} ${commandArgsText(args)}`;
   const suffix = '# ' + command.description.toLowerCase();
   return formatWithGap(prefix, suffix, 40);
 }

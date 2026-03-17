@@ -2,7 +2,7 @@
 /**
  * Browser4 CLI — drive a Browser4 server from the command line.
  *
- * Implements every command described in `browser4-cli-basic.md`.
+ * Implements every command described in `b4-playwright-cli-basic.md`.
  *
  * All operations are routed through the Browser4 MCP Server tool interface
  * via `POST /mcp/call-tool`.
@@ -90,7 +90,7 @@ async function callTool(
 // Snapshot file helpers
 // ---------------------------------------------------------------------------
 
-const SNAPSHOT_DIR = '.browser4-cli/snapshot';
+const SNAPSHOT_DIR = '.b4-playwright-cli/snapshot';
 
 /**
  * Ensure a directory exists (creates it recursively if needed).
@@ -122,7 +122,7 @@ function timestampedFilename(prefix: string, ext: string): string {
  *   - Page URL: https://example.com/
  *   - Page Title: Example Domain
  *   ### Snapshot
- *   [Snapshot](.browser4-cli/snapshot/page-2026-02-14T19-22-42-679Z.yml)
+ *   [Snapshot](.b4-playwright-cli/snapshot/page-2026-02-14T19-22-42-679Z.yml)
  */
 async function postCommandSnapshot(ax: AxiosInstance, sessionId: string): Promise<void> {
     try {
@@ -220,7 +220,7 @@ type CliStateWithSession = CliState & { sessionId: string };
 function requireSession(): CliStateWithSession {
     const state = readState();
     if (!state.sessionId) {
-        throw new Error('No active session. Run "browser4-cli open" first.');
+        throw new Error('No active session. Run "b4-playwright-cli open" first.');
     }
     return state as CliStateWithSession;
 }
@@ -290,7 +290,7 @@ async function withSession<T>(
 
         invalidateSession(state, ax);
         if (!options.recoverStaleSession) {
-            throw new Error('Saved session expired. Run "browser4-cli open" first.');
+            throw new Error('Saved session expired. Run "b4-playwright-cli open" first.');
         }
 
         const sessionId = await createSession(ax, state);
@@ -545,7 +545,7 @@ async function main(): Promise<void> {
         // Look up the command definition
         const cmdDef = commands[command];
         if (!cmdDef) {
-            console.error(`Unknown command: ${command}. Run 'browser4-cli help' for usage.`);
+            console.error(`Unknown command: ${command}. Run 'b4-playwright-cli help' for usage.`);
             process.exit(1);
         }
 
