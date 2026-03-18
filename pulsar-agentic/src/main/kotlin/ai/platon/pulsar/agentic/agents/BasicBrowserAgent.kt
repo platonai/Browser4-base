@@ -46,14 +46,6 @@ open class BasicBrowserAgent(
     protected val inference by lazy { InferenceEngine(this) }
     protected val snapshotService get() = inference.snapshotService
     protected val promptBuilder = PromptBuilder()
-    protected val actionValidator by lazy {
-        ActionValidator(
-            maxSelectorLength = config.maxSelectorLength,
-            allowedPorts = config.allowedPorts,
-            denyUnknownActions = config.denyUnknownActions,
-            allowLocalhost = config.allowLocalhost
-        )
-    }
 
     private val lazyToolExecutor by lazy {
         AgentToolExecutor(_baseDir, this)

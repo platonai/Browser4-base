@@ -102,9 +102,6 @@ open class RobustBrowserAgent(
     )
     protected val retryCounter = AtomicInteger(0)
 
-    // Mutex for memory cleanup operations to replace synchronized blocks
-    private val memoryCleanupMutex = Mutex()
-
     companion object {
         // Magic numbers extracted as named constants
         private const val COMPACT_INLINE_SESSION_LENGTH = 160
@@ -528,8 +525,6 @@ open class RobustBrowserAgent(
         try {
             logger.info("🧹 cleanup.partial sid={} step={}", context.sid, context.step)
             circuitBreaker.reset()
-            actionValidator.clearCache()
-            // pageStateTracker.waitForDOMSettle(1000, 100)
         } catch (e: Exception) {
             logger.warn("⚠️ cleanup.partial.fail sid={} msg={}", context.sid, e.message)
         }
