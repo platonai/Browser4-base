@@ -142,7 +142,7 @@ object AgenticEvents {
      * AgentEventBus event type constants for skill execution events.
      * Used with AgentEventBus.emitSkillEvent().
      */
-    object SkillEventTypes {
+    object Skill {
         const val ON_WILL_RUN_SKILL = "skill.onWillRunSkill"
         const val ON_DID_RUN_SKILL = "skill.onDidRunSkill"
         const val ON_SKILL_ACTIVATED = "skill.onSkillActivated"

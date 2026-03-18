@@ -151,7 +151,7 @@ class SkillToolExecutor(
 
     private fun onSkillsListed(agentId: String, count: Int, maxDescriptionChars: Int) {
         AgentEventBus.emitSkillEvent(
-            eventType = AgenticEvents.SkillEventTypes.ON_SKILLS_LISTED,
+            eventType = AgenticEvents.Skill.ON_SKILLS_LISTED,
             agentId = agentId,
             message = "Listed $count skills",
             metadata = mapOf(
@@ -163,7 +163,7 @@ class SkillToolExecutor(
 
     private fun onSkillActivated(agentId: String, skillId: String) {
         AgentEventBus.emitSkillEvent(
-            eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ACTIVATED,
+            eventType = AgenticEvents.Skill.ON_SKILL_ACTIVATED,
             agentId = agentId,
             message = "Skill activated: $skillId",
             metadata = mapOf("skillId" to skillId)
@@ -172,7 +172,7 @@ class SkillToolExecutor(
 
     private fun onWillRunSkill(agentId: String, skillId: String, paramsMap: Map<String, Any?>) {
         AgentEventBus.emitSkillEvent(
-            eventType = AgenticEvents.SkillEventTypes.ON_WILL_RUN_SKILL,
+            eventType = AgenticEvents.Skill.ON_WILL_RUN_SKILL,
             agentId = agentId,
             message = "Running skill: $skillId",
             metadata = mapOf(
@@ -184,7 +184,7 @@ class SkillToolExecutor(
 
     private fun onDidRunSkill(agentId: String, skillId: String, duration: Long, result: Any?) {
         AgentEventBus.emitSkillEvent(
-            eventType = AgenticEvents.SkillEventTypes.ON_DID_RUN_SKILL,
+            eventType = AgenticEvents.Skill.ON_DID_RUN_SKILL,
             agentId = agentId,
             message = "Skill completed: $skillId",
             metadata = mapOf(
@@ -197,7 +197,7 @@ class SkillToolExecutor(
 
     private fun onSkillError(agentId: String, skillId: String, duration: Long, e: Exception) {
         AgentEventBus.emitSkillEvent(
-            eventType = AgenticEvents.SkillEventTypes.ON_SKILL_ERROR,
+            eventType = AgenticEvents.Skill.ON_SKILL_ERROR,
             agentId = agentId,
             message = "Skill failed: $skillId - ${e.message}",
             metadata = mapOf(
