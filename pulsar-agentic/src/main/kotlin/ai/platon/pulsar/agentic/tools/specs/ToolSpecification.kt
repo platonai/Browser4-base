@@ -3,7 +3,7 @@ package ai.platon.pulsar.agentic.tools.specs
 object ToolSpecification {
 
     /**
-     * The `TOOL_CALL_LIST` is written using kotlin syntax to express the tool's `domain`, `method`, `arguments`.
+     * The `TOOL_CALL_SPECIFICATION` is written using kotlin syntax to express the tool's `domain`, `method`, `arguments`.
      * */
     const val TOOL_CALL_SPECIFICATION = """
 // domain: tab

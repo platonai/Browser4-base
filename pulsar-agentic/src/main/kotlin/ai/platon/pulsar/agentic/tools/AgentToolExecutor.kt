@@ -49,6 +49,7 @@ class AgentToolExecutor constructor(
 
     val domainAlias = mapOf(
         "tab" to "tab",
+        "Tab" to "tab",
         "driver" to "tab",
         "WebDriver" to "tab",
 

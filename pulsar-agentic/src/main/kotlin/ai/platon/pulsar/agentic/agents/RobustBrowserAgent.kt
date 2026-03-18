@@ -2,11 +2,10 @@ package ai.platon.pulsar.agentic.agents
 
 import ai.platon.browser4.driver.chrome.dom.util.DomDebug
 import ai.platon.pulsar.agentic.*
-import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.inference.detail.*
 import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.AgentHistory
-import ai.platon.pulsar.agentic.model.DetailedActResult
+import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.config.AppConstants
@@ -16,7 +15,6 @@ import ai.platon.pulsar.external.ResponseState
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.nio.file.Files
 import java.time.Duration
 import java.time.Instant

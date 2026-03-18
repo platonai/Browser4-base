@@ -645,8 +645,9 @@ open class BasicBrowserAgent(
                 snapshotService.addHighlights(interactiveElements)
             }
 
-//            val screenshotB64 = activeDriver.screenshot()
-//            val context = context.copy(screenshotB64 = screenshotB64)
+            // TODO: let AI to decide whether screenshot is needed based on the instruction and config, as it can be costly and not always necessary for action description.
+            val screenshotB64 = activeDriver.screenshot()
+            val context = context.copy(screenshotB64 = screenshotB64)
 
             val actionDescription = withTimeout(config.llmInferenceTimeoutMs) {
                 inference.observe(params, context)

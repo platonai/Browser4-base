@@ -46,7 +46,7 @@ class MainSystemPromptCustomSkillInjectionTest {
         // Main system prompt should contain tool list with custom tools appended.
         val prompt = buildMainSystemPromptV1()
 
-        val compacted = PromptBuilder.compactPrompt(prompt)
+        val compacted = PromptBuilder.compactPromptForHuman(prompt)
         assertTrue(prompt.contains("### Tool List"), compacted)
         assertTrue(prompt.contains("// CustomTool"), compacted)
 

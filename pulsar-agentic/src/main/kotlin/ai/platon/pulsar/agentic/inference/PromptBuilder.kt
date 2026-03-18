@@ -167,7 +167,7 @@ Example:
 """
 
         /**
-         * TODO: no need to list interactive elements in the prompt if the accessibility tree already contains interactivity information. Consider merging them into a unified format.
+         * TODO: no need to list interactive elements in the prompt since the accessibility tree already contains interactivity information. Consider merging them into a unified format.
          * */
         val INTERACTIVE_ELEMENT_LIST_NOTE_CONTENT = """
 (Interactive Elements)
@@ -313,7 +313,7 @@ ${buildToolUseSections()}
 
 """
 
-        fun compactPrompt(prompt: String, maxWidth: Int = 200): String {
+        fun compactPromptForHuman(prompt: String, maxWidth: Int = 200): String {
             val boundaries = """
 Identify the page elements that best match the observation request
 Return an array of matching elements
@@ -406,30 +406,6 @@ $userProvidedInstructions
         return SimpleMessage("system", content)
     }
 
-    fun buildExtractSystemPrompt(userProvidedInstructions: String? = null): SimpleMessage {
-        val userInstructions = buildObserveGuideSystemExtraPrompt(userProvidedInstructions)
-
-        val content = """
-# System Instructions
-
-Extract content on the user's behalf. If the user asks for a list or for all results, return all requested information.
-
-You will receive:
-1. an instruction
-2. a list of DOM elements to extract from
-
-- Reproduce exact text from the DOM, including symbols, characters, and line breaks.
-- If no new information is found, return `null` or an empty string.
-
-<user_request>
-$userInstructions
-</user_request>
-
-"""
-
-        return SimpleMessage(role = "system", content = content)
-    }
-
     fun buildAgentStateHistoryMessage(agentHistory: AgentHistory): String {
         return historyRenderStrategy.render(agentHistory)
     }
@@ -459,9 +435,9 @@ $userInstructions
             else -> "[Execution Succeeded] Output: $evalResult"
         }.let { Strings.compactInline(it, 5000) }
         val help = evaluate.exception?.help?.takeIf { it.isNotBlank() }
-        val helpMessage = help?.let { "Help:\n```\n$it\n```" } ?: ""
+        val helpMessageOrEmpty = help?.let { "Help:\n```\n$it\n```" } ?: ""
         val lastModelError = agentState.actionDescription?.modelResponse?.modelError
-        val lastModelMessage = if (lastModelError != null) {
+        val lastModelErrorOrEmpty = if (lastModelError != null) {
             """
 Previous model error:
 
@@ -481,8 +457,8 @@ Execution result:
 $evalMessage
 ```
 
-$helpMessage
-$lastModelMessage
+$helpMessageOrEmpty
+$lastModelErrorOrEmpty
 ---
         """.trimIndent()
     }
@@ -514,6 +490,30 @@ Extract the key data structure from the page.
         }
 
         return instruction
+    }
+
+    fun buildExtractSystemPrompt(userProvidedInstructions: String? = null): SimpleMessage {
+        val userInstructions = buildObserveGuideSystemExtraPrompt(userProvidedInstructions)
+
+        val content = """
+# System Instructions
+
+Extract content on the user's behalf. If the user asks for a list or for all results, return all requested information.
+
+You will receive:
+1. an instruction
+2. a list of DOM elements to extract from
+
+- Reproduce exact text from the DOM, including symbols, characters, and line breaks.
+- If no new information is found, return `null` or an empty string.
+
+<user_request>
+$userInstructions
+</user_request>
+
+"""
+
+        return SimpleMessage(role = "system", content = content)
     }
 
     fun buildExtractUserRequestPrompt(params: ExtractParams): String {

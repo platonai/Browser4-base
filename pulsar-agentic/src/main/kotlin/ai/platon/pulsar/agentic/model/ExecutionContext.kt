@@ -5,6 +5,7 @@ import ai.platon.pulsar.agentic.agents.AgentConfig
 import ai.platon.pulsar.agentic.inference.ExtractParams
 import ai.platon.pulsar.agentic.inference.ObserveParams
 import ai.platon.pulsar.common.serialize.json.Pson
+import org.codehaus.jackson.annotate.JsonIgnore
 import java.time.Instant
 import java.util.UUID
 
@@ -60,11 +61,13 @@ data class ExecutionContext constructor(
     /**
      * Short session identifier for compact logs and human-readable traces.
      */
+    @get:JsonIgnore
     val sid get() = sessionId.take(8)
 
     /**
      * Convenience access to the previous step's state, if this context was derived from an earlier one.
      */
+    @get:JsonIgnore
     val prevAgentState: AgentState? get() = agentState.prevState
 
     /**
