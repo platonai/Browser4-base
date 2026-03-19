@@ -66,7 +66,7 @@ data class ModelObserveResponseElements(
  * This is the primary JSON schema produced by the observe/action-generation prompts.
  *
  * Conversion rules (see [TextToAction.toObserveElement]):
- * - [locator] may be wrapped with brackets, and will be normalized using `removeSurrounding("[", "]")`.
+ * - [ref] may be wrapped with brackets, and will be normalized using `removeSurrounding("[", "]")`.
  * - [arguments] is expected to be a list of `{name: ..., value: ...}` maps; names become argument keys.
  *
  * Serialization notes:
@@ -102,7 +102,7 @@ data class ModelObserveResponseElement(
      * Web page node locator for DOM manipulation.
      * Specified explicitly for easy access and parsing, even if it's also present in [arguments].
      */
-    val locator: String? = null,
+    val ref: String? = null,
 
     /**
      * Long-term memory to persist.

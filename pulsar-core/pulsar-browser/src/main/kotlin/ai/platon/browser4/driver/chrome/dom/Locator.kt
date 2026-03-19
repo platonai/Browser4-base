@@ -82,6 +82,8 @@ class FBNLocator(
 
     constructor(frameId: Int, backendNodeId: Int): this(frameId.toString(), backendNodeId)
 
+    val ref get() = "e$backendNodeId"
+
     val isRelative: Boolean get() = StringUtils.isNumeric(frameId)
 
     val isAbsolute: Boolean get() = !isRelative
@@ -127,20 +129,6 @@ class LocatorMap {
 
     fun put(type: Locator.Type, selector: String, node: MergedDOMTreeNode) {
         map[Locator(type, selector)] = node
-    }
-
-    fun select(key: String): MergedDOMTreeNode? {
-        // Support legacy string keys like plain hash, and prefixed forms like xpath:, backend:, node:, index:
-        // Try prefixed first
-        val colon = key.indexOf(':')
-        if (colon > 0) {
-            val typeStr = key.take(colon)
-            val selector = key.substring(colon + 1)
-            val type = Locator.Type.entries.firstOrNull { it.text == typeStr }
-            if (type != null) return get(Locator(type, selector))
-        }
-        // Fallback: treat as element hash without prefix
-        return map.entries.firstOrNull { it.key.type == Locator.Type.HASH && it.key.selector == key }?.value
     }
 
     fun toStringMap(): Map<String, MergedDOMTreeNode> {

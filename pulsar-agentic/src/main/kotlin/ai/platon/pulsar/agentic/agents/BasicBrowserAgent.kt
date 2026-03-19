@@ -14,7 +14,6 @@ import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.inference.detail.PageStateTracker
 import ai.platon.pulsar.agentic.model.*
 import ai.platon.pulsar.agentic.tools.AgentToolExecutor
-import ai.platon.pulsar.agentic.tools.util.ActionValidator
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.alwaysTrue
 import ai.platon.pulsar.common.event.EventBus
@@ -201,7 +200,7 @@ open class BasicBrowserAgent(
             val state = if (result.success) "✅ success" else """☑️ executed"""
             val description = MessageFormat.format(
                 "✅ tool.done | {0} {1} | {4} | {2}/{3}",
-                method, state, element.locator, element.cssSelector, element.pseudoExpression
+                method, state, element.ref, element.cssSelector, element.pseudoExpression
             )
             logger.info(description)
 

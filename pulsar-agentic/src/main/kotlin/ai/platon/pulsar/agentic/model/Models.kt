@@ -198,7 +198,7 @@ data class ObserveElement constructor(
     val modelResponse: String? = null,
 
     // the DOM node locator, format is `frameIndex,backendNodeId`
-    val locator: String? = null,
+    val ref: String? = null,
 
     val screenshotContentSummary: String? = null,
     val currentPageContentSummary: String? = null,
@@ -324,7 +324,7 @@ data class ActionDescription constructor(
 ) {
     val observeElement: ObserveElement? get() = observeElements?.firstOrNull()
     val toolCall: ToolCall? get() = observeElement?.toolCall
-    val locator: String? get() = observeElement?.locator
+    val locator: String? get() = observeElement?.ref
     val xpath: String? get() = observeElement?.xpath
 
     /**
@@ -351,7 +351,7 @@ data class ActionDescription constructor(
     fun toObserveResults(agentState: AgentState): List<ObserveResult> {
         val results = observeElements?.map { ele ->
             ObserveResult(
-                locator = ele.locator,
+                locator = ele.ref,
                 domain = ele.domain?.ifBlank { null },
                 method = ele.method?.ifBlank { null },
                 arguments = ele.arguments?.takeIf { it.isNotEmpty() },

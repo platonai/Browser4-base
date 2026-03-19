@@ -1,5 +1,6 @@
 package ai.platon.pulsar.agentic.inference.action
 
+import ai.platon.browser4.driver.chrome.dom.Locator
 import ai.platon.browser4.driver.chrome.dom.model.MergedDOMTreeNode
 import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
 import ai.platon.pulsar.agentic.inference.AgentMessageList
@@ -209,30 +210,38 @@ open class TextToAction(
             return observeElement
         }
 
-        val locator = observeElement.locator
+        val ref = observeElement.ref
         val arguments = toolCall.arguments
 
         var node: MergedDOMTreeNode? = null
-        if (!locator.isNullOrBlank()) {
-            val fbnLocator = agentState.browserUseState.domState.getAbsoluteFBNLocator(locator)
-            if (fbnLocator != null) {
-                node = agentState.browserUseState.domState.locatorMap[fbnLocator]
+        if (!ref.isNullOrBlank()) {
+            var locator: Locator? = null
+            locator = if (ref.startsWith("e")) {
+                // playwright compatible format: `e123`, where 123 is the backend node id
+                Locator(Locator.Type.BACKEND_NODE_ID, ref.substring(1).trim())
+            } else {
+                // backward compatibility: try to find FBN locator with ref as simplified backend node id
+                agentState.browserUseState.domState.getAbsoluteFBNLocator(ref)
+            }
+
+            if (locator != null) {
+                node = agentState.browserUseState.domState.locatorMap[locator]
                 if ("selector" in arguments) {
                     // revise selector
-                    arguments["selector"] = fbnLocator.absoluteSelector
+                    arguments["selector"] = locator.absoluteSelector
                 }
             }
 
-            if (fbnLocator == null) {
-                logger.warn("FBN locator not found. method={}, locator={}", method, locator)
+            if (locator == null) {
+                logger.warn("FBN locator not found. method={}, locator={}", method, ref)
             }
         }
 
         // CSS friendly expression
         val cssSelector = node?.cssSelector()
         val expression = toolCall.weakTypeExpression
-        val cssFriendlyExpression = if (locator != null && cssSelector != null) {
-            expression.replace(locator, cssSelector)
+        val cssFriendlyExpression = if (ref != null && cssSelector != null) {
+            expression.replace(ref, cssSelector)
         } else null
 
         // 3. copy new object
@@ -298,7 +307,7 @@ open class TextToAction(
                 ?.associate { it.first.toString() to it.second }
 
             val observeElement = ObserveElement(
-                locator = ele.locator?.removeSurrounding("[", "]"),
+                ref = ele.ref?.removeSurrounding("[", "]"),
 
                 screenshotContentSummary = ele.screenshotContentSummary,
                 currentPageContentSummary = ele.currentPageContentSummary,

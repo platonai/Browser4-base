@@ -53,7 +53,7 @@ class PromptBuilder(
 {
   "elements": [
     {
-      "locator": string,
+      "ref": string,
       "description": string
     }
   ]
@@ -68,8 +68,8 @@ Browser tool rules:
 
 - `domain`: tool domain such as `tab`, `browser`, or `skill.debug.scraping`; subdomains use dots.
 - `method`: tool method such as `click`, `fill`, or `extract`.
-- When selecting a node, always set `selector` to the same value as `locator`.
-- `locator` must exactly match either the interactive element list or the relevant accessibility-tree node attributes.
+- When selecting a node, always set `selector` to the same value as `ref`.
+- `ref` must exactly match either the interactive element list or the relevant accessibility-tree node attributes.
 - Output JSON only. Do not add any explanatory text.
 - Read all open-tab information from `## Browser State`.
 - Open a new tab for side lookups instead of reusing the current tab.
@@ -91,7 +91,7 @@ Browser tool rules:
 Browser tool rules:
 
 - `domain`: tool domain such as `tab`, `browser`, or `skill.debug.scraping`; subdomains use dots.
-- When selecting a node, always set `selector` to the same value as `locator`.
+- When selecting a node, always set `selector` to the same value as `ref`.
 - Output JSON only. Do not add any explanatory text.
 - When entering text, do not pre-scroll or pre-focus. You may still need to press Enter, click Search, or choose a dropdown option.
 - If typing changes the page, decide whether new elements now require interaction.
@@ -175,10 +175,9 @@ Example:
 The interactive element list summarizes page DOM elements that can be acted on, including slim HTML, text content, surrounding text, viewport index, coordinates, and size.
 
 Format:
-[locator]{viewport}(x,y,width,height)<slimNode>textContent</slimNode>Text-Before-This-Interactive-Element-And-After-Previous-Interactive-Element
+[ref]{viewport}(x,y,width,height)<slimNode>textContent</slimNode>Text-Before-This-Interactive-Element-And-After-Previous-Interactive-Element
 
 - By default, it lists the focused viewport, viewports 1 and 2, and the final viewport.
-- The unique node locator `locator` is a pair of integers without brackets and matches the accessibility tree.
 - `viewport` is a 1-based viewport index without brackets.
 - Viewport positions may change whenever page content changes.
 - `x,y,width,height` describe the node coordinates and size.
@@ -191,7 +190,6 @@ Format:
 The accessibility tree summarizes key DOM nodes, including text content, visibility, interactivity, coordinates, and size.
 
 - Unless explicitly stated otherwise, it contains nodes from the current viewport plus a small amount of nearby context outside the viewport.
-- Each node has a unique `locator`.
 - For all nodes, `invisible`, `scrollable`, and `interactive` default to `false`.
 - Coordinates and sizes default to `0` when not explicitly present. Relevant properties include `clientRects`, `scrollRects`, and `bounds`.
 
@@ -237,8 +235,8 @@ Output format:
 {
   "elements": [
     {
-      "locator": "Web page node locator",
-      "description": "Description of the current locator and tool selection",
+      "ref": "Web page node reference",
+      "description": "Description of the current reference and tool selection",
       "screenshotContentSummary": "Summary of the current screenshot content",
       "currentPageContentSummary": "Summary of the current web page text content, based on the accessibility tree or web content extraction results",
       "memory": "1-3 specific sentences describing this step and the overall progress. This should include information helpful for future progress tracking, such as the number of pages visited or items found.",
@@ -252,8 +250,8 @@ Output format:
 {
   "elements": [
     {
-      "locator": "Web page node locator",
-      "description": "Description of the current locator and tool selection",
+      "ref": "Web page node reference",
+      "description": "Description of the current selected node and tool selection",
       "domain": "Tool domain, such as `tab`",
       "method": "Method name, such as `click`",
       "arguments": [
