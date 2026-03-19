@@ -97,7 +97,7 @@ open class TextToAction(
         try {
             val actionDescription = modelResponseToActionDescription0(instruction, agentState, modelResponse)
 
-            val revised = reviseActionDescription(actionDescription)
+            val revised = normalizeActionDescription(actionDescription)
 
             agentState.actionDescription = revised
 
@@ -173,7 +173,7 @@ open class TextToAction(
         } else modelResponse
     }
 
-    fun reviseActionDescription(action: ActionDescription): ActionDescription {
+    fun normalizeActionDescription(action: ActionDescription): ActionDescription {
         requireNotNull(action.modelResponse) { "ModelResponse is required to reviseActionDescription" }
 
         if (action.exception != null) {
@@ -184,11 +184,11 @@ open class TextToAction(
             return action
         }
 
-        val observeElements = action.observeElements?.map { reviseObserveElement(it, action) }
+        val observeElements = action.observeElements?.map { normalizeObserveElement(it, action) }
         return action.copy(observeElements = observeElements)
     }
 
-    private fun reviseObserveElement(observeElement: ObserveElement, action: ActionDescription): ObserveElement {
+    private fun normalizeObserveElement(observeElement: ObserveElement, action: ActionDescription): ObserveElement {
         requireNotNull(action.modelResponse) { "ModelResponse is required to reviseObserveElement" }
         if (action.exception != null) {
             return observeElement
@@ -201,9 +201,13 @@ open class TextToAction(
         val domain = toolCall.domain
         val method = toolCall.method
 
-//        if (domain != "tab" && domain != "WebDriver") {
-//            return observeElement
-//        }
+        // The `driver`, `WebDriver` domains are deprecated and replaced by `tab`
+        // Only when the `tab` domain requires a locator for tool calls
+        if (!domain.equals("tab", true)
+            && !domain.equals("driver", true)
+            && !domain.equals("WebDriver", true)) {
+            return observeElement
+        }
 
         val locator = observeElement.locator
         val arguments = toolCall.arguments
