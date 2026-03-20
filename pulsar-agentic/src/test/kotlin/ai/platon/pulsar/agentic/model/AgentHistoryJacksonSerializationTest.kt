@@ -1,6 +1,7 @@
 package ai.platon.pulsar.agentic.model
 
 import ai.platon.browser4.driver.chrome.dom.model.BrowserUseState
+import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 class AgentHistoryJacksonSerializationTest {
 
-    private val mapper = jacksonObjectMapper()
+    private val mapper = pulsarObjectMapper()
 
     @Test
     @DisplayName("agent history jackson serialization only includes states")

@@ -36,7 +36,7 @@ class SourceCodeToToolCallTest {
         assertNotNull(help, "Help should not be null")
 
         // Verify full description content
-        assertTrue(help!!.contains("This method focuses an element with [selector] and clicks it."), "Help should contain main description")
+        assertTrue(help!!.contains("Focus on an element with [selector] and click it."), "Help should contain main description")
         assertTrue(help.contains("If there's no element matching `selector`, nothing to do."), "Help should contain secondary description")
         assertTrue(help.contains("driver.click"), "Help should contain code example")
 
