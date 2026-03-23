@@ -91,7 +91,7 @@ class BrowserTabToolExecutor: AbstractToolExecutor() {
             appendLine("    browser4-cli tab scrollDown")
             appendLine("    browser4-cli tab scrollToTop")
             appendLine()
-            append("Run system.help(\"tab\", \"<command>\") for more information on a specific command.")
+            append("""Run browser4-cli tab help <command>) for more information on a specific command.""")
         }
     }
 

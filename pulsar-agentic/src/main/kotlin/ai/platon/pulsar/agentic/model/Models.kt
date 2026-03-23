@@ -67,7 +67,6 @@ data class ToolSpec constructor(
         val type: String,
         val defaultValue: String? = null,
     ) {
-        @get:JsonIgnore
         val expression: String
             get() {
                 return if (defaultValue != null) "$name: $type = $defaultValue" else "$name: $type"
@@ -82,7 +81,6 @@ data class ToolSpec constructor(
             }
     }
 
-    @get:JsonIgnore
     val expression: String
         get() {
             val args = arguments.joinToString(prefix = "(", postfix = ")")
