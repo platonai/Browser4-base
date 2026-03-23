@@ -43,6 +43,8 @@ data class SkillDefinition(
     val compatibility: String? = null,
     /** Arbitrary string metadata mapping (Agent Skills spec). */
     val metadata: Map<String, String> = emptyMap(),
+    /** Installation steps extracted from the SKILL.md Installation/Setup section. */
+    val installSteps: List<String> = emptyList(),
 ) {
     /**
      * Information about a skill parameter.
@@ -499,6 +501,11 @@ class SkillDefinitionLoader {
             ?.associate { it.key.toString() to it.value.toString() }
             ?: emptyMap()
 
+        // Parse installation steps from markdown
+        val installSteps = (markdownSections["installSteps"] as? List<*>)
+            ?.mapNotNull { it?.toString() }
+            ?: emptyList()
+
         return SkillDefinition(
             skillId = skillId,
             name = name,
@@ -515,6 +522,7 @@ class SkillDefinitionLoader {
             license = license,
             compatibility = compatibility,
             metadata = metadata,
+            installSteps = installSteps,
         )
     }
 
@@ -546,12 +554,14 @@ class SkillDefinitionLoader {
         val dependencies = mutableListOf<String>()
         val parameters = mutableMapOf<String, SkillDefinition.ParameterInfo>()
         val examples = mutableListOf<String>()
+        val installSteps = mutableListOf<String>()
 
         var inMetadataSection = false
         var inDescriptionSection = false
         var inDependenciesSection = false
         var inParametersSection = false
         var inExamplesSection = false
+        var inInstallSection = false
 
         var currentExample = StringBuilder()
 
@@ -563,6 +573,7 @@ class SkillDefinitionLoader {
                     inDependenciesSection = false
                     inParametersSection = false
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 line.trim().startsWith("## Description") -> {
                     inMetadataSection = false
@@ -570,6 +581,7 @@ class SkillDefinitionLoader {
                     inDependenciesSection = false
                     inParametersSection = false
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 line.trim().startsWith("## Dependencies") -> {
                     inMetadataSection = false
@@ -577,6 +589,7 @@ class SkillDefinitionLoader {
                     inDependenciesSection = true
                     inParametersSection = false
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 line.trim().startsWith("## Parameters") -> {
                     inMetadataSection = false
@@ -584,6 +597,7 @@ class SkillDefinitionLoader {
                     inDependenciesSection = false
                     inParametersSection = true
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 line.trim().startsWith("## Usage Examples") ||
                 line.trim().startsWith("## Examples") -> {
@@ -592,6 +606,19 @@ class SkillDefinitionLoader {
                     inDependenciesSection = false
                     inParametersSection = false
                     inExamplesSection = true
+                    inInstallSection = false
+                }
+                line.trim().matches(Regex("^##\\s+(Installation|Install|Setup|Getting Started).*", RegexOption.IGNORE_CASE)) -> {
+                    if (inExamplesSection && currentExample.isNotEmpty()) {
+                        examples.add(currentExample.toString().trim())
+                        currentExample = StringBuilder()
+                    }
+                    inMetadataSection = false
+                    inDescriptionSection = false
+                    inDependenciesSection = false
+                    inParametersSection = false
+                    inExamplesSection = false
+                    inInstallSection = true
                 }
                 line.trim().startsWith("##") -> {
                     // End of current section
@@ -604,6 +631,7 @@ class SkillDefinitionLoader {
                     inDependenciesSection = false
                     inParametersSection = false
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 inMetadataSection -> {
                     when {
@@ -667,6 +695,18 @@ class SkillDefinitionLoader {
                         }
                     }
                 }
+                inInstallSection -> {
+                    val trimmed = line.trim()
+                    val numberedMatch = Regex("^\\d+\\.\\s+(.+)").find(trimmed)
+                    if (numberedMatch != null) {
+                        installSteps.add(numberedMatch.groupValues[1].trim())
+                    } else {
+                        val bulletMatch = Regex("^[-*]\\s+(.+)").find(trimmed)
+                        if (bulletMatch != null) {
+                            installSteps.add(bulletMatch.groupValues[1].trim())
+                        }
+                    }
+                }
                 inExamplesSection -> {
                     if (line.trim().startsWith("```")) {
                         if (currentExample.isNotEmpty()) {
@@ -698,7 +738,8 @@ class SkillDefinitionLoader {
             description = description.trim(),
             dependencies = dependencies,
             parameters = parameters,
-            examples = examples
+            examples = examples,
+            installSteps = installSteps
         )
     }
 
@@ -726,10 +767,12 @@ class SkillDefinitionLoader {
         val description = StringBuilder()
         val parameters = mutableMapOf<String, SkillDefinition.ParameterInfo>()
         val examples = mutableListOf<String>()
+        val installSteps = mutableListOf<String>()
 
         var inDescriptionSection = false
         var inParametersSection = false
         var inExamplesSection = false
+        var inInstallSection = false
         var currentExample = StringBuilder()
 
         // Skip YAML frontmatter (both opening and closing ---). Start parsing after the second delimiter.
@@ -752,6 +795,7 @@ class SkillDefinitionLoader {
                     inDescriptionSection = true
                     inParametersSection = false
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 line.trim().startsWith("## Parameters") -> {
                     if (inExamplesSection && currentExample.isNotEmpty()) {
@@ -761,6 +805,7 @@ class SkillDefinitionLoader {
                     inDescriptionSection = false
                     inParametersSection = true
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 line.trim().startsWith("## Usage Examples") ||
                 line.trim().startsWith("## Examples") -> {
@@ -771,6 +816,17 @@ class SkillDefinitionLoader {
                     inDescriptionSection = false
                     inParametersSection = false
                     inExamplesSection = true
+                    inInstallSection = false
+                }
+                line.trim().matches(Regex("^##\\s+(Installation|Install|Setup|Getting Started).*", RegexOption.IGNORE_CASE)) -> {
+                    if (inExamplesSection && currentExample.isNotEmpty()) {
+                        examples.add(currentExample.toString().trim())
+                        currentExample = StringBuilder()
+                    }
+                    inDescriptionSection = false
+                    inParametersSection = false
+                    inExamplesSection = false
+                    inInstallSection = true
                 }
                 line.trim().startsWith("##") -> {
                     // Another section, stop current parsing
@@ -781,6 +837,7 @@ class SkillDefinitionLoader {
                     inDescriptionSection = false
                     inParametersSection = false
                     inExamplesSection = false
+                    inInstallSection = false
                 }
                 inDescriptionSection && line.trim().isNotEmpty() -> {
                     if (description.isNotEmpty()) {
@@ -793,6 +850,20 @@ class SkillDefinitionLoader {
                     val param = parseParameterRow(line)
                     if (param != null) {
                         parameters[param.name] = param
+                    }
+                }
+                inInstallSection -> {
+                    val trimmed = line.trim()
+                    // Match numbered steps (1. Step description)
+                    val numberedMatch = Regex("^\\d+\\.\\s+(.+)").find(trimmed)
+                    if (numberedMatch != null) {
+                        installSteps.add(numberedMatch.groupValues[1].trim())
+                    } else {
+                        // Match bulleted steps (- Step description or * Step description)
+                        val bulletMatch = Regex("^[-*]\\s+(.+)").find(trimmed)
+                        if (bulletMatch != null) {
+                            installSteps.add(bulletMatch.groupValues[1].trim())
+                        }
                     }
                 }
                 inExamplesSection -> {
@@ -818,6 +889,7 @@ class SkillDefinitionLoader {
         result["description"] = description.toString().trim()
         result["parameters"] = parameters
         result["examples"] = examples
+        result["installSteps"] = installSteps
 
         return result
     }

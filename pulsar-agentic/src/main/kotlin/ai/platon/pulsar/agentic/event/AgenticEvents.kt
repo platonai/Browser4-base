@@ -148,6 +148,8 @@ object AgenticEvents {
         const val ON_SKILL_ACTIVATED = "skill.onSkillActivated"
         const val ON_SKILLS_LISTED = "skill.onSkillsListed"
         const val ON_SKILL_ERROR = "skill.onSkillError"
+        const val ON_SKILL_INSTALLED = "skill.onSkillInstalled"
+        const val ON_SKILL_UNINSTALLED = "skill.onSkillUninstalled"
     }
 
     /**

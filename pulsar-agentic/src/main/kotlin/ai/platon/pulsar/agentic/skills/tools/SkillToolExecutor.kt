@@ -4,10 +4,13 @@ import ai.platon.pulsar.agentic.event.AgentEventBus
 import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.model.ToolSpec
 import ai.platon.pulsar.agentic.skills.Skill
+import ai.platon.pulsar.agentic.skills.SkillContext
+import ai.platon.pulsar.agentic.skills.SkillInstaller
 import ai.platon.pulsar.agentic.skills.SkillRegistry
 import ai.platon.pulsar.agentic.tools.builtin.AbstractToolExecutor
 import ai.platon.pulsar.agentic.tools.specs.ToolCallSpecificationProvider
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
+import java.nio.file.Paths
 import kotlin.reflect.KClass
 
 /**
@@ -59,6 +62,41 @@ class SkillToolExecutor(
             ),
             returnType = "SkillResult",
             description = "Run a registered skill by id"
+        )
+
+        // 4) Document-driven installation
+        toolSpec["install"] = ToolSpec(
+            domain = domain,
+            method = "install",
+            arguments = listOf(
+                ToolSpec.Arg("sourceDir", "String"),
+                ToolSpec.Arg("overwrite", "Boolean", "false")
+            ),
+            returnType = "InstallResult",
+            description = "Install a skill from a source directory containing SKILL.md. " +
+                "Reads the documentation, deploys skill files, and registers the skill."
+        )
+
+        // 5) Uninstall a skill
+        toolSpec["uninstall"] = ToolSpec(
+            domain = domain,
+            method = "uninstall",
+            arguments = listOf(
+                ToolSpec.Arg("id", "String")
+            ),
+            returnType = "InstallResult",
+            description = "Uninstall a skill by removing its files and unregistering it"
+        )
+
+        // 6) Read skill documentation
+        toolSpec["readDocumentation"] = ToolSpec(
+            domain = domain,
+            method = "readDocumentation",
+            arguments = listOf(
+                ToolSpec.Arg("id", "String")
+            ),
+            returnType = "String",
+            description = "Read the full SKILL.md documentation for a registered skill"
         )
     }
 
@@ -143,6 +181,46 @@ class SkillToolExecutor(
                 }
             }
 
+            "install" -> {
+                validateArgs(args, allowed = setOf("sourceDir", "overwrite"), required = setOf("sourceDir"), functionName)
+                val sourceDir = paramString(args, "sourceDir", functionName)!!
+                val overwrite = (args["overwrite"] as? Boolean) ?: false
+
+                val installer = SkillInstaller(registry)
+                val result = installer.install(
+                    sourceDir = Paths.get(sourceDir),
+                    context = receiver.context,
+                    overwrite = overwrite
+                )
+
+                onSkillInstalled(agentId, result.skillId, result.success, result.message)
+
+                result
+            }
+
+            "uninstall" -> {
+                validateArgs(args, allowed = setOf("id"), required = setOf("id"), functionName)
+                val id = paramString(args, "id", functionName)!!
+
+                val installer = SkillInstaller(registry)
+                val result = installer.uninstall(id, receiver.context)
+
+                onSkillUninstalled(agentId, id, result.success, result.message)
+
+                result
+            }
+
+            "readDocumentation" -> {
+                validateArgs(args, allowed = setOf("id"), required = setOf("id"), functionName)
+                val id = paramString(args, "id", functionName)!!
+
+                val installer = SkillInstaller(registry)
+                val doc = installer.readDocumentation(id)
+                    ?: throw IllegalArgumentException("No documentation found for skill '$id'")
+
+                doc
+            }
+
             else -> throw IllegalArgumentException("Unsupported $domain method: $functionName(${args.keys})")
         }
     }
@@ -204,6 +282,32 @@ class SkillToolExecutor(
                 "skillId" to skillId,
                 "duration" to duration,
                 "error" to e.message
+            )
+        )
+    }
+
+    private fun onSkillInstalled(agentId: String, skillId: String, success: Boolean, message: String) {
+        AgentEventBus.emitSkillEvent(
+            eventType = AgenticEvents.Skill.ON_SKILL_INSTALLED,
+            agentId = agentId,
+            message = "Skill installed: $skillId (success=$success)",
+            metadata = mapOf(
+                "skillId" to skillId,
+                "success" to success,
+                "message" to message
+            )
+        )
+    }
+
+    private fun onSkillUninstalled(agentId: String, skillId: String, success: Boolean, message: String) {
+        AgentEventBus.emitSkillEvent(
+            eventType = AgenticEvents.Skill.ON_SKILL_UNINSTALLED,
+            agentId = agentId,
+            message = "Skill uninstalled: $skillId (success=$success)",
+            metadata = mapOf(
+                "skillId" to skillId,
+                "success" to success,
+                "message" to message
             )
         )
     }
