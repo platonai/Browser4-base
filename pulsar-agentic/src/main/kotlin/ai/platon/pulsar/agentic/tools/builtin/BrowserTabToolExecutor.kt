@@ -55,6 +55,7 @@ class BrowserTabToolExecutor: AbstractToolExecutor() {
                 "JavaScript" to listOf("evaluate", "evaluateValue"),
                 "Cookies" to listOf("getCookies", "deleteCookies", "clearBrowserCookies"),
                 "Utility" to listOf("currentUrl", "url", "delay", "pause", "stop", "resize", "bringToFront"),
+                "Help" to listOf("help")
             )
 
             for ((category, methods) in categories) {
@@ -444,8 +445,9 @@ class BrowserTabToolExecutor: AbstractToolExecutor() {
             "baseURI" -> { validateArgs(args, emptySet(), emptySet(), functionName); driver.baseURI() }
             "referrer" -> { validateArgs(args, emptySet(), emptySet(), functionName); driver.referrer() }
             "pageSource" -> { validateArgs(args, emptySet(), emptySet(), functionName); driver.pageSource() }
+            "help" -> { args["method"]?.toString()?.let { this.help(it) } ?: this.help() }
 
-            else -> throw IllegalArgumentException("Unsupported WebDriver tool function: $functionName")
+            else -> help()
         }
     }
 }
