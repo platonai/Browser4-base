@@ -148,6 +148,7 @@ class PageHandler(
             serializableTree.toNanoTreeInRange(startY, endY)
         }
 
+        // Join snapshots from disjoint viewport ranges using YAML document separator
         return nanoTrees.joinToString("\n---\n") { it.ariaSnapshot }
     }
 
