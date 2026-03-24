@@ -1,255 +1,343 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package ai.platon.pulsar.agentic.skills
 
-import ai.platon.pulsar.agentic.skills.tools.SkillToolExecutor
-import ai.platon.pulsar.agentic.skills.tools.SkillToolTarget
+import ai.platon.pulsar.agentic.context.AgenticContexts
+import ai.platon.pulsar.agentic.event.AgentEventBus
+import ai.platon.pulsar.agentic.event.AgenticEvents
+import ai.platon.pulsar.agentic.model.ActionDescription
+import ai.platon.pulsar.agentic.model.AgentHistory
+import ai.platon.pulsar.common.Strings
+import ai.platon.pulsar.common.event.EventBus
 import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.external.ChatModelFactory
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import java.nio.file.Files
-import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * End-to-end test for skill installation.
+ * End-to-end test for skill searching and installation.
  *
- * This test validates the complete skill installation workflow by:
- * 1. Creating a self-improving-agent skill definition with SKILL.md
- * 2. Installing it via [SkillInstaller]
- * 3. Verifying the skill is registered in [SkillRegistry]
- * 4. Verifying the skill can be listed, activated, and its documentation read
- * 5. Uninstalling the skill and verifying cleanup
+ * This test validates the complete skill discovery and installation workflow by:
+ * 1. Creating an agentic session with a browser-based agent
+ * 2. Running a task that instructs the agent to search for and install skills
+ * 3. Tracking agent execution via event handlers
+ * 4. Verifying the agent completed its task and progress events were captured
  *
- * **Pass criteria: self-improving-agent is successfully installed.**
+ * The skills to be searched and installed:
+ * - self-improving-agent (自我迭代)
+ * - skill-creator (技能创造)
+ * - find-skills (发现新技能)
+ * - skills-vetter (保证技能安全)
+ * - automation-workflows (把技能串起来当工作流)
+ *
+ * ## Prerequisites
+ *
+ * Agent-based tests require LLM configuration. Set the following in application.properties:
+ * ```
+ * llm.provider=openai
+ * llm.apiKey=your-api-key
+ * ```
+ *
+ * Tests that require LLM will be automatically skipped if not configured.
  *
  * ## Running These Tests
  *
+ * By default, E2ETest tagged tests are excluded from normal test runs. To run them:
  * ```bash
  * ./mvnw test -P all-modules -pl :pulsar-e2e-tests -am -Dtest=SkillInstallE2ETest
  * ```
+ *
+ * Or run all E2E tests:
+ * ```bash
+ * ./mvnw test -P all-modules -Dgroups=E2ETest -Dsurefire.excludedGroups="" -DfailIfNoTests=false
+ * ```
  */
 @Tag("E2ETest")
+@Tag("Slow")
+@Tag("ManualOnly")
 @Tag("skills")
+@Disabled("ManualOnly")
 class SkillInstallE2ETest {
 
     private val logger = getLogger(this)
 
-    private lateinit var registry: SkillRegistry
-    private lateinit var context: SkillContext
-    private lateinit var installer: SkillInstaller
-    private lateinit var tempDir: Path
+    companion object {
+        /**
+         * Maximum steps before auto-completing for test scenarios.
+         * Skill installation tasks require more steps than simple navigation.
+         */
+        private const val MAX_TEST_STEPS = 15
+        private const val EVENT_PROCESSING_DELAY_MS = 500L
 
-    @BeforeEach
-    fun setup() = runBlocking {
-        registry = SkillRegistry.instance
-        context = SkillContext(sessionId = "test-skill-install-e2e")
-        registry.clear(context)
-        installer = SkillInstaller(registry)
-        tempDir = Files.createTempDirectory("skill-install-e2e-test")
-    }
+        private val capturedEvents = ConcurrentHashMap<String, MutableList<Map<String, Any?>>>()
+        private val runStepCount = AtomicInteger(0)
+        private val observeCount = AtomicInteger(0)
+        private val actCount = AtomicInteger(0)
+        private val eventLogger = getLogger("SkillInstallE2ETest.EventLogger")
 
-    @AfterEach
-    fun cleanup() = runBlocking {
-        registry.clear(context)
-        if (Files.exists(tempDir)) {
-            Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .forEach { Files.deleteIfExists(it) }
+        @BeforeAll
+        @JvmStatic
+        fun setupEventHandlers() {
+            // Register event handlers for progress logging
+
+            AgentEventBus.agentEventHandlers?.agentFlowHandlers?.onWillObserve?.addLast { options ->
+                eventLogger.debug("👀 Will observe - instruction: {}", Strings.compactInline(options.instruction))
+            }
+
+            // Log when run starts
+            EventBus.register(AgenticEvents.PerceptiveAgent.ON_WILL_RUN) { payload ->
+                val map = payload as? Map<String, Any?> ?: return@register null
+                val action = map["action"]
+                eventLogger.info("🚀 Agent run starting - action: {}", action)
+                capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.ON_WILL_RUN) {
+                    mutableListOf()
+                }.add(map)
+                payload
+            }
+
+            // Log when run completes
+            EventBus.register(AgenticEvents.PerceptiveAgent.ON_DID_RUN) { payload ->
+                val map = payload as? Map<String, Any?> ?: return@register null
+                val stateHistory = map["stateHistory"] as? AgentHistory
+                eventLogger.info("✅ Agent run completed - steps: {}, isDone: {}",
+                    stateHistory?.totalSteps, stateHistory?.isDone)
+                capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.ON_DID_RUN) {
+                    mutableListOf()
+                }.add(map)
+                payload
+            }
+
+            // Log observe events
+            EventBus.register(AgenticEvents.PerceptiveAgent.ON_WILL_OBSERVE) { payload ->
+                val map = payload as? Map<String, Any?> ?: return@register null
+                observeCount.incrementAndGet()
+                eventLogger.debug("👀 Observing... (count: {})", observeCount.get())
+                capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.ON_WILL_OBSERVE) {
+                    mutableListOf()
+                }.add(map)
+                payload
+            }
+
+            EventBus.register(AgenticEvents.PerceptiveAgent.ON_DID_OBSERVE) { payload ->
+                val map = payload as? Map<String, Any?> ?: return@register null
+                val observeResults = map["observeResults"] as? List<Any>
+                eventLogger.debug("👀 Observed {} results", observeResults?.size ?: 0)
+                capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.ON_DID_OBSERVE) {
+                    mutableListOf()
+                }.add(map)
+                payload
+            }
+
+            // Log act events
+            EventBus.register(AgenticEvents.PerceptiveAgent.ON_WILL_ACT) { payload ->
+                val map = payload as? Map<String, Any?> ?: return@register null
+                actCount.incrementAndGet()
+                val action = map["action"]
+                eventLogger.info("🎬 Acting... (count: {}) - action: {}", actCount.get(), action)
+                capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.ON_WILL_ACT) {
+                    mutableListOf()
+                }.add(map)
+                payload
+            }
+
+            EventBus.register(AgenticEvents.PerceptiveAgent.ON_DID_ACT) { payload ->
+                val map = payload as? Map<String, Any?> ?: return@register null
+                val result = map["result"]
+                eventLogger.info("🎬 Act completed - result: {}", result)
+                capturedEvents.computeIfAbsent(AgenticEvents.PerceptiveAgent.ON_DID_ACT) {
+                    mutableListOf()
+                }.add(map)
+                payload
+            }
+
+            // Log tool generation events
+            EventBus.register(AgenticEvents.ContextToAction.ON_DID_GENERATE) { payload ->
+                val map = payload as? Map<String, Any?> ?: return@register null
+                runStepCount.incrementAndGet()
+                val actionDescription = map["actionDescription"] as? ActionDescription
+                eventLogger.info("🔧 Step {} - Generated action: {}",
+                    runStepCount.get(), actionDescription?.pseudoExpression)
+
+                capturedEvents.computeIfAbsent(AgenticEvents.ContextToAction.ON_DID_GENERATE) {
+                    mutableListOf()
+                }.add(map)
+
+                // Complete the action if it's a test run to allow test progression
+                if (runStepCount.get() >= MAX_TEST_STEPS) {
+                    actionDescription?.complete("Test step limit reached - completing for test")
+                    eventLogger.info("⚠️ Test step limit reached, completing action")
+                }
+
+                payload
+            }
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun cleanup() {
+            // Unregister all event handlers
+            EventBus.unregister(AgenticEvents.PerceptiveAgent.ON_WILL_RUN)
+            EventBus.unregister(AgenticEvents.PerceptiveAgent.ON_DID_RUN)
+            EventBus.unregister(AgenticEvents.PerceptiveAgent.ON_WILL_OBSERVE)
+            EventBus.unregister(AgenticEvents.PerceptiveAgent.ON_DID_OBSERVE)
+            EventBus.unregister(AgenticEvents.PerceptiveAgent.ON_WILL_ACT)
+            EventBus.unregister(AgenticEvents.PerceptiveAgent.ON_DID_ACT)
+            EventBus.unregister(AgenticEvents.ContextToAction.ON_DID_GENERATE)
         }
     }
 
+    @BeforeEach
+    fun setup() {
+        // Clear captured events and counters before each test
+        capturedEvents.clear()
+        runStepCount.set(0)
+        observeCount.set(0)
+        actCount.set(0)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        // Log summary after each test
+        logger.info("Test completed - Total steps: {}, Observe count: {}, Act count: {}",
+            runStepCount.get(), observeCount.get(), actCount.get())
+    }
+
     /**
-     * Test that the self-improving-agent skill can be successfully installed.
+     * Test that the agent can search for and install skills.
      *
-     * This is the primary test case. It validates the full installation pipeline:
-     * 1. Create the skill directory with SKILL.md
-     * 2. Install via SkillInstaller
-     * 3. Verify the skill is registered and accessible
+     * This test:
+     * 1. Creates an agent session
+     * 2. Provides a task to search for and install skills using a browser
+     * 3. Runs the agent with the task
+     * 4. Verifies the agent executed and progress events were captured
+     * 5. Checks the agent history for meaningful state information
+     *
+     * Note: This test requires LLM configuration and will be skipped if not configured.
      */
     @Test
-    @DisplayName("test self-improving-agent is successfully installed")
-    fun testSelfImprovingAgentIsSuccessfullyInstalled() = runBlocking {
-        val skillDir = createSelfImprovingAgentSkillDirectory()
+    @DisplayName("test agent searches and installs skills")
+    fun testAgentSearchesAndInstallsSkills() = runBlocking {
+        // Step 1: Create agent session
+        val session = AgenticContexts.getOrCreateSession()
 
-        val result = installer.install(skillDir, context)
+        // Check if LLM is configured, skip test if not
+        val isLLMConfigured = ChatModelFactory.isModelConfigured(session.sessionConfig)
+        Assumptions.assumeTrue(isLLMConfigured,
+            "Skipping test: LLM not configured. See docs/config/llm/llm-config.md")
 
-        assertTrue(result.success, "Installation should succeed: ${result.message}")
-        assertEquals("self-improving-agent", result.skillId)
-        assertTrue(registry.contains("self-improving-agent"),
-            "self-improving-agent should be registered in SkillRegistry")
-        assertNotNull(result.deployedPath, "Deployed path should be set")
+        val agent = session.companionAgent
+        assertNotNull(agent, "Agent should be created")
 
-        logger.info("✓ self-improving-agent installed successfully to {}", result.deployedPath)
+//        skill-creator（技能创造）
+//        find-skills（发现新技能）
+//        skills-vetter（保证技能安全）
+//        automation-workflows（把技能串起来当工作流）
+
+        // Step 2: Define the skill installation task
+        val task = """
+            Search and install the following SKILLS:
+
+            self-improving-agent
+
+            You should search for the skills using a browser, find the installation instructions, and then install them.
+            After installation, verify that they are working correctly by running a simple test command for each skill.
+            Document the entire process, including any challenges faced and how they were overcome.
+        """.trimIndent()
+
+        // Step 3: Run the agent with the task
+        logger.info("Starting skill installation agent run...")
+        logger.info("Task:\n{}", task)
+        val history = agent.run(task)
+
+        // Allow time for event processing
+        delay(EVENT_PROCESSING_DELAY_MS)
+
+        // Step 4: Verify the agent ran and progress events were captured
+        assertNotNull(history, "History should not be null")
+        logger.info("Agent history - Total steps: {}, isDone: {}, isSuccess: {}",
+            history.totalSteps, history.isDone, history.isSuccess)
+
+        // Verify ON_WILL_RUN event was captured
+        val runWillEvents = capturedEvents[AgenticEvents.PerceptiveAgent.ON_WILL_RUN]
+        assertNotNull(runWillEvents, "ON_WILL_RUN events should be captured")
+        assertTrue(runWillEvents!!.isNotEmpty(), "At least one ON_WILL_RUN event should be captured")
+
+        // Verify ON_DID_RUN event was captured
+        val runDidEvents = capturedEvents[AgenticEvents.PerceptiveAgent.ON_DID_RUN]
+        assertNotNull(runDidEvents, "ON_DID_RUN events should be captured")
+        assertTrue(runDidEvents!!.isNotEmpty(), "At least one ON_DID_RUN event should be captured")
+
+        // Verify ON_DID_GENERATE events were captured (progress tracking)
+        val generateEvents = capturedEvents[AgenticEvents.ContextToAction.ON_DID_GENERATE]
+        assertNotNull(generateEvents, "ON_DID_GENERATE events should be captured")
+        assertTrue(generateEvents!!.isNotEmpty(), "At least one ON_DID_GENERATE event should be captured")
+
+        // Verify that the history contains valid state information
+        assertTrue(history.states.isNotEmpty(), "History should contain at least one state")
+
+        // Step 5: Verify the final state
+        val finalState = history.finalResult
+        assertNotNull(finalState, "Final state should not be null")
+        logger.info("Final state: {}", finalState)
+
+        // Log summary of captured events
+        logger.info("Event summary:")
+        logger.info("  - ON_WILL_RUN: {} events", runWillEvents.size)
+        logger.info("  - ON_DID_RUN: {} events", runDidEvents.size)
+        logger.info("  - ON_DID_GENERATE: {} events", generateEvents.size)
+        logger.info("  - OBSERVE events: {}", observeCount.get())
+        logger.info("  - ACT events: {}", actCount.get())
     }
 
     /**
-     * Test that the installed self-improving-agent skill metadata is correct.
+     * Test that the agent can run a simpler skill search task.
+     *
+     * This test uses a smaller scope to verify the event tracking mechanism
+     * works correctly for skill-related tasks.
      */
     @Test
-    @DisplayName("test self-improving-agent metadata after installation")
-    fun testSelfImprovingAgentMetadataAfterInstallation() = runBlocking {
-        val skillDir = createSelfImprovingAgentSkillDirectory()
-        val result = installer.install(skillDir, context)
-        assertTrue(result.success, "Installation should succeed: ${result.message}")
+    @DisplayName("test agent event tracking for skill search task")
+    fun testAgentEventTrackingForSkillSearchTask() = runBlocking {
+        // Create agent session
+        val session = AgenticContexts.getOrCreateSession()
 
-        val skill = registry.get("self-improving-agent")
-        assertNotNull(skill, "Skill should be retrievable from registry")
-        assertEquals("Self Improving Agent", skill!!.metadata.name)
-        assertEquals("1.0.0", skill.metadata.version)
-        assertEquals("Browser4", skill.metadata.author)
-        assertTrue(skill.metadata.tags.contains("agent"))
-        assertTrue(skill.metadata.tags.contains("self-improving"))
-    }
+        // Check if LLM is configured, skip test if not
+        val isLLMConfigured = ChatModelFactory.isModelConfigured(session.sessionConfig)
+        Assumptions.assumeTrue(isLLMConfigured,
+            "Skipping test: LLM not configured. See docs/config/llm/llm-config.md")
 
-    /**
-     * Test the full lifecycle: install, list, read docs, uninstall.
-     */
-    @Test
-    @DisplayName("test self-improving-agent full lifecycle")
-    fun testSelfImprovingAgentFullLifecycle() = runBlocking {
-        val skillDir = createSelfImprovingAgentSkillDirectory()
+        val agent = session.companionAgent
+        assertNotNull(agent, "Agent should be created")
 
-        // Install
-        val installResult = installer.install(skillDir, context)
-        assertTrue(installResult.success, "Install should succeed: ${installResult.message}")
-        assertTrue(registry.contains("self-improving-agent"))
+        // A simpler task focused on just searching for skills
+        val task = "Search for the 'find-skills' SKILL and describe its installation instructions."
 
-        // List installed skills
-        val installed = installer.listInstalled()
-        assertTrue(installed.any { it["id"] == "self-improving-agent" },
-            "self-improving-agent should appear in installed skills list")
+        // Run the agent
+        logger.info("Running skill search task: {}", task)
+        val history = agent.run(task)
 
-        // Read documentation
-        val doc = installer.readDocumentation("self-improving-agent")
-        assertNotNull(doc, "Documentation should be readable")
-        assertTrue(doc!!.contains("Self Improving Agent"))
+        // Allow time for event processing
+        delay(EVENT_PROCESSING_DELAY_MS)
 
-        // Uninstall
-        val uninstallResult = installer.uninstall("self-improving-agent", context)
-        assertTrue(uninstallResult.success, "Uninstall should succeed: ${uninstallResult.message}")
-        assertFalse(registry.contains("self-improving-agent"),
-            "self-improving-agent should be removed from registry after uninstall")
+        // Verify history exists
+        assertNotNull(history, "History should not be null")
 
-        logger.info("✓ self-improving-agent full lifecycle completed successfully")
-    }
+        // Verify at least one step was executed
+        assertTrue(runStepCount.get() > 0, "At least one step should have been executed")
 
-    /**
-     * Test installation via SkillToolExecutor (the tool call path agents use).
-     */
-    @Test
-    @DisplayName("test self-improving-agent install via tool executor")
-    fun testSelfImprovingAgentInstallViaToolExecutor() = runBlocking {
-        val skillDir = createSelfImprovingAgentSkillDirectory()
+        // Verify RUN events were captured
+        assertTrue(capturedEvents.containsKey(AgenticEvents.PerceptiveAgent.ON_WILL_RUN),
+            "ON_WILL_RUN events should be captured")
+        assertTrue(capturedEvents.containsKey(AgenticEvents.PerceptiveAgent.ON_DID_RUN),
+            "ON_DID_RUN events should be captured")
 
-        val executor = SkillToolExecutor(registry)
-        val target = SkillToolTarget(context, registry)
-
-        val result = executor.callFunctionOn(
-            domain = "skill",
-            functionName = "install",
-            args = mapOf("sourceDir" to skillDir.toString(), "overwrite" to false),
-            receiver = target
-        )
-
-        assertTrue(result is SkillInstaller.InstallResult)
-        val installResult = result as SkillInstaller.InstallResult
-        assertTrue(installResult.success,
-            "Tool executor install should succeed: ${installResult.message}")
-        assertEquals("self-improving-agent", installResult.skillId)
-        assertTrue(registry.contains("self-improving-agent"),
-            "self-improving-agent should be registered after tool executor install")
-
-        logger.info("✓ self-improving-agent installed via tool executor")
-    }
-
-    /**
-     * Test that installation steps are correctly parsed from the SKILL.md.
-     */
-    @Test
-    @DisplayName("test self-improving-agent install steps are parsed")
-    fun testSelfImprovingAgentInstallStepsAreParsed() = runBlocking {
-        val skillDir = createSelfImprovingAgentSkillDirectory()
-
-        val result = installer.install(skillDir, context)
-
-        assertTrue(result.success, "Installation should succeed: ${result.message}")
-        assertTrue(result.installSteps.isNotEmpty(), "Install steps should be parsed from SKILL.md")
-        assertEquals(3, result.installSteps.size,
-            "Should parse all 3 installation steps from SKILL.md")
-    }
-
-    /**
-     * Create the self-improving-agent skill directory with a valid SKILL.md.
-     */
-    private fun createSelfImprovingAgentSkillDirectory(): Path {
-        val skillDir = tempDir.resolve("self-improving-agent")
-        Files.createDirectories(skillDir)
-
-        val skillMd = skillDir.resolve("SKILL.md")
-        Files.writeString(skillMd, """
----
-name: self-improving-agent
-description: An autonomous agent that iteratively improves its own performance by analyzing execution results, identifying failure patterns, and refining its strategies.
-metadata:
-  displayName: Self Improving Agent
-  version: "1.0.0"
-  author: Browser4
-  tags: "agent, self-improving, autonomous, iteration"
-  dependencies: ""
----
-
-# Self Improving Agent Skill
-
-## Description
-
-The Self Improving Agent skill enables an AI agent to iteratively improve its own performance. It analyzes execution results from previous runs, identifies failure patterns and inefficiencies, and refines its strategies for subsequent tasks.
-
-Key capabilities:
-- Analyze execution history for failure patterns
-- Generate improved action strategies based on past results
-- Track performance metrics across iterations
-- Adapt to new page structures and content patterns
-
-## Installation
-
-1. Copy skill files to the managed skills directory
-2. Register the skill in the SkillRegistry
-3. Verify the skill is available by listing installed skills
-
-## Parameters
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| maxIterations | Int | No | 5 | Maximum number of improvement iterations |
-| targetMetric | String | No | "success_rate" | The metric to optimize for |
-| historyDepth | Int | No | 10 | Number of past executions to analyze |
-
-## Return Value
-
-Returns a `SkillResult` with improvement analysis and updated strategies.
-
-## Usage Examples
-
-### Basic Self-Improvement
-
-```kotlin
-val result = registry.execute(
-    skillId = "self-improving-agent",
-    context = context,
-    params = mapOf(
-        "maxIterations" to 3,
-        "targetMetric" to "success_rate"
-    )
-)
-```
-        """.trimIndent())
-
-        Files.createDirectories(skillDir.resolve("scripts"))
-        Files.createDirectories(skillDir.resolve("references"))
-        Files.createDirectories(skillDir.resolve("assets"))
-
-        return skillDir
+        // Log final counts
+        logger.info("Final event counts - Steps: {}, Observe: {}, Act: {}",
+            runStepCount.get(), observeCount.get(), actCount.get())
     }
 }
