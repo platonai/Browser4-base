@@ -30,7 +30,7 @@ pub fn parse_global_flags(argv: &[String]) -> GlobalFlags {
     let mut flags = GlobalFlags::default();
 
     // Default session name from environment variable
-    if let Ok(env_session) = std::env::var("PLAYWRIGHT_CLI_SESSION") {
+    if let Ok(env_session) = std::env::var("BROWSER4_CLI_SESSION") {
         if !env_session.is_empty() {
             flags.session_name = Some(env_session);
         }

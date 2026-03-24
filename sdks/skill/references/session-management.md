@@ -54,7 +54,7 @@ browser4-cli -s=mysession delete-data   # delete named browser data
 Set a default browser session name via environment variable:
 
 ```bash
-export PLAYWRIGHT_CLI_SESSION="mysession"
+export BROWSER4_CLI_SESSION="mysession"
 browser4-cli open example.com  # Uses "mysession" automatically
 ```
 
