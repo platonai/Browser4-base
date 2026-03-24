@@ -62,6 +62,10 @@ data class AgentState constructor(
     val isDone: Boolean get() = isComplete == true
     val hasErrors: Boolean get() = exception != null
 
+    /** The tool domain of the action executed in this state (e.g., "tab", "fs", "agent"). */
+    val actionDomain: String? get() = toolCallResult?.actionDescription?.toolCall?.domain
+        ?: actionDescription?.toolCall?.domain
+
     fun toJson(): String {
         return Pson.toJson(this)
     }

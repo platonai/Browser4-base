@@ -155,7 +155,11 @@ class BrowserTabToolExecutor: AbstractToolExecutor() {
                 val values = args["values"] as? List<String> ?: throw IllegalArgumentException("values must be a list of strings")
                 driver.selectOption(selector = paramString(args, "selector", functionName)!!, values = values)
             }
-            "ariaSnapshot" -> { validateArgs(args, emptySet(), emptySet(), functionName); driver.ariaSnapshot() }
+            "ariaSnapshot" -> {
+                validateArgs(args, allowed("viewports"), emptySet(), functionName)
+                val viewports = paramString(args, "viewports", functionName, required = false)
+                if (viewports.isNullOrBlank()) driver.ariaSnapshot() else driver.ariaSnapshot(viewports)
+            }
             "title" -> { validateArgs(args, emptySet(), emptySet(), functionName); driver.title() }
             "dialogAccept" -> {
                 validateArgs(args, allowed("promptText"), emptySet(), functionName)

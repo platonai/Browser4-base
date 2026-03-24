@@ -6,6 +6,7 @@ import ai.platon.pulsar.agentic.inference.detail.*
 import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.AgentHistory
 import ai.platon.pulsar.agentic.model.ExecutionContext
+import ai.platon.pulsar.agentic.tools.specs.ToolSpecification
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.NetUtil
 import ai.platon.pulsar.common.Strings
@@ -360,9 +361,9 @@ open class RobustBrowserAgent(
         val step = context.step
         val sid = context.sid
         val lastToolCall = agentState.actionDescription?.toolCall
-        val lastDomain = lastToolCall?.domain ?: ""
-        if (lastDomain.equals("tab", ignoreCase = true)) {
-            // Only tab operations can change the WebPage state
+        val lastDomain = lastToolCall?.domain
+        if (ToolSpecification.isBrowserInteraction(lastDomain)) {
+            // Only browser-interaction actions can change the WebPage state
             var consecutiveNoOps = noOpsIn
             val unchangedCount = pageStateTracker.checkStateChange(browserUseState)
             if (unchangedCount >= 3) {
@@ -517,10 +518,16 @@ open class RobustBrowserAgent(
         }
 
         if (!actResult.isSuccess) {
-            consecutiveNoOps++
-            val stop = handleConsecutiveNoOps(consecutiveNoOps, actResult, context)
-            if (stop) {
-                return StepProcessingResult(context, consecutiveNoOps, true)
+            // Only count failures of browser-interaction actions as no-ops.
+            // Non-browser actions (fs, agent, system) can fail for reasons
+            // unrelated to page state and should not trigger no-op detection.
+            val lastDomain = actResult.detail?.actionDescription?.toolCall?.domain
+            if (ToolSpecification.isBrowserInteraction(lastDomain)) {
+                consecutiveNoOps++
+                val stop = handleConsecutiveNoOps(consecutiveNoOps, actResult, context)
+                if (stop) {
+                    return StepProcessingResult(context, consecutiveNoOps, true)
+                }
             }
         }
 

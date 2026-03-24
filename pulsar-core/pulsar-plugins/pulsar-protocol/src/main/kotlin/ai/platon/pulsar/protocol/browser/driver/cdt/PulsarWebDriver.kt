@@ -5,6 +5,7 @@ import ai.platon.browser4.driver.chrome.dom.Locator
 import ai.platon.browser4.driver.chrome.dom.SnapshotService
 import ai.platon.browser4.driver.chrome.dom.model.NanoDOMTree
 import ai.platon.browser4.driver.chrome.dom.model.SnapshotOptions
+import ai.platon.browser4.driver.chrome.dom.model.ViewportSpec
 import ai.platon.browser4.driver.chrome.impl.ChromeImpl
 import ai.platon.browser4.driver.chrome.util.ChromeDriverException
 import ai.platon.browser4.driver.chrome.util.ChromeIOException
@@ -727,6 +728,13 @@ class PulsarWebDriver(
     @Throws(WebDriverException::class)
     override suspend fun ariaSnapshot(): String {
         return rpc.invokeDeferredSilently("ariaSnapshot") { page.ariaSnapshot() } ?: ""
+    }
+
+    @Throws(WebDriverException::class)
+    override suspend fun ariaSnapshot(viewports: String): String {
+        val viewportIndices = ViewportSpec.parse(viewports)
+            ?: return ariaSnapshot()
+        return rpc.invokeDeferredSilently("ariaSnapshot") { page.ariaSnapshot(viewportIndices) } ?: ""
     }
 
     /**

@@ -26,7 +26,7 @@ tab.uncheck(selector: String)
 tab.scrollTo(selector: String)
 tab.scrollToMiddle(ratio: Double = 0.5)
 tab.scrollBy(pixels: Double = 200.0): Double
-tab.ariaSnapshot()
+tab.ariaSnapshot(viewports: String = "all")      // Returns the accessibility tree. viewports: "all", "3", "1,3,5", "2-4"
 tab.textContent(): String?                            // Returns the document's text content.
 tab.selectFirstTextOrNull(selector: String): String?  // Returns the first node's text content (descendants included). Returns null if no node.
 tab.delay(millis: Long)
@@ -67,4 +67,25 @@ system.help(domain: String, method: String): String        // get help for a too
     val SUPPORTED_ACTIONS = SUPPORTED_TOOL_CALLS.map { it.substringBefore("(").trim() }
 
     val MAY_NAVIGATE_ACTIONS = setOf("navigate", "click", "reload", "goBack", "goForward")
+
+    /**
+     * Domains whose actions directly interact with the browser page and may change its visual state.
+     * Used to decide whether screenshots and DOM snapshots are necessary, and whether
+     * page-state diff comparisons are meaningful for no-op detection.
+     */
+    val BROWSER_INTERACTION_DOMAINS = setOf("tab", "driver", "browser")
+
+    /**
+     * Returns `true` if the given [domain] represents a browser-interaction action
+     * that may change the visible page state (e.g., clicking, navigating, switching tabs).
+     *
+     * Non-browser-interaction domains (e.g., `fs`, `agent`, `system`) do not alter the
+     * webpage and therefore do not require fresh screenshots or page-state comparisons.
+     */
+    fun isBrowserInteraction(domain: String?): Boolean {
+        // Default to true for safety: ensures screenshots are captured when the domain is
+        // unknown or on the first step where no previous action exists.
+        if (domain.isNullOrBlank()) return true
+        return BROWSER_INTERACTION_DOMAINS.contains(domain.lowercase())
+    }
 }

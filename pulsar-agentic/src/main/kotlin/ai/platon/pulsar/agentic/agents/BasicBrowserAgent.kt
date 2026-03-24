@@ -14,6 +14,7 @@ import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.inference.detail.PageStateTracker
 import ai.platon.pulsar.agentic.model.*
 import ai.platon.pulsar.agentic.tools.AgentToolExecutor
+import ai.platon.pulsar.agentic.tools.specs.ToolSpecification
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.alwaysTrue
 import ai.platon.pulsar.common.event.EventBus
@@ -633,8 +634,11 @@ open class BasicBrowserAgent(
                 snapshotService.addHighlights(interactiveElements)
             }
 
-            // TODO: let AI to decide whether screenshot is needed based on the instruction and config, as it can be costly and not always necessary for action description.
-            val screenshotB64 = activeDriver.screenshot()
+            // Only capture screenshot when the previous action was a browser-interaction action
+            // (or on the first step when no previous action exists), to reduce token usage.
+            val lastActionDomain = context.agentState.prevState?.actionDomain
+            val needsScreenshot = ToolSpecification.isBrowserInteraction(lastActionDomain)
+            val screenshotB64 = if (needsScreenshot) activeDriver.screenshot() else null
             val context = context.copy(screenshotB64 = screenshotB64)
 
             val actionDescription = withTimeout(config.llmInferenceTimeoutMs) {
