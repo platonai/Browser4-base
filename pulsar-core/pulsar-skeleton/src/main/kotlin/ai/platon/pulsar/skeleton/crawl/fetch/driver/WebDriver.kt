@@ -1640,7 +1640,7 @@ interface WebDriver : Closeable {
     suspend fun setPropertyAll(selector: String, propName: String, propValue: String)
 
     /**
-     * Find hyperlinks in elements matching the CSS query. @mcp
+     * Find hyperlinks in elements matching the CSS query.
      *
      * ```kotlin
      * val hyperlinks = driver.selectHyperlinks("a.product-link")
@@ -1652,11 +1652,10 @@ interface WebDriver : Closeable {
      * @return The hyperlinks in the elements.
      * */
     @Throws(WebDriverException::class)
-    @MCP
     suspend fun selectHyperlinks(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<Hyperlink>
 
     /**
-     * Find anchor elements matching the CSS query. @mcp
+     * Find anchor elements matching the CSS query.
      *
      * ```kotlin
      * val anchors = driver.selectAnchors("a.product-link")
@@ -1668,11 +1667,10 @@ interface WebDriver : Closeable {
      * @return The anchors.
      * */
     @Throws(WebDriverException::class)
-    @MCP
     suspend fun selectAnchors(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<GeoAnchor>
 
     /**
-     * Find image elements matching the CSS query. @mcp
+     * Find image elements matching the CSS query.
      *
      * ```kotlin
      * val images = driver.selectImages("img.product-image")
@@ -1684,7 +1682,6 @@ interface WebDriver : Closeable {
      * @return The image URLs.
      * */
     @Throws(WebDriverException::class)
-    @MCP
     suspend fun selectImages(selector: String, offset: Int = 1, limit: Int = Int.MAX_VALUE): List<String>
 
     /**

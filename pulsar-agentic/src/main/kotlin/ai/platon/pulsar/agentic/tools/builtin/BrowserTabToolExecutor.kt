@@ -307,11 +307,6 @@ class BrowserTabToolExecutor: AbstractToolExecutor() {
             "setProperty" -> { validateArgs(args, allowed("selector", "propName", "propValue"), setOf("selector", "propName", "propValue"), functionName); driver.setProperty(paramString(args, "selector", functionName)!!, paramString(args, "propName", functionName)!!, paramString(args, "propValue", functionName)!!) }
             "setPropertyAll" -> { validateArgs(args, allowed("selector", "propName", "propValue"), setOf("selector", "propName", "propValue"), functionName); driver.setPropertyAll(paramString(args, "selector", functionName)!!, paramString(args, "propName", functionName)!!, paramString(args, "propValue", functionName)!!) }
 
-            // Hyperlinks / anchors / images
-            "selectHyperlinks" -> { validateArgs(args, allowed("selector", "offset", "limit"), setOf("selector"), functionName); driver.selectHyperlinks(selector = paramString(args, "selector", functionName)!!, offset = paramInt(args, "offset", functionName, required = false, default = 1)!!, limit = paramInt(args, "limit", functionName, required = false, default = Int.MAX_VALUE)!!) }
-            "selectAnchors" -> { validateArgs(args, allowed("selector", "offset", "limit"), setOf("selector"), functionName); driver.selectAnchors(selector = paramString(args, "selector", functionName)!!, offset = paramInt(args, "offset", functionName, required = false, default = 1)!!, limit = paramInt(args, "limit", functionName, required = false, default = Int.MAX_VALUE)!!) }
-            "selectImages" -> { validateArgs(args, allowed("selector", "offset", "limit"), setOf("selector"), functionName); driver.selectImages(selector = paramString(args, "selector", functionName)!!, offset = paramInt(args, "offset", functionName, required = false, default = 1)!!, limit = paramInt(args, "limit", functionName, required = false, default = Int.MAX_VALUE)!!) }
-
             // JavaScript evaluation
             "evaluate" -> { validateArgs(args, allowed("expression"), setOf("expression"), functionName); driver.evaluate(paramString(args, "expression", functionName)!!) }
             "evaluateDetail" -> { validateArgs(args, allowed("expression"), setOf("expression"), functionName); driver.evaluateDetail(paramString(args, "expression", functionName)!!) }
