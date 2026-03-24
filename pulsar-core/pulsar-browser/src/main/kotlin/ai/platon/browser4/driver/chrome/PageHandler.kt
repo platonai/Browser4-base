@@ -126,6 +126,53 @@ class PageHandler(
         return snapshot
     }
 
+    /**
+     * Fetches the ARIA snapshot for the specified viewports only.
+     *
+     * @param viewportIndices The 1-based viewport indices to include.
+     * @return The ARIA snapshot YAML covering only the requested viewports.
+     */
+    suspend fun ariaSnapshot(viewportIndices: List<Int>): String {
+        val buState = snapshotService.getBrowserUseState(PageTarget(), SnapshotOptions())
+        lastBrowserUseState = buState
+
+        val scrollState = buState.browserState.scrollState
+        val viewportHeight = scrollState.viewportHeight.toDouble()
+        val serializableTree = buState.domState.serializableTree
+
+        val sortedIndices = viewportIndices.distinct().sorted()
+        // Merge contiguous viewport ranges into Y-axis ranges and build a combined NanoTree
+        val nanoTrees = mergeViewportRanges(sortedIndices).map { (startIdx, endIdx) ->
+            val startY = ((startIdx - 1) * viewportHeight).coerceAtLeast(0.0)
+            val endY = endIdx * viewportHeight
+            serializableTree.toNanoTreeInRange(startY, endY)
+        }
+
+        return nanoTrees.joinToString("\n---\n") { it.ariaSnapshot }
+    }
+
+    /**
+     * Merge contiguous 1-based viewport indices into (start, end) pairs for efficient range queries.
+     * E.g., [1, 2, 3, 5, 7, 8] → [(1, 3), (5, 5), (7, 8)]
+     */
+    private fun mergeViewportRanges(sortedIndices: List<Int>): List<Pair<Int, Int>> {
+        if (sortedIndices.isEmpty()) return emptyList()
+        val result = mutableListOf<Pair<Int, Int>>()
+        var start = sortedIndices[0]
+        var end = start
+        for (i in 1 until sortedIndices.size) {
+            if (sortedIndices[i] == end + 1) {
+                end = sortedIndices[i]
+            } else {
+                result.add(start to end)
+                start = sortedIndices[i]
+                end = start
+            }
+        }
+        result.add(start to end)
+        return result
+    }
+
     @Throws(ChromeDriverException::class)
     private suspend fun resolveSelectorAll(selector: String): List<NodeRef>? {
         return try {

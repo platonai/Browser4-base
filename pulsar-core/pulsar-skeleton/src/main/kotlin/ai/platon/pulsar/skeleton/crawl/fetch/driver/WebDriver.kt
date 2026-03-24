@@ -1835,6 +1835,25 @@ interface WebDriver : Closeable {
     suspend fun ariaSnapshot(): String
 
     /**
+     * Return the ARIA snapshot (accessibility tree in YAML format) for the specified viewports. @mcp
+     *
+     * The [viewports] parameter controls which viewport(s) to include:
+     * - `"all"` — return the full-page snapshot (default).
+     * - `"3"` — return only viewport 3.
+     * - `"1,3,5"` — return viewports 1, 3 and 5.
+     * - `"2-4"` — return viewports 2, 3 and 4.
+     *
+     * Viewport indices are 1-based. The viewport height is determined by the browser's
+     * current viewport dimensions.
+     *
+     * @param viewports A viewport specification string (e.g., `"3"`, `"1,3,5"`, `"2-4"`, `"all"`).
+     * @return The ARIA snapshot YAML covering only the requested viewports.
+     */
+    @Throws(WebDriverException::class)
+    @MCP
+    suspend fun ariaSnapshot(viewports: String): String = ariaSnapshot()
+
+    /**
      * Calculate the clickable point of an element located by [selector]. @mcp
      *
      * If the element does not exist, or is not clickable, returns null.
