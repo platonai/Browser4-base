@@ -177,8 +177,8 @@ async fn start_server(jar_path: &PathBuf, base_url: &str, port: u16) -> Result<(
 }
 
 /// Resolve the base URL from CLI state + optional server override arg.
-pub fn resolve_base_url(override_url: Option<&str>) -> String {
-    let state = read_state(None);
+pub fn resolve_base_url(override_url: Option<&str>, session_name: Option<&str>) -> String {
+    let state = read_state(None, session_name);
     let base = override_url
         .map(|s| s.to_string())
         .unwrap_or(state.base_url);

@@ -50,16 +50,19 @@ pub fn resolve_default_state_dir() -> PathBuf {
         .join(".browser4")
 }
 
-fn state_file(state_dir: &Path) -> PathBuf {
-    state_dir.join("cli-state.json")
+fn state_file(state_dir: &Path, session_name: Option<&str>) -> PathBuf {
+    match session_name {
+        Some(name) => state_dir.join(format!("cli-state-{}.json", name)),
+        None => state_dir.join("cli-state.json"),
+    }
 }
 
 /// Read the persisted CLI state from disk, falling back to defaults.
-pub fn read_state(state_dir: Option<&Path>) -> CliState {
+pub fn read_state(state_dir: Option<&Path>, session_name: Option<&str>) -> CliState {
     let dir = state_dir
         .map(|p| p.to_path_buf())
         .unwrap_or_else(resolve_default_state_dir);
-    let path = state_file(&dir);
+    let path = state_file(&dir, session_name);
     match fs::read_to_string(&path) {
         Ok(raw) => serde_json::from_str::<CliState>(&raw).unwrap_or_default(),
         Err(_) => CliState::default(),
@@ -67,21 +70,25 @@ pub fn read_state(state_dir: Option<&Path>) -> CliState {
 }
 
 /// Write the CLI state to disk, creating the directory if necessary.
-pub fn write_state(state: &CliState, state_dir: Option<&Path>) -> std::io::Result<()> {
+pub fn write_state(
+    state: &CliState,
+    state_dir: Option<&Path>,
+    session_name: Option<&str>,
+) -> std::io::Result<()> {
     let dir = state_dir
         .map(|p| p.to_path_buf())
         .unwrap_or_else(resolve_default_state_dir);
     fs::create_dir_all(&dir)?;
     let json = serde_json::to_string_pretty(state).expect("state serialization should not fail");
-    fs::write(state_file(&dir), json)
+    fs::write(state_file(&dir, session_name), json)
 }
 
 /// Clear all persisted CLI state (called on `close`).
-pub fn clear_state(state_dir: Option<&Path>) {
+pub fn clear_state(state_dir: Option<&Path>, session_name: Option<&str>) {
     let dir = state_dir
         .map(|p| p.to_path_buf())
         .unwrap_or_else(resolve_default_state_dir);
-    let path = state_file(&dir);
+    let path = state_file(&dir, session_name);
     let _ = fs::remove_file(path);
 }
 
@@ -129,8 +136,8 @@ mod tests {
             active_selector: None,
             session_name: None,
         };
-        write_state(&state, Some(tmp.path())).unwrap();
-        let read = read_state(Some(tmp.path()));
+        write_state(&state, Some(tmp.path()), None).unwrap();
+        let read = read_state(Some(tmp.path()), None);
         assert_eq!(read.session_id.as_deref(), Some("abc123"));
         assert_eq!(read.base_url, "http://localhost:8182");
     }
@@ -138,7 +145,7 @@ mod tests {
     #[test]
     fn test_read_state_missing_file() {
         let tmp = TempDir::new().unwrap();
-        let state = read_state(Some(tmp.path()));
+        let state = read_state(Some(tmp.path()), None);
         assert_eq!(state.base_url, "http://localhost:8182");
         assert!(state.session_id.is_none());
     }
@@ -147,9 +154,42 @@ mod tests {
     fn test_clear_state() {
         let tmp = TempDir::new().unwrap();
         let state = CliState::default();
-        write_state(&state, Some(tmp.path())).unwrap();
-        assert!(state_file(tmp.path()).exists());
-        clear_state(Some(tmp.path()));
-        assert!(!state_file(tmp.path()).exists());
+        write_state(&state, Some(tmp.path()), None).unwrap();
+        assert!(state_file(tmp.path(), None).exists());
+        clear_state(Some(tmp.path()), None);
+        assert!(!state_file(tmp.path(), None).exists());
+    }
+
+    #[test]
+    fn test_named_session_state() {
+        let tmp = TempDir::new().unwrap();
+        let state_auth = CliState {
+            session_id: Some("auth123".to_string()),
+            base_url: "http://localhost:8182".to_string(),
+            active_selector: None,
+            session_name: Some("auth".to_string()),
+        };
+        let state_public = CliState {
+            session_id: Some("public456".to_string()),
+            base_url: "http://localhost:8182".to_string(),
+            active_selector: None,
+            session_name: Some("public".to_string()),
+        };
+
+        write_state(&state_auth, Some(tmp.path()), Some("auth")).unwrap();
+        write_state(&state_public, Some(tmp.path()), Some("public")).unwrap();
+
+        let read_auth = read_state(Some(tmp.path()), Some("auth"));
+        let read_public = read_state(Some(tmp.path()), Some("public"));
+        let read_default = read_state(Some(tmp.path()), None);
+
+        assert_eq!(read_auth.session_id.as_deref(), Some("auth123"));
+        assert_eq!(read_public.session_id.as_deref(), Some("public456"));
+        assert!(read_default.session_id.is_none());
+
+        // Verify files exist
+        assert!(state_file(tmp.path(), Some("auth")).exists());
+        assert!(state_file(tmp.path(), Some("public")).exists());
+        assert!(!state_file(tmp.path(), None).exists());
     }
 }

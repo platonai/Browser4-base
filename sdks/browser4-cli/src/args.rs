@@ -28,6 +28,14 @@ pub struct GlobalFlags {
 /// - Everything else is forwarded unchanged in `args`
 pub fn parse_global_flags(argv: &[String]) -> GlobalFlags {
     let mut flags = GlobalFlags::default();
+
+    // Default session name from environment variable
+    if let Ok(env_session) = std::env::var("PLAYWRIGHT_CLI_SESSION") {
+        if !env_session.is_empty() {
+            flags.session_name = Some(env_session);
+        }
+    }
+
     let mut i = 0;
     while i < argv.len() {
         let arg = &argv[i];

@@ -53,8 +53,8 @@ fn no_snapshot_commands() -> HashSet<&'static str> {
 // Session helpers
 // ---------------------------------------------------------------------------
 
-fn require_session() -> Result<CliState, String> {
-    let state = read_state(None);
+fn require_session(session_name: Option<&str>) -> Result<CliState, String> {
+    let state = read_state(None, session_name);
     if state.session_id.is_none() {
         return Err(
             r#"No active session. Run "browser4-cli open" first."#.to_string(),
@@ -70,7 +70,7 @@ fn get_session_id(state: &CliState) -> Result<&str, String> {
         .ok_or_else(|| r#"No active session. Run "browser4-cli open" first."#.to_string())
 }
 
-async fn create_session(client: &Client, base_url: &str, state: &CliState) -> Result<String, String> {
+async fn create_session(client: &Client, base_url: &str, state: &CliState, session_name: Option<&str>) -> Result<String, String> {
     let result = call_tool(client, base_url, "open_session", json!({})).await?;
     // The server response may be a JSON object `{"sessionId":"..."}` or a plain
     // string. Try JSON first; fall back to using the raw string as the session ID.
@@ -87,21 +87,22 @@ async fn create_session(client: &Client, base_url: &str, state: &CliState) -> Re
     let mut new_state = state.clone();
     new_state.session_id = Some(session_id.clone());
     new_state.base_url = base_url.to_string();
-    write_state(&new_state, None).map_err(|e| e.to_string())?;
+    write_state(&new_state, None, session_name).map_err(|e| e.to_string())?;
     Ok(session_id)
 }
 
-fn invalidate_session(state: &CliState, base_url: &str) {
+fn invalidate_session(state: &CliState, base_url: &str, session_name: Option<&str>) {
     let mut new_state = state.clone();
     new_state.session_id = None;
     new_state.base_url = base_url.to_string();
-    let _ = write_state(&new_state, None);
+    let _ = write_state(&new_state, None, session_name);
 }
 
 /// Execute an action with the current session, recovering stale sessions if requested.
 async fn with_session<F, Fut>(
     client: &Client,
     base_url: &str,
+    session_name: Option<&str>,
     recover_stale: bool,
     action: F,
 ) -> Result<String, String>
@@ -109,7 +110,7 @@ where
     F: Fn(String) -> Fut + Send,
     Fut: std::future::Future<Output = Result<String, String>> + Send,
 {
-    let state = require_session()?;
+    let state = require_session(session_name)?;
     let session_id = get_session_id(&state)?.to_string();
 
     match action(session_id.clone()).await {
@@ -118,11 +119,11 @@ where
             if !is_stale_session_error(&err) {
                 return Err(err);
             }
-            invalidate_session(&state, base_url);
+            invalidate_session(&state, base_url, session_name);
             if !recover_stale {
                 return Err(r#"Saved session expired. Run "browser4-cli open" first."#.to_string());
             }
-            let new_session_id = create_session(client, base_url, &state).await?;
+            let new_session_id = create_session(client, base_url, &state, session_name).await?;
             action(new_session_id).await
         }
     }
@@ -169,9 +170,9 @@ async fn handle_open(
     tool_params: &Value,
     session_name: Option<&str>,
 ) -> Result<(), String> {
-    let mut state = read_state(None);
+    let mut state = read_state(None, session_name);
     state.session_name = session_name.map(|s| s.to_string());
-    let session_id = create_session(client, base_url, &state).await?;
+    let session_id = create_session(client, base_url, &state, session_name).await?;
 
     let url = tool_params.get("url").and_then(|u| u.as_str()).unwrap_or("about:blank");
     if !url.is_empty() && url != "about:blank" {
@@ -187,8 +188,8 @@ async fn handle_open(
     Ok(())
 }
 
-async fn handle_close(client: &Client, base_url: &str) -> Result<(), String> {
-    let state = require_session()?;
+async fn handle_close(client: &Client, base_url: &str, session_name: Option<&str>) -> Result<(), String> {
+    let state = require_session(session_name)?;
     let session_id = get_session_id(&state)?.to_string();
     // Ignore errors — session might already be closed
     let _ = call_tool(
@@ -198,7 +199,7 @@ async fn handle_close(client: &Client, base_url: &str) -> Result<(), String> {
         json!({ "sessionId": session_id }),
     )
     .await;
-    clear_state(None);
+    clear_state(None, session_name);
     println!("Session closed.");
     Ok(())
 }
@@ -229,7 +230,7 @@ async fn handle_close_all(client: &Client, base_url: &str) -> Result<(), String>
 
     let shutdown_result =
         shutdown_managed_server_processes(false, None, 5_000, 250);
-    clear_state(None);
+    clear_state(None, None);
 
     if close_results.is_empty() {
         println!("No reachable Browser4 servers responded to close-all.");
@@ -248,7 +249,7 @@ async fn handle_close_all(client: &Client, base_url: &str) -> Result<(), String>
 
 async fn handle_kill_all() -> Result<(), String> {
     let result = shutdown_managed_server_processes(true, None, 5_000, 250);
-    clear_state(None);
+    clear_state(None, None);
     log_shutdown_result("Killed", &result);
     Ok(())
 }
@@ -290,8 +291,8 @@ async fn handle_list(client: &Client, base_url: &str) -> Result<(), String> {
     Ok(())
 }
 
-async fn handle_delete_data(client: &Client, base_url: &str) -> Result<(), String> {
-    let result = with_session(client, base_url, false, |session_id| {
+async fn handle_delete_data(client: &Client, base_url: &str, session_name: Option<&str>) -> Result<(), String> {
+    let result = with_session(client, base_url, session_name, false, |session_id| {
         let client = client.clone();
         let base_url = base_url.to_string();
         async move {
@@ -312,6 +313,7 @@ async fn handle_snapshot(
     base_url: &str,
     tool_name: &str,
     tool_params: &Value,
+    session_name: Option<&str>,
 ) -> Result<(), String> {
     let filename = tool_params.get("filename").and_then(|v| v.as_str()).map(|s| s.to_string());
     let snapshot_args = {
@@ -322,7 +324,7 @@ async fn handle_snapshot(
         a
     };
 
-    let combined = with_session(client, base_url, false, |session_id| {
+    let combined = with_session(client, base_url, session_name, false, |session_id| {
         let client = client.clone();
         let base_url = base_url.to_string();
         let tool_name = tool_name.to_string();
@@ -366,6 +368,7 @@ async fn handle_screenshot(
     base_url: &str,
     tool_name: &str,
     tool_params: &Value,
+    session_name: Option<&str>,
 ) -> Result<(), String> {
     let filename = tool_params.get("filename").and_then(|v| v.as_str()).map(|s| s.to_string());
     let capture_args = {
@@ -376,7 +379,7 @@ async fn handle_screenshot(
         a
     };
 
-    let base64_data = with_session(client, base_url, false, |session_id| {
+    let base64_data = with_session(client, base_url, session_name, false, |session_id| {
         let client = client.clone();
         let base_url = base_url.to_string();
         let tool_name = tool_name.to_string();
@@ -404,8 +407,9 @@ async fn handle_tool_command(
     tool_name: &str,
     tool_params: &Value,
     recover_stale: bool,
+    session_name: Option<&str>,
 ) -> Result<(), String> {
-    let result = with_session(client, base_url, recover_stale, |session_id| {
+    let result = with_session(client, base_url, session_name, recover_stale, |session_id| {
         let client = client.clone();
         let base_url = base_url.to_string();
         let tool_name = tool_name.to_string();
@@ -431,6 +435,7 @@ async fn handle_agent_run(
     client: &Client,
     base_url: &str,
     tool_params: &Value,
+    _session_name: Option<&str>,
 ) -> Result<(), String> {
     let task = tool_params
         .get("task")
@@ -532,11 +537,11 @@ async fn handle_co_create(
         result.clone()
     };
 
-    let mut state = read_state(None);
+    let mut state = read_state(None, session_name);
     state.session_name = session_name.map(|s| s.to_string());
     state.session_id = Some(session_id.clone());
     state.base_url = base_url.to_string();
-    write_state(&state, None).map_err(|e| e.to_string())?;
+    write_state(&state, None, session_name).map_err(|e| e.to_string())?;
 
     println!("Collective session created: {}", session_id);
     Ok(())
@@ -763,15 +768,15 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
     }
 
     // Resolve base URL: --server flag > persisted state > default
-    let base_url = resolve_base_url(global.server_url.as_deref());
+    let base_url = resolve_base_url(global.server_url.as_deref(), global.session_name.as_deref());
 
     // Persist server URL override if different from current state
     if let Some(ref server_url) = global.server_url {
-        let current_state = read_state(None);
+        let current_state = read_state(None, global.session_name.as_deref());
         if server_url != &current_state.base_url {
             let mut updated = current_state;
             updated.base_url = server_url.clone();
-            write_state(&updated, None).map_err(|e| e.to_string())?;
+            write_state(&updated, None, global.session_name.as_deref()).map_err(|e| e.to_string())?;
         }
     }
 
@@ -810,7 +815,7 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
             handle_open(&client, &base_url, &tool_name, &tool_params, global.session_name.as_deref()).await?;
         }
         "close" => {
-            handle_close(&client, &base_url).await?;
+            handle_close(&client, &base_url, global.session_name.as_deref()).await?;
         }
         "close-all" => {
             handle_close_all(&client, &base_url).await?;
@@ -822,17 +827,17 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
             handle_list(&client, &base_url).await?;
         }
         "delete-data" => {
-            handle_delete_data(&client, &base_url).await?;
+            handle_delete_data(&client, &base_url, global.session_name.as_deref()).await?;
         }
         "snapshot" => {
-            handle_snapshot(&client, &base_url, &tool_name, &tool_params).await?;
+            handle_snapshot(&client, &base_url, &tool_name, &tool_params, global.session_name.as_deref()).await?;
         }
         "screenshot" => {
-            handle_screenshot(&client, &base_url, &tool_name, &tool_params).await?;
+            handle_screenshot(&client, &base_url, &tool_name, &tool_params, global.session_name.as_deref()).await?;
         }
         // Agent commands
         "agent-run" => {
-            handle_agent_run(&client, &base_url, &tool_params).await?;
+            handle_agent_run(&client, &base_url, &tool_params, global.session_name.as_deref()).await?;
         }
         "agent-status" => {
             handle_agent_status(&client, &base_url, &tool_params).await?;
@@ -867,6 +872,7 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
                 &tool_name,
                 &tool_params,
                 command == "goto",
+                global.session_name.as_deref(),
             )
             .await?;
         }
@@ -875,7 +881,7 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
     // Post-command snapshot for commands that modify browser state
     let no_snap = no_snapshot_commands();
     if !no_snap.contains(command) {
-        let state = read_state(None);
+        let state = read_state(None, global.session_name.as_deref());
         if let Some(session_id) = state.session_id {
             post_command_snapshot(&client, &base_url, &session_id).await;
         }
