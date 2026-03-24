@@ -54,10 +54,10 @@ public interface AppConstants {
      * */
     List<String> SEARCH_ENGINE_URLS = List.of(
             "https://www.google.com/",
+            "https://www.bing.com/",
             "https://cn.bing.com/",
             "https://www.baidu.com/",
-            "https://www.so.com/",
-            "https://www.bing.com/"
+            "https://www.so.com/"
     );
     String SEARCH_ENGINE_URL = "https://cn.bing.com/";
     String SEARCH_ENGINE_EN_URL = "https://cn.bing.com/?ensearch=1";

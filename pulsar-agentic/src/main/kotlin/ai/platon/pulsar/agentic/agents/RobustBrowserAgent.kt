@@ -7,8 +7,10 @@ import ai.platon.pulsar.agentic.model.ActionDescription
 import ai.platon.pulsar.agentic.model.AgentHistory
 import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.common.AppContext
+import ai.platon.pulsar.common.NetUtil
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.config.AppConstants
+import ai.platon.pulsar.common.config.AppConstants.SEARCH_ENGINE_URLS
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.external.ModelResponse
 import ai.platon.pulsar.external.ResponseState
@@ -377,13 +379,25 @@ open class RobustBrowserAgent(
         return context
     }
 
+    private suspend fun selectBestSearchEngine(): String {
+        val searchURL = SEARCH_ENGINE_URLS.firstOrNull {
+            withContext(Dispatchers.IO) { NetUtil.testHttpNetwork(it) }
+        }
+
+        if (searchURL != null) {
+            return searchURL
+        }
+
+        return if (AppContext.isCN) AppConstants.SEARCH_ENGINE_URL else AppConstants.SEARCH_ENGINE_EN_URL
+    }
+
     protected suspend fun ensureReadyForStep(
         action: ActionOptions, event: String, ctxIn: ExecutionContext
     ): ExecutionContext {
         val driver = activeDriver
         val url = driver.url()
         if (url.isBlank() || url == "about:blank") {
-            val searchURL = if (AppContext.isCN) AppConstants.SEARCH_ENGINE_URL else AppConstants.SEARCH_ENGINE_EN_URL
+            val searchURL = selectBestSearchEngine()
             driver.navigate(searchURL)
         }
 
