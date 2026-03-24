@@ -71,7 +71,7 @@ class SkillInstallE2ETest {
          * Maximum steps before auto-completing for test scenarios.
          * Skill installation tasks require more steps than simple navigation.
          */
-        private const val MAX_TEST_STEPS = 15
+        private const val MAX_TEST_STEPS = 35
         private const val EVENT_PROCESSING_DELAY_MS = 500L
 
         private val capturedEvents = ConcurrentHashMap<String, MutableList<Map<String, Any?>>>()

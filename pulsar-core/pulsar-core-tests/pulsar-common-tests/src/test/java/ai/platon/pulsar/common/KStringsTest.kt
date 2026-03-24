@@ -17,7 +17,7 @@ driver.click(selector: String)
 
 ---
 
-## 无障碍树（Accessibility Tree）说明：
+## 无障碍树（ARIA Snapshot）说明：
 
 无障碍树包含页面 DOM 关键节点的主要信息，包括节点文本内容，可见性，可交互性，坐标和尺寸等。
 

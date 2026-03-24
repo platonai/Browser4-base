@@ -719,7 +719,7 @@ class PulsarWebDriver(
         return driverHelper.invokeOnElement(selector, "outerHTML") { node ->
             when {
                 node.isNull() -> null
-                // TODO: performance issue for large HTML (memory copy)
+                // TODO: performance issue for large HTML (memory copy), consider accept the raw byte stream and convert to string in native code
                 else -> domAPI?.getOuterHTML(node.nodeId, node.backendNodeId, node.objectId)
             }
         }

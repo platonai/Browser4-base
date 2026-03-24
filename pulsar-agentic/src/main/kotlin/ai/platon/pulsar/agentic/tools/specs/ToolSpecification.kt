@@ -73,7 +73,7 @@ system.help(domain: String, method: String): String        // get help for a too
      * Used to decide whether screenshots and DOM snapshots are necessary, and whether
      * page-state diff comparisons are meaningful for no-op detection.
      */
-    val BROWSER_INTERACTION_DOMAINS = setOf("tab", "driver", "browser")
+    val BROWSER_INTERACTION_DOMAINS = setOf("tab", "browser")
 
     /**
      * Returns `true` if the given [domain] represents a browser-interaction action

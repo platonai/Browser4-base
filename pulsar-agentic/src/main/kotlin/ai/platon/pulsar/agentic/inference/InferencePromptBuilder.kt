@@ -21,7 +21,7 @@ object InferencePromptBuilder {
 
         messages.addLast(promptBuilder.buildExtractSystemPrompt(params.userProvidedInstructions))
         messages.addUser(promptBuilder.buildExtractUserRequestPrompt(params), "user_request")
-        messages.addLast(promptBuilder.buildExtractUserPrompt(params))
+        messages.addLast(promptBuilder.buildExtractPageContentUserPrompt(params))
 
         return messages
     }
@@ -31,9 +31,9 @@ object InferencePromptBuilder {
         extractedNode: ObjectNode,
     ): AgentMessageList {
         val metadataMessages = AgentMessageList()
-        val metadataSystem = promptBuilder.buildMetadataSystemPrompt()
+        val metadataSystem = promptBuilder.buildExtractionEvaluationSystemPrompt()
         // For metadata, pass the extracted object directly
-        val metadataUser = promptBuilder.buildMetadataUserPrompt(params.instruction, extractedNode, params.agentState)
+        val metadataUser = promptBuilder.buildExtractionEvaluationUserPrompt(params.instruction, extractedNode, params.agentState)
 
         metadataMessages.addLast(metadataSystem)
         metadataMessages.addLast(metadataUser)

@@ -11,6 +11,7 @@ import ai.platon.pulsar.agentic.model.AgentState
 import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.prompts.buildMainSystemPromptV1
 import ai.platon.pulsar.agentic.prompts.buildToolUseSections
+import ai.platon.pulsar.agentic.tools.specs.ToolSpecification
 import ai.platon.pulsar.common.KStrings
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.ai.llm.PromptTemplate
@@ -64,7 +65,7 @@ class PromptBuilder(
         }
 
         val TOOL_CALL_RULE_CONTENT_V1 = """
-Browser tool rules:
+Tool call rules:
 
 - `domain`: tool domain such as `tab`, `browser`, or `skill.debug.scraping`; subdomains use dots.
 - `method`: tool method such as `click`, `fill`, or `extract`.
@@ -88,14 +89,13 @@ Browser tool rules:
 """.trimIndent()
 
         val TOOL_CALL_RULE_CONTENT_V2 = """
-Browser tool rules:
+Tool call rules:
 
 - `domain`: tool domain such as `tab`, `browser`, or `skill.debug.scraping`; subdomains use dots.
-- `ref` attribute in aria snapshot is a unique node reference, format: [ref=e123], prefer `ref` to locate DOM nodes when possible.
-- Always set `selector` as the value of the `ref` attribute in aria snapshot to locate DOM node
-    - click a node with [ref=e123] -> tab.click('e123')
-    - fill a node with [ref=e123] -> tab.fill('e123', 'hello')
-- Output JSON only. Do not add any explanatory text.
+- The `ref` attribute in aria snapshot is a unique node reference, format: [ref=e123], prefer `ref` to locate DOM nodes when possible.
+  - click a node with [ref=e123] -> tab.click('e123')
+  - fill a node with [ref=e123] -> tab.fill('e123', 'hello')
+- Output JSON only. No explanatory text.
 - When entering text, do not pre-scroll or pre-focus. You may still need to press Enter, click Search, or choose a dropdown option.
 - If typing changes the page, decide whether new elements now require interaction.
 - Keep the final objective in `<user_request>` as the top priority. Explicit user steps override your own plan.
@@ -186,7 +186,7 @@ Choose the single best tool call for the requested browser action.
 
 ---
 
-## Aria Accessibility Tree
+## ARIA Snapshot
 
 {{ARIA_ACCESSIBILITY_TREE}}
 
@@ -284,7 +284,7 @@ ${buildToolUseSections()}
 Identify the page elements that best match the observation request
 Return an array of matching elements
 
-## Accessibility Tree
+## ARIA Snapshot
 ---
             """.trimIndent()
 
@@ -308,7 +308,7 @@ ${buildMainSystemPromptV1()}
 
         initObserveUserInstruction(context.instruction, messages)
 
-        buildResolveMessageListStart(context, context.stateHistory, messages)
+        buildMultistepMessageListStart(context, context.stateHistory, messages)
 
         // browser state, viewport info, interactive elements, DOM
         buildObserveUserMessageLast(messages, context)
@@ -321,14 +321,14 @@ ${buildMainSystemPromptV1()}
         val messages = AgentMessageList()
 
         // observe guide
-        buildSingleObserveGuideSystemPrompt(messages, params)
+        buildSingleObserveSystemPrompt(messages, params)
         // browser state, viewport info, interactive elements, DOM
         buildObserveUserMessageLast(messages, context)
 
         return messages
     }
 
-    fun buildResolveMessageListStart(
+    fun buildMultistepMessageListStart(
         context: ExecutionContext, stateHistory: AgentHistory,
         messages: AgentMessageList,
     ): AgentMessageList {
@@ -492,7 +492,7 @@ ${params.instruction}
         """.trimIndent()
     }
 
-    fun buildExtractUserPrompt(params: ExtractParams): SimpleMessage {
+    fun buildExtractPageContentUserPrompt(params: ExtractParams): SimpleMessage {
         val browserState = params.agentState.browserUseState.browserState
 
         val scrollState = browserState.scrollState
@@ -525,7 +525,7 @@ $viewPortJson
 
 ---
 
-## Accessibility Tree
+## ARIA Snapshot
 
 - Current viewport range only
 - `ref` is a unique node reference that can be used for tab tools to locate the node, e.g., click node with [ref=e123] -> tab.click('e123')
@@ -546,7 +546,7 @@ ${schema.toJsonSchema()}
         return SimpleMessage(role = "user", content = content)
     }
 
-    fun buildMetadataSystemPrompt(): SimpleMessage {
+    fun buildExtractionEvaluationSystemPrompt(): SimpleMessage {
         val metadataSystemPromptCN: String = """
 You are an AI assistant that evaluates extraction progress and completion status.
 
@@ -569,7 +569,7 @@ Follow these rules exactly:
         )
     }
 
-    fun buildMetadataUserPrompt(
+    fun buildExtractionEvaluationUserPrompt(
         instruction: String,
         extractionResponse: Any,
         agentState: AgentState,
@@ -623,7 +623,7 @@ $extractedJson
         return SimpleMessage(role = "user", content = content)
     }
 
-    private fun buildSingleObserveGuideSystemPrompt(messages: AgentMessageList, params: ObserveParams) {
+    private fun buildSingleObserveSystemPrompt(messages: AgentMessageList, params: ObserveParams) {
         val schema =
             if (params.returnAction) OBSERVE_GUIDE_OUTPUT_SCHEMA_RETURN_ACTIONS else OBSERVE_GUIDE_OUTPUT_SCHEMA
 
@@ -684,8 +684,9 @@ $newTabsJson
         val processingViewport = scrollState.processingViewport
         val viewportsTotal = scrollState.viewportsTotal
 
-        val interactiveElements = context.agentState.browserUseState.getInteractiveElements()
-        val viewPortJson = Pson.toJson(
+        // TODO: should we provide the interactive elements?
+        // val interactiveElements = context.agentState.browserUseState.getInteractiveElements()
+        val viewPortInfo = Pson.toJson(
             "processingViewport" to processingViewport,
             "viewportHeight" to viewportHeight,
             "viewportsTotal" to viewportsTotal,
@@ -696,6 +697,22 @@ $newTabsJson
         val startY = (scrollState.y - delta).coerceAtLeast(0.0)
         val endY = (scrollState.y + viewportHeight + delta).coerceAtLeast(0.0)
         val nanoTree = domState.serializableTree.toNanoTreeInRange(startY, endY)
+
+        val lastToolCall = context.prevAgentState?.actionDescription?.toolCall
+        val lastDomain = lastToolCall?.domain
+        val ariaSnapshotSection = if (ToolSpecification.isBrowserInteraction(lastDomain)) {
+            """
+## ARIA Snapshot
+
+Focused on nodes in viewport ${processingViewport}.
+
+```yaml
+${nanoTree.ariaSnapshot}
+```
+
+---
+"""
+        } else ""
 
         fun contentEN() = """
 ## Browser State
@@ -710,23 +727,16 @@ $newTabsMessage
 
 ## Viewport State
 
-$viewPortJson
+$viewPortInfo
 
 - By default, inspect one viewport-height chunk of DOM nodes at a time.
 - Viewport position and numbering may change whenever the page content changes.
 - The provided accessibility tree focuses on viewport `i` and includes a small amount of nearby off-screen context.
 - To inspect the next viewport, call `scrollBy(viewportHeight)`.
 
-## Accessibility Tree
-
-Focused on nodes in viewport ${processingViewport}.
-
-```yaml
-${nanoTree.ariaSnapshot}
-```
-
 ---
 
+$ariaSnapshotSection
 """
 
         val content = contentEN()
