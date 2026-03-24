@@ -597,7 +597,7 @@ open class RobustBrowserAgent(
     protected fun persistTranscript(instruction: String, finalResp: ModelResponse, context: ExecutionContext) {
         runCatching {
             val ts = Instant.now().toEpochMilli()
-            val path = stateManager.resolveRunLogDir(context.sessionId).resolve("session-${ts}.log")
+            val path = stateManager.resolveSessionLogDir(context.sessionId).resolve("session-${ts}.log")
             slogger.info("🧾💾 Persisting execution transcript", context)
             val sb = StringBuilder()
             sb.appendLine("SESSION_ID: $uuid")

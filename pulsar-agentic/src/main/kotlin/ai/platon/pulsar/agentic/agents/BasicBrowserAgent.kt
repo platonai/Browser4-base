@@ -5,17 +5,16 @@ import ai.platon.pulsar.agentic.common.AgentPaths
 import ai.platon.pulsar.agentic.event.AgentEventBus
 import ai.platon.pulsar.agentic.event.AgenticEvents
 import ai.platon.pulsar.agentic.inference.AgentMessageList
+import ai.platon.pulsar.agentic.inference.AgentStateManager
 import ai.platon.pulsar.agentic.inference.InferenceEngine
 import ai.platon.pulsar.agentic.inference.PromptBuilder
 import ai.platon.pulsar.agentic.inference.action.ContextToAction
 import ai.platon.pulsar.agentic.inference.detail.ActResultHelper
-import ai.platon.pulsar.agentic.inference.AgentStateManager
-import ai.platon.pulsar.agentic.model.ExecutionContext
 import ai.platon.pulsar.agentic.inference.detail.PageStateTracker
 import ai.platon.pulsar.agentic.model.*
 import ai.platon.pulsar.agentic.tools.AgentToolExecutor
 import ai.platon.pulsar.agentic.tools.specs.ToolSpecification
-import ai.platon.pulsar.common.DateTimes
+import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.alwaysTrue
 import ai.platon.pulsar.common.event.EventBus
 import ai.platon.pulsar.common.getLogger
@@ -36,11 +35,8 @@ open class BasicBrowserAgent(
     private val logger = getLogger(BasicBrowserAgent::class)
     private val _startTime: Instant = Instant.now()
     private val _uuid: UUID = UUID.randomUUID()
-    private val _baseDir: Path = AgentPaths.AGENT_BASE_DIR
-        .resolve(DateTimes.PATH_SAFE_YEAR.format(_startTime))
-        .resolve(DateTimes.PATH_SAFE_MONTH.format(_startTime))
-        .resolve(DateTimes.PATH_SAFE_DAY.format(_startTime))
-        .resolve(_uuid.toString())
+    private val _baseDir: Path = AgentPaths.resolveTimedDirectory(_startTime).resolve(_uuid.toString())
+    private val _logDir = getLogDir()
 
     protected val cta by lazy { ContextToAction(session.sessionConfig) }
     protected val inference by lazy { InferenceEngine(this) }
@@ -55,16 +51,17 @@ open class BasicBrowserAgent(
     val toolExtractor: AgentToolExecutor get() = lazyToolExecutor
     protected val fs get() = toolExtractor.fs
 
+    val activeDriver get() = session.getOrCreateBoundDriver()
+    val startTime get() = _startTime
+    val baseDir: Path get() = _baseDir
+    val logDir: Path get() = _logDir
+
     protected val pageStateTracker = PageStateTracker(session, config)
     protected val stateManager by lazy { AgentStateManager(this, pageStateTracker) }
 
     override val uuid get() = _uuid
     override val stateHistory: AgentHistory get() = stateManager.stateHistory
     override val processTrace: List<ProcessTrace> get() = stateManager.processTrace
-
-    val activeDriver get() = session.getOrCreateBoundDriver()
-    val startTime get() = _startTime
-    val baseDir: Path get() = _baseDir
 
     init {
         Files.createDirectories(baseDir)
@@ -186,8 +183,10 @@ open class BasicBrowserAgent(
         val element = observe.observeElement
             ?: return ActResultHelper.failed(IllegalStateException("No observation to act"), instruction)
         val actionDescription =
-            observe.actionDescription ?: return ActResultHelper.failed(IllegalStateException("No action description to act"), instruction)
-        val originalToolCall = element.toolCall ?: return ActResultHelper.failed(IllegalStateException("No tool call to act"), instruction)
+            observe.actionDescription
+                ?: return ActResultHelper.failed(IllegalStateException("No action description to act"), instruction)
+        val originalToolCall =
+            element.toolCall ?: return ActResultHelper.failed(IllegalStateException("No tool call to act"), instruction)
         val toolCall = toolExtractor.normalizeToolCall(originalToolCall)
         val method = toolCall.method
 
@@ -428,7 +427,11 @@ open class BasicBrowserAgent(
         AgentEventBus.emitAgentEvent(
             eventType = AgenticEvents.PerceptiveAgent.ON_DID_ACT,
             agentId = agentId,
-            message = if (result.isSuccess) "Action completed successfully" else "Action failed: ${result.message.take(100)}",
+            message = if (result.isSuccess) "Action completed successfully" else "Action failed: ${
+                result.message.take(
+                    100
+                )
+            }",
             metadata = mapOf(
                 "action" to action.action,
                 "success" to result.isSuccess,
@@ -661,5 +664,11 @@ open class BasicBrowserAgent(
 
     override fun close() {
 
+    }
+
+    private fun getLogDir(): Path {
+        val agentId = uuid.toString()
+        val auxLogDir = AppPaths.detectAuxiliaryLogDir().resolve("agent")
+        return auxLogDir.resolve(AppPaths.fromTime(startTime)).resolve(agentId)
     }
 }

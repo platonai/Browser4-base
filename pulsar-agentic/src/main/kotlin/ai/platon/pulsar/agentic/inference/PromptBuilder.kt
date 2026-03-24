@@ -338,7 +338,7 @@ ${buildMainSystemPromptV1()}
 
         messages.addSystem(systemMsg)
         messages.addLastIfAbsent("user", buildUserRequestMessage(instruction), name = "user_request")
-        messages.addUser(buildAgentStateHistoryMessage(stateHistory, context.agentStateHistoryLogPath))
+        messages.addUser(buildAgentStateHistoryMessage(stateHistory, context.stateHistoryPath))
         if (context.screenshotB64 != null) {
             messages.addUser(buildBrowserVisionInfo())
         }

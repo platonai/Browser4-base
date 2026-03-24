@@ -3,6 +3,9 @@ package ai.platon.pulsar.agentic.model
 import ai.platon.browser4.driver.chrome.dom.model.MergedDOMTreeNode
 import ai.platon.pulsar.agentic.ActResult
 import ai.platon.pulsar.agentic.ObserveResult
+import ai.platon.pulsar.agentic.common.AgentPaths
+import ai.platon.pulsar.common.AppPaths
+import ai.platon.pulsar.common.MessageWriter
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.brief
 import ai.platon.pulsar.common.compactedBrief
@@ -12,6 +15,7 @@ import ai.platon.pulsar.external.ModelResponse
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIncludeProperties
 import org.apache.commons.lang3.StringUtils
+import java.nio.file.Path
 import java.time.Instant
 
 const val ROOT_COMMAND = "browser4-cli"
@@ -267,6 +271,7 @@ data class ObserveElement constructor(
 @JsonIncludeProperties("states")
 data class AgentHistory(
     val states: MutableList<AgentState> = mutableListOf(),
+    val path: Path = AgentPaths.AGENT_BASE_DIR.resolve("agent-state-${Instant.now().toEpochMilli()}.jsonl")
 ) {
     val size get() = states.size
 
@@ -289,6 +294,10 @@ data class AgentHistory(
     fun last() = states.last()
     fun firstOrNull() = states.firstOrNull()
     fun lastOrNull() = states.lastOrNull()
+
+    fun persist() {
+        MessageWriter.writeOnce(path, Pson.toJson(this))
+    }
 
     override fun toString(): String {
         return states.joinToString("\n") { it.toString() }

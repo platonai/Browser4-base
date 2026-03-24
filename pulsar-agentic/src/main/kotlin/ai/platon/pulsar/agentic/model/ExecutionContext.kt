@@ -53,11 +53,11 @@ data class ExecutionContext constructor(
     val agentState: AgentState,
     val stepStartTime: Instant = Instant.now(),
     val stateHistory: AgentHistory,
+    val stateHistoryPath: String? = null,
 
     val config: AgentConfig,
     val sessionId: String,
     val uuid: String = UUID.randomUUID().toString(),
-    val agentStateHistoryLogPath: String? = null,
 ) {
     /**
      * Short session identifier for compact logs and human-readable traces.

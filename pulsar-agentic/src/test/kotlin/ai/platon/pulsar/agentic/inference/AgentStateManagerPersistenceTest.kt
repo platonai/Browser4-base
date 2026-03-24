@@ -60,7 +60,7 @@ class AgentStateManagerPersistenceTest {
 
         stateManager.updateAgentState(context, detail)
         stateManager.addToHistory(agentState)
-        val runLogDir = stateManager.resolveRunLogDir(context.sessionId)
+        val runLogDir = stateManager.resolveSessionLogDir(context.sessionId)
 
         assertTrue(Files.exists(runLogDir.resolve("state.jsonl")))
         assertTrue(Files.exists(runLogDir.resolve("result.jsonl")))
