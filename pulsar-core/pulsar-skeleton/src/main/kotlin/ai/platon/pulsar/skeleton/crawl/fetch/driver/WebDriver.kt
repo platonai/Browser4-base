@@ -327,8 +327,8 @@ interface WebDriver : Closeable {
     /**
      * Returns a string representing the current URL that the browser is looking at. @mcp
      *
-     * The current url is always the main frame's `document.documentURI` if the browser succeed to return it, and is displayed in the browser's
-     * address bar.
+     * The current url is always the main frame's `document.documentURI` if the browser succeed to return it, and is
+     * displayed in the browser's address bar.
      *
      * If the browser failed to return a proper url, returns the passed in url to navigate, just like a real user enter
      * a url in the address bar but the browser failed to load the page.
@@ -670,6 +670,8 @@ interface WebDriver : Closeable {
      * val newDriver = driver.waitForPage("https://www.example.com", Duration.ofSeconds(30))
      * ```
      *
+     * TODO: check if waitForPage and waitForNavigation can be merged into one method.
+     *
      * @param url The URL to navigate to.
      * @return The remaining time until timeout when the predicate returns true.
      * */
@@ -996,6 +998,8 @@ interface WebDriver : Closeable {
      * driver.clickTextMatches("button", "submit")
      * ```
      *
+     * TODO: use playwright style selector which supports text matching, for example: `button:has-text("submit")`
+     *
      * @param selector - A [selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors)
      * of an element to focus. If there are multiple elements satisfying the
      * selector, the first will be focused.
@@ -1013,7 +1017,7 @@ interface WebDriver : Closeable {
      * or the element's attribute value doesn't match [pattern], nothing to do.
      *
      * ```kotlin
-     * driver.clickAttributeMatches("button", "type", "submit")
+     * driver.clickMatches("button", "type", "submit")
      * ```
      *
      * @param selector - A [selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors)
@@ -1097,6 +1101,8 @@ interface WebDriver : Closeable {
      * driver.scrollDown(3)
      * ```
      *
+     * TODO: use mouseWheel instead
+     *
      * @param count The times to scroll down.
      */
     @Throws(WebDriverException::class)
@@ -1109,6 +1115,8 @@ interface WebDriver : Closeable {
      * ```kotlin
      * driver.scrollUp(3)
      * ```
+     *
+     * TODO: use mouseWheel instead
      *
      * @param count The times to scroll up.
      */
@@ -1775,12 +1783,10 @@ interface WebDriver : Closeable {
     suspend fun evaluateValueDetail(expression: String): JsEvaluation?
 
     @Throws(WebDriverException::class)
-    @ExperimentalApi
     @MCP
     suspend fun evaluateValue(selector: String, functionDeclaration: String): Any?
 
     @Throws(WebDriverException::class)
-    @ExperimentalApi
     @MCP
     suspend fun evaluateValueDetail(selector: String, functionDeclaration: String): JsEvaluation?
 

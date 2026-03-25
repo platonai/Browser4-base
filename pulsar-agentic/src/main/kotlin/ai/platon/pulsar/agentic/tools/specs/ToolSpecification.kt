@@ -24,7 +24,7 @@ tab.press(selector: String, key: String)
 tab.check(selector: String)
 tab.uncheck(selector: String)
 tab.scrollTo(selector: String)
-tab.scrollToMiddle(ratio: Double = 0.5)
+tab.scrollToMiddle(ratio: Double = 0.5)          // ratio: The ratio of the page to scroll to, 0.0 means the top, 1.0 means the bottom.
 tab.scrollBy(pixels: Double = 200.0): Double
 tab.ariaSnapshot(viewports: String = "all")      // Returns the accessibility tree. viewports: "all", "3", "1,3,5", "2-4"
 tab.textContent(): String?                            // Returns the document's text content.

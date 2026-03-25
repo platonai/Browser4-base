@@ -12,6 +12,7 @@ typealias CrawlEventHandlers = ai.platon.pulsar.skeleton.crawl.CrawlEventHandler
 typealias LoadEventHandlers = ai.platon.pulsar.skeleton.crawl.LoadEventHandlers
 typealias BrowserEventHandlers = ai.platon.pulsar.skeleton.crawl.BrowseEventHandlers
 
+typealias BrowserFactory = ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserFactory
 typealias Browser = ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
 typealias WebDriver = ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
 typealias PageSnapshot = ai.platon.pulsar.persist.PageSnapshot
