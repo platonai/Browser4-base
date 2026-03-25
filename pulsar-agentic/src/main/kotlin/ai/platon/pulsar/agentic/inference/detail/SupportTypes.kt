@@ -12,7 +12,7 @@ object ActResultHelper {
 
     fun toString(actResult: ActResult): String {
         val eval = Strings.compactInline(actResult.tcEvalValue?.toString(), 50)
-        return "[${actResult.action}] expr: ${actResult.expression} eval: $eval message: ${actResult.message}"
+        return "[${actResult.action}] expr: ${actResult.weakTypeExpression} eval: $eval message: ${actResult.message}"
     }
 
     fun failed(exception: Exception, action: String) = ActResult(action = action, exception = exception)

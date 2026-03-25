@@ -521,7 +521,8 @@ open class RobustBrowserAgent(
             // Only count failures of browser-interaction actions as no-ops.
             // Non-browser actions (fs, agent, system) can fail for reasons
             // unrelated to page state and should not trigger no-op detection.
-            val lastDomain = actResult.detail?.actionDescription?.toolCall?.domain
+            val lastToolCall = actResult.detail?.actionDescription?.toolCall
+            val lastDomain = lastToolCall?.domain
             if (ToolSpecification.isBrowserInteraction(lastDomain)) {
                 consecutiveNoOps++
                 val stop = handleConsecutiveNoOps(consecutiveNoOps, actResult, context)
@@ -631,15 +632,18 @@ open class RobustBrowserAgent(
         context: ExecutionContext
     ): Boolean {
         val step = context.step
+        val expression = result.weakTypeExpression
         stateManager.addTrace(
             context.agentState,
             event = "noop",
             items = mapOf("step" to step, "consecutive" to consecutiveNoOps),
             message = "🕒 no-op"
         )
-        logger.info("🕒 noop sid={} step={} consecutive={} | {}", context.sid, step, consecutiveNoOps, result)
+        logger.info("🕒 noop sid={} step={} consecutive={} toolCall={} | {}",
+            context.sid, step, consecutiveNoOps, expression, result)
         if (consecutiveNoOps >= config.consecutiveNoOpLimit) {
-            logger.info("⛔ noop.stop sid={} step={} limit={}", context.sid, step, config.consecutiveNoOpLimit)
+            logger.info("⛔ noop.stop sid={} step={} limit={} toolCall={}",
+                context.sid, step, config.consecutiveNoOpLimit, expression)
             return true
         }
         if (isClosed) {

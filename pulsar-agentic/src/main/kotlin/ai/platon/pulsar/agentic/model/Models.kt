@@ -4,7 +4,6 @@ import ai.platon.browser4.driver.chrome.dom.model.MergedDOMTreeNode
 import ai.platon.pulsar.agentic.ActResult
 import ai.platon.pulsar.agentic.ObserveResult
 import ai.platon.pulsar.agentic.common.AgentPaths
-import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.MessageWriter
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.brief
@@ -211,7 +210,7 @@ data class ToolCallResult constructor(
     val actionDescription: ActionDescription? = null
 ) {
     val isSuccess: Boolean get() = evaluate.exception != null
-    val expression: String get() = actionDescription?.expression ?: ""
+    val expression: String get() = actionDescription?.weakTypeExpression ?: ""
     val modelResponse: ModelResponse? get() = actionDescription?.modelResponse
 
     companion object {
@@ -263,7 +262,7 @@ data class ObserveElement constructor(
      * Expression with weak parameter types
      * */
     @get:JsonIgnore
-    val expression: String? get() = toolCall?.weakTypeExpression
+    val weakTypeExpression: String? get() = toolCall?.weakTypeExpression
 
     @get:JsonIgnore
     val pseudoExpression get() = toolCall?.pseudoExpression
@@ -370,11 +369,11 @@ data class ActionDescription constructor(
     /**
      * Expression with weak parameter types
      * */
-    val expression: String? get() = observeElement?.expression
+    val weakTypeExpression: String? get() = observeElement?.weakTypeExpression
     val cssFriendlyExpression: String? get() = observeElement?.cssFriendlyExpression
     val pseudoExpression: String? get() = observeElement?.pseudoExpression
 
-    val isReallyComplete get() = isComplete || expression?.contains("agent.done") == true
+    val isReallyComplete get() = isComplete || weakTypeExpression?.contains("agent.done") == true
 
     fun complete(summary: String? = null) {
         isComplete = true
