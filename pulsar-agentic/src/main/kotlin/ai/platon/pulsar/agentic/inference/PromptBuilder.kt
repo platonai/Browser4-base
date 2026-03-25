@@ -214,7 +214,9 @@ Output format:
       "screenshotContentSummary": "Summary of the current screenshot content if provided",
       "currentPageContentSummary": "Summary of the current web page text content, based on the aria snapshot or web content extraction results",
       "memory": "1-3 specific sentences describing this step and the overall progress. This should include information helpful for future progress tracking, such as the number of pages visited or items found.",
-      "thinking": "A structured <think>-style reasoning block."
+      "thinking": "A structured <think>-style reasoning block.",
+      "evaluationPreviousGoal": "A concise one-sentence analysis of the previous action, clearly stating success, failure, or uncertainty.",
+      "nextGoal": "A clear one-sentence statement of the next direct goal and action to take."
     }
   ]
 }
@@ -237,7 +239,9 @@ Output format:
       "screenshotContentSummary": "Summary of the current screenshot content if provided",
       "currentPageContentSummary": "Summary of the current web page text content, based on the aria snapshot or web content extraction results",
       "memory": "1-3 specific sentences describing this step and the overall progress. This should include information helpful for future progress tracking, such as the number of pages visited or items found.",
-      "thinking": "A structured <think>-style reasoning block."
+      "thinking": "A structured <think>-style reasoning block.",
+      "evaluationPreviousGoal": "A concise one-sentence analysis of the previous action, clearly stating success, failure, or uncertainty.",
+      "nextGoal": "A clear one-sentence statement of the next direct goal and action to take."
     }
   ]
 }

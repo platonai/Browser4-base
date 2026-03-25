@@ -86,7 +86,7 @@ data class AgentState constructor(
                 if (keyFindings != null) {
                     appendLine("keyFindings: \n" + keyFindings?.joinToString("\n$ident", ident))
                 }
-                if (nextGoal != null) {
+                if (nextSuggestions != null) {
                     appendLine("nextSuggestions: \n" + nextSuggestions?.joinToString("\n$ident", ident))
                 }
             }
