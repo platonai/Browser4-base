@@ -79,7 +79,7 @@ data class ActResult constructor(
 
     /** Expression with weak parameter types (if provided by the model/tool). */
     @get:JsonIgnore
-    val expression get() = result?.actionDescription?.expression
+    val weakTypeExpression get() = result?.actionDescription?.weakTypeExpression
 
     /** Evaluation value returned by the tool call, if available. */
     @get:JsonIgnore
@@ -87,7 +87,7 @@ data class ActResult constructor(
 
     override fun toString(): String {
         val eval = Strings.compactInline(tcEvalValue?.toString(), 50)
-        return "[$action] expr: $expression eval: $eval message: $message"
+        return "[$action] expr: $weakTypeExpression eval: $eval message: $message"
     }
 }
 
