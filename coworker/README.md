@@ -135,6 +135,8 @@ Draft refinement uses a dedicated pipeline under `coworker/tasks/0draft/refine/`
 - `2working` — drafts currently being refined
 - `3done` — refined drafts ready for review
 
+Each refinement run also makes sure `1ready\1.md` through `1ready\5.md` exist as blank placeholders. Empty placeholders are ignored until you add draft content, so the scheduler does not keep reprocessing them.
+
 You can refine a single file or every file in a folder. When a folder is provided, files are processed one by one.
 
 **Windows (PowerShell):**
@@ -152,4 +154,3 @@ You can refine a single file or every file in a folder. When a folder is provide
 ./coworker/scripts/workers/refine-drafts.sh ./coworker/tasks/0draft/refine/1ready
 pwsh ./coworker/scripts/process-draft-refinement-queue.ps1 -Once
 ```
-

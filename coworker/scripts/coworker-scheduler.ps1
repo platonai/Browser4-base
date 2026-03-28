@@ -59,12 +59,21 @@ function Test-PathHasPendingFiles {
         return $false
     }
 
+    $fullPath = [System.IO.Path]::GetFullPath($item.FullName)
+    $draftRefinementReadyDir = [System.IO.Path]::GetFullPath((Resolve-TasksPath '0draft\refine\1ready'))
+    $pendingFilePredicate = if ($fullPath -eq $draftRefinementReadyDir) {
+        { param($candidate) Test-CoworkerActionableDraftRefinementFile -Item $candidate }
+    }
+    else {
+        { param($candidate) Test-CoworkerPendingFile -Item $candidate }
+    }
+
     if (-not $item.PSIsContainer) {
-        return Test-CoworkerPendingFile -Item $item
+        return & $pendingFilePredicate $item
     }
 
     $pendingFile = Get-ChildItem -LiteralPath $item.FullName -File -Recurse -ErrorAction SilentlyContinue |
-        Where-Object { Test-CoworkerPendingFile -Item $_ } |
+        Where-Object { & $pendingFilePredicate $_ } |
         Select-Object -First 1
     return $null -ne $pendingFile
 }

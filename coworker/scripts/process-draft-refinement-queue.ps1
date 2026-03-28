@@ -20,20 +20,22 @@ Write-Host "Monitoring draft refinement path: $scanPath"
 Write-Host "Refine script: $refineScript"
 
 while ($true) {
+    Ensure-CoworkerDraftRefinementPlaceholders -DraftDirectory $defaultReadyDir
+
     $pendingFiles = @()
     if (Test-Path $scanPath) {
         $scanItem = Get-Item $scanPath
         if ($scanItem.PSIsContainer) {
-            $pendingFiles = @(Get-ChildItem -Path $scanItem.FullName -File | Where-Object { Test-CoworkerPendingFile -Item $_ })
+            $pendingFiles = @(Get-ChildItem -Path $scanItem.FullName -File | Where-Object { Test-CoworkerActionableDraftRefinementFile -Item $_ })
         }
-        elseif (Test-CoworkerPendingFile -Item $scanItem) {
+        elseif (Test-CoworkerActionableDraftRefinementFile -Item $scanItem) {
             $pendingFiles = @($scanItem)
         }
     }
 
     $timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')
     if ($pendingFiles.Count -eq 0) {
-        Write-Host "$timestamp - No draft files found for refinement."
+        Write-Host "$timestamp - No actionable draft files found for refinement."
         if ($Once) {
             exit 0
         }

@@ -153,6 +153,40 @@ function Test-CoworkerPendingFile {
     return -not $Item.PSIsContainer -and -not (Test-CoworkerIgnoredFile -Item $Item)
 }
 
+function Test-CoworkerActionableDraftRefinementFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.IO.FileSystemInfo]$Item
+    )
+
+    if (-not (Test-CoworkerPendingFile -Item $Item)) {
+        return $false
+    }
+
+    $content = Get-Content -LiteralPath $Item.FullName -Raw -Encoding UTF8 -ErrorAction Stop
+    return -not [string]::IsNullOrWhiteSpace($content)
+}
+
+function Ensure-CoworkerDraftRefinementPlaceholders {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$DraftDirectory,
+        [ValidateRange(1, 100)]
+        [int]$MaxCount = 5
+    )
+
+    if (-not (Test-Path -LiteralPath $DraftDirectory)) {
+        New-Item -ItemType Directory -Path $DraftDirectory -Force | Out-Null
+    }
+
+    foreach ($draftNumber in 1..$MaxCount) {
+        $draftPath = Join-Path $DraftDirectory "$draftNumber.md"
+        if (-not (Test-Path -LiteralPath $draftPath)) {
+            Set-Content -LiteralPath $draftPath -Value '' -Encoding UTF8
+        }
+    }
+}
+
 function Get-CoworkerQueueFiles {
     param(
         [Parameter(Mandatory = $true)]

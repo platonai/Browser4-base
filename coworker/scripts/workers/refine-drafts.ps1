@@ -22,6 +22,10 @@ foreach ($directory in @($readyDir, $workingDir, $doneDir)) {
     }
 }
 
+function Ensure-ReadyDraftPlaceholders {
+    Ensure-CoworkerDraftRefinementPlaceholders -DraftDirectory $readyDir
+}
+
 if ([string]::IsNullOrWhiteSpace($Path)) {
     $Path = $readyDir
 }
@@ -63,10 +67,10 @@ function Get-RefineTargets {
 
     $item = Get-Item $InputPath
     if ($item.PSIsContainer) {
-        return @(Get-ChildItem -Path $item.FullName -File | Where-Object { Test-CoworkerPendingFile -Item $_ } | Sort-Object Name)
+        return @(Get-ChildItem -Path $item.FullName -File | Where-Object { Test-CoworkerActionableDraftRefinementFile -Item $_ } | Sort-Object Name)
     }
 
-    if (-not (Test-CoworkerPendingFile -Item $item)) {
+    if (-not (Test-CoworkerActionableDraftRefinementFile -Item $item)) {
         return @()
     }
 
@@ -105,9 +109,11 @@ $draftContent
     return $refinedContent
 }
 
+Ensure-ReadyDraftPlaceholders
+
 $targets = Get-RefineTargets -InputPath $Path
 if ($targets.Count -eq 0) {
-    Write-Host "No draft files found in $Path"
+    Write-Host "No actionable draft files found in $Path"
     exit 0
 }
 
@@ -131,6 +137,8 @@ foreach ($target in $targets) {
         $failureCount++
         Write-Host "Failed to refine $($workingFile.Name): $_" -ForegroundColor Red
     }
+
+    Ensure-ReadyDraftPlaceholders
 }
 
 if ($failureCount -gt 0) {
