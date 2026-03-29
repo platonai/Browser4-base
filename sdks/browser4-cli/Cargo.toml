@@ -2,6 +2,7 @@
 name = "browser4-cli"
 version = "0.1.0"
 edition = "2021"
+autotests = false
 description = "Browser4 CLI — control a Browser4 server from the command line"
 authors = ["Platon AI <opensource@platon.ai>"]
 license = "Apache-2.0"
@@ -9,6 +10,15 @@ license = "Apache-2.0"
 [[bin]]
 name = "browser4-cli"
 path = "src/main.rs"
+
+[lib]
+name = "browser4_cli"
+path = "src/lib.rs"
+
+[[test]]
+name = "e2e"
+path = "tests/e2e.rs"
+harness = false
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json", "blocking"] }
