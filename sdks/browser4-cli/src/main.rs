@@ -652,7 +652,15 @@ async fn handle_mouse_move(
     tool_params: &Value,
     session_name: Option<&str>,
 ) -> Result<(), String> {
-    handle_tool_command(client, base_url, tool_name, tool_params, false, session_name).await?;
+    handle_tool_command(
+        client,
+        base_url,
+        tool_name,
+        tool_params,
+        false,
+        session_name,
+    )
+    .await?;
     let x = parse_number_arg(tool_params, "x")?;
     let y = parse_number_arg(tool_params, "y")?;
     persist_mouse_position(base_url, session_name, MousePosition { x, y })?;
@@ -667,7 +675,15 @@ async fn handle_mouse_positioned_command(
     session_name: Option<&str>,
 ) -> Result<(), String> {
     restore_mouse_position(client, base_url, session_name).await?;
-    handle_tool_command(client, base_url, tool_name, tool_params, false, session_name).await
+    handle_tool_command(
+        client,
+        base_url,
+        tool_name,
+        tool_params,
+        false,
+        session_name,
+    )
+    .await
 }
 
 async fn handle_press(
