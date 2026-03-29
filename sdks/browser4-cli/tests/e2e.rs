@@ -405,6 +405,7 @@ impl Drop for Browser4Server {
 
 fn wait_for_health(base_url: &str, timeout_ms: u64) -> Result<(), String> {
     let health_url = format!("{}/actuator/health", base_url.trim_end_matches('/'));
+    let tools_url = format!("{}/mcp/tools", base_url.trim_end_matches('/'));
     let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(5))
         .build()
@@ -418,9 +419,21 @@ fn wait_for_health(base_url: &str, timeout_ms: u64) -> Result<(), String> {
             Ok(resp) => {
                 let body = resp.text().unwrap_or_default();
                 if body.contains("\"status\":\"UP\"") {
-                    return Ok(());
+                    match client.get(&tools_url).send() {
+                        Ok(tools_resp) => {
+                            let tools_body = tools_resp.text().unwrap_or_default();
+                            if tools_body.contains("open_session") && tools_body.contains("browser_navigate") {
+                                return Ok(());
+                            }
+                            last_error = format!("MCP tools endpoint not ready: {tools_body}");
+                        }
+                        Err(e) => {
+                            last_error = format!("MCP tools endpoint not ready: {e}");
+                        }
+                    }
+                } else {
+                    last_error = body;
                 }
-                last_error = body;
             }
             Err(e) => last_error = e.to_string(),
         }
@@ -511,7 +524,7 @@ fn run_command<'a>(ctx: &mut E2ECtx, args: &[&'a str]) -> CliRunResult {
     if let Some(cmd) = args.first() {
         ctx.covered_commands.insert(cmd.to_string());
     }
-    let result = run_cli_process(ctx, args);
+    let result = run_cli_process_with_retry(ctx, args);
     assert_eq!(
         result.exit_code, 0,
         "Command {:?} failed (exit={}):\nstdout:\n{}\nstderr:\n{}",
@@ -526,7 +539,7 @@ fn run_command_expecting_failure(ctx: &mut E2ECtx, args: &[&str], pattern: &str)
     if let Some(cmd) = args.first() {
         ctx.covered_commands.insert(cmd.to_string());
     }
-    let result = run_cli_process(ctx, args);
+    let result = run_cli_process_with_retry(ctx, args);
     assert_ne!(
         result.exit_code, 0,
         "Expected command {:?} to fail, but it exited with 0.\nstdout:\n{}\nstderr:\n{}",
@@ -538,6 +551,31 @@ fn run_command_expecting_failure(ctx: &mut E2ECtx, args: &[&str], pattern: &str)
         "Expected output to contain '{pattern}', but got:\n{combined}"
     );
     result
+}
+
+fn run_cli_process_with_retry(ctx: &E2ECtx, args: &[&str]) -> CliRunResult {
+    let max_attempts = 3;
+    let mut attempt = 0;
+
+    loop {
+        attempt += 1;
+        let result = run_cli_process(ctx, args);
+        if attempt >= max_attempts || !is_transient_transport_failure(&result) {
+            return result;
+        }
+        thread::sleep(Duration::from_secs(2));
+    }
+}
+
+fn is_transient_transport_failure(result: &CliRunResult) -> bool {
+    if result.exit_code == 0 {
+        return false;
+    }
+
+    let combined = format!("{}\n{}", result.stdout, result.stderr).to_lowercase();
+    combined.contains("http request failed: error sending request for url")
+        || combined.contains("connection refused")
+        || combined.contains("tcp connect error")
 }
 
 // ---------------------------------------------------------------------------
@@ -617,6 +655,10 @@ fn eval_text(ctx: &mut E2ECtx, expression: &str) -> String {
 fn read_interactive_state(ctx: &mut E2ECtx) -> serde_json::Value {
     let text = eval_text(ctx, "document.getElementById('state-log').textContent");
     serde_json::from_str(text.trim()).unwrap_or(serde_json::Value::Null)
+}
+
+fn key_event_count(state: &serde_json::Value) -> usize {
+    state["keyEvents"].as_array().map_or(0, |events| events.len())
 }
 
 fn wait_for_state<F>(ctx: &mut E2ECtx, predicate: F, timeout_ms: u64) -> serde_json::Value
@@ -834,26 +876,76 @@ fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
         15_000,
     );
 
-    // Keyboard commands should succeed end-to-end. The current backend accepts
-    // these calls, but DOM-level key event propagation is not stable enough
-    // here to assert on resulting state changes reliably.
+    let press_before = read_interactive_state(ctx);
+    let press_before_events = key_event_count(&press_before);
     run_command(ctx, &["press", "#type-target", "!"]);
+    wait_for_state(
+        ctx,
+        |s| {
+            s["typeValue"].as_str() == Some("hello world!")
+                && key_event_count(s) > press_before_events
+        },
+        15_000,
+    );
 
     // keydown / keyup
     run_command(ctx, &["click", "#type-target"]);
+    let keydown_before = key_event_count(&read_interactive_state(ctx));
     run_command(ctx, &["keydown", "Shift"]);
-    run_command(ctx, &["keyup", "Shift"]);
+    wait_for_state(
+        ctx,
+        |s| {
+            key_event_count(s) > keydown_before
+                && s["keyEvents"]
+                    .as_array()
+                    .and_then(|events| events.last())
+                    .and_then(|event| event.as_str())
+                    == Some("down:Shift")
+        },
+        15_000,
+    );
 
-    // Click-family and drag commands should succeed end-to-end, but the browser
-    // backend does not update these fixture-side DOM event counters reliably
-    // enough here to assert on them without introducing flake.
+    let keyup_before = key_event_count(&read_interactive_state(ctx));
+    run_command(ctx, &["keyup", "Shift"]);
+    wait_for_state(
+        ctx,
+        |s| {
+            key_event_count(s) > keyup_before
+                && s["keyEvents"]
+                    .as_array()
+                    .and_then(|events| events.last())
+                    .and_then(|event| event.as_str())
+                    == Some("up:Shift")
+        },
+        15_000,
+    );
+
     run_command(ctx, &["click", "#click-target"]);
+    wait_for_state(
+        ctx,
+        |s| s["clickCount"].as_u64() == Some(1),
+        15_000,
+    );
 
     run_command(ctx, &["dblclick", "#dblclick-target"]);
+    wait_for_state(
+        ctx,
+        |s| s["doubleClickCount"].as_u64() == Some(1),
+        15_000,
+    );
 
     run_command(ctx, &["hover", "#hover-target"]);
+    wait_for_state(ctx, |s| s["hovered"].as_bool() == Some(true), 15_000);
 
     run_command(ctx, &["drag", "#drag-source", "#drag-target"]);
+    wait_for_state(
+        ctx,
+        |s| {
+            s["dragStarted"].as_bool() == Some(true)
+                && s["dragDropped"].as_str() == Some("drag-source")
+        },
+        15_000,
+    );
 
     // select
     run_command(ctx, &["select", "#select-target", "green"]);
@@ -932,29 +1024,44 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
 
     // mousemove
     run_command(ctx, &["mousemove", "120", "120"]);
-    wait_for_state(ctx, |s| s["lastMouse"].is_array(), 15_000);
-
-    // mousedown / mouseup
-    run_command(ctx, &["mousedown", "left"]);
     wait_for_state(
         ctx,
-        |s| s["mouseDownCount"].as_u64().unwrap_or(0) >= 1,
+        |s| s["lastMouse"][0].as_i64() == Some(120) && s["lastMouse"][1].as_i64() == Some(120),
         15_000,
     );
 
+    // mousedown / mouseup
+    let before_mouse_down = read_interactive_state(ctx)["mouseDownCount"]
+        .as_u64()
+        .unwrap_or(0);
+    run_command(ctx, &["mousedown", "left"]);
+    wait_for_state(
+        ctx,
+        |s| s["mouseDownCount"].as_u64() == Some(before_mouse_down + 1),
+        15_000,
+    );
+
+    let before_mouse_up = read_interactive_state(ctx)["mouseUpCount"]
+        .as_u64()
+        .unwrap_or(0);
     run_command(ctx, &["mouseup", "left"]);
     wait_for_state(
         ctx,
-        |s| s["mouseUpCount"].as_u64().unwrap_or(0) >= 1,
+        |s| s["mouseUpCount"].as_u64() == Some(before_mouse_up + 1),
         15_000,
     );
 
     // mousewheel
     run_command(ctx, &["mousewheel", "0", "160"]);
-    let wheel_state = wait_for_state(ctx, |s| s["lastWheel"].is_array(), 15_000);
+    let wheel_state = wait_for_state(
+        ctx,
+        |s| s["lastWheel"][0].as_i64() == Some(160) && s["lastWheel"][1].as_i64() == Some(0),
+        15_000,
+    );
     assert!(
-        !wheel_state["lastWheel"].is_null(),
-        "Expected non-null lastWheel"
+        wheel_state["lastWheel"][0].as_i64() == Some(160)
+            && wheel_state["lastWheel"][1].as_i64() == Some(0),
+        "Expected lastWheel to equal [160, 0], got {wheel_state:#?}"
     );
 
     // dialog-accept (prompt): schedule a JS click that will trigger window.prompt,

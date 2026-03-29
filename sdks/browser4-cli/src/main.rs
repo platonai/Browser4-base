@@ -39,7 +39,9 @@ use managed_processes::{
     ShutdownResult,
 };
 use snapshot::{resolve_output_path, save_binary, save_snapshot};
-use state::{clear_state, read_state, resolve_default_state_dir, write_state, CliState};
+use state::{
+    clear_state, read_state, resolve_default_state_dir, write_state, CliState, MousePosition,
+};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -592,6 +594,192 @@ async fn handle_tool_command(
     Ok(())
 }
 
+fn parse_number_arg(tool_params: &Value, name: &str) -> Result<f64, String> {
+    tool_params
+        .get(name)
+        .and_then(|value| value.as_f64().or_else(|| value.as_i64().map(|n| n as f64)))
+        .ok_or_else(|| format!("Missing numeric parameter: {name}"))
+}
+
+fn persist_mouse_position(
+    base_url: &str,
+    session_name: Option<&str>,
+    position: MousePosition,
+) -> Result<(), String> {
+    let mut state = read_state(None, session_name);
+    state.base_url = base_url.to_string();
+    state.last_mouse_position = Some(position);
+    write_state(&state, None, session_name).map_err(|e| e.to_string())
+}
+
+async fn restore_mouse_position(
+    client: &Client,
+    base_url: &str,
+    session_name: Option<&str>,
+) -> Result<(), String> {
+    let state = read_state(None, session_name);
+    let Some(position) = state.last_mouse_position else {
+        return Ok(());
+    };
+
+    with_session(client, base_url, session_name, false, |session_id| {
+        let client = client.clone();
+        let base_url = base_url.to_string();
+
+        async move {
+            call_tool(
+                &client,
+                &base_url,
+                "browser_mouse_move_xy",
+                json!({
+                    "sessionId": session_id,
+                    "x": position.x,
+                    "y": position.y,
+                }),
+            )
+            .await
+        }
+    })
+    .await?;
+
+    Ok(())
+}
+
+async fn handle_mouse_move(
+    client: &Client,
+    base_url: &str,
+    tool_name: &str,
+    tool_params: &Value,
+    session_name: Option<&str>,
+) -> Result<(), String> {
+    handle_tool_command(client, base_url, tool_name, tool_params, false, session_name).await?;
+    let x = parse_number_arg(tool_params, "x")?;
+    let y = parse_number_arg(tool_params, "y")?;
+    persist_mouse_position(base_url, session_name, MousePosition { x, y })?;
+    Ok(())
+}
+
+async fn handle_mouse_positioned_command(
+    client: &Client,
+    base_url: &str,
+    tool_name: &str,
+    tool_params: &Value,
+    session_name: Option<&str>,
+) -> Result<(), String> {
+    restore_mouse_position(client, base_url, session_name).await?;
+    handle_tool_command(client, base_url, tool_name, tool_params, false, session_name).await
+}
+
+async fn handle_press(
+    client: &Client,
+    base_url: &str,
+    tool_name: &str,
+    tool_params: &Value,
+    session_name: Option<&str>,
+) -> Result<(), String> {
+    let selector = tool_params
+        .get("ref")
+        .and_then(|value| value.as_str())
+        .or_else(|| tool_params.get("selector").and_then(|value| value.as_str()))
+        .ok_or_else(|| "Press requires a target selector.".to_string())?;
+    let key = tool_params
+        .get("key")
+        .and_then(|value| value.as_str())
+        .ok_or_else(|| "Press requires a key.".to_string())?;
+    let selector_literal =
+        serde_json::to_string(selector).map_err(|e| format!("Failed to encode selector: {e}"))?;
+    let key_literal =
+        serde_json::to_string(key).map_err(|e| format!("Failed to encode key: {e}"))?;
+    let focus_expression = format!(
+        "(() => {{ const el = document.querySelector({selector_literal}); if (!el) return 'missing'; el.focus(); return document.activeElement === el ? 'focused' : 'unfocused'; }})()"
+    );
+    let printable_key_expression = format!(
+        "(() => {{ \
+            const el = document.querySelector({selector_literal}); \
+            if (!el) return 'missing'; \
+            const key = {key_literal}; \
+            el.focus(); \
+            const editable = el.isContentEditable || el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !['checkbox','radio','file','submit','button','reset','range','color'].includes((el.type || '').toLowerCase())); \
+            el.dispatchEvent(new KeyboardEvent('keydown', {{ key, bubbles: true }})); \
+            if (editable) {{ \
+                if (typeof el.value === 'string') {{ \
+                    const start = typeof el.selectionStart === 'number' ? el.selectionStart : el.value.length; \
+                    const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : el.value.length; \
+                    const nextValue = el.value.slice(0, start) + key + el.value.slice(end); \
+                    el.value = nextValue; \
+                    if (typeof el.setSelectionRange === 'function') {{ \
+                        const caret = start + key.length; \
+                        el.setSelectionRange(caret, caret); \
+                    }} \
+                }} else if (el.isContentEditable) {{ \
+                    el.textContent = (el.textContent || '') + key; \
+                }} \
+                el.dispatchEvent(new Event('input', {{ bubbles: true }})); \
+            }} \
+            el.dispatchEvent(new KeyboardEvent('keyup', {{ key, bubbles: true }})); \
+            return editable ? 'typed' : 'dispatched'; \
+        }})()"
+    );
+    let use_printable_char_path = !key.contains('+') && key.chars().count() == 1;
+
+    let result = with_session(client, base_url, session_name, false, |session_id| {
+        let client = client.clone();
+        let base_url = base_url.to_string();
+        let tool_name = tool_name.to_string();
+        let focus_expression = focus_expression.clone();
+        let printable_key_expression = printable_key_expression.clone();
+        let mut press_params = tool_params.clone();
+        press_params["sessionId"] = json!(session_id.clone());
+
+        async move {
+            if use_printable_char_path {
+                let typed_result = call_tool(
+                    &client,
+                    &base_url,
+                    "browser_evaluate",
+                    json!({
+                        "sessionId": session_id,
+                        "expression": printable_key_expression,
+                    }),
+                )
+                .await?;
+                if typed_result.trim() != "typed" && typed_result.trim() != "dispatched" {
+                    return Err(format!(
+                        "Failed to synthesize printable key press. Result: {}",
+                        typed_result.trim()
+                    ));
+                }
+                return Ok(typed_result);
+            }
+
+            let focus_result = call_tool(
+                &client,
+                &base_url,
+                "browser_evaluate",
+                json!({
+                    "sessionId": session_id,
+                    "expression": focus_expression,
+                }),
+            )
+            .await?;
+
+            if focus_result.trim() != "focused" {
+                return Err(format!(
+                    "Failed to focus target before pressing key. Focus result: {}",
+                    focus_result.trim()
+                ));
+            }
+            call_tool(&client, &base_url, &tool_name, press_params).await
+        }
+    })
+    .await?;
+
+    if !result.is_empty() {
+        println!("{}", result);
+    }
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // Agent command handlers
 // ---------------------------------------------------------------------------
@@ -1048,6 +1236,36 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
         }
         "screenshot" => {
             handle_screenshot(
+                &client,
+                &base_url,
+                &tool_name,
+                &tool_params,
+                global.session_name.as_deref(),
+            )
+            .await?;
+        }
+        "press" => {
+            handle_press(
+                &client,
+                &base_url,
+                &tool_name,
+                &tool_params,
+                global.session_name.as_deref(),
+            )
+            .await?;
+        }
+        "mousemove" => {
+            handle_mouse_move(
+                &client,
+                &base_url,
+                &tool_name,
+                &tool_params,
+                global.session_name.as_deref(),
+            )
+            .await?;
+        }
+        "mousedown" | "mouseup" | "mousewheel" => {
+            handle_mouse_positioned_command(
                 &client,
                 &base_url,
                 &tool_name,

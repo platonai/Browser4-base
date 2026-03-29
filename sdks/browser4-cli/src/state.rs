@@ -7,6 +7,12 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MousePosition {
+    pub x: f64,
+    pub y: f64,
+}
+
 /// Persistent CLI state stored on disk.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CliState {
@@ -22,6 +28,9 @@ pub struct CliState {
     /// Named session label for the `-s=<name>` flag.
     #[serde(rename = "sessionName", skip_serializing_if = "Option::is_none")]
     pub session_name: Option<String>,
+    /// Last known mouse position used to restore pointer state across CLI invocations.
+    #[serde(rename = "lastMousePosition", skip_serializing_if = "Option::is_none")]
+    pub last_mouse_position: Option<MousePosition>,
 }
 
 impl Default for CliState {
@@ -31,6 +40,7 @@ impl Default for CliState {
             base_url: "http://localhost:8182".to_string(),
             active_selector: None,
             session_name: None,
+            last_mouse_position: None,
         }
     }
 }
@@ -140,11 +150,16 @@ mod tests {
             base_url: "http://localhost:8182".to_string(),
             active_selector: None,
             session_name: None,
+            last_mouse_position: Some(MousePosition { x: 120.0, y: 240.0 }),
         };
         write_state(&state, Some(tmp.path()), None).unwrap();
         let read = read_state(Some(tmp.path()), None);
         assert_eq!(read.session_id.as_deref(), Some("abc123"));
         assert_eq!(read.base_url, "http://localhost:8182");
+        assert_eq!(
+            read.last_mouse_position,
+            Some(MousePosition { x: 120.0, y: 240.0 })
+        );
     }
 
     #[test]
@@ -173,12 +188,14 @@ mod tests {
             base_url: "http://localhost:8182".to_string(),
             active_selector: None,
             session_name: Some("auth".to_string()),
+            last_mouse_position: Some(MousePosition { x: 10.0, y: 20.0 }),
         };
         let state_public = CliState {
             session_id: Some("public456".to_string()),
             base_url: "http://localhost:8182".to_string(),
             active_selector: None,
             session_name: Some("public".to_string()),
+            last_mouse_position: Some(MousePosition { x: 30.0, y: 40.0 }),
         };
 
         write_state(&state_auth, Some(tmp.path()), Some("auth")).unwrap();
@@ -191,6 +208,14 @@ mod tests {
         assert_eq!(read_auth.session_id.as_deref(), Some("auth123"));
         assert_eq!(read_public.session_id.as_deref(), Some("public456"));
         assert!(read_default.session_id.is_none());
+        assert_eq!(
+            read_auth.last_mouse_position,
+            Some(MousePosition { x: 10.0, y: 20.0 })
+        );
+        assert_eq!(
+            read_public.last_mouse_position,
+            Some(MousePosition { x: 30.0, y: 40.0 })
+        );
 
         // Verify files exist
         assert!(state_file(tmp.path(), Some("auth")).exists());
