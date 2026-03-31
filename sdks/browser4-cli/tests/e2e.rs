@@ -11,6 +11,7 @@
 //!
 //! ```bash
 //! cargo test --test e2e -- --nocapture
+//! cargo test --test e2e -- --nocapture --scenario=test_e2e_agent_and_collective_commands
 //! ```
 //!
 //! The Browser4 jar is resolved from (in order):
@@ -1803,6 +1804,7 @@ fn run_named_test(name: &str, test_fn: fn()) {
     println!("ok");
 }
 
+
 fn run_named_scenario(name: &str, resources: &mut E2ETestResources, test_fn: fn(&mut E2ECtx)) {
     print!("test {name} ... ");
     std::io::stdout().flush().expect("stdout flush failed");
@@ -1811,34 +1813,91 @@ fn run_named_scenario(name: &str, resources: &mut E2ETestResources, test_fn: fn(
     println!("ok");
 }
 
+type ScenarioFn = fn(&mut E2ECtx);
+
+#[derive(Clone, Copy)]
+struct ScenarioDef {
+    name: &'static str,
+    short_name: &'static str,
+    test_fn: ScenarioFn,
+}
+
+const SCENARIOS: &[ScenarioDef] = &[
+    ScenarioDef {
+        name: "test_e2e_session_and_navigation",
+        short_name: "test_session_and_navigation",
+        test_fn: test_session_and_navigation,
+    },
+    ScenarioDef {
+        name: "test_e2e_interaction_console_and_export",
+        short_name: "test_interaction_console_and_export",
+        test_fn: test_interaction_console_and_export,
+    },
+    ScenarioDef {
+        name: "test_e2e_mouse_and_dialog",
+        short_name: "test_mouse_and_dialog",
+        test_fn: test_mouse_and_dialog,
+    },
+    ScenarioDef {
+        name: "test_e2e_tab_commands",
+        short_name: "test_tab_commands",
+        test_fn: test_tab_commands,
+    },
+    ScenarioDef {
+        name: "test_e2e_agent_and_collective_commands",
+        short_name: "test_agent_and_collective_commands",
+        test_fn: test_agent_and_collective_commands,
+    },
+];
+
+fn parse_scenario_filter() -> Option<String> {
+    let mut args = std::env::args().skip(1);
+    while let Some(arg) = args.next() {
+        if let Some(value) = arg.strip_prefix("--scenario=") {
+            return Some(value.to_string());
+        }
+        if arg == "--scenario" {
+            return args.next();
+        }
+    }
+    None
+}
+
+fn resolve_scenario(name: &str) -> Option<ScenarioDef> {
+    SCENARIOS
+        .iter()
+        .copied()
+        .find(|scenario| scenario.name == name || scenario.short_name == name)
+}
+
 fn main() {
-    let total_tests = 6;
+    let scenario_filter = parse_scenario_filter();
+    let selected_scenarios: Vec<ScenarioDef> = if let Some(filter) = scenario_filter {
+        let scenario = resolve_scenario(&filter).unwrap_or_else(|| {
+            let names = SCENARIOS
+                .iter()
+                .map(|s| format!("{} ({})", s.name, s.short_name))
+                .collect::<Vec<_>>()
+                .join(", ");
+            panic!("Unknown scenario '{filter}'. Available scenarios: {names}");
+        });
+        vec![scenario]
+    } else {
+        SCENARIOS.to_vec()
+    };
+
+    let run_coverage = selected_scenarios.len() == SCENARIOS.len();
+    let total_tests = selected_scenarios.len() + usize::from(run_coverage);
     println!("running {total_tests} tests");
 
-    run_named_test("test_e2e_command_coverage", verify_e2e_command_coverage);
+    if run_coverage {
+        run_named_test("test_e2e_command_coverage", verify_e2e_command_coverage);
+    }
 
     let mut resources = create_e2e_test_resources();
-    run_named_scenario(
-        "test_e2e_session_and_navigation",
-        &mut resources,
-        test_session_and_navigation,
-    );
-    run_named_scenario(
-        "test_e2e_interaction_console_and_export",
-        &mut resources,
-        test_interaction_console_and_export,
-    );
-    run_named_scenario(
-        "test_e2e_mouse_and_dialog",
-        &mut resources,
-        test_mouse_and_dialog,
-    );
-    run_named_scenario("test_e2e_tab_commands", &mut resources, test_tab_commands);
-    run_named_scenario(
-        "test_e2e_agent_and_collective_commands",
-        &mut resources,
-        test_agent_and_collective_commands,
-    );
+    for scenario in selected_scenarios {
+        run_named_scenario(scenario.name, &mut resources, scenario.test_fn);
+    }
 
     println!(
         "test result: ok. {} passed; 0 failed; 0 ignored; 0 measured; 0 filtered out",

@@ -377,6 +377,10 @@ public final class Strings {
         return pattern.matcher(str.trim()).find();
     }
 
+    public static boolean isSingleLine(String s) {
+        return !s.contains("\n") && !s.contains("\r");
+    }
+
     // 对整个字符串：
     // 1. 仅保留英文字符、数字、汉字字符和keeps中的字符
     // 2. 去除网页空白：&nbsp;

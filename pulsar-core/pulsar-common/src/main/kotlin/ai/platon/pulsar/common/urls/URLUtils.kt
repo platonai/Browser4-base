@@ -416,7 +416,7 @@ object URLUtils {
      */
     @JvmStatic
     fun splitUrlArgs(configuredUrl: String): Pair<String, String> {
-        var url = configuredUrl.trim().replace("[\\r\\n\\t]".toRegex(), "")
+        var url = configuredUrl.trim().replace("[\\r\\n\\t]".toRegex(), StringUtils.SPACE)
         val pos = url.indexOfFirst { it.isWhitespace() }
 
         var args = ""

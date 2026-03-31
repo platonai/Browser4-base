@@ -7,6 +7,7 @@ import ai.platon.pulsar.agentic.tools.crawl.PageVisitStatus
 import ai.platon.pulsar.agentic.tools.crawl.StatefulPageVisitor
 import ai.platon.pulsar.agentic.tools.crawl.failed
 import ai.platon.pulsar.common.ResourceStatus
+import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.rest.api.entities.*
 import ai.platon.pulsar.skeleton.crawl.PageEventHandlers
@@ -24,6 +25,7 @@ import java.time.Instant
 class CommandService(
     val session: AgenticSession,
     val conversationService: ConversationService,
+    val loadService: LoadService,
 ) {
     companion object {
         const val FLOW_POLLING_INTERVAL = 1000L
@@ -95,10 +97,16 @@ class CommandService(
      * @return The command status ID for tracking execution progress.
      */
     suspend fun submitPlainCommandAsync(plainCommand: String): String {
+        val plainCommand = plainCommand.trim()
+
         if (plainCommand.isBlank()) {
             val status = statefulPageVisitor.create()
             status.failed(ResourceStatus.SC_BAD_REQUEST)
             return status.id
+        }
+
+        if (plainCommand.startsWith("http") && Strings.isSingleLine(plainCommand)) {
+            return loadService.load(plainCommand).contentAsString
         }
 
         val request = conversationService.normalizePlainCommand(plainCommand)
