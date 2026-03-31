@@ -103,7 +103,26 @@ For Docker deployment, see our [Docker Hub repository](https://hub.docker.com/r/
 
 ---
 
-## CLI & SKILLS
+## 💡 Usage Examples
+
+### Browser Agents
+
+Autonomous agents that understand natural language instructions and execute complex browser workflows.
+
+```kotlin
+val agent = AgenticContexts.getOrCreateAgent()
+
+val task = """
+    1. go to amazon.com
+    2. search for pens to draw on whiteboards
+    3. compare the first 4 ones
+    4. write the result to a markdown file
+    """
+
+agent.run(task)
+```
+
+### CLI & SKILLS
 
 ```shell
 # open new browser
@@ -131,25 +150,6 @@ Browser4 CLI is designed for use by AI agents through SKILLS + CLI.
 [SKILL.md](sdks/skill/SKILL.md)
 
 ---
-
-## 💡 Usage Examples
-
-### Browser Agents
-
-Autonomous agents that understand natural language instructions and execute complex browser workflows.
-
-```kotlin
-val agent = AgenticContexts.getOrCreateAgent()
-
-val task = """
-    1. go to amazon.com
-    2. search for pens to draw on whiteboards
-    3. compare the first 4 ones
-    4. write the result to a markdown file
-    """
-
-agent.run(task)
-```
 
 ### Workflow Automation
 

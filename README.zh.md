@@ -131,6 +131,35 @@ val task = """
 agent.run(task)
 ```
 
+### CLI & SKILLS
+
+```shell
+# open new browser
+browser4-cli open
+# navigate to a page
+browser4-cli goto https://browser4.io/
+# take a snapshot
+browser4-cli snapshot
+# interact with the page using refs from the snapshot
+browser4-cli click e15
+browser4-cli type "page.click"
+browser4-cli press Enter
+# take a screenshot
+browser4-cli screenshot
+# close the browser
+browser4-cli close
+```
+
+Build CLI from source:
+
+[README.md](sdks/browser4-cli/README.md)
+
+Browser4 CLI is designed for use by AI agents through SKILLS + CLI.
+
+[SKILL.md](sdks/skill/SKILL.md)
+
+---
+
 ### 工作流自动化
 
 低层级浏览器自动化与数据提取，提供细粒度控制。
