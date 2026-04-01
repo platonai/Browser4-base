@@ -133,6 +133,12 @@ agent.run(task)
 
 ### CLI & SKILLS
 
+Browser4 CLI is a powerful command-line interface for direct browser control and automation, designed for both human
+users and AI agents. It provides a simple syntax to perform complex browser interactions without writing code.
+
+Browser4 CLI is compatible with Playwright and supports a wide range of commands for navigation, interaction, and data extraction.
+It can be used in scripts, terminal sessions, or integrated into AI agents through SKILLS.
+
 ```shell
 # open new browser
 browser4-cli open
