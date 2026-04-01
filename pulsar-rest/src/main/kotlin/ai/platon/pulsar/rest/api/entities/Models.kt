@@ -304,7 +304,12 @@ fun PageVisitStatus.toCommandStatus(): CommandStatus {
     // instruct results -> REST instruct results
     @Suppress("UNCHECKED_CAST")
     val restResults = instructResults.map { it.toRestInstructResult() }
-    status.instructResults = restResults.toMutableList()
+    instructResults.forEachIndexed { index, _ ->
+        val restResult = restResults.getOrNull(index)
+        if (restResult != null) {
+            status.addInstructResult(restResult)
+        }
+    }
 
     // best-effort summary mapping
     val visitResult = pageVisitResult
@@ -319,9 +324,7 @@ fun PageVisitStatus.toCommandStatus(): CommandStatus {
 }
 
 fun PGInstructResult.toRestInstructResult(): InstructResult {
-    // Keep naming aligned to REST API conventions.
-    val t = resultType ?: "string"
-    return InstructResult.ok(name, result ?: "", t)
+    return InstructResult(name, statusCode, result, resultType, instruct)
 }
 
 data class NavigateRequest(
