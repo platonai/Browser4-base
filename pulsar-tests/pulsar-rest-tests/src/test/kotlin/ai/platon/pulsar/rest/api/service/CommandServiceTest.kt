@@ -5,6 +5,7 @@ import ai.platon.pulsar.boot.autoconfigure.test.PulsarTestContextInitializer
 import ai.platon.pulsar.common.browser.BrowserProfileMode
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.common.printlnPro
+import ai.platon.pulsar.common.serialize.json.Pson
 import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import ai.platon.pulsar.external.ChatModelFactory
 import ai.platon.pulsar.rest.api.TestHelper.MOCK_PRODUCT_DETAIL_URL
@@ -174,7 +175,7 @@ class CommandServiceTest : MockEcServerTestBase() {
 //        val testRegex = "https?://.+/dp/[\\w]+.*".toRegex()
 //        assertTrue { testURL.matches(testRegex) }
 
-        // The LLM failed to infer the regex at 2026/4/1
+        // The LLM (doubao-seed-2-0-pro-260215) failed to infer the regex at 2026/4/1
 //        val request = CommandRequest(
 //            MOCK_PRODUCT_DETAIL_URL,
 //            uriExtractionRules = "links containing /dp/",
@@ -243,7 +244,7 @@ class CommandServiceTest : MockEcServerTestBase() {
 
     @Test
     @DisplayName("test executeCommand with uriExtractionRules in regex")
-    fun testExecuteCommandWithUriextractionrulesInRegex() {
+    fun testExecuteCommandWithUriExtractionRulesInRegex() {
         val request = CommandRequest(
             MOCK_PRODUCT_DETAIL_URL,
             uriExtractionRules = "Regex: http://localhost:\\d+/ec/dp/\\w+"
@@ -362,25 +363,6 @@ class CommandServiceTest : MockEcServerTestBase() {
     }
 
     @Test
-    @Ignore("Very slow")
-    @Tag("Slow")
-    @Tag("ManualOnly")
-    @DisplayName("test executeAgentCommand sets agentHistory on status")
-    fun testExecuteAgentCommandSetsAgentHistoryOnStatus() {
-        // Use a simple command that will trigger agent execution
-        val plainCommand = "Search for test information"
-
-        val status = runBlocking { commandService.executeAgentCommand(plainCommand) }
-        assertNotNull(status)
-
-        // After execution, the agent history should be set
-        assertNotNull(status.agentHistory)
-
-        // The command should be done
-        assertTrue { status.isDone }
-    }
-
-    @Test
     @DisplayName("test executeCommand with uriExtractionRules without regex and regex inference disabled")
     fun testExecuteCommandWithUriExtractionRulesWithoutRegexAndRegexInferenceDisabled() {
         val request = CommandRequest(
@@ -398,5 +380,27 @@ class CommandServiceTest : MockEcServerTestBase() {
 
         // Since inference is disabled and the rules are not a Regex: pattern, link extraction is skipped.
         assertNull(status.commandResult?.links)
+    }
+
+    @Test
+    @Ignore("Very slow, this test is a fully agent run which may take 2~3 minutes")
+    @Tag("Slow")
+    @Tag("ManualOnly")
+    @DisplayName("test executeAgentCommand sets agentHistory on status")
+    fun testExecuteAgentCommandSetsAgentHistoryOnStatus() {
+        // Use a simple command that will trigger agent execution
+        val plainCommand = "Search for test information"
+
+        val status = runBlocking { commandService.executeAgentCommand(plainCommand) }
+
+        printlnPro(Pson.toJson(status))
+
+        assertNotNull(status)
+
+        // After execution, the agent history should be set
+        assertNotNull(status.agentHistory)
+
+        // The command should be done
+        assertTrue { status.isDone }
     }
 }

@@ -1357,8 +1357,8 @@ interface WebDriver : Closeable {
     /**
      * Drags the element identified by [sourceSelector] onto the element identified by [targetSelector]. @mcp
      *
-     * The implementation measures the centers of the source and target elements in the DOM and then delegates
-     * to [dragAndDrop] using the computed offset.
+     * The implementation dispatches an HTML5 drag sequence between the source and target elements using a shared
+     * `DataTransfer` payload so selector-to-selector drag flows can be asserted reliably by automation clients.
      *
      * @param sourceSelector The selector of the element to drag.
      * @param targetSelector The selector of the element to drop onto.
@@ -1371,22 +1371,62 @@ interface WebDriver : Closeable {
             (() => {
                 const source = document.querySelector($encodedSource);
                 const target = document.querySelector($encodedTarget);
-                if (!source || !target) return JSON.stringify({ dx: 0, dy: 0 });
+                if (!source || !target) {
+                    return JSON.stringify({
+                        ok: false,
+                        error: !source && !target
+                            ? 'Source and target elements were not found'
+                            : !source
+                                ? 'Source element was not found'
+                                : 'Target element was not found'
+                    });
+                }
+                if (typeof DataTransfer === 'undefined' || typeof DragEvent === 'undefined') {
+                    return JSON.stringify({
+                        ok: false,
+                        error: 'HTML5 drag-and-drop APIs are not available in the current page context'
+                    });
+                }
+
                 const sourceRect = source.getBoundingClientRect();
                 const targetRect = target.getBoundingClientRect();
-                return JSON.stringify({
-                    dx: targetRect.x - sourceRect.x + targetRect.width / 2 - sourceRect.width / 2,
-                    dy: targetRect.y - sourceRect.y + targetRect.height / 2 - sourceRect.height / 2
-                });
+                const sourceX = Math.round(sourceRect.left + sourceRect.width / 2);
+                const sourceY = Math.round(sourceRect.top + sourceRect.height / 2);
+                const targetX = Math.round(targetRect.left + targetRect.width / 2);
+                const targetY = Math.round(targetRect.top + targetRect.height / 2);
+                const dataTransfer = new DataTransfer();
+
+                const fire = (element, type, clientX, clientY) => {
+                    const event = new DragEvent(type, {
+                        bubbles: true,
+                        cancelable: true,
+                        composed: true,
+                        dataTransfer,
+                        clientX,
+                        clientY
+                    });
+                    element.dispatchEvent(event);
+                };
+
+                fire(source, 'dragstart', sourceX, sourceY);
+                fire(target, 'dragenter', targetX, targetY);
+                fire(target, 'dragover', targetX, targetY);
+                fire(target, 'drop', targetX, targetY);
+                fire(source, 'dragend', targetX, targetY);
+
+                return JSON.stringify({ ok: true });
             })()
         """.trimIndent()
-        val result = evaluate(script) as? String ?: """{"dx":0,"dy":0}"""
+        val result = evaluate(script) as? String
+            ?: """{"ok":false,"error":"Failed to execute drag script"}"""
         val parsed = pulsarObjectMapper().readTree(result)
-        dragAndDrop(
-            sourceSelector,
-            parsed.path("dx").asInt(),
-            parsed.path("dy").asInt()
-        )
+        if (!parsed.path("ok").asBoolean(false)) {
+            val error = parsed.path("error").asText("Unknown drag failure")
+            throw WebDriverException(
+                "Failed to drag '$sourceSelector' to '$targetSelector': $error",
+                driver = this
+            )
+        }
     }
 
     /**

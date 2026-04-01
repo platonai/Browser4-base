@@ -1,6 +1,7 @@
 package ai.platon.pulsar.rest.api.controller
 
 import ai.platon.pulsar.common.printlnPro
+import ai.platon.pulsar.common.serialize.json.Pson
 import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import ai.platon.pulsar.rest.api.TestHelper.MOCK_PRODUCT_DETAIL_URL
 import ai.platon.pulsar.rest.api.entities.CommandRequest
@@ -124,5 +125,34 @@ class CommandControllerE2ETest : RestAPITestBase() {
 
         assertNull(result.pageSummary)
         assertNotNull(result.xsqlResultSet)
+    }
+
+    /**
+     * Test [CommandController.submitCommand]
+     * */
+    @Test
+    @DisplayName("test statefulAgentRunner.execute() sets agentHistory on status")
+    fun testExecuteAgentCommandSetsAgentHistoryOnStatus() {
+        val request = "Search for a joke about programmers"
+
+        val status = client.post().uri("/api/commands/plain?async=false")
+            .body(request)
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<CommandStatus>()
+            .returnResult()
+            .responseBody
+
+        assertNotNull(status)
+
+        printlnPro(Pson.toJson(status))
+
+        org.junit.jupiter.api.assertNotNull(status)
+
+        // After execution, the agent history should be set
+        org.junit.jupiter.api.assertNotNull(status.agentHistory)
+
+        // The command should be done
+        assertTrue { status.isDone }
     }
 }
