@@ -158,7 +158,6 @@ See [TESTING.md](docs/TESTING.md) for details and trade-offs.
 
 ### Test Commands in This Repository
 - Use `bin/test.ps1` on Windows for scoped runs: `fast`, `it`, `e2e`, `core`, `rest`, `skills`, `mcp`, `nodejs-sdk`, `browser4`
-- `nodejs-sdk` runs tests from `sdks/browser4-cli`; legacy `kotlin-sdk` and `python-sdk` test types are removed
 - Maven profile switches in root `pom.xml` are property-driven: `-DrunITs=true`, `-DrunE2ETests=true`, `-DrunSDKTests=true`, `-DrunCoreTests=true`, `-DrunRestTests=true`
 
 ### Test Location
