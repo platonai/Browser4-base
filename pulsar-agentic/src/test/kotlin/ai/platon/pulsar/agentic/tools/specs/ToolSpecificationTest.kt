@@ -14,12 +14,6 @@ class ToolSpecificationTest {
     }
 
     @Test
-    @DisplayName("driver domain is a browser interaction")
-    fun testDriverDomainIsBrowserInteraction() {
-        assertTrue(ToolSpecification.isBrowserInteraction("driver"))
-    }
-
-    @Test
     @DisplayName("browser domain is a browser interaction")
     fun testBrowserDomainIsBrowserInteraction() {
         assertTrue(ToolSpecification.isBrowserInteraction("browser"))
@@ -62,7 +56,6 @@ class ToolSpecificationTest {
         assertTrue(ToolSpecification.isBrowserInteraction("TAB"))
         assertTrue(ToolSpecification.isBrowserInteraction("Tab"))
         assertTrue(ToolSpecification.isBrowserInteraction("BROWSER"))
-        assertTrue(ToolSpecification.isBrowserInteraction("Driver"))
     }
 
     @Test
@@ -76,7 +69,6 @@ class ToolSpecificationTest {
     @DisplayName("BROWSER_INTERACTION_DOMAINS contains expected domains")
     fun testBrowserInteractionDomainsContainsExpectedDomains() {
         assertTrue(ToolSpecification.BROWSER_INTERACTION_DOMAINS.contains("tab"))
-        assertTrue(ToolSpecification.BROWSER_INTERACTION_DOMAINS.contains("driver"))
         assertTrue(ToolSpecification.BROWSER_INTERACTION_DOMAINS.contains("browser"))
         assertFalse(ToolSpecification.BROWSER_INTERACTION_DOMAINS.contains("fs"))
         assertFalse(ToolSpecification.BROWSER_INTERACTION_DOMAINS.contains("agent"))

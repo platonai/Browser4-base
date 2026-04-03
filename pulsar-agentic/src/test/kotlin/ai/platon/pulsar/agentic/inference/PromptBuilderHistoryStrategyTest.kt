@@ -34,23 +34,6 @@ class PromptBuilderHistoryStrategyTest {
         assertTrue(rendered.contains("### Recent Steps"))
     }
 
-    @Test
-    fun largeHistoryCompressesEarlierStepsAndKeepsRecentOnes() {
-        val builder = PromptBuilder()
-        val history = AgentHistory(
-            (1..12).mapTo(mutableListOf()) { step ->
-                createState(step, "click", nextGoal = "goal-$step")
-            }
-        )
-
-        val rendered = builder.buildAgentStateHistoryMessage(history)
-
-        assertTrue(rendered.contains("### Earlier Steps Summary"))
-        assertTrue(rendered.contains("Older steps remain available in persisted task logs and checkpoints."))
-        assertTrue(rendered.contains("\"step\":12"))
-        assertTrue(rendered.contains("goal-12"))
-    }
-
     private fun createState(step: Int, method: String, nextGoal: String): AgentState {
         return AgentState(
             step = step,

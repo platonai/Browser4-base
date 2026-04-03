@@ -48,21 +48,21 @@ data class AgentTaskStatus(
     val isDone: Boolean get() = processState == "done"
 
     /**
+     * Returns the latest agent state from the agent history.
+     * This provides real-time access to the agent's execution state during async operations.
+     */
+    val agentState: AgentState?
+        get() = agentHistory?.lastOrNull()
+
+    val summary get() = agentState?.summary
+
+    /**
      * The agent's state history reference for tracking agent execution progress.
      * This is set when executing agent commands and provides access to the latest agent state.
      * It is excluded from JSON serialization as it's only used for internal tracking.
      */
     @get:JsonIgnore
     var agentHistory: AgentHistory? = null
-
-    /**
-     * Returns the current (latest) agent state from the agent history.
-     * This provides real-time access to the agent's execution state during async operations.
-     */
-    val currentAgentState: AgentState?
-        get() = agentHistory?.lastOrNull()
-
-    val summary get() = currentAgentState?.summary
 
     /**
      * The server-side event handlers reference for tracking server-side events during command execution.

@@ -108,7 +108,7 @@ data class PageVisitRequest @JsonCreator constructor(
     /**
      * Whether to infer/convert [uriExtractionRules] from natural language into a `Regex:` pattern using LLM.
      *
-     * Some LLMs are very slow or unstable when asked to produce regex; set this to false to require callers
+     * Some LLMs are very slow or unstable when asked to produce regex; set this set to be false to require callers
      * to provide a `Regex:` pattern directly.
      *
      * Defaults to true for backward compatibility.

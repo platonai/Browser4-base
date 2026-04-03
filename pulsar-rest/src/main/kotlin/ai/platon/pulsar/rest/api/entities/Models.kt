@@ -12,6 +12,7 @@ import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.crawl.ServerSideEventHandlers
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 import java.util.*
@@ -76,6 +77,21 @@ data class CommandResult(
     var links: List<String>? = null,
     var xsqlResultSet: List<Map<String, Any?>>? = null,
 )
+
+data class CommandAgentState(
+    var step: Int = 0,
+    var instruction: String? = null,
+    var description: String? = null,
+    var event: String? = null,
+    var summary: String? = null,
+    var isComplete: Boolean? = null,
+)
+
+data class CommandAgentHistory(
+    var states: MutableList<CommandAgentState> = mutableListOf(),
+) {
+    fun lastOrNull(): CommandAgentState? = states.lastOrNull()
+}
 
 /**
  * Instruct result
@@ -144,7 +160,7 @@ data class CommandStatus(
 
     var request: CommandRequest? = null,
     var commandResult: CommandResult? = null,
-    var instructResults: MutableList<InstructResult> = mutableListOf()
+    var instructResults: MutableList<InstructResult> = mutableListOf(),
 ) {
     val status: String get() = ResourceStatus.getStatusText(statusCode)
     var lastModifiedTime: Instant? = null
@@ -152,21 +168,25 @@ data class CommandStatus(
 
     val isDone: Boolean get() = processState == "done"
 
+    @get:JsonIgnore
+    private var agentStateSnapshot: CommandAgentState? = null
+
+    /**
+     * Returns the latest agent state from the agent history.
+     * When no action state was recorded, a fallback snapshot can still be serialized and deserialized for API clients.
+     */
+    @get:JsonInclude(JsonInclude.Include.NON_NULL)
+    var agentState: CommandAgentState?
+        get() = agentHistory?.lastOrNull() ?: agentStateSnapshot
+        set(value) {
+            agentStateSnapshot = value
+        }
+
     /**
      * The agent's state history reference for tracking agent execution progress.
-     * This is set when executing agent commands and provides access to the latest agent state.
-     * It is excluded from JSON serialization as it's only used for internal tracking.
+     * This is set when executing agent commands and returned to API clients for agent-backed commands.
      */
-    @get:JsonIgnore
-    var agentHistory: AgentHistory? = null
-
-    /**
-     * Returns the current (latest) agent state from the agent history.
-     * This provides real-time access to the agent's execution state during async operations.
-     */
-    val currentAgentState: AgentState?
-        get() = agentHistory?.lastOrNull()
-
+    var agentHistory: CommandAgentHistory? = null
     /**
      * The server-side event handlers reference for tracking server-side events during command execution.
      * This is set when executing commands and provides access to the event flow.
@@ -271,16 +291,20 @@ fun AgentTaskStatus.toCommandStatus(): CommandStatus {
     status.finishTime = this.finishTime
 
     // Transfer agent-specific data
-    status.agentHistory = this.agentHistory
+    status.agentHistory = this.agentHistory?.toRestAgentHistory()
+    status.agentState = status.agentHistory?.lastOrNull()
     if (this.agentHistory != null) {
         val summary = this.agentHistory?.lastOrNull()?.summary ?: ""
         if (summary.isNotBlank()) {
             status.ensureCommandResult().summary = summary
         }
     }
-
-    // Note: pageStatusCode and pageContentBytes remain at their default values
-    // as AgentTaskStatus doesn't have these fields
+    if (status.agentState == null) {
+        status.agentState = status.createFallbackAgentState()
+    }
+    if (status.agentHistory == null && status.agentState != null) {
+        status.agentHistory = CommandAgentHistory(mutableListOf(requireNotNull(status.agentState)))
+    }
 
     return status
 }
@@ -304,7 +328,12 @@ fun PageVisitStatus.toCommandStatus(): CommandStatus {
     // instruct results -> REST instruct results
     @Suppress("UNCHECKED_CAST")
     val restResults = instructResults.map { it.toRestInstructResult() }
-    status.instructResults = restResults.toMutableList()
+    instructResults.forEachIndexed { index, _ ->
+        val restResult = restResults.getOrNull(index)
+        if (restResult != null) {
+            status.addInstructResult(restResult)
+        }
+    }
 
     // best-effort summary mapping
     val visitResult = pageVisitResult
@@ -319,9 +348,34 @@ fun PageVisitStatus.toCommandStatus(): CommandStatus {
 }
 
 fun PGInstructResult.toRestInstructResult(): InstructResult {
-    // Keep naming aligned to REST API conventions.
-    val t = resultType ?: "string"
-    return InstructResult.ok(name, result ?: "", t)
+    return InstructResult(name, statusCode, result, resultType, instruct)
+}
+
+private fun AgentHistory.toRestAgentHistory(): CommandAgentHistory {
+    return CommandAgentHistory(states.map { it.toRestAgentState() }.toMutableList())
+}
+
+private fun AgentState.toRestAgentState(): CommandAgentState {
+    return CommandAgentState(
+        step = step,
+        instruction = instruction,
+        description = description,
+        event = event,
+        summary = summary,
+        isComplete = isComplete,
+    )
+}
+
+private fun CommandStatus.createFallbackAgentState(): CommandAgentState? {
+    val summary = commandResult?.summary ?: message ?: return null
+    return CommandAgentState(
+        step = 1,
+        instruction = summary,
+        description = message,
+        event = event.takeIf { it.isNotBlank() },
+        isComplete = isDone,
+        summary = summary,
+    )
 }
 
 data class NavigateRequest(

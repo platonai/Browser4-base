@@ -382,7 +382,7 @@
   } ],
   "returnType" : "WebDriver?",
   "description" : "Await navigation to the specified URL page or timeout if necessary.",
-  "help" : "Await navigation to the specified URL page or timeout if necessary.\n\n```kotlin val newDriver = driver.waitForPage(\"https://www.example.com\", Duration.ofSeconds(30)) ```",
+  "help" : "Await navigation to the specified URL page or timeout if necessary.\n\n```kotlin val newDriver = driver.waitForPage(\"https://www.example.com\", Duration.ofSeconds(30)) ```\n\nTODO: check if waitForPage and waitForNavigation can be merged into one method.",
   "expression" : "tab.waitForPage(Arg(name=url, type=String, defaultValue=), Arg(name=timeout, type=Duration, defaultValue=))",
   "cli" : "browser4-cli tab waitForPage --url=<String>, default= --timeout=<Duration>, default="
 }, {
@@ -717,7 +717,7 @@
   } ],
   "returnType" : "Unit",
   "description" : "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.",
-  "help" : "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickTextMatches(\"button\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused.",
+  "help" : "This method clicks an element with [selector] whose text content matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element's text content doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickTextMatches(\"button\", \"submit\") ```\n\nTODO: use playwright style selector which supports text matching, for example: `button:has-text(\"submit\")`\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused.",
   "expression" : "tab.clickTextMatches(Arg(name=selector, type=String, defaultValue=), Arg(name=pattern, type=String, defaultValue=), Arg(name=count, type=Int, defaultValue=1))",
   "cli" : "browser4-cli tab clickTextMatches --selector=<String>, default= --pattern=<String>, default= --count=<Int>, default=1"
 }, {
@@ -747,7 +747,7 @@
   } ],
   "returnType" : "Unit",
   "description" : "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it.",
-  "help" : "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element has no attribute [attrName], or the element's attribute value doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickAttributeMatches(\"button\", \"type\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused.",
+  "help" : "This method clicks an element with [selector] whose attribute name is [attrName] and value matches [pattern], and then focuses it.\n\nIf there's no element matching [selector], or the element has no attribute [attrName], or the element's attribute value doesn't match [pattern], nothing to do.\n\n```kotlin driver.clickMatches(\"button\", \"type\", \"submit\") ```\n\nof an element to focus. If there are multiple elements satisfying the selector, the first will be focused.",
   "expression" : "tab.clickMatches(Arg(name=selector, type=String, defaultValue=), Arg(name=attrName, type=String, defaultValue=), Arg(name=pattern, type=String, defaultValue=), Arg(name=count, type=Int, defaultValue=1))",
   "cli" : "browser4-cli tab clickMatches --selector=<String>, default= --attrName=<String>, default= --pattern=<String>, default= --count=<Int>, default=1"
 }, {
@@ -842,7 +842,7 @@
   } ],
   "returnType" : "Double",
   "description" : "The current page frame scrolls down for [count] times.",
-  "help" : "The current page frame scrolls down for [count] times.\n\n```kotlin driver.scrollDown(3) ```",
+  "help" : "The current page frame scrolls down for [count] times.\n\n```kotlin driver.scrollDown(3) ```\n\nTODO: use mouseWheel instead",
   "expression" : "tab.scrollDown(Arg(name=count, type=Int, defaultValue=1))",
   "cli" : "browser4-cli tab scrollDown --count=<Int>, default=1"
 }, {
@@ -857,7 +857,7 @@
   } ],
   "returnType" : "Double",
   "description" : "The current page frame scrolls up for [count] times.",
-  "help" : "The current page frame scrolls up for [count] times.\n\n```kotlin driver.scrollUp(3) ```",
+  "help" : "The current page frame scrolls up for [count] times.\n\n```kotlin driver.scrollUp(3) ```\n\nTODO: use mouseWheel instead",
   "expression" : "tab.scrollUp(Arg(name=count, type=Int, defaultValue=1))",
   "cli" : "browser4-cli tab scrollUp --count=<Int>, default=1"
 }, {
@@ -1164,7 +1164,7 @@
   } ],
   "returnType" : "Unit",
   "description" : "Drags the element identified by [sourceSelector] onto the element identified by [targetSelector].",
-  "help" : "Drags the element identified by [sourceSelector] onto the element identified by [targetSelector].\n\nThe implementation measures the centers of the source and target elements in the DOM and then delegates to [dragAndDrop] using the computed offset.",
+  "help" : "Drags the element identified by [sourceSelector] onto the element identified by [targetSelector].\n\nThe implementation dispatches an HTML5 drag sequence between the source and target elements using a shared `DataTransfer` payload so selector-to-selector drag flows can be asserted reliably by automation clients.",
   "expression" : "tab.drag(Arg(name=sourceSelector, type=String, defaultValue=), Arg(name=targetSelector, type=String, defaultValue=))",
   "cli" : "browser4-cli tab drag --sourceSelector=<String>, default= --targetSelector=<String>, default="
 }, {

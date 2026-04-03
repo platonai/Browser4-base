@@ -276,7 +276,7 @@ data class AgentHistory(
     val size get() = states.size
 
     val finalResult get() = states.lastOrNull()
-    val isDone get() = finalResult?.isComplete == true
+    val isDone get() = finalResult?.isDone
     val isSuccess get() = finalResult?.isSuccess == true
     val totalSteps get() = states.size
     val hasErrors get() = states.any { it.hasErrors }

@@ -9,8 +9,10 @@
 
 ## File Handling
 
+- Use the file system to save your processing progress and final results.
 - Prefer `fs.*` tools for file operations.
-- Use `results.md` to summarize task results.
+- Use `plan.md` if you have a plan.
+- Use `results.md` to summarize final task results.
 
 ---
 
@@ -59,12 +61,11 @@ Output format:
       "arguments": [
         {
           "name": "Parameter name, such as `selector`",
-          "value": "Parameter value, such as `0,4`"
+          "value": "Parameter value, such as `e123`"
         }
       ],
-      "locator": "Web page node locator for DOM manipulation",
-      "description": "Description of the current locator and tool selection",
-      "screenshotContentSummary": "Summary of the current screenshot content",
+      "description": "Description of the current tool selection",
+      "screenshotContentSummary": "Summary of the current screenshot content if provided",
       "currentPageContentSummary": "Summary of the current web page text content, based on the accessibility tree or web content extraction results",
       "memory": "1–3 specific sentences describing this step and the overall progress. This should include information helpful for future progress tracking, such as the number of pages visited or items found.",
       "thinking": "A structured <think>-style reasoning block.",
@@ -86,11 +87,13 @@ Output format:
 
 ## Tool Usage
 
-Browser tool rules:
+Tool call rules:
 
 - `domain`: tool domain such as `tab`, `browser`, or `skill.debug.scraping`; subdomains use dots.
-- When selecting a node, always set `selector` to the same value as `locator`.
-- Output JSON only. Do not add any explanatory text.
+- The `ref` attribute in aria snapshot is a unique node reference, format: [ref=e123], prefer `ref` to locate DOM nodes when possible.
+  - click a node with [ref=e123] -> tab.click('e123')
+  - fill a node with [ref=e123] -> tab.fill('e123', 'hello')
+- Output JSON only. No explanatory text.
 - When entering text, do not pre-scroll or pre-focus. You may still need to press Enter, click Search, or choose a dropdown option.
 - If typing changes the page, decide whether new elements now require interaction.
 - Keep the final objective in `<user_request>` as the top priority. Explicit user steps override your own plan.
@@ -214,9 +217,9 @@ tab.press(selector: String, key: String)
 tab.check(selector: String)
 tab.uncheck(selector: String)
 tab.scrollTo(selector: String)
-tab.scrollToMiddle(ratio: Double = 0.5)
+tab.scrollToMiddle(ratio: Double = 0.5)          // ratio: The ratio of the page to scroll to, 0.0 means the top, 1.0 means the bottom.
 tab.scrollBy(pixels: Double = 200.0): Double
-tab.ariaSnapshot()
+tab.ariaSnapshot(viewports: String = "all")      // Returns the accessibility tree. viewports: "all", "3", "1,3,5", "2-4"
 tab.textContent(): String?                            // Returns the document's text content.
 tab.selectFirstTextOrNull(selector: String): String?  // Returns the first node's text content (descendants included). Returns null if no node.
 tab.delay(millis: Long)

@@ -7,19 +7,19 @@ This document compares two formats for describing Agent Tools in the system prom
 ## Tool Specification Size
 | Format | Lines | Characters |
 |--------|-------|------------|
-| Kotlin | 49 | 2083 |
-| JSON | 332 | 7522 |
+| Kotlin | 49 | 2282 |
+| JSON | 335 | 7802 |
 
 ## Full System Prompt Size
 | Format | Lines | Characters |
 |--------|-------|------------|
-| Kotlin | 255 | 8527 |
-| JSON | 538 | 13970 |
+| Kotlin | 258 | 8936 |
+| JSON | 544 | 14460 |
 
 ## Key Differences
 
 ### Kotlin Format Advantages
-- **Compact**: ~73% smaller than JSON
+- **Compact**: ~71% smaller than JSON
 - **Familiar**: Natural syntax for Kotlin/Java developers
 - **Token efficient**: Fewer tokens = lower API costs
 - **Human readable**: Easy to scan and understand quickly

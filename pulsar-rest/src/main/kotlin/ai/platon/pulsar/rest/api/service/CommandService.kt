@@ -141,8 +141,8 @@ class CommandService(
     }
 
     fun getStatus(id: String): CommandStatus? {
-        return statefulPageVisitor.getStatus(id)?.toCommandStatus() ?: statefulAgentRunner.getStatus(id)
-            ?.toCommandStatus()
+        return statefulPageVisitor.getStatus(id)?.toCommandStatus()
+            ?: statefulAgentRunner.getStatus(id)?.toCommandStatus()
     }
 
     fun getResult(id: String): CommandResult? = getStatus(id)?.commandResult

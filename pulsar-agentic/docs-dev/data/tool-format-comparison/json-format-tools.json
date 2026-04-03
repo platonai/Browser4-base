@@ -144,8 +144,10 @@
       "domain": "tab",
       "method": "ariaSnapshot",
       "parameters": [
+        {"name": "viewports", "type": "String", "default": "\"all\""}
       ],
-      "returns": "Unit"
+      "returns": "Unit",
+      "description": "Returns the accessibility tree. viewports: \"all\", \"3\", \"1,3,5\", \"2-4\""
     },
     {
       "domain": "tab",
@@ -283,7 +285,8 @@
       "parameters": [
         {"name": "ratio", "type": "Double", "default": "0.5"}
       ],
-      "returns": "Unit"
+      "returns": "Unit",
+      "description": "ratio: The ratio of the page to scroll to, 0.0 means the top, 1.0 means the bottom."
     },
     {
       "domain": "tab",
