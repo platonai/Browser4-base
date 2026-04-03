@@ -47,6 +47,10 @@ browser4-cli uncheck e12
 browser4-cli snapshot
 browser4-cli snapshot --filename=after-click.yaml
 browser4-cli eval "document.title"
+browser4-cli eval "el => el.textContent" e5
+browser4-cli dialog-accept
+browser4-cli dialog-accept "confirmation text"
+browser4-cli dialog-dismiss
 browser4-cli resize 1920 1080
 browser4-cli close
 ```
@@ -85,6 +89,7 @@ browser4-cli mousewheel 0 100
 browser4-cli screenshot
 browser4-cli screenshot e5
 browser4-cli screenshot --filename=page.png
+browser4-cli pdf --filename=page.pdf
 ```
 
 ### Tabs
@@ -118,6 +123,14 @@ If `--filename` is not provided, a new snapshot file is created with a timestamp
 ## Browser Sessions
 
 ```bash
+# create new browser session named "mysession" with persistent profile
+browser4-cli -s=mysession open example.com --persistent
+# same with manually specified profile directory (use when requested explicitly)
+browser4-cli -s=mysession open example.com --profile=/path/to/profile
+browser4-cli -s=mysession click e6
+browser4-cli -s=mysession close  # stop a named browser
+browser4-cli -s=mysession delete-data  # delete user data for persistent session
+
 browser4-cli list
 # Close all browsers
 browser4-cli close-all
@@ -148,3 +161,7 @@ browser4-cli tab-select 0
 browser4-cli snapshot
 browser4-cli close
 ```
+
+## Specific tasks
+
+* **Browser session management** [references/session-management.md](references/session-management.md)
