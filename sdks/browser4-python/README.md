@@ -1,12 +1,8 @@
-# Browser4 Python SDK
+# Browser4 Python SDK - For Testing and Development Only
 
-Python SDK for Browser4 WebDriver-compatible and AgenticSession APIs.
+Python SDK is developed for e2e tests only, do not use it in production.
 
-This SDK provides a Python interface to the Browser4 browser automation platform, enabling:
-- **Automatic server management** with Browser4Driver (download & start Browser4.jar automatically)
-- **Web scraping and data extraction** using CSS selectors
-- **AI-powered browser automation** with natural language instructions
-- **WebDriver-compatible API** for browser control
+You should use Browser4 by agents via SKILLs + CLI instead.
 
 ## Installation
 
