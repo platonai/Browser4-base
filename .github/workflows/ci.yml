@@ -134,8 +134,43 @@ jobs:
 
 
 
-      # Run browser4-cli/tests/e2e.rs to validate the application is working correctly
+      - name: Setup Rust Toolchain
+        id: rust-setup
+        uses: dtolnay/rust-toolchain@stable
 
+      - name: Cache Rust Build Artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: sdks/browser4-cli
+
+      - name: Run browser4-cli E2E Tests
+        id: e2e-cli
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          echo "::group::🧪 browser4-cli E2E Tests"
+
+          # Ensure Chrome is available (required by the Browser4 server under test)
+          if ! command -v google-chrome-stable &>/dev/null && ! command -v google-chrome &>/dev/null; then
+            echo "Installing Google Chrome..."
+            sudo apt-get update -qq
+            sudo apt-get install -y google-chrome-stable
+          fi
+          echo "🔧 Chrome: $(google-chrome-stable --version 2>/dev/null || google-chrome --version 2>/dev/null || echo 'not found')"
+
+          JAR_PATH="$(pwd)/browser4/browser4-agents/target/Browser4.jar"
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "❌ Browser4 jar not found at $JAR_PATH"
+            exit 1
+          fi
+          echo "✅ Browser4 jar: $JAR_PATH"
+
+          cd sdks/browser4-cli
+          BROWSER4_CLI_E2E=true \
+          BROWSER4_E2E_JAR_PATH="$JAR_PATH" \
+            cargo test --test e2e -- --nocapture
+
+          echo "::endgroup::"
 
       - name: Pipeline Summary
         if: always()
@@ -151,6 +186,7 @@ jobs:
           echo "  - Docker Build: ${{ steps.build.outcome }}"
           echo "  - Application: ${{ steps.app.outcome }}"
           echo "  - Health Check: ${{ steps.health.outcome }}"
+          echo "  - CLI E2E Tests: ${{ steps.e2e-cli.outcome }}"
 
           echo ""
           echo "🌐 Infrastructure:"
