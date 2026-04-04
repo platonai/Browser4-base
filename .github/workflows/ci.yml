@@ -164,7 +164,9 @@ jobs:
           ROOT_DIR="/home/runner/work/Browser4/Browser4"
 
           cd "$ROOT_DIR"
-          mvn -rf .\browser4\browser4-agents\
+          cd .\browser4\browser4-agents\
+          mvn clean package -DskipTests -T 1C
+          cd "$ROOT_DIR"
 
           JAR_PATH="$ROOT_DIR/browser4/browser4-agents/target/Browser4.jar"
           if [ ! -f "$JAR_PATH" ]; then
