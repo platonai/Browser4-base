@@ -97,6 +97,50 @@ jobs:
             echo "📊 Test Results: ${{ steps.run-tests.outputs.passed_count }} tests passed"
           fi
 
+      - name: Setup Rust Toolchain
+        id: rust-setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Build Artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: sdks/browser4-cli
+
+      - name: Run browser4-cli E2E Tests
+        id: e2e-cli
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          echo "::group::🧪 browser4-cli E2E Tests"
+
+          # Ensure Chrome is available (required by the Browser4 server under test)
+          if ! command -v google-chrome-stable &>/dev/null && ! command -v google-chrome &>/dev/null; then
+            echo "Installing Google Chrome..."
+            sudo apt-get update -qq
+            sudo apt-get install -y google-chrome-stable
+          fi
+          echo "🔧 Chrome: $(google-chrome-stable --version 2>/dev/null || google-chrome --version 2>/dev/null || echo 'not found')"
+
+          echo "Working directory: $(pwd)"
+          ls
+          ROOT_DIR=$(git rev-parse --show-toplevel)
+
+          JAR_PATH="$ROOT_DIR/browser4/browser4-agents/target/Browser4.jar"
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "❌ Browser4 jar not found at $JAR_PATH"
+            exit 1
+          fi
+          echo "✅ Browser4 jar: $JAR_PATH"
+
+          # Run the CLI tests
+          echo "Running browser4-cli E2E tests..."
+          echo "Working directory: $(pwd)"
+          cd sdks/browser4-cli
+          cargo test --test e2e -- --test-threads=1 --nocapture
+          cd "$ROOT_DIR"
+
+          echo "::endgroup::"
+
       - name: Cleanup Docker system to free space
         run: |
           docker system prune -af
@@ -133,57 +177,6 @@ jobs:
           timeout_minutes: '5'
           container_name: ${{ env.CONTAINER_NAME }}
 
-      - name: Setup Rust Toolchain
-        id: rust-setup
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust Build Artifacts
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: sdks/browser4-cli
-
-      - name: Run browser4-cli E2E Tests
-        id: e2e-cli
-        timeout-minutes: 15
-        shell: bash
-        run: |
-          echo "::group::🧪 browser4-cli E2E Tests"
-
-          # Ensure Chrome is available (required by the Browser4 server under test)
-          if ! command -v google-chrome-stable &>/dev/null && ! command -v google-chrome &>/dev/null; then
-            echo "Installing Google Chrome..."
-            sudo apt-get update -qq
-            sudo apt-get install -y google-chrome-stable
-          fi
-          echo "🔧 Chrome: $(google-chrome-stable --version 2>/dev/null || google-chrome --version 2>/dev/null || echo 'not found')"
-
-          # /home/runner/work/Browser4/Browser4/browser4/browser4-agents/target/Browser4.jar
-
-          echo "Working directory: $(pwd)"
-          ls
-          ROOT_DIR="/home/runner/work/Browser4/Browser4"
-
-          cd "$ROOT_DIR"
-          cd "$ROOT_DIR/browser4/browser4-agents"
-          mvn clean package -DskipTests -T 1C
-          cd "$ROOT_DIR"
-
-          JAR_PATH="$ROOT_DIR/browser4/browser4-agents/target/Browser4.jar"
-          if [ ! -f "$JAR_PATH" ]; then
-            echo "❌ Browser4 jar not found at $JAR_PATH"
-            exit 1
-          fi
-          echo "✅ Browser4 jar: $JAR_PATH"
-
-          # Run the CLI tests
-          echo "Running browser4-cli E2E tests..."
-          echo "Working directory: $(pwd)"
-          cd sdks/browser4-cli
-          cargo test --test e2e -- --test-threads=1 --nocapture
-          cd "$ROOT_DIR"
-
-          echo "::endgroup::"
-
       - name: Pipeline Summary
         if: always()
         shell: bash
@@ -195,10 +188,10 @@ jobs:
           echo "  - Dependencies: ${{ steps.deps.outcome }}"
           echo "  - Maven Build: ${{ steps.build-maven.outcome }}"
           echo "  - Unit Tests: ${{ steps.run-tests.outcome || 'skipped' }}"
+          echo "  - CLI E2E Tests: ${{ steps.e2e-cli.outcome }}"
           echo "  - Docker Build: ${{ steps.build.outcome }}"
           echo "  - Application: ${{ steps.app.outcome }}"
           echo "  - Health Check: ${{ steps.health.outcome }}"
-          echo "  - CLI E2E Tests: ${{ steps.e2e-cli.outcome }}"
 
           echo ""
           echo "🌐 Infrastructure:"
