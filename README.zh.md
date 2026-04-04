@@ -299,17 +299,16 @@ Invoke-WebRequest -Uri https://github.com/platonai/PulsarRPAPro/releases/downloa
 
 ## 📦 模块概览
 
-| 模块 | 说明 |
-|--------|-------------|
-| `pulsar-core` | 核心引擎：会话、调度、DOM、浏览器控制 |
-| `pulsar-agentic` | 智能体实现、MCP 与技能注册 |
+| 模块 | 说明                      |
+|--------|-------------------------|
+| `pulsar-core` | 核心引擎：会话、调度、DOM、浏览器控制    |
+| `pulsar-agentic` | 智能体实现、MCP 与技能注册         |
 | `pulsar-rest` | Spring Boot REST 层与命令端点 |
-| `pulsar-tools` | CLI 工具与运维辅助组件 |
-| `browser4-spa` | 面向浏览器智能体的单页应用 |
-| `browser4-agents` | 智能体与爬虫编排及产品打包 |
-| `sdks` | Kotlin/Python/Rust SDK 及其测试与示例 |
-| `examples` | 可运行示例与演示工程 |
-| `pulsar-tests` | 重型集成与场景测试 |
+| `pulsar-tools` | 高阶智能体工具                 |
+| `browser4-agents` | 智能体与爬虫编排及产品打包           |
+| `sdks` | Rust 实现的 CLI，支持 SKILLS  |
+| `examples` | 可运行示例与演示工程              |
+| `pulsar-tests` | 重型集成与场景测试               |
 
 ---
 

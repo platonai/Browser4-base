@@ -303,9 +303,8 @@ curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/do
 | `pulsar-core`     | Core engine: sessions, scheduling, DOM, browser control |
 | `pulsar-agentic`  | Agent implementation, MCP, and skill registration       |
 | `pulsar-rest`     | Spring Boot REST layer & command endpoints              |
-| `browser4-spa`    | Single Page Application for browser agents              |
 | `browser4-agents` | Agent & crawler orchestration with product packaging    |
-| `sdks`            | Kotlin/Python/Rust SDKs plus tests and examples         |
+| `sdks`            | CLI in Rust that supports SKILLS                        |
 | `examples`        | Runnable examples and demos                             |
 | `pulsar-tests`    | E2E & heavy integration & scenario tests                |
 
