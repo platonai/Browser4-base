@@ -67,6 +67,7 @@ jobs:
         with:
           skip_tests: ${{ inputs.skip_tests || 'true' }}
           timeout_minutes: '15'
+          maven_profiles: 'all-modules'
 
       - name: Run Tests
         id: run-tests
@@ -156,11 +157,6 @@ jobs:
             sudo apt-get install -y google-chrome-stable
           fi
           echo "🔧 Chrome: $(google-chrome-stable --version 2>/dev/null || google-chrome --version 2>/dev/null || echo 'not found')"
-
-          # Build maven module $(pwd)/browser4/browser4-agents to generate the Browser4.jar required by the CLI tests
-          echo "Building browser4-agents module to generate Browser4.jar..."
-          cd browser4/browser4-agents
-          mvn clean package -DskipTests -T 1C
 
           JAR_PATH="$(pwd)/browser4/browser4-agents/target/Browser4.jar"
           if [ ! -f "$JAR_PATH" ]; then
