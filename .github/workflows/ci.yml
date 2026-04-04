@@ -167,7 +167,8 @@ jobs:
 
           # Run the CLI tests
           echo "Running browser4-cli E2E tests..."
-          cd ../../sdks/browser4-cli
+          echo "Working directory: $(pwd)"
+          cd sdks/browser4-cli
           cargo test --test e2e -- --test-threads=1 --nocapture
 
           echo "::endgroup::"
