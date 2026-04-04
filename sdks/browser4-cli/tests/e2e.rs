@@ -8,13 +8,15 @@
 //! `BROWSER4_CLI_E2E=true` is set.
 //!
 //! ```bash
-//! # From the repo root – build the jar first, then run:
+//! # From the repo root – start a dedicated Browser4 service or build the jar first, then run:
 //! BROWSER4_CLI_E2E=true cargo test --test e2e -- --nocapture
 //! ```
 //!
-//! The Browser4 jar is resolved from (in order):
-//! 1. `BROWSER4_E2E_JAR_PATH` environment variable
-//! 2. `<repo_root>/browser4/browser4-agents/target/Browser4.jar`
+//! The Browser4 backend is resolved from (in order):
+//! 1. `BROWSER4_E2E_SERVICE_URL` environment variable
+//! 2. `BROWSER4_E2E_SERVER_URL` environment variable
+//! 3. `BROWSER4_E2E_JAR_PATH` environment variable
+//! 4. `<repo_root>/browser4/browser4-agents/target/Browser4.jar`
 
 use std::collections::HashSet;
 use std::fs;
@@ -35,6 +37,10 @@ const INTERACTIVE_PATH: &str = "/interactive";
 const OTHER_PATH: &str = "/other";
 const INTERACTIVE_TITLE: &str = "Browser4 CLI Interactive Fixture";
 const OTHER_TITLE: &str = "Browser4 CLI Other Fixture";
+const BROWSER4_E2E_SERVICE_URL_ENV_KEYS: [&str; 2] = [
+    "BROWSER4_E2E_SERVICE_URL",
+    "BROWSER4_E2E_SERVER_URL",
+];
 
 // ---------------------------------------------------------------------------
 // Environment helpers
@@ -62,6 +68,23 @@ fn default_jar_path() -> PathBuf {
         .join("browser4-agents")
         .join("target")
         .join("Browser4.jar")
+}
+
+fn normalize_base_url(value: &str) -> Option<String> {
+    let normalized = value.trim().trim_end_matches('/').to_string();
+    if normalized.is_empty() {
+        None
+    } else {
+        Some(normalized)
+    }
+}
+
+fn configured_browser4_service_url() -> Option<String> {
+    BROWSER4_E2E_SERVICE_URL_ENV_KEYS.iter().find_map(|key| {
+        std::env::var(key)
+            .ok()
+            .and_then(|value| normalize_base_url(&value))
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -1072,21 +1095,28 @@ fn test_e2e_full_suite() {
         return;
     }
 
-    // Resolve the Browser4 jar path.
-    let jar_path = std::env::var("BROWSER4_E2E_JAR_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| default_jar_path());
-
-    assert!(
-        jar_path.exists(),
-        "Browser4 jar not found at {jar_path:?}. \
-        Build browser4/browser4-agents first or set BROWSER4_E2E_JAR_PATH."
-    );
     assert!(
         cli_binary().exists(),
         "CLI binary not found at {:?}. Run `cargo build` first.",
         cli_binary()
     );
+
+    let external_browser4_service_url = configured_browser4_service_url();
+    let jar_path = if external_browser4_service_url.is_some() {
+        None
+    } else {
+        let jar_path = std::env::var("BROWSER4_E2E_JAR_PATH")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| default_jar_path());
+
+        assert!(
+            jar_path.exists(),
+            "Browser4 jar not found at {jar_path:?}. \
+            Build browser4/browser4-agents first, set BROWSER4_E2E_JAR_PATH, or point the tests at an existing service with {}.",
+            BROWSER4_E2E_SERVICE_URL_ENV_KEYS.join(" / ")
+        );
+        Some(jar_path)
+    };
 
     // Fixture HTTP server (serves our test HTML pages).
     let fixture = FixtureServer::start();
@@ -1104,9 +1134,26 @@ fn test_e2e_full_suite() {
         .expect("write upload file failed");
 
     // Browser4 backend.
-    let browser4_port = find_free_port();
-    let browser4_base_url = format!("http://127.0.0.1:{}", browser4_port);
-    let _browser4 = Browser4Server::start(&browser4_base_url, &jar_path);
+    let (browser4_base_url, _browser4) = if let Some(base_url) = external_browser4_service_url {
+        wait_for_health(&base_url, 120_000).unwrap_or_else(|error| {
+            panic!(
+                "Browser4 service configured via {} was not healthy: {}",
+                BROWSER4_E2E_SERVICE_URL_ENV_KEYS.join(" / "),
+                error
+            )
+        });
+        (base_url, None)
+    } else {
+        let browser4_port = find_free_port();
+        let browser4_base_url = format!("http://127.0.0.1:{}", browser4_port);
+        let browser4 = Browser4Server::start(
+            &browser4_base_url,
+            jar_path
+                .as_deref()
+                .expect("jar path must exist when no external Browser4 service is configured"),
+        );
+        (browser4_base_url, Some(browser4))
+    };
 
     let mut ctx = E2ECtx {
         fixture,
@@ -1125,4 +1172,17 @@ fn test_e2e_full_suite() {
 
     // Verify that every supported command was exercised.
     assert_all_commands_covered(&ctx);
+}
+
+#[test]
+fn test_normalize_base_url_trims_whitespace_and_trailing_slash() {
+    assert_eq!(
+        normalize_base_url("  http://example.com:8182/  "),
+        Some("http://example.com:8182".to_string())
+    );
+}
+
+#[test]
+fn test_normalize_base_url_rejects_blank_values() {
+    assert_eq!(normalize_base_url("   /  "), None);
 }

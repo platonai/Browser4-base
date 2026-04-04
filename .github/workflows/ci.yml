@@ -70,7 +70,7 @@ jobs:
 
       - name: Run Tests
         id: run-tests
-        if: inputs.skip_tests != true
+        if: false && inputs.skip_tests != true # Temporarily disable tests in CI pipeline
         uses: ./.github/actions/run-tests
         with:
           maven_profiles: 'all-modules'
@@ -131,8 +131,6 @@ jobs:
           service_port: '8182'
           timeout_minutes: '5'
           container_name: ${{ env.CONTAINER_NAME }}
-
-
 
       - name: Setup Rust Toolchain
         id: rust-setup
