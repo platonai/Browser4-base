@@ -185,7 +185,7 @@ class CommandControllerE2ETest : RestAPITestBase() {
                 return lastStatus
             }
 
-            Thread.sleep(Duration.ofSeconds(2))
+            Thread.sleep(Duration.ofSeconds(2).toMillis())
         }
 
         return lastStatus
