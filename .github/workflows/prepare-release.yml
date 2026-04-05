@@ -1,5 +1,7 @@
 name: Prepare Release
 
+# TODO: this workflow is not used yet
+
 on:
   workflow_dispatch:
     inputs:
@@ -26,14 +28,14 @@ jobs:
       - name: Validate version format
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          
+
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
             echo "❌ Invalid version format: $VERSION"
             echo "Expected format: X.Y.Z or X.Y.Z-rc.N"
             echo "Examples: 4.4.0, 4.4.0-rc.1"
             exit 1
           fi
-          
+
           echo "✅ Version format is valid: $VERSION"
 
       - name: Checkout source branch
@@ -51,13 +53,13 @@ jobs:
         run: |
           VERSION="${{ github.event.inputs.version }}"
           echo "📝 Updating version to $VERSION..."
-          
+
           # Read current version (likely a SNAPSHOT version)
           CURRENT_VERSION=$(head -n 1 VERSION)
-          
+
           # Write target release version to VERSION file
           echo "$VERSION" > VERSION
-          
+
           # Replace version in project files
           # Use the same pattern as bin/release/update-versions.sh
           for FILE_PATTERN in 'pom.xml' 'llm-config.md' 'README.md' 'README.zh.md'; do
@@ -68,13 +70,13 @@ jobs:
               fi
             done
           done
-          
+
           echo "✅ Version updated from $CURRENT_VERSION to $VERSION"
 
       - name: Commit version changes
         run: |
           git add -A
-          
+
           if git diff --staged --quiet; then
             echo "⚠️ No changes to commit"
           else
@@ -89,16 +91,16 @@ jobs:
         run: |
           VERSION="${{ github.event.inputs.version }}"
           SOURCE_BRANCH="${{ github.event.inputs.source_branch }}"
-          
+
           # Check if PR already exists
           EXISTING_PR=$(gh pr list --head "$SOURCE_BRANCH" --base master --json number --jq '.[0].number' || echo "")
-          
+
           if [ -n "$EXISTING_PR" ]; then
             echo "⚠️ PR #$EXISTING_PR already exists from $SOURCE_BRANCH to master"
             echo "PR URL: https://github.com/${{ github.repository }}/pull/$EXISTING_PR"
             exit 0
           fi
-          
+
           # Create PR body
           cat > pr_body.md << 'EOF'
           ## 🚀 Release Preparation
@@ -125,10 +127,10 @@ jobs:
           This will create tag `v${{ github.event.inputs.version }}` on master branch and trigger the release workflow.
 
           ---
-          
+
           _Automated PR created by [prepare-release.yml](https://github.com/${{ github.repository }}/actions/workflows/prepare-release.yml)_
           EOF
-          
+
           # Create the PR
           gh pr create \
             --base master \
@@ -136,9 +138,9 @@ jobs:
             --title "🚀 Release v$VERSION" \
             --body-file pr_body.md \
             --label release
-          
+
           echo "✅ Pull request created successfully"
-          
+
           # Get the PR URL
           PR_URL=$(gh pr list --head "$SOURCE_BRANCH" --base master --json url --jq '.[0].url')
           echo "PR URL: $PR_URL"
