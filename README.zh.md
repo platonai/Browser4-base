@@ -7,7 +7,7 @@
 
 [English](README.md) | 简体中文 | [中国镜像](https://gitee.com/platonai_galaxyeye/Browser4)
 
-> 本文件已与英文版 README 同步（同步日期：2026-02-11），如有差异请以英文版为准。
+> 本文件已与英文版 README 同步（同步日期：2026-01-02），如有差异请以英文版为准。
 
 <!-- TOC -->
 **目录**
@@ -71,7 +71,7 @@ val result = agent.run("""
 
 ## 🚀 快速开始
 
-**前置要求**：Java 17+，最新 Google Chrome
+**前置要求**：Java 17+
 
 1. **克隆仓库**
    ```shell
@@ -85,20 +85,16 @@ val result = agent.run("""
 
 3. **构建项目（Linux/macOS）**
    ```shell
-   ./mvnw -q -DskipTests
-   ```
-   **Windows (PowerShell)**：
-   ```powershell
-   .\mvnw.cmd -q -D"skipTests"
+   ./mvnw -DskipTests
    ```
    **Windows (cmd)**：
    ```shell
-   mvnw.cmd -q -DskipTests
+   mvnw.cmd -DskipTests
    ```
 
 4. **运行示例（Linux/macOS）**
    ```shell
-   ./mvnw -pl examples/browser4-examples exec:java -D"exec.mainClass=ai.platon.pulsar.examples.agent.Browser4AgentKt"
+   ./mvnw -pl browser4-examples exec:java -D"exec.mainClass=ai.platon.pulsar.examples.agent.Browser4AgentKt"
    ```
    **Windows (cmd)**：
    ```shell
@@ -113,8 +109,6 @@ val result = agent.run("""
    Java 兼容示例已移除，请改用 Kotlin API、SDK 或 CLI 工具。
 
 Docker 部署请参见我们的 [Docker Hub 仓库](https://hub.docker.com/r/galaxyeye88/browser4)。
-
-**Windows 用户**：你还可以将 Browser4 打包为独立的 Windows 安装程序，详见 [Windows Installer Guide](browser4/browser4-agents/README.md)。
 
 ---
 
@@ -387,11 +381,11 @@ export PROXY_ROTATION_URL=https://your-proxy-provider.com/rotation-endpoint
 
 ## 🤝 支持与社区
 
-- 💬 WeChat: galaxyeye
-- 🌐 Weibo: [galaxyeye](https://weibo.com/galaxyeye)
-- 📧 Email: galaxyeye@live.cn, ivincent.zhang@gmail.com
-- 🐦 Twitter: [galaxyeye8](https://x.com/galaxyeye8)
-- 🌍 Website: [browser4.io](https://browser4.io)
+- 💬 微信：galaxyeye
+- 🌐 微博：[galaxyeye](https://weibo.com/galaxyeye)
+- 📧 邮箱：galaxyeye@live.cn, ivincent.zhang@gmail.com
+- 🐦 Twitter：galaxyeye8
+- 🌍 官网：[browser4.io](https://browser4.io)
 
 <div style="display: flex;">
   <img src="docs/images/wechat-author.png" width="300" height="365" alt="微信二维码" />

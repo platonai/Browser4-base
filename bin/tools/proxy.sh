@@ -15,10 +15,9 @@
 # 2. git commands
 # 3. vscode if installed
 
-# Avoid set -e because it will exit the user's shell if sourced
-# set -euo pipefail
+set -euo pipefail
 
-SCRIPT_NAME=$(basename -- "${BASH_SOURCE[0]:-$0}")
+SCRIPT_NAME=$(basename "$0")
 
 # Defaults can be overridden by environment variables
 PROXY_HOST=${PROXY_HOST:-127.0.0.1}
@@ -36,36 +35,12 @@ VS_CODE_SETTINGS_CANDIDATES=(
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 warn_not_sourced() {
-	local action="$1"
 	# If the script is not sourced, env vars won't persist in the caller's shell
 	# Detect common case: when BASH_SOURCE[0] == $0, it's executed, not sourced
-	if [[ "${BASH_SOURCE[0]:-$0}" == "$0" ]]; then
-		echo "[info] To apply changes to the current shell, you must source this script:" >&2
-		echo "       source $SCRIPT_NAME $action" >&2
+	if [[ "${BASH_SOURCE[0]-$0}" == "$0" ]]; then
+		echo "[info] To persist environment variables in current shell, source this script:" >&2
+		echo "       source bin/tools/proxy.sh on" >&2
 	fi
-}
-
-check_proxy() {
-	local host="$1"
-	local port="$2"
-
-	# Use curl to check if the proxy port is open.
-	# --connect-timeout 2: Wait max 2 seconds for connection
-	# -s: Silent mode
-	# /dev/null: Discard output
-	if ! curl --connect-timeout 2 -s "http://$host:$port" >/dev/null; then
-		# curl exit code 7 means "Failed to connect to host", which is expected if nothing is listening
-		# However, curl might exit with 52 (Empty reply from server) if it connects but gets no HTTP response, which is GOOD (port is open)
-		local ret=$?
-		# 7: Failed to connect to host (Connection refused)
-		# 28: Operation timeout
-		if [[ $ret -eq 7 || $ret -eq 28 ]]; then
-			echo "[error] Proxy at $host:$port is NOT reachable." >&2
-			echo "        Check if your proxy application is running and the IP/port are correct." >&2
-			return 1
-		fi
-	fi
-	return 0
 }
 
 usage() {
@@ -79,7 +54,6 @@ Options (for 'on'):
 	--http-port N       HTTP proxy port (default: $HTTP_PORT)
 	--socks-port N      SOCKS5 proxy port (default: $SOCKS_PORT)
 	--no-proxy LIST     Comma-separated no_proxy list (default: $NO_PROXY_LIST)
-	--wsl               Auto-detect host IP in WSL (overrides --host if detected)
 
 Notes:
 	- To apply env vars to your current shell, you must source this script: '. bin/tools/proxy.sh on'
@@ -100,27 +74,6 @@ parse_on_args() {
 				SOCKS_PORT="$2"; shift 2 ;;
 			--no-proxy)
 				NO_PROXY_LIST="$2"; shift 2 ;;
-			--wsl)
-				# Attempt to detect WSL host IP
-				if [[ -f /proc/version ]] && grep -qEi "(Microsoft|WSL)" /proc/version; then
-					local wsl_ip=""
-					if command -v ip >/dev/null 2>&1; then
-						wsl_ip=$(ip route show | grep default | awk '{print $3}')
-					fi
-					if [[ -z "$wsl_ip" ]] && [[ -f /etc/resolv.conf ]]; then
-						wsl_ip=$(grep nameserver /etc/resolv.conf | awk '{print $2}' | head -n 1)
-					fi
-
-					if [[ -n "$wsl_ip" ]]; then
-						PROXY_HOST="$wsl_ip"
-						echo "[info] Detected WSL host IP: $PROXY_HOST" >&2
-					else
-						echo "[warn] Failed to detect WSL host IP; staying with $PROXY_HOST" >&2
-					fi
-				else
-					echo "[info] Not running in WSL; ignoring --wsl" >&2
-				fi
-				shift ;;
 			-h|--help)
 				usage; exit 0 ;;
 			*)
@@ -292,26 +245,20 @@ case "$cmd" in
 	on)
 		shift || true
 		parse_on_args "$@"
-
-		if ! check_proxy "$PROXY_HOST" "$HTTP_PORT"; then
-			echo "[warn] Proxy check failed. Variables will NOT be set." >&2
-			exit 1
-		fi
-
 		export_env_proxies "$PROXY_HOST" "$HTTP_PORT" "$SOCKS_PORT" "$NO_PROXY_LIST"
 		set_git_proxies "$PROXY_HOST" "$HTTP_PORT" "$SOCKS_PORT"
 		set_vscode_proxies "$PROXY_HOST" "$HTTP_PORT"
 		echo "[ok] Proxy ON"
 		echo "       http(s): http://$PROXY_HOST:$HTTP_PORT"
 		echo "       socks5 : socks5://$PROXY_HOST:$SOCKS_PORT"
-		warn_not_sourced "on"
+		warn_not_sourced
 		;;
 	off)
 		unset_env_proxies
 		unset_git_proxies
 		unset_vscode_proxies
 		echo "[ok] Proxy OFF"
-		warn_not_sourced "off"
+		warn_not_sourced
 		;;
 	status)
 		status
