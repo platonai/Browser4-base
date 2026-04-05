@@ -136,7 +136,7 @@ jobs:
           echo "Running browser4-cli E2E tests..."
           echo "Working directory: $(pwd)"
           cd sdks/browser4-cli
-          BROWSER4_CLI_E2E=true cargo test --test e2e -- --test-threads=1 --nocapture
+          cargo test
           cd "$ROOT_DIR"
 
           echo "::endgroup::"

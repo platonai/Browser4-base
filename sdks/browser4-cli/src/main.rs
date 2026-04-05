@@ -88,6 +88,98 @@ fn get_session_id(state: &CliState) -> Result<&str, String> {
         .ok_or_else(|| r#"No active session. Run "browser4-cli open" first."#.to_string())
 }
 
+fn tracked_selector(tool_params: &Value) -> Option<&str> {
+    tool_params
+        .get("ref")
+        .and_then(|value| value.as_str())
+        .or_else(|| tool_params.get("selector").and_then(|value| value.as_str()))
+        .map(str::trim)
+        .filter(|selector| !selector.is_empty())
+}
+
+fn persist_active_selector(
+    base_url: &str,
+    session_name: Option<&str>,
+    selector: Option<&str>,
+) -> Result<(), String> {
+    let Some(selector) = selector else {
+        return Ok(());
+    };
+
+    let mut state = read_state(None, session_name);
+    state.base_url = base_url.to_string();
+    state.active_selector = Some(selector.to_string());
+    write_state(&state, None, session_name).map_err(|e| e.to_string())
+}
+
+async fn restore_active_selector(
+    client: &Client,
+    base_url: &str,
+    session_name: Option<&str>,
+) -> Result<(), String> {
+    let state = read_state(None, session_name);
+    let Some(selector) = state.active_selector.as_deref() else {
+        return Ok(());
+    };
+
+    if selector.starts_with("backend:") {
+        return Ok(());
+    }
+
+    let selector_literal = serde_json::to_string(selector)
+        .map_err(|e| format!("Failed to encode active selector: {e}"))?;
+    let focus_expression = format!(
+        "(() => {{ \
+            try {{ \
+                const el = document.querySelector({selector_literal}); \
+                if (!el) return 'missing'; \
+                if (typeof el.focus === 'function') {{ \
+                    el.focus(); \
+                }} \
+                return document.activeElement === el ? 'focused' : 'unfocused'; \
+            }} catch (error) {{ \
+                return `invalid:${{error}}`; \
+            }} \
+        }})()"
+    );
+
+    let focus_result = with_session(client, base_url, session_name, false, |session_id| {
+        let client = client.clone();
+        let base_url = base_url.to_string();
+        let focus_expression = focus_expression.clone();
+
+        async move {
+            call_tool(
+                &client,
+                &base_url,
+                "browser_evaluate",
+                json!({
+                    "sessionId": session_id,
+                    "expression": focus_expression,
+                }),
+            )
+            .await
+        }
+    })
+    .await?;
+
+    match focus_result.trim() {
+        "focused" => Ok(()),
+        "missing" => Err(format!(
+            "Saved active selector '{selector}' no longer exists on the page."
+        )),
+        "unfocused" => Err(format!(
+            "Failed to focus saved active selector '{selector}' before keyboard command."
+        )),
+        other if other.starts_with("invalid:") => Err(format!(
+            "Saved active selector '{selector}' is not a valid query selector: {other}"
+        )),
+        other => Err(format!(
+            "Unexpected focus result for saved active selector '{selector}': {other}"
+        )),
+    }
+}
+
 async fn create_session(
     client: &Client,
     base_url: &str,
@@ -112,6 +204,8 @@ async fn create_session(
     let mut new_state = state.clone();
     new_state.session_id = Some(session_id.clone());
     new_state.base_url = base_url.to_string();
+    new_state.active_selector = None;
+    new_state.last_mouse_position = None;
     write_state(&new_state, None, session_name).map_err(|e| e.to_string())?;
     Ok(session_id)
 }
@@ -120,6 +214,8 @@ fn invalidate_session(state: &CliState, base_url: &str, session_name: Option<&st
     let mut new_state = state.clone();
     new_state.session_id = None;
     new_state.base_url = base_url.to_string();
+    new_state.active_selector = None;
+    new_state.last_mouse_position = None;
     let _ = write_state(&new_state, None, session_name);
 }
 
@@ -591,6 +687,7 @@ async fn handle_tool_command(
     if !result.is_empty() {
         println!("{}", result);
     }
+    persist_active_selector(base_url, session_name, tracked_selector(tool_params))?;
     Ok(())
 }
 
@@ -793,6 +890,27 @@ async fn handle_press(
     if !result.is_empty() {
         println!("{}", result);
     }
+    persist_active_selector(base_url, session_name, Some(selector))?;
+    Ok(())
+}
+
+async fn handle_key_command(
+    client: &Client,
+    base_url: &str,
+    tool_name: &str,
+    tool_params: &Value,
+    session_name: Option<&str>,
+) -> Result<(), String> {
+    restore_active_selector(client, base_url, session_name).await?;
+    handle_tool_command(
+        client,
+        base_url,
+        tool_name,
+        tool_params,
+        false,
+        session_name,
+    )
+    .await?;
     Ok(())
 }
 
@@ -1270,6 +1388,16 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
             )
             .await?;
         }
+        "keydown" | "keyup" => {
+            handle_key_command(
+                &client,
+                &base_url,
+                &tool_name,
+                &tool_params,
+                global.session_name.as_deref(),
+            )
+            .await?;
+        }
         "mousemove" => {
             handle_mouse_move(
                 &client,
@@ -1370,4 +1498,38 @@ fn print_help(command_name: Option<&str>) {
         }
     }
     println!("{}", generate_help());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::tracked_selector;
+    use serde_json::json;
+
+    #[test]
+    fn tracked_selector_prefers_ref() {
+        let params = json!({
+            "ref": "#target",
+            "selector": "#fallback"
+        });
+
+        assert_eq!(tracked_selector(&params), Some("#target"));
+    }
+
+    #[test]
+    fn tracked_selector_falls_back_to_selector() {
+        let params = json!({
+            "selector": "#target"
+        });
+
+        assert_eq!(tracked_selector(&params), Some("#target"));
+    }
+
+    #[test]
+    fn tracked_selector_ignores_blank_values() {
+        let params = json!({
+            "ref": "   "
+        });
+
+        assert_eq!(tracked_selector(&params), None);
+    }
 }

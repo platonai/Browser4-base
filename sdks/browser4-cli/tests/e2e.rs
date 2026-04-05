@@ -1804,7 +1804,6 @@ fn run_named_test(name: &str, test_fn: fn()) {
     println!("ok");
 }
 
-
 fn run_named_scenario(name: &str, resources: &mut E2ETestResources, test_fn: fn(&mut E2ECtx)) {
     print!("test {name} ... ");
     std::io::stdout().flush().expect("stdout flush failed");
