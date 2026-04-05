@@ -154,6 +154,19 @@ jobs:
           timeout_minutes: '90'
           report_name: 'integration-test-reports'
 
+
+
+
+
+
+
+
+
+      #### Run browser4-cli E2E Tests ####
+      ## TODO: run browser4-cli E2E Tests against the docker containerized Browser4 server to validate real-world usage
+      ## and catch any potential issues with the Docker deployment. This will help ensure that the CLI can successfully
+      ## interact with the server in a production-like environment.
+
       - name: Setup Rust Toolchain
         id: rust-setup
         uses: dtolnay/rust-toolchain@stable
@@ -197,6 +210,14 @@ jobs:
           cd "$ROOT_DIR"
 
           echo "::endgroup::"
+
+
+
+
+
+
+
+
 
       - name: Cleanup Docker system to free space
         run: |

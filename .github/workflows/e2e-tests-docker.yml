@@ -85,11 +85,60 @@ jobs:
           timeout_minutes: '3'
           container_name: ${{ env.CONTAINER_NAME }}
 
-      - name: Run Python SDK Tests
-        id: python-sdk-tests
-        uses: ./.github/actions/run-python-sdk-tests
+
+
+
+      #### Run browser4-cli E2E Tests ####
+      ## TODO: run browser4-cli E2E Tests against the docker containerized Browser4 server to validate real-world usage
+      ## and catch any potential issues with the Docker deployment. This will help ensure that the CLI can successfully
+      ## interact with the server in a production-like environment.
+
+      - name: Setup Rust Toolchain
+        id: rust-setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Build Artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          network_name: ${{ env.NETWORK_NAME }}
+          workspaces: sdks/browser4-cli
+
+      - name: Run browser4-cli E2E Tests
+        id: e2e-cli
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          echo "::group::🧪 browser4-cli E2E Tests"
+
+          # Ensure Chrome is available (required by the Browser4 server under test)
+          if ! command -v google-chrome-stable &>/dev/null && ! command -v google-chrome &>/dev/null; then
+            echo "Installing Google Chrome..."
+            sudo apt-get update -qq
+            sudo apt-get install -y google-chrome-stable
+          fi
+          echo "🔧 Chrome: $(google-chrome-stable --version 2>/dev/null || google-chrome --version 2>/dev/null || echo 'not found')"
+
+          echo "Working directory: $(pwd)"
+          ls
+          ROOT_DIR=$(git rev-parse --show-toplevel)
+
+          JAR_PATH="$ROOT_DIR/browser4/browser4-agents/target/Browser4.jar"
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "❌ Browser4 jar not found at $JAR_PATH"
+            exit 1
+          fi
+          echo "✅ Browser4 jar: $JAR_PATH"
+
+          # Run the CLI tests
+          echo "Running browser4-cli E2E tests..."
+          echo "Working directory: $(pwd)"
+          cd sdks/browser4-cli
+          BROWSER4_CLI_E2E=true cargo test --test e2e -- --test-threads=1 --nocapture
+          cd "$ROOT_DIR"
+
+          echo "::endgroup::"
+
+
+
 
       - name: Cleanup Resources
         if: always()
