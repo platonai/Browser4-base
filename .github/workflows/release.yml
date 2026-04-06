@@ -25,6 +25,7 @@ concurrency:
 permissions:
   contents: write
   packages: write
+  attestations: write
   id-token: write  # For artifact attestation
 
 env:
