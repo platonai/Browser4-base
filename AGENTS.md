@@ -240,6 +240,7 @@ browser.display.mode=GUI  # GUI | HEADLESS | SUPERVISED
 - [Configuration Guide](docs/config.md)
 - [Build Guide](docs/build.md)
 - [Testing Taxonomy](docs/TESTING.md)
+- [Browser4 CLI Skills Development Guide](docs-dev/copilot/SKILLS-DEVELOPMENT-GUIDE.md)
 - [Advanced Guide](docs/advanced-guides.md)
 - [REST API Examples](docs/rest-api-examples.md)
 - [Concepts](docs/concepts.md)
@@ -292,6 +293,16 @@ When given a task, Claude should:
 3. Run tests after each step
 4. Preserve public API contracts
 5. Update KDoc if API changes
+
+#### Adding a `browser4-cli` Command
+
+1. Add a `CommandDef` in `sdks/browser4-cli/src/commands.rs`; keep the CLI command name kebab-case, use a `browser_`-prefixed snake_case MCP tool name, and map args/options to JSON in `tool_params_fn`
+2. Add the frontend alias in `pulsar-rest/.../MCPToolController.kt` so names like `browser_my_tool` resolve to the internal tool name such as `my_tool`
+3. Reuse existing backend tools when possible; if a new browser capability is required, add an `@MCP` method in `WebDriver.kt`, implement it in the concrete driver, and only add an explicit `BrowserTabToolExecutor` case when parameter mapping is non-trivial
+4. Update `sdks/browser4-cli/src/main.rs` only when the command needs custom dispatch, dynamic tool-name selection, stale-session recovery, or inclusion in `no_snapshot_commands()` for read-only behavior
+5. Update `sdks/skill/SKILL.md` for user-facing command documentation; CLI help is generated from `CommandDef`, so avoid hand-editing help infrastructure
+6. Cover the change with the smallest relevant tests: `sdks/browser4-cli/src/commands.rs` unit tests, `pulsar-rest` controller mapping tests, `sdks/browser4-cli/tests/e2e.rs`, and `pulsar-tests/pulsar-rest-tests/.../MCPToolControllerE2ETest.kt` when the command changes the end-to-end flow
+7. Watch the common failure points: missing backend alias, omitted `sessionId` in custom handlers, forgetting `no_snapshot_commands()` for read-only commands, mismatched element-ref parameter names, and snake_case/camelCase argument normalization
 
 ### Browser Automation Specifics
 

@@ -1955,11 +1955,13 @@ fn main() {
 
     if run_coverage {
         run_named_test("test_e2e_command_coverage", verify_e2e_command_coverage);
+        kill_all_browsers();
     }
 
     let mut resources = create_e2e_test_resources();
     for scenario in selected_scenarios {
         run_named_scenario(scenario.name, &mut resources, scenario.test_fn);
+        kill_all_browsers();
     }
 
     println!(
