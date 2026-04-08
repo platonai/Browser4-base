@@ -3,6 +3,8 @@ package ai.platon.pulsar.rest.mcp.controller
 import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
 import ai.platon.pulsar.agentic.model.ToolCall
 import ai.platon.pulsar.agentic.tools.AgentToolExecutor
+import ai.platon.pulsar.agentic.tools.command.CommandService
+import ai.platon.pulsar.agentic.tools.command.CommandToolExecutor
 import ai.platon.pulsar.rest.mcp.service.SessionManager
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -72,7 +74,8 @@ data class MCPContent(
 )
 @ConditionalOnBean(SessionManager::class)
 class MCPToolController(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val commandService: CommandService,
 ) {
     companion object {
         private val FRONTEND_TOOL_NAME_ALIASES: Map<String, String> = mapOf(
@@ -127,6 +130,8 @@ class MCPToolController(
 
     private val logger = LoggerFactory.getLogger(MCPToolController::class.java)
 
+    private val commandToolExecutor = CommandToolExecutor()
+
     private data class NormalizedToolCall(
         val tool: String,
         val arguments: Map<String, Any?>
@@ -162,6 +167,10 @@ class MCPToolController(
                 "close_all_sessions" -> handleCloseAllSessions()
                 "kill_all_sessions" -> handleKillAllSessions()
                 "delete_session_data" -> handleDeleteSessionData(request)
+                // Command tools — delegate to CommandService (no session required)
+                "command_run" -> handleCommandRun(request)
+                "command_status" -> handleCommandStatus(request)
+                "command_result" -> handleCommandResult(request)
                 // All other tools are dispatched to the session's agent
                 else -> dispatchToAgentToolExecutor(request)
             }
@@ -184,6 +193,8 @@ class MCPToolController(
             // Session management
             "open_session", "close_session", "list_sessions",
             "close_all_sessions", "kill_all_sessions", "delete_session_data",
+            // Command tools (no session required)
+            "command_run", "command_status", "command_result",
             // Frontend-declared Browser4 CLI tools
             "browser_navigate", "browser_snapshot",
             "browser_navigate_back", "browser_navigate_forward", "browser_reload",
@@ -263,6 +274,76 @@ class MCPToolController(
         }
 
         return ResponseEntity.ok(textResponse("User data deleted for session"))
+    }
+
+    // =========================================================================
+    // Command tool handlers
+    // =========================================================================
+
+    /**
+     * Execute a plain command via [CommandService].
+     *
+     * When `async=true` (default), returns the task ID string immediately.
+     * When `async=false`, blocks until execution completes and returns the [CommandStatus] as JSON.
+     */
+    private suspend fun handleCommandRun(request: MCPToolCallRequest): ResponseEntity<MCPToolCallResponse> {
+        val args = request.arguments ?: emptyMap()
+        return try {
+            val evaluate = commandToolExecutor.callFunctionOn(
+                ToolCall("command", "run", args.toMutableMap()),
+                commandService
+            )
+            if (evaluate.exception != null) {
+                ResponseEntity.ok(errorResponse("command_run failed: ${evaluate.exception!!.message}"))
+            } else {
+                ResponseEntity.ok(textResponse(evaluate.value?.toString() ?: ""))
+            }
+        } catch (e: Exception) {
+            logger.error("command_run failed | {}", e.message, e)
+            ResponseEntity.ok(errorResponse("command_run failed: ${e.message}"))
+        }
+    }
+
+    /**
+     * Get the status of a command task by its ID.
+     */
+    private suspend fun handleCommandStatus(request: MCPToolCallRequest): ResponseEntity<MCPToolCallResponse> {
+        val args = request.arguments ?: emptyMap()
+        return try {
+            val evaluate = commandToolExecutor.callFunctionOn(
+                ToolCall("command", "status", args.toMutableMap()),
+                commandService
+            )
+            if (evaluate.exception != null) {
+                ResponseEntity.ok(errorResponse("command_status failed: ${evaluate.exception!!.message}"))
+            } else {
+                ResponseEntity.ok(textResponse(evaluate.value?.toString() ?: ""))
+            }
+        } catch (e: Exception) {
+            logger.error("command_status failed | {}", e.message, e)
+            ResponseEntity.ok(errorResponse("command_status failed: ${e.message}"))
+        }
+    }
+
+    /**
+     * Get the result of a completed command task by its ID.
+     */
+    private suspend fun handleCommandResult(request: MCPToolCallRequest): ResponseEntity<MCPToolCallResponse> {
+        val args = request.arguments ?: emptyMap()
+        return try {
+            val evaluate = commandToolExecutor.callFunctionOn(
+                ToolCall("command", "result", args.toMutableMap()),
+                commandService
+            )
+            if (evaluate.exception != null) {
+                ResponseEntity.ok(errorResponse("command_result failed: ${evaluate.exception!!.message}"))
+            } else {
+                ResponseEntity.ok(textResponse(evaluate.value?.toString() ?: ""))
+            }
+        } catch (e: Exception) {
+            logger.error("command_result failed | {}", e.message, e)
+            ResponseEntity.ok(errorResponse("command_result failed: ${e.message}"))
+        }
     }
 
     // =========================================================================

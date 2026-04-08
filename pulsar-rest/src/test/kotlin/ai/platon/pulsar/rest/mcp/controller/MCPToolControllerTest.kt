@@ -7,6 +7,8 @@ import ai.platon.pulsar.agentic.tools.AgentToolExecutor
 import ai.platon.pulsar.agentic.model.TcEvaluate
 import ai.platon.pulsar.agentic.model.ToolCallResult
 import ai.platon.pulsar.agentic.model.ToolSpec
+import ai.platon.pulsar.agentic.tools.command.CommandService
+import ai.platon.pulsar.agentic.tools.command.CommandStatus
 import ai.platon.pulsar.rest.mcp.service.SessionManager
 import ai.platon.pulsar.rest.mcp.service.SessionManager.ManagedSession
 import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
@@ -33,6 +35,9 @@ class MCPToolControllerTest {
     private lateinit var sessionManager: SessionManager
 
     @Mock
+    private lateinit var commandService: CommandService
+
+    @Mock
     private lateinit var response: HttpServletResponse
 
     @Mock
@@ -54,7 +59,7 @@ class MCPToolControllerTest {
     @BeforeEach
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        controller = MCPToolController(sessionManager)
+        controller = MCPToolController(sessionManager, commandService)
 
         // Setup session structure
         `when`(sessionManager.getSession(sessionId)).thenReturn(managedSession)
@@ -537,6 +542,111 @@ class MCPToolControllerTest {
         assertEquals(HttpStatus.OK, result.statusCode)
         assertTrue(result.body!!.isError)
         assertTrue(result.body!!.content[0].text.contains("Unknown tool: unknown_tool"))
+    }
+
+    @Test
+    fun testCommandRunAsync() = runBlocking {
+        val taskId = "task-abc-123"
+        `when`(commandService.submitPlainCommandAsync("https://example.com")).thenReturn(taskId)
+
+        val request = MCPToolCallRequest(
+            tool = "command_run",
+            arguments = mapOf("command" to "https://example.com", "async" to true)
+        )
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertEquals(taskId, result.body!!.content[0].text)
+        Mockito.verify(commandService).submitPlainCommandAsync("https://example.com")
+        Unit
+    }
+
+    @Test
+    fun testCommandRunAsyncIsDefault() = runBlocking {
+        val taskId = "task-default-async"
+        `when`(commandService.submitPlainCommandAsync("do something")).thenReturn(taskId)
+
+        val request = MCPToolCallRequest(
+            tool = "command_run",
+            arguments = mapOf("command" to "do something")
+        )
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertEquals(taskId, result.body!!.content[0].text)
+        Unit
+    }
+
+    @Test
+    fun testCommandRunSync() = runBlocking {
+        val status = CommandStatus(id = "sync-id", processState = "done")
+        `when`(commandService.executePlainCommandSync("do something")).thenReturn(status)
+
+        val request = MCPToolCallRequest(
+            tool = "command_run",
+            arguments = mapOf("command" to "do something", "async" to false)
+        )
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertTrue(result.body!!.content[0].text.contains("sync-id"))
+        Mockito.verify(commandService).executePlainCommandSync("do something")
+        Unit
+    }
+
+    @Test
+    fun testCommandStatus() = runBlocking {
+        val taskId = "task-xyz"
+        val status = CommandStatus(id = taskId, processState = "done")
+        `when`(commandService.getStatus(taskId)).thenReturn(status)
+
+        val request = MCPToolCallRequest(
+            tool = "command_status",
+            arguments = mapOf("id" to taskId)
+        )
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertTrue(result.body!!.content[0].text.contains(taskId))
+        Mockito.verify(commandService).getStatus(taskId)
+        Unit
+    }
+
+    @Test
+    fun testCommandResult() = runBlocking {
+        val taskId = "task-xyz"
+        val commandResult = ai.platon.pulsar.agentic.tools.command.CommandResult(summary = "done")
+        `when`(commandService.getResult(taskId)).thenReturn(commandResult)
+
+        val request = MCPToolCallRequest(
+            tool = "command_result",
+            arguments = mapOf("id" to taskId)
+        )
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertTrue(result.body!!.content[0].text.contains("done"))
+        Mockito.verify(commandService).getResult(taskId)
+        Unit
+    }
+
+    @Test
+    fun testCommandRunMissingCommandReturnsError() = runBlocking {
+        val request = MCPToolCallRequest(
+            tool = "command_run",
+            arguments = mapOf("async" to true)
+        )
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertTrue(result.body!!.isError)
+        Unit
     }
 
     private fun mockTool(domain: String, method: String) {
