@@ -1,10 +1,15 @@
 package ai.platon.pulsar.rest.api.controller
 
-import ai.platon.pulsar.rest.api.entities.CommandRequest
-import ai.platon.pulsar.rest.api.entities.CommandResult
-import ai.platon.pulsar.rest.api.entities.CommandStatus
-import ai.platon.pulsar.rest.api.service.CommandService
+import ai.platon.pulsar.agentic.tools.command.CommandResult
+import ai.platon.pulsar.agentic.tools.command.CommandService
+import ai.platon.pulsar.agentic.tools.command.CommandStatus
+import ai.platon.pulsar.agentic.tools.crawl.PageVisitRequest
+import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.skeleton.crawl.event.impl.PageEventHandlersFactory
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
@@ -21,6 +26,8 @@ import reactor.core.publisher.Flux
 class CommandController(
     val commandService: CommandService,
 ) {
+    private val logger = getLogger(CommandController::class)
+
     /**
      * Execute a command with structured JSON input and output.
      *
@@ -28,7 +35,7 @@ class CommandController(
      * @return Structured command response
      * */
     @PostMapping(value = ["", "/"])
-    suspend fun submitCommand(@RequestBody request: CommandRequest): ResponseEntity<Any> {
+    suspend fun submitCommand(@RequestBody request: PageVisitRequest): ResponseEntity<Any> {
         val eventHandlers = PageEventHandlersFactory.create()
         val response = when {
             request.isAsync() -> commandService.submitPageVisitCommandAsync(request, eventHandlers)
@@ -41,7 +48,7 @@ class CommandController(
     /**
      * Execute a command with plain text input and output.
      *
-     * When `conversationService.normalizePlainCommand(plainCommand)` returns a valid CommandRequest,
+     * When the command normalizer returns a valid PageVisitRequest,
      * the command is executed using the standard command execution flow.
      * When it returns null (meaning the command cannot be normalized to a URL-based command),
      * the command is executed using the agent's run method.
@@ -86,6 +93,20 @@ class CommandController(
 
     @GetMapping(value = ["/{id}/stream"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun streamEvents(@PathVariable id: String): Flux<ServerSentEvent<CommandStatus>> {
-        return commandService.streamEvents(id)
+        return Flux.create<CommandStatus> { sink ->
+            val job = commandService.commandStatusFlow(id)
+                .onEach { sink.next(it) }
+                .onCompletion { sink.complete() }
+                .catch {
+                    logger.error("Error in command status flow", it)
+                    sink.error(it)
+                }
+                .launchIn(commandService.launchScope())
+
+            sink.onDispose { job.cancel() }
+        }.map {
+            // NOTE: [2025/5/20] JavaScript client-side code expects only JSON data, not the event ID nor event name.
+            ServerSentEvent.builder(it).build()
+        }
     }
 }

@@ -4,7 +4,7 @@ import ai.platon.pulsar.agentic.tools.agent.AgentTaskStatus
 import ai.platon.pulsar.agentic.tools.crawl.PageVisitStatus
 import ai.platon.pulsar.common.ResourceStatus
 import ai.platon.pulsar.persist.metadata.ProtocolStatusCodes
-import ai.platon.pulsar.rest.api.entities.toCommandStatus
+import ai.platon.pulsar.agentic.tools.command.toCommandStatus
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import kotlin.test.assertEquals

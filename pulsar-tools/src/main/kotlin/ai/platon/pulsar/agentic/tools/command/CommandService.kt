@@ -1,4 +1,4 @@
-package ai.platon.pulsar.rest.api.service
+package ai.platon.pulsar.agentic.tools.command
 
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.tools.agent.StatefulAgentRunner
@@ -9,24 +9,29 @@ import ai.platon.pulsar.agentic.tools.crawl.failed
 import ai.platon.pulsar.common.ResourceStatus
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.rest.api.entities.*
 import ai.platon.pulsar.skeleton.crawl.PageEventHandlers
 import ai.platon.pulsar.skeleton.crawl.event.impl.PageEventHandlersFactory
-import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import org.springframework.http.codec.ServerSentEvent
-import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import reactor.core.publisher.FluxSink
+import java.io.Closeable
 import java.time.Instant
 
-@Service
+/**
+ * General-purpose command execution service for page visit and agent commands.
+ *
+ * This service orchestrates command execution through [StatefulPageVisitor] for page visits
+ * and [StatefulAgentRunner] for agent-based commands. It can be used by both REST API
+ * and agentic modules.
+ *
+ * @param session The agentic session for page loading and interaction.
+ * @param commandNormalizer Optional normalizer that converts plain text commands into
+ *        structured [PageVisitRequest] objects. If not provided, plain text commands
+ *        without URLs will be executed as agent commands.
+ */
 class CommandService(
     val session: AgenticSession,
-    val conversationService: ConversationService,
-    val loadService: LoadService,
-) {
+    private val commandNormalizer: CommandNormalizer? = null,
+) : Closeable {
     companion object {
         const val FLOW_POLLING_INTERVAL = 1000L
     }
@@ -44,12 +49,12 @@ class CommandService(
     private val statefulAgentRunner = StatefulAgentRunner(session)
 
     suspend fun executePageVisitCommandSync(
-        request: CommandRequest, eventHandlers: PageEventHandlers
+        request: PageVisitRequest, eventHandlers: PageEventHandlers
     ): CommandStatus {
         return statefulPageVisitor.visit(request, eventHandlers).toCommandStatus()
     }
 
-    fun submitPageVisitCommandAsync(request: CommandRequest, eventHandlers: PageEventHandlers): String {
+    fun submitPageVisitCommandAsync(request: PageVisitRequest, eventHandlers: PageEventHandlers): String {
         val status = statefulPageVisitor.create()
         commanderScope.launch { statefulPageVisitor.visit(request, status, eventHandlers) }
         return status.id
@@ -58,10 +63,9 @@ class CommandService(
     /**
      * Execute a plain command synchronously.
      *
-     * If `conversationService.normalizePlainCommand(plainCommand)` returns a valid CommandRequest,
+     * If a [CommandNormalizer] is configured and returns a valid PageVisitRequest,
      * it executes the command using the standard command execution flow.
-     * If it returns null (meaning the command cannot be normalized to a URL-based command),
-     * it executes the command using the agent's run method.
+     * Otherwise, it executes the command using the agent's run method.
      *
      * @param plainCommand The plain text command to execute.
      * @return CommandStatus containing the execution result.
@@ -71,7 +75,7 @@ class CommandService(
             return CommandStatus.failed(ResourceStatus.SC_BAD_REQUEST)
         }
 
-        val request = conversationService.normalizePlainCommand(plainCommand)
+        val request = commandNormalizer?.normalize(plainCommand)
         return if (request != null) {
             // Page visit execution
             val status = statefulPageVisitor.create()
@@ -88,35 +92,34 @@ class CommandService(
     /**
      * Submit a plain command for asynchronous execution.
      *
-     * If `conversationService.normalizePlainCommand(plainCommand)` returns a valid CommandRequest,
+     * If a [CommandNormalizer] is configured and returns a valid PageVisitRequest,
      * it submits the command using the standard async command execution flow.
-     * If it returns null (meaning the command cannot be normalized to a URL-based command),
-     * it submits the command for agent-based execution.
+     * Otherwise, it submits the command for agent-based execution.
      *
      * @param plainCommand The plain text command to execute.
      * @return The command status ID for tracking execution progress.
      */
     suspend fun submitPlainCommandAsync(plainCommand: String): String {
-        val plainCommand = plainCommand.trim()
+        val command = plainCommand.trim()
 
-        if (plainCommand.isBlank()) {
+        if (command.isBlank()) {
             val status = statefulPageVisitor.create()
             status.failed(ResourceStatus.SC_BAD_REQUEST)
             return status.id
         }
 
-        if (plainCommand.startsWith("http") && Strings.isSingleLine(plainCommand)) {
-            return loadService.load(plainCommand).contentAsString
+        if (command.startsWith("http") && Strings.isSingleLine(command)) {
+            return session.load(command).contentAsString
         }
 
-        val request = conversationService.normalizePlainCommand(plainCommand)
+        val request = commandNormalizer?.normalize(command)
         return if (request != null) {
             // Standard URL-based async command execution
             val eventHandlers = PageEventHandlersFactory.create()
             submitPageVisitCommandAsync(request, eventHandlers)
         } else {
             // Agent-based async command execution
-            submitAgentTaskAsync(plainCommand)
+            submitAgentTaskAsync(command)
         }
     }
 
@@ -147,23 +150,6 @@ class CommandService(
 
     fun getResult(id: String): CommandResult? = getStatus(id)?.commandResult
 
-    fun streamEvents(id: String): Flux<ServerSentEvent<CommandStatus>> {
-        val handleFluxSink = { sink: FluxSink<CommandStatus> ->
-            val job = commandStatusFlow(id).onEach { sink.next(it) }.onCompletion { sink.complete() }.catch {
-                logger.error("Error in command status flow", it)
-                sink.error(it)
-            }.launchIn(commanderScope)
-
-            sink.onDispose { job.cancel() }
-        }
-
-        return Flux.create { sink -> handleFluxSink(sink) }.map {
-            // ServerSentEvent.builder(it).id(it.id).event(it.event).build()
-            // NOTE: [2025/5/20] JavaScript client-side code expects only JSON data, not the event ID nor event name.
-            ServerSentEvent.builder(it).build()
-        }
-    }
-
     fun commandStatusFlow(id: String): Flow<CommandStatus> = flow {
         var lastModifiedTime = Instant.EPOCH
         do {
@@ -185,19 +171,20 @@ class CommandService(
     /**
      * Executes a command based on the provided request string.
      *
-     * This method first attempts to convert the request string into a PromptRequestL2 object.
-     * If successful, it calls the command method with the PromptRequestL2 object.
+     * This method first attempts to convert the request string into a PageVisitRequest object
+     * using the configured [CommandNormalizer].
+     * If successful, it calls the command method with the PageVisitRequest object.
      * If not, it returns a failed status with a status code indicating a bad request.
      *
      * @param request The request string containing a URL and other parameters.
-     * @return A PromptResponseL2 object containing the result of the command execution.
+     * @return A PageVisitStatus object containing the result of the command execution.
      * */
     suspend fun executePageVisitCommand(request: String): PageVisitStatus {
         if (request.isBlank()) {
             return PageVisitStatus.failed(ResourceStatus.SC_BAD_REQUEST)
         }
 
-        val request2 = conversationService.normalizePlainCommand(request) ?: return PageVisitStatus.failed(
+        val request2 = commandNormalizer?.normalize(request) ?: return PageVisitStatus.failed(
             ResourceStatus.SC_EXPECTATION_FAILED
         )
 
@@ -209,8 +196,15 @@ class CommandService(
         return statefulPageVisitor.visit(request)
     }
 
-    @PreDestroy
-    fun destroy() {
+    /**
+     * Returns the command service's coroutine scope.
+     *
+     * This is useful for external callers that need to launch coroutines
+     * tied to the command service's lifecycle.
+     */
+    fun launchScope(): CoroutineScope = commanderScope
+
+    override fun close() {
         commanderScope.cancel()
     }
 }
