@@ -38,6 +38,10 @@
             <groupId>ai.platon.pulsar</groupId>
             <artifactId>pulsar-protocol</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ai.platon.pulsar</groupId>
+            <artifactId>pulsar-tools</artifactId>
+        </dependency>
 
         <!-- MCP SDK for Browser4 MCP server support -->
         <dependency>
