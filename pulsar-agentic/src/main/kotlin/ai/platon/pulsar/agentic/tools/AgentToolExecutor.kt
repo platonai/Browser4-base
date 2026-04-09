@@ -71,6 +71,7 @@ class AgentToolExecutor constructor(
             FileSystemToolExecutor(),
             ShellToolExecutor(),
             AgentToolExecutor(),
+            CommandToolExecutor(),
             system,
             skills
         )

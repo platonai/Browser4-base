@@ -5,7 +5,7 @@ import ai.platon.pulsar.agentic.model.ToolCall
 import ai.platon.pulsar.agentic.model.ToolSpec
 import ai.platon.pulsar.agentic.tools.AgentToolExecutor
 import ai.platon.pulsar.agentic.tools.high.command.CommandService
-import ai.platon.pulsar.agentic.tools.high.command.CommandToolExecutor
+import ai.platon.pulsar.agentic.tools.builtin.CommandToolExecutor
 import ai.platon.pulsar.rest.mcp.service.SessionManager
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty

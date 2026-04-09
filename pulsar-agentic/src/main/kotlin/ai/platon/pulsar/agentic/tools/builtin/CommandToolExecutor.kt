@@ -1,17 +1,17 @@
-package ai.platon.pulsar.agentic.tools.high.command
+package ai.platon.pulsar.agentic.tools.builtin
 
 import ai.platon.pulsar.agentic.model.ToolSpec
-import ai.platon.pulsar.agentic.tools.builtin.AbstractToolExecutor
+import ai.platon.pulsar.agentic.tools.high.command.CommandService
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
 import kotlin.reflect.KClass
 
 /**
- * Tool executor that exposes [CommandService] methods as agent tools.
+ * Tool executor that exposes [ai.platon.pulsar.agentic.tools.high.command.CommandService] methods as agent tools.
  *
  * Domain: `command`
  *
  * ## Supported Methods:
- * - `run(command, async?)` — Execute a plain command. Returns a task ID (async) or a [CommandStatus] JSON (sync).
+ * - `run(command, async?)` — Execute a plain command. Returns a task ID (async) or a [ai.platon.pulsar.agentic.tools.high.command.CommandStatus] JSON (sync).
  * - `status(id)` — Get the status of a running command task.
  * - `result(id)` — Get the result of a completed command task.
  *
@@ -23,7 +23,7 @@ import kotlin.reflect.KClass
  * // command.result(id="<task-id>")
  * ```
  *
- * @see CommandService
+ * @see ai.platon.pulsar.agentic.tools.high.command.CommandService
  */
 class CommandToolExecutor : AbstractToolExecutor() {
 
