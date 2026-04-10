@@ -1454,7 +1454,7 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
                 &base_url,
                 &tool_name,
                 &tool_params,
-                matches!(command, "goto" | "open-and-scroll-to-bottom"),
+                matches!(command, "goto"),
                 global.session_name.as_deref(),
             )
             .await?;

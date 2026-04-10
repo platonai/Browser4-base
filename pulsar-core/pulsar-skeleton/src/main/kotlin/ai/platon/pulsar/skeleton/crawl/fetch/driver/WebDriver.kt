@@ -255,28 +255,6 @@ interface WebDriver : Closeable {
     }
 
     /**
-     * Opens the specified URL in a new browser tab, waits for the page body to be available,
-     * then scrolls the new tab to the bottom. @mcp
-     *
-     * ```kotlin
-     * driver.openAndScrollToBottom("https://www.example.com")
-     * ```
-     *
-     * @param url The URL to open in the new tab.
-     * @return The final vertical scroll offset of the newly opened tab.
-     * @throws WebDriverException If tab creation, navigation, waiting, or scrolling fails.
-     */
-    @Throws(WebDriverException::class)
-    @MCP
-    suspend fun openAndScrollToBottom(url: String): Double {
-        val newDriver = browser.newDriver(url)
-        newDriver.bringToFront()
-        newDriver.waitForNavigation()
-        newDriver.waitForSelector("body", 10_000)
-        return newDriver.scrollToBottom()
-    }
-
-    /**
      * Navigates current page to the given URL. @mcp
      *
      * ```kotlin

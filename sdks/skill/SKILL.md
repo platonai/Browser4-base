@@ -34,7 +34,6 @@ browser4-cli open
 # open and navigate right away
 browser4-cli open https://example.com/
 browser4-cli goto https://browser4.io/
-browser4-cli open-and-scroll-to-bottom https://playwright.dev/
 browser4-cli type "search query"
 browser4-cli click e3
 browser4-cli dblclick e7
@@ -58,7 +57,6 @@ browser4-cli close
 browser4-cli go-back
 browser4-cli go-forward
 browser4-cli reload
-browser4-cli open-and-scroll-to-bottom https://playwright.dev/
 ```
 
 ### Keyboard

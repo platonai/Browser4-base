@@ -162,19 +162,6 @@ pub fn all_commands() -> Vec<CommandDef> {
             },
         },
         CommandDef {
-            name: "open-and-scroll-to-bottom",
-            description: "Open a URL in a new tab and scroll to the bottom",
-            category: Category::Navigation,
-            hidden: false,
-            args: &[ArgDef { name: "url", description: "The URL to open in a new tab", optional: false }],
-            options: &[],
-            tool_name_fn: |_| "browser_open_and_scroll_to_bottom".to_string(),
-            tool_params_fn: |args| {
-                let url = get_str(args, "url").unwrap_or_default();
-                json!({ "url": url })
-            },
-        },
-        CommandDef {
             name: "go-back",
             description: "Go back to the previous page",
             category: Category::Navigation,
@@ -925,7 +912,6 @@ mod tests {
             "open",
             "close",
             "goto",
-            "open-and-scroll-to-bottom",
             "click",
             "type",
             "fill",
@@ -972,17 +958,6 @@ mod tests {
         assert_eq!((cmd.tool_name_fn)(&args), "agent_extract");
         let params = (cmd.tool_params_fn)(&args);
         assert_eq!(params["instruction"], "product name, price");
-    }
-
-    #[test]
-    fn test_open_and_scroll_to_bottom_tool_name_and_params() {
-        let map = commands_map();
-        let cmd = map.get("open-and-scroll-to-bottom").unwrap();
-        let mut args = HashMap::new();
-        args.insert("url".to_string(), json!("https://playwright.dev"));
-        assert_eq!((cmd.tool_name_fn)(&args), "browser_open_and_scroll_to_bottom");
-        let params = (cmd.tool_params_fn)(&args);
-        assert_eq!(params["url"], "https://playwright.dev");
     }
 
     #[test]

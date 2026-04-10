@@ -47,7 +47,6 @@ browser4-cli -s=<session> <command> [args] [options]
 | `open [url]` | Open a new browser session (optionally navigate to URL) |
 | `close` | Close the active session |
 | `goto <url>` | Navigate to a URL |
-| `open-and-scroll-to-bottom <url>` | Open a URL in a new tab and scroll to the bottom |
 | `click <ref> [button]` | Click an element |
 | `dblclick <ref> [button]` | Double-click an element |
 | `type <ref> <text>` | Type text into an element |
@@ -72,7 +71,6 @@ browser4-cli -s=<session> <command> [args] [options]
 | `go-back` | Go back to the previous page |
 | `go-forward` | Go forward to the next page |
 | `reload` | Reload the current page |
-| `open-and-scroll-to-bottom <url>` | Open a URL in a new tab and scroll to the bottom |
 
 #### Keyboard
 
@@ -154,9 +152,6 @@ browser4-cli open
 
 # Navigate to a page
 browser4-cli goto https://playwright.dev
-
-# Open a new tab and jump to the page bottom
-browser4-cli open-and-scroll-to-bottom https://playwright.dev
 
 # Inspect the page — note the eN labels on interactive nodes
 browser4-cli snapshot

@@ -42,10 +42,6 @@ class BrowserTabToolExecutor: AbstractToolExecutor() {
         return when (functionName) {
             // Navigation
             "open" -> { validateArgs(args, allowed("url"), setOf("url"), functionName); driver.open(paramString(args, "url", functionName)!!) }
-            "openAndScrollToBottom" -> {
-                validateArgs(args, allowed("url"), setOf("url"), functionName)
-                driver.openAndScrollToBottom(paramString(args, "url", functionName)!!)
-            }
             "navigate" -> {
                 when {
                     args.containsKey("url") -> { validateArgs(args, allowed("url"), setOf("url"), functionName); driver.navigate(paramString(args, "url", functionName)!!) }

@@ -199,7 +199,6 @@ class MCPToolControllerTest {
             mapOf(
                 "tab" to mapOf(
                     "navigate" to ToolSpec(domain = "tab", method = "navigate", description = "desc"),
-                    "openAndScrollToBottom" to ToolSpec(domain = "tab", method = "openAndScrollToBottom", description = "desc"),
                     "title" to ToolSpec(domain = "tab", method = "title", description = "desc"),
                     "currentUrl" to ToolSpec(domain = "tab", method = "currentUrl", description = "desc"),
                     "keyDown" to ToolSpec(domain = "tab", method = "keyDown", description = "desc"),
@@ -227,8 +226,6 @@ class MCPToolControllerTest {
         assertTrue(tools.contains("open_session"))
         assertTrue(tools.contains("navigate"))
         assertTrue(tools.contains("browser_navigate"))
-        assertTrue(tools.contains("open_and_scroll_to_bottom"))
-        assertTrue(tools.contains("browser_open_and_scroll_to_bottom"))
         assertTrue(tools.contains("browser_click"))
         assertTrue(tools.contains("browser_handle_dialog"))
         assertTrue(tools.contains("browser_keydown"))
@@ -292,29 +289,6 @@ class MCPToolControllerTest {
 
         assertEquals("tab", toolCall.domain)
         assertEquals("navigate", toolCall.method)
-        assertTrue(!toolCall.arguments.containsKey("sessionId"))
-        assertEquals("https://example.com", toolCall.arguments["url"])
-    }
-
-    @Test
-    fun `test frontend open and scroll tool maps to openAndScrollToBottom`() = runBlocking {
-        mockTool("tab", "openAndScrollToBottom")
-
-        val request = MCPToolCallRequest(
-            tool = "browser_open_and_scroll_to_bottom",
-            arguments = mapOf("sessionId" to sessionId, "url" to "https://example.com")
-        )
-
-        val result = controller.callTool(request, response)
-
-        assertEquals(HttpStatus.OK, result.statusCode)
-
-        val captor = ArgumentCaptor.forClass(ToolCall::class.java)
-        Mockito.verify(agentToolExecutor).execute(capture(captor))
-        val toolCall = captor.value
-
-        assertEquals("tab", toolCall.domain)
-        assertEquals("openAndScrollToBottom", toolCall.method)
         assertTrue(!toolCall.arguments.containsKey("sessionId"))
         assertEquals("https://example.com", toolCall.arguments["url"])
     }

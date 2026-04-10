@@ -8,7 +8,6 @@ object ToolSpecification {
     const val TOOL_CALL_SPECIFICATION = """
 // domain: tab
 tab.navigate(url: String)
-tab.openAndScrollToBottom(url: String): Double
 tab.reload()
 tab.goBack()
 tab.goForward()
