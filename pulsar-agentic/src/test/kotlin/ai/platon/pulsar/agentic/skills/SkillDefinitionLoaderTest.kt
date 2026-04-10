@@ -25,6 +25,7 @@ class SkillDefinitionLoaderTest {
         assertTrue(skillIds.contains("web-scraping"), "Should load web-scraping skill")
         assertTrue(skillIds.contains("form-filling"), "Should load form-filling skill")
         assertTrue(skillIds.contains("data-validation"), "Should load data-validation skill")
+        assertTrue(skillIds.contains("weather"), "Should load weather skill")
     }
 
     @Test
@@ -60,6 +61,37 @@ class SkillDefinitionLoaderTest {
             assertEquals("form-filling", it.skillId)
             assertEquals("form-filling", it.name)
             assertTrue(it.dependencies.contains("web-scraping"), "Should have web-scraping dependency")
+        }
+    }
+
+    @Test
+    fun shouldParseWeatherSkillMetadataCorrectly() {
+        val loader = SkillDefinitionLoader()
+
+        val definitions = loader.loadFromResources("skills")
+        val weatherSkill = definitions.find { it.skillId == "weather" }
+
+        assertNotNull(weatherSkill, "Weather skill should be found")
+        weatherSkill?.let {
+            assertEquals("weather", it.skillId)
+            assertEquals("weather", it.name)
+            assertEquals("1.0.0", it.version)
+            assertEquals("Browser4", it.author)
+            assertTrue(it.description.contains("7-day forecast"))
+            assertTrue(it.tags.contains("weather"))
+            assertTrue(it.tags.contains("forecast"))
+            assertTrue(it.allowedTools.contains("python"))
+            assertTrue(it.dependencies.isEmpty())
+
+            val locationParam = it.parameters["location"]
+            assertNotNull(locationParam, "Should have location parameter")
+            assertEquals("String", locationParam?.type)
+            assertTrue(locationParam?.required == true)
+
+            val unitsParam = it.parameters["units"]
+            assertNotNull(unitsParam, "Should have units parameter")
+            assertEquals("metric", unitsParam?.defaultValue)
+            assertFalse(unitsParam?.required == true)
         }
     }
 

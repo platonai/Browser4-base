@@ -39,16 +39,16 @@ import org.slf4j.LoggerFactory
  */
 class WebScrapingSkill : AbstractSkill() {
     private val logger = LoggerFactory.getLogger(WebScrapingSkill::class.java)
-    
+
     companion object {
         /**
          * Maximum number of characters to include in the extracted text to avoid overwhelming responses.
          */
         private const val MAX_TEXT_LENGTH = 5000
     }
-    
+
     override val metadata = SkillMetadata(
-        id = "web-scraping",
+        id = "skill.debug.scraping",
         name = "Web Scraping",
         version = "1.0.0",
         description = "Extract data from web pages using CSS selectors",
@@ -125,11 +125,11 @@ class WebScrapingSkill : AbstractSkill() {
         return try {
             // Extract title using JavaScript - evaluate() returns the primitive value
             val title = driver.evaluate("document.title")?.toString() ?: ""
-            
+
             // Extract text content using JavaScript - evaluateValue() serializes complex objects to JSON
             // Using evaluateValue() for body.textContent ensures proper string serialization
             val text = driver.evaluateValue("document.body.textContent")?.toString() ?: ""
-            
+
             // Build the extracted data map
             val extractedData = mutableMapOf<String, Any>(
                 "url" to url,
@@ -138,9 +138,9 @@ class WebScrapingSkill : AbstractSkill() {
                 "title" to title,
                 "text" to text.take(MAX_TEXT_LENGTH)
             )
-            
+
             logger.info("Successfully extracted data from {} using JavaScript", url)
-            
+
             SkillResult.success(
                 data = extractedData,
                 message = "Successfully extracted data from $url using JavaScript"
@@ -164,12 +164,12 @@ class WebScrapingSkill : AbstractSkill() {
             // Load the page
             logger.info("Loading page {} using PulsarSession", url)
             val page = session.load(url)
-            
+
             // Parse the page to get the document
             val doc = session.parse(page)
             val title = doc.title
             val text = doc.body.text()
-            
+
             val extractedData = mapOf(
                 "url" to url,
                 "selector" to selector,
@@ -177,9 +177,9 @@ class WebScrapingSkill : AbstractSkill() {
                 "title" to title,
                 "text" to text.take(MAX_TEXT_LENGTH)
             )
-            
+
             logger.info("Successfully extracted data from {} using PulsarSession", url)
-            
+
             SkillResult.success(
                 data = extractedData,
                 message = "Successfully extracted data from $url using PulsarSession"

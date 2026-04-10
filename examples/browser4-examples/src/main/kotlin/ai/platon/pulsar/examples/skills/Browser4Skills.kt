@@ -1,5 +1,6 @@
 package ai.platon.pulsar.examples.skills
 
+import ai.platon.pulsar.agentic.agents.BasicBrowserAgent
 import ai.platon.pulsar.agentic.context.AgenticContexts
 import ai.platon.pulsar.agentic.skills.SkillContext
 import ai.platon.pulsar.agentic.skills.SkillRegistry
@@ -24,11 +25,11 @@ suspend fun main() {
     //   (2) SkillToolTarget into AgentToolManager as the target object for domain `skill`
 
     // Create the agent (initializes BrowserAgentActor and its AgentToolManager auto-wiring)
-    val agent = AgenticContexts.getOrCreateAgent()
+    val agent = AgenticContexts.getOrCreateAgent() as BasicBrowserAgent
 
     // Get or create the skill registry
     val registry = SkillRegistry.instance
-    val context = SkillContext(sessionId = "browser4-skills-demo")
+    val context = agent.toolExtractor.skillContext
 
     // Register example skills
     val webScrapingSkill = WebScrapingSkill()
@@ -45,7 +46,8 @@ suspend fun main() {
 
     // Use agent with a skill-oriented task
     val task = """
-        Use skill.debug.scraping to scrape https://agentskills.io/specification
+        Use SKILL `skill.debug.scraping` to scrape https://agentskills.io/specification by selector `#header`.
+        export the result as csv format.
         """.trimIndent()
 
     val history = agent.run(task)

@@ -132,6 +132,7 @@ mod tests {
     fn test_generate_help_contains_commands() {
         let help = generate_help();
         assert!(help.contains("goto"));
+        assert!(help.contains("open-and-scroll-to-bottom"));
         assert!(help.contains("click"));
         assert!(help.contains("snapshot"));
         assert!(help.contains("Core:"));
@@ -152,6 +153,18 @@ mod tests {
         let help = generate_command_help(goto);
         assert!(help.contains("browser4-cli goto <url>"));
         assert!(help.contains("Navigate to a URL"));
+    }
+
+    #[test]
+    fn test_generate_command_help_open_and_scroll_to_bottom() {
+        let cmds = all_commands();
+        let cmd = cmds
+            .iter()
+            .find(|c| c.name == "open-and-scroll-to-bottom")
+            .unwrap();
+        let help = generate_command_help(cmd);
+        assert!(help.contains("browser4-cli open-and-scroll-to-bottom <url>"));
+        assert!(help.contains("Open a URL in a new tab and scroll to the bottom"));
     }
 
     #[test]

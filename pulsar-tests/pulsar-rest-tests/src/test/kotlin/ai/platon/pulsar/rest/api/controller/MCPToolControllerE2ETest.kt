@@ -63,6 +63,7 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
         // Core
         "open" to "open_session",
         "goto" to "browser_navigate",
+        "open-and-scroll-to-bottom" to "browser_open_and_scroll_to_bottom",
         "click" to "browser_click",
         "dblclick" to "browser_click",
         "fill" to "browser_type",
@@ -216,6 +217,7 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
         val sid = openSession()
 
         assertToolRecognized("browser_navigate", mapOf("sessionId" to sid, "url" to MOCK_PRODUCT_DETAIL_URL))
+        assertToolRecognized("browser_open_and_scroll_to_bottom", mapOf("sessionId" to sid, "url" to MOCK_PRODUCT_DETAIL_URL))
         assertToolRecognized("browser_snapshot", mapOf("sessionId" to sid))
         assertToolRecognized("browser_tabs", mapOf("sessionId" to sid, "action" to "list"))
     }
@@ -316,6 +318,14 @@ class MCPToolControllerE2ETest : RestAPITestBase() {
     fun testNavigate() {
         val sid = openSession()
         val response = callTool("navigate", mapOf("sessionId" to sid, "url" to MOCK_PRODUCT_DETAIL_URL))
+        assertNotError(response)
+    }
+
+    @Test
+    @DisplayName("open_and_scroll_to_bottom opens a URL in a new tab and scrolls it (cli: open-and-scroll-to-bottom)")
+    fun testOpenAndScrollToBottom() {
+        val sid = openSession()
+        val response = callTool("browser_open_and_scroll_to_bottom", mapOf("sessionId" to sid, "url" to MOCK_PRODUCT_DETAIL_URL))
         assertNotError(response)
     }
 

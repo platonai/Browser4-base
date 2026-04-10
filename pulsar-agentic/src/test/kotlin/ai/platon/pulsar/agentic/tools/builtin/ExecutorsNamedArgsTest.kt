@@ -76,4 +76,19 @@ class ExecutorsNamedArgsTest {
         runBlocking { executor.callFunctionOn(tc, driver) }
         coVerify { driver.drag(sourceSelector = "#from", targetSelector = "#to") }
     }
+
+    @Test
+    fun driver_openAndScrollToBottom_uses_named_args() {
+        val driver = mockk<WebDriver>(relaxed = true)
+        coEvery { driver.openAndScrollToBottom(any()) } returns 1024.0
+        val executor = BrowserTabToolExecutor()
+        val tc = ToolCall(
+            domain = "tab",
+            method = "openAndScrollToBottom",
+            arguments = mutableMapOf("url" to "https://example.com")
+        )
+
+        runBlocking { executor.callFunctionOn(tc, driver) }
+        coVerify { driver.openAndScrollToBottom("https://example.com") }
+    }
 }

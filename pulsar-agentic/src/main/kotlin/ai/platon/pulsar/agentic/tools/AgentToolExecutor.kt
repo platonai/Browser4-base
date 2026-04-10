@@ -41,6 +41,7 @@ class AgentToolExecutor constructor(
                 "session" to session,
                 "agent" to agent,
                 "tab" to driver,
+                "driver" to driver,
             ),
         )
     }
@@ -211,6 +212,7 @@ class AgentToolExecutor constructor(
         val method = tc.method
         when (method) {
             "switchTab" -> onDidSwitchTab(evaluate)
+            "openAndScrollToBottom" -> onDidSwitchTab(evaluate)
             "navigate" -> onDidNavigate(driver, tc, evaluate)
         }
 

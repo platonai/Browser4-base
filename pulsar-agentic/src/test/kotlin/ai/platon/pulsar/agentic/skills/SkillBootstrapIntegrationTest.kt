@@ -32,23 +32,24 @@ class SkillBootstrapIntegrationTest {
         val registry = SkillRegistry.instance
 
         // At least the built-in resource skills should be present.
-        assertTrue(registry.size() >= 3, "At least 3 resource skills should be auto-loaded")
+        assertTrue(registry.size() >= 4, "At least 4 resource skills should be auto-loaded")
 
         // Verify specific resource skills (defined by resources/skills/*/SKILL.md)
         assertTrue(registry.contains("web-scraping"), "Skill 'web-scraping' should be auto-loaded")
         assertTrue(registry.contains("form-filling"), "Skill 'form-filling' should be auto-loaded")
         assertTrue(registry.contains("data-validation"), "Skill 'data-validation' should be auto-loaded")
+        assertTrue(registry.contains("weather"), "Skill 'weather' should be auto-loaded")
     }
 
     @Test
     fun skillsAreAccessibleAfterContextCreation() {
         val registry = SkillRegistry.instance
 
-        val webScrapingSkill = registry.get("web-scraping")
-        assertNotNull(webScrapingSkill)
+        val weatherSkill = registry.get("weather")
+        assertNotNull(weatherSkill)
 
-        assertEquals("Web Scraping", webScrapingSkill!!.metadata.name)
-        assertEquals("1.0.0", webScrapingSkill.metadata.version)
+        assertEquals("Weather", weatherSkill!!.metadata.name)
+        assertEquals("1.0.0", weatherSkill.metadata.version)
     }
 
     @Test

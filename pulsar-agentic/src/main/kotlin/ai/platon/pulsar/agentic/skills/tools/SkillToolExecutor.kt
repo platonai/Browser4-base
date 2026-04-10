@@ -24,6 +24,7 @@ import kotlin.reflect.KClass
 class SkillToolExecutor(
     private val registry: SkillRegistry = SkillRegistry.instance,
 ) : AbstractToolExecutor(), ToolCallSpecificationProvider {
+    private val scriptTools = SkillScriptToolExecutor(registry)
 
     override val domain: String = "skill"
 
@@ -98,6 +99,10 @@ class SkillToolExecutor(
             returnType = "String",
             description = "Read the full SKILL.md documentation for a registered skill"
         )
+
+        scriptTools.getToolSpecs().forEach { (method, spec) ->
+            toolSpec.putIfAbsent(method, spec)
+        }
     }
 
     override fun getToolCallSpecifications(): List<ToolSpec> {
@@ -220,6 +225,9 @@ class SkillToolExecutor(
 
                 doc
             }
+
+            "readReference",
+            "runScript" -> scriptTools.callFunctionOn(domain, functionName, args, receiver)
 
             else -> throw IllegalArgumentException("Unsupported $domain method: $functionName(${args.keys})")
         }

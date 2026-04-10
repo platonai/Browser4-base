@@ -80,6 +80,7 @@ class MCPToolController(
     companion object {
         private val FRONTEND_TOOL_NAME_ALIASES: Map<String, String> = mapOf(
             "browser_navigate" to "navigate",
+            "browser_open_and_scroll_to_bottom" to "open_and_scroll_to_bottom",
             "browser_snapshot" to "aria_snapshot",
             "browser_navigate_back" to "go_back",
             "browser_navigate_forward" to "go_forward",

@@ -43,6 +43,24 @@ Validate data against specified rules.
 - Extensible rule system
 - Comprehensive error reporting
 
+### [HTML to PDF](./html-to-pdf/SKILL.md)
+Convert live web pages into PDF documents.
+
+**Key Features:**
+- URL-to-PDF conversion
+- Playwright-first rendering for dynamic pages
+- WeasyPrint fallback for static pages
+- Machine-readable JSON output with saved file path
+
+### [Weather](./weather/SKILL.md)
+Fetch current weather conditions and a 7-day forecast for a named location.
+
+**Key Features:**
+- No API key required
+- Current conditions plus 7-day forecast
+- Open-Meteo geocoding for free-form place names
+- Machine-readable JSON output for agents
+
 ## Creating a New Skill
 
 To create a new skill, follow these steps:

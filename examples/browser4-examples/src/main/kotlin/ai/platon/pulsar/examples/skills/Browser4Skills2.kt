@@ -7,7 +7,7 @@ suspend fun main() {
 
     // Use agent with a skill-oriented task
     val task = """
-        Use skill.debug.scraping.extract to scrape https://example.com
+        Use `skill.weather` SKILL to get the current weather in WuHan
         """.trimIndent()
 
     val history = agent.run(task)

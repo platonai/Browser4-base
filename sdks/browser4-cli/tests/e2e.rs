@@ -1157,6 +1157,31 @@ fn test_session_and_navigation(ctx: &mut E2ECtx) {
         "Expected to be on interactive path",
     );
 
+    run_command(ctx, &["open-and-scroll-to-bottom", &other_url]);
+    wait_for_eval_text(
+        ctx,
+        "window.location.pathname",
+        OTHER_PATH,
+        15_000,
+        "Expected to be on other path after open-and-scroll-to-bottom",
+    );
+    wait_for_eval_text(
+        ctx,
+        "(() => (window.innerHeight + window.scrollY >= document.body.scrollHeight - 5 ? 'bottom' : 'not-bottom'))()",
+        "bottom",
+        15_000,
+        "Expected the new tab to be scrolled to the bottom",
+    );
+    let tab_output = strip_snapshot_output(&run_command(ctx, &["tab-list"]).stdout);
+    assert!(
+        tab_output.contains(&interactive_url),
+        "Expected interactive URL in tab-list after open-and-scroll-to-bottom:\n{tab_output}"
+    );
+    assert!(
+        tab_output.contains(&other_url),
+        "Expected other URL in tab-list after open-and-scroll-to-bottom:\n{tab_output}"
+    );
+
     run_command(ctx, &["goto", &other_url]);
     wait_for_eval_text(
         ctx,
@@ -1753,6 +1778,7 @@ fn tested_commands() -> HashSet<&'static str> {
         "open",
         "list",
         "goto",
+        "open-and-scroll-to-bottom",
         "go-back",
         "go-forward",
         "reload",

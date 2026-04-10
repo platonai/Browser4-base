@@ -14,6 +14,20 @@
   "cli" : "browser4-cli tab open --url=<String>, default="
 }, {
   "domain" : "tab",
+  "method" : "openAndScrollToBottom",
+  "arguments" : [ {
+    "name" : "url",
+    "type" : "String",
+    "expression" : "url: String = ",
+    "cliOptions" : "--url=<String>, default="
+  } ],
+  "returnType" : "Double",
+  "description" : "Opens the specified URL in a new browser tab, waits for the page body to be available, then scrolls the new tab to the bottom.",
+  "help" : "Opens the specified URL in a new browser tab, waits for the page body to be available, then scrolls the new tab to the bottom.\n\n```kotlin driver.openAndScrollToBottom(\"https://www.example.com\") ```",
+  "expression" : "tab.openAndScrollToBottom(Arg(name=url, type=String, defaultValue=))",
+  "cli" : "browser4-cli tab openAndScrollToBottom --url=<String>, default="
+}, {
+  "domain" : "tab",
   "method" : "navigate",
   "arguments" : [ {
     "name" : "url",
