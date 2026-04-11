@@ -22,8 +22,6 @@ import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
 import kotlinx.coroutines.withTimeout
 import java.nio.file.Path
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 const val AGENT_HISTORY_FILE_NAME = "state-history.jsonl"
@@ -113,7 +111,7 @@ class AgentStateManager(
             _baseContext = buildInitExecutionContext(action, event)
             setActiveContext(_baseContext)
         } else if (action.multiAct) {
-            require(!action.fromResolve)
+            require(!action.fromRunLoop)
             val lastActiveContext = getActiveContext()
             val step = lastActiveContext.step + 1
             val context = buildExecutionContext(

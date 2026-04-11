@@ -542,13 +542,13 @@ open class BasicBrowserAgent(
 
     private suspend fun doObserveAct(options: ActionOptions): ActResult {
         val options = when {
-            !options.fromResolve -> options.copy(action = promptBuilder.buildObserveActToolUsePrompt(options.action))
+            !options.fromRunLoop -> options.copy(action = promptBuilder.buildObserveActToolUsePrompt(options.action))
             else -> options
         }
 
         val context = stateManager.getActiveContext()
 
-        val (observeResults, actionDescription) = doObserveActObserve(options, context, options.fromResolve)
+        val (observeResults, actionDescription) = doObserveActObserve(options, context, options.fromRunLoop)
 
         if (actionDescription.isDecidedComplete) {
             return ActResultHelper.complete(actionDescription)
