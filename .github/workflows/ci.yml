@@ -71,7 +71,7 @@ jobs:
 
       - name: Run Tests
         id: run-tests
-        if: inputs.skip_tests != true # Temporarily disable tests in CI pipeline
+        if: inputs.skip_tests != true
         uses: ./.github/actions/run-tests
         with:
           maven_profiles: 'all-modules'
@@ -82,89 +82,15 @@ jobs:
           timeout_minutes: '35'
 
       - name: Check Test Status
-        if: always() && inputs.skip_tests != true # Temporarily disable tests in CI pipeline
-        shell: bash
+        if: inputs.skip_tests != true
         run: |
-          test_status="${{ steps.run-tests.outputs.test_status }}"
-          test_status="${test_status:-failed}"
-
-          if [ "$test_status" != "success" ]; then
-            echo "❌ Tests failed with status: $test_status"
+          if [ "${{ steps.run-tests.outputs.test_status }}" != "success" ]; then
+            echo "❌ Tests failed with status: ${{ steps.run-tests.outputs.test_status }}"
             echo "📊 Test Results:"
             echo "  - Total Tests: ${{ steps.run-tests.outputs.test_count }}"
             echo "  - Failed Tests: ${{ steps.run-tests.outputs.failed_count }}"
             echo "  - Passed Tests: ${{ steps.run-tests.outputs.passed_count }}"
             echo "  - Skipped Tests: ${{ steps.run-tests.outputs.skipped_count }}"
-            echo ""
-            echo "🔎 Failed test cases:"
-
-            python3 <<'PY'
-            import os
-            import xml.etree.ElementTree as ET
-            from pathlib import Path
-
-            report_files = sorted(Path(".").glob("**/TEST-*.xml"))
-            failures = []
-
-            for report_file in report_files:
-                try:
-                    root = ET.parse(report_file).getroot()
-                except ET.ParseError as exc:
-                    print(f"::warning file={report_file}::Unable to parse test report: {exc}")
-                    continue
-
-                for case in root.findall(".//testcase"):
-                    failed_nodes = [node for tag in ("failure", "error") for node in case.findall(tag)]
-                    if not failed_nodes:
-                        continue
-
-                    classname = (
-                        case.attrib.get("classname")
-                        or case.attrib.get("className")
-                        or root.attrib.get("name")
-                        or report_file.stem.removeprefix("TEST-")
-                    )
-                    name = case.attrib.get("name", "<unknown>")
-                    duration = case.attrib.get("time")
-
-                    for node in failed_nodes:
-                        raw_message = (node.attrib.get("message") or node.text or "").strip()
-                        message = raw_message.splitlines()[0] if raw_message else "No details provided"
-                        failures.append((str(report_file), classname, name, node.tag, message, duration))
-
-            if not failures:
-                print("  - No per-test failure details were found in TEST-*.xml reports.")
-            else:
-                for report_file, classname, name, failure_type, message, duration in failures[:50]:
-                    duration_suffix = f" ({duration}s)" if duration else ""
-                    print(f"  - {classname}#{name}{duration_suffix}: {message}")
-
-                    escaped_message = (
-                        f"{failure_type}: {message}"
-                        .replace("%", "%25")
-                        .replace("\r", "%0D")
-                        .replace("\n", "%0A")
-                    )
-                    print(f"::error file={report_file},title={classname}#{name}::{escaped_message}")
-
-                remaining = len(failures) - 50
-                if remaining > 0:
-                    print(f"  - ... and {remaining} more failing test case(s)")
-
-                summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-                if summary_path:
-                    with open(summary_path, "a", encoding="utf-8") as summary:
-                        summary.write("### ❌ Failed test cases\n\n")
-                        for _, classname, name, failure_type, message, duration in failures[:20]:
-                            duration_suffix = f" ({duration}s)" if duration else ""
-                            summary.write(
-                                f"- `{classname}#{name}`{duration_suffix} - **{failure_type}**: {message}\n"
-                            )
-                        if len(failures) > 20:
-                            summary.write(f"- ... and {len(failures) - 20} more failing test case(s)\n")
-                        summary.write("\n")
-            PY
-
             exit 1
           else
             echo "✅ All tests passed successfully"
