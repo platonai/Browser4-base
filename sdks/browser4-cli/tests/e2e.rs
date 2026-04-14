@@ -2,16 +2,16 @@
 //!
 //! The scenarios run sequentially in a custom `harness = false` test target so
 //! they can reuse the proven ordering without libtest starting multiple
-//! Browser4 backends concurrently. Covered commands are tracked per scenario
-//! via [`E2ECtx::covered_commands`]; the dedicated coverage check verifies that
-//! the union of all tested commands plus the explicitly-excluded set equals the
-//! full command list from [`browser4_cli::commands::all_commands`].
+//! Browser4 backends concurrently. A dedicated coverage check verifies that the
+//! union of all tested commands plus the explicitly-excluded set equals the
+//! full command list from [`browser4_cli::commands::all_commands`], and the
+//! custom runner prints per-test timings to make slow cases easy to spot.
 //!
 //! # Running
 //!
 //! ```bash
 //! cargo test --test e2e -- --nocapture
-//! cargo test --test e2e -- --nocapture --scenario=test_e2e_agent_and_collective_commands
+//! cargo test --test e2e -- --nocapture --scenario=test_e2e_agent_task_commands
 //! ```
 //!
 //! The Browser4 service is resolved in this order:
@@ -857,7 +857,6 @@ struct E2ECtx {
     workspace_dir: PathBuf,
     state_dir: PathBuf,
     upload_file_path: PathBuf,
-    covered_commands: HashSet<String>,
 }
 
 impl E2ECtx {
@@ -883,18 +882,25 @@ struct E2ETestResources {
 }
 
 impl E2ETestResources {
-    fn restart_browser4(&mut self) {
+    fn ensure_browser4(&mut self) {
         if self.external_service {
-            // The service is managed externally; nothing to restart.
+            // The service is managed externally; nothing to start locally.
             return;
         }
-        self.browser4 = None;
+        if self.browser4.is_some() {
+            return;
+        }
         let browser4_port = find_free_port();
         self.ctx.browser4_base_url = format!("http://127.0.0.1:{}", browser4_port);
         self.browser4 = Some(Browser4Server::start(
             &self.ctx.browser4_base_url,
             &self.browser4_jar_path,
         ));
+    }
+
+    fn restart_browser4(&mut self) {
+        self.browser4 = None;
+        self.ensure_browser4();
     }
 }
 
@@ -923,9 +929,6 @@ fn run_cli_process(ctx: &E2ECtx, args: &[&str]) -> CliRunResult {
 
 /// Run a command, asserting it succeeds (exit code 0).
 fn run_command<'a>(ctx: &mut E2ECtx, args: &[&'a str]) -> CliRunResult {
-    if let Some(cmd) = args.first() {
-        ctx.covered_commands.insert(cmd.to_string());
-    }
     let result = run_cli_process_with_retry(ctx, args);
     assert_eq!(
         result.exit_code, 0,
@@ -938,9 +941,6 @@ fn run_command<'a>(ctx: &mut E2ECtx, args: &[&'a str]) -> CliRunResult {
 /// Run a command, asserting it fails (exit code != 0) and that the combined
 /// stdout+stderr contains `pattern`.
 fn run_command_expecting_failure(ctx: &mut E2ECtx, args: &[&str], pattern: &str) -> CliRunResult {
-    if let Some(cmd) = args.first() {
-        ctx.covered_commands.insert(cmd.to_string());
-    }
     let result = run_cli_process_with_retry(ctx, args);
     assert_ne!(
         result.exit_code, 0,
@@ -1173,7 +1173,6 @@ fn create_e2e_test_resources() -> E2ETestResources {
             workspace_dir,
             state_dir,
             upload_file_path,
-            covered_commands: HashSet::new(),
         },
     }
 }
@@ -1182,7 +1181,83 @@ fn create_e2e_test_resources() -> E2ETestResources {
 // Test scenarios
 // ---------------------------------------------------------------------------
 
-fn test_session_and_navigation(ctx: &mut E2ECtx) {
+fn open_interactive_page(ctx: &mut E2ECtx) {
+    run_command(ctx, &["open"]);
+    let interactive_url = ctx.interactive_url();
+    run_command(ctx, &["goto", &interactive_url]);
+}
+
+fn open_resized_interactive_page(ctx: &mut E2ECtx) {
+    open_interactive_page(ctx);
+
+    let resize_result = run_command(ctx, &["resize", "1280", "900"]);
+    assert!(
+        resize_result.stdout.contains("### Page"),
+        "Expected '### Page' in resize output:\n{}",
+        resize_result.stdout
+    );
+
+    let vw: u64 = eval_text(ctx, "window.innerWidth.toString()")
+        .parse()
+        .unwrap_or(0);
+    assert!(vw >= 1000, "Expected viewport width >= 1000, got {vw}");
+}
+
+fn start_mock_collective_session(ctx: &mut E2ECtx) -> MockBrowser4Server {
+    let mock_server = MockBrowser4Server::start();
+    ctx.browser4_base_url = mock_server.base_url();
+
+    let co_create_result = run_command(
+        ctx,
+        &[
+            "co",
+            "create",
+            "--profile-mode=prototype",
+            "--max-open-tabs=12",
+            "--max-browser-contexts=3",
+            "--display-mode=SUPERVISED",
+        ],
+    );
+    assert!(
+        co_create_result
+            .stdout
+            .contains("Collective session created: collective-session-1"),
+        "Expected collective session creation output in:\n{}",
+        co_create_result.stdout
+    );
+    assert_eq!(
+        read_persisted_session_id(&ctx.state_dir),
+        "collective-session-1"
+    );
+
+    mock_server
+}
+
+fn assert_collective_session_call(mock_server: &MockBrowser4Server) {
+    let tool_calls = mock_server.snapshot().tool_calls;
+    let open_session_call = tool_calls
+        .iter()
+        .find(|call| call.tool == "open_session")
+        .expect("expected open_session call");
+    assert_eq!(
+        open_session_call.arguments["capabilities"]["profileMode"],
+        "prototype"
+    );
+    assert_eq!(
+        open_session_call.arguments["capabilities"]["maxOpenTabs"],
+        "12"
+    );
+    assert_eq!(
+        open_session_call.arguments["capabilities"]["maxBrowserContexts"],
+        "3"
+    );
+    assert_eq!(
+        open_session_call.arguments["capabilities"]["displayMode"],
+        "SUPERVISED"
+    );
+}
+
+fn test_session_lifecycle(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
     let open_result = run_command(ctx, &["open"]);
@@ -1199,6 +1274,19 @@ fn test_session_and_navigation(ctx: &mut E2ECtx) {
         "Expected session id '{session_id}' in list output:\n{}",
         list_result.stdout
     );
+
+    let close_result = run_command(ctx, &["close"]);
+    assert!(
+        close_result.stdout.contains("Session closed."),
+        "Expected 'Session closed.' in:\n{}",
+        close_result.stdout
+    );
+}
+
+fn test_navigation_and_storage(ctx: &mut E2ECtx) {
+    reset_cli_artifacts(ctx);
+
+    run_command(ctx, &["open"]);
 
     let interactive_url = ctx.interactive_url();
     let other_url = ctx.other_url();
@@ -1256,34 +1344,13 @@ fn test_session_and_navigation(ctx: &mut E2ECtx) {
         stripped
     );
 
-    let close_result = run_command(ctx, &["close"]);
-    assert!(
-        close_result.stdout.contains("Session closed."),
-        "Expected 'Session closed.' in:\n{}",
-        close_result.stdout
-    );
+    run_command(ctx, &["close"]);
 }
 
-fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
+fn test_interaction_commands(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
+    open_resized_interactive_page(ctx);
 
-    run_command(ctx, &["open"]);
-    let interactive_url = ctx.interactive_url();
-    run_command(ctx, &["goto", &interactive_url]);
-
-    // resize
-    let resize_result = run_command(ctx, &["resize", "1280", "900"]);
-    assert!(
-        resize_result.stdout.contains("### Page"),
-        "Expected '### Page' in resize output:\n{}",
-        resize_result.stdout
-    );
-    let vw: u64 = eval_text(ctx, "window.innerWidth.toString()")
-        .parse()
-        .unwrap_or(0);
-    assert!(vw >= 1000, "Expected viewport width >= 1000, got {vw}");
-
-    // type
     run_command(ctx, &["type", "#type-target", "hello world"]);
     wait_for_state(
         ctx,
@@ -1311,7 +1378,6 @@ fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
         15_000,
     );
 
-    // keydown / keyup
     run_command(ctx, &["click", "#type-target"]);
     let keydown_before = key_event_count(&read_interactive_state(ctx));
     run_command(ctx, &["keydown", "Shift"]);
@@ -1362,11 +1428,16 @@ fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
         15_000,
     );
 
-    // select
+    run_command(ctx, &["close"]);
+}
+
+fn test_form_controls_and_exports(ctx: &mut E2ECtx) {
+    reset_cli_artifacts(ctx);
+    open_interactive_page(ctx);
+
     run_command(ctx, &["select", "#select-target", "green"]);
     wait_for_state(ctx, |s| s["selectValue"].as_str() == Some("green"), 15_000);
 
-    // check / uncheck
     run_command(ctx, &["check", "#check-target"]);
     wait_for_state(ctx, |s| s["checkbox"].as_bool() == Some(true), 15_000);
 
@@ -1382,14 +1453,12 @@ fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
         15_000,
     );
 
-    // console – expected to fail (tool not supported by backend)
     run_command_expecting_failure(
         ctx,
         &["console", "info"],
         "Unknown tool: browser_console_messages",
     );
 
-    // snapshot with explicit filename
     let snapshot_result = run_command(ctx, &["snapshot", "--filename=interactive.yml"]);
     assert!(
         snapshot_result.stdout.contains("[Snapshot]("),
@@ -1406,7 +1475,6 @@ fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
         "Snapshot file not found at {snapshot_path:?}"
     );
 
-    // screenshot with explicit filename
     run_command(ctx, &["screenshot", "--filename=interactive.png"]);
     let screenshot_path = ctx
         .workspace_dir
@@ -1419,7 +1487,6 @@ fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
         "Screenshot file is empty"
     );
 
-    // pdf – expected to fail (tool not supported by backend)
     run_command_expecting_failure(
         ctx,
         &["pdf", "--filename=interactive.pdf"],
@@ -1431,13 +1498,8 @@ fn test_interaction_console_and_export(ctx: &mut E2ECtx) {
 
 fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
+    open_resized_interactive_page(ctx);
 
-    run_command(ctx, &["open"]);
-    let interactive_url = ctx.interactive_url();
-    run_command(ctx, &["goto", &interactive_url]);
-    run_command(ctx, &["resize", "1280", "900"]);
-
-    // mousemove
     run_command(ctx, &["mousemove", "120", "120"]);
     wait_for_state(
         ctx,
@@ -1445,7 +1507,6 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         15_000,
     );
 
-    // mousedown / mouseup
     let before_mouse_down = read_interactive_state(ctx)["mouseDownCount"]
         .as_u64()
         .unwrap_or(0);
@@ -1466,7 +1527,6 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         15_000,
     );
 
-    // mousewheel
     run_command(ctx, &["mousewheel", "0", "160"]);
     let wheel_state = wait_for_state(
         ctx,
@@ -1479,9 +1539,6 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         "Expected lastWheel to equal [160, 0], got {wheel_state:#?}"
     );
 
-    // dialog-accept (prompt): schedule a JS click that will trigger window.prompt,
-    // wait a moment for the dialog to appear, then accept it.
-    // This mirrors the Node.js test pattern of using a deferred click + sleep.
     eval_text(
         ctx,
         "(() => { setTimeout(() => document.getElementById('prompt-target').click(), 100); return 'scheduled'; })()",
@@ -1494,7 +1551,6 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         15_000,
     );
 
-    // dialog-dismiss (confirm): same deferred-click pattern for window.confirm.
     eval_text(
         ctx,
         "(() => { setTimeout(() => document.getElementById('confirm-target').click(), 100); return 'scheduled'; })()",
@@ -1513,12 +1569,10 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
 fn test_tab_commands(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
-    run_command(ctx, &["open"]);
+    open_interactive_page(ctx);
     let interactive_url = ctx.interactive_url();
     let other_url = ctx.other_url();
-    run_command(ctx, &["goto", &interactive_url]);
 
-    // tab-list – should contain the interactive URL
     let initial_tabs = run_command(ctx, &["tab-list"]);
     let tab_output = strip_snapshot_output(&initial_tabs.stdout);
     assert!(
@@ -1526,7 +1580,6 @@ fn test_tab_commands(ctx: &mut E2ECtx) {
         "Expected interactive URL in tab-list output:\n{tab_output}"
     );
 
-    // tab-new
     run_command(ctx, &["tab-new", &other_url]);
     let updated_tabs = run_command(ctx, &["tab-list"]);
     let tab_output = strip_snapshot_output(&updated_tabs.stdout);
@@ -1539,78 +1592,21 @@ fn test_tab_commands(ctx: &mut E2ECtx) {
         "Expected other URL in updated tab-list"
     );
 
-    // Extract the tab ID for the other tab so we can select and close it.
     let other_tab_id = extract_tab_id(&tab_output, &other_url);
 
-    // tab-select
     run_command(ctx, &["tab-select", &other_tab_id]);
-
-    // tab-close
     run_command(ctx, &["tab-close", &other_tab_id]);
+    run_command(ctx, &["close"]);
 }
 
 // ---------------------------------------------------------------------------
 // Agent / Collective scenario
 // ---------------------------------------------------------------------------
 
-fn test_agent_and_collective_commands(ctx: &mut E2ECtx) {
+fn test_collective_session_and_agent_tools(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
-
-    let mock_server = MockBrowser4Server::start();
-    ctx.browser4_base_url = mock_server.base_url();
-
-    let seed_file = ctx.workspace_dir.join("collective-seeds.txt");
-    fs::write(
-        &seed_file,
-        b"# seed urls\nhttps://example.com/seed-1\n\nhttps://example.com/seed-2\n",
-    )
-    .expect("write seed file failed");
-    let seed_file_arg = format!("--seed-file={}", seed_file.to_string_lossy());
-
-    let co_create_result = run_command(
-        ctx,
-        &[
-            "co",
-            "create",
-            "--profile-mode=prototype",
-            "--max-open-tabs=12",
-            "--max-browser-contexts=3",
-            "--display-mode=SUPERVISED",
-        ],
-    );
-    assert!(
-        co_create_result
-            .stdout
-            .contains("Collective session created: collective-session-1"),
-        "Expected collective session creation output in:\n{}",
-        co_create_result.stdout
-    );
-    assert_eq!(
-        read_persisted_session_id(&ctx.state_dir),
-        "collective-session-1"
-    );
-
-    let tool_calls = mock_server.snapshot().tool_calls;
-    let open_session_call = tool_calls
-        .iter()
-        .find(|call| call.tool == "open_session")
-        .expect("expected open_session call");
-    assert_eq!(
-        open_session_call.arguments["capabilities"]["profileMode"],
-        "prototype"
-    );
-    assert_eq!(
-        open_session_call.arguments["capabilities"]["maxOpenTabs"],
-        "12"
-    );
-    assert_eq!(
-        open_session_call.arguments["capabilities"]["maxBrowserContexts"],
-        "3"
-    );
-    assert_eq!(
-        open_session_call.arguments["capabilities"]["displayMode"],
-        "SUPERVISED"
-    );
+    let mock_server = start_mock_collective_session(ctx);
+    assert_collective_session_call(&mock_server);
 
     let extract_result = run_command(
         ctx,
@@ -1665,6 +1661,12 @@ fn test_agent_and_collective_commands(ctx: &mut E2ECtx) {
         "summarize the page marker"
     );
     assert_eq!(summarize_call.arguments["selector"], "#page-marker");
+}
+
+fn test_agent_task_commands(ctx: &mut E2ECtx) {
+    reset_cli_artifacts(ctx);
+    let mock_server = MockBrowser4Server::start();
+    ctx.browser4_base_url = mock_server.base_url();
 
     let agent_run_result = run_command(ctx, &["agent-run", "collect the latest updates"]);
     assert!(
@@ -1693,6 +1695,32 @@ fn test_agent_and_collective_commands(ctx: &mut E2ECtx) {
         strip_snapshot_output(&agent_result_result.stdout),
         "result for agent-task-1"
     );
+    assert_eq!(
+        mock_server.snapshot().plain_commands,
+        vec!["collect the latest updates".to_string()]
+    );
+    assert_eq!(
+        mock_server.snapshot().status_queries,
+        vec!["agent-task-1".to_string()]
+    );
+    assert_eq!(
+        mock_server.snapshot().result_queries,
+        vec!["agent-task-1".to_string()]
+    );
+}
+
+fn test_collective_submission_commands(ctx: &mut E2ECtx) {
+    reset_cli_artifacts(ctx);
+    let mock_server = start_mock_collective_session(ctx);
+    assert_collective_session_call(&mock_server);
+
+    let seed_file = ctx.workspace_dir.join("collective-seeds.txt");
+    fs::write(
+        &seed_file,
+        b"# seed urls\nhttps://example.com/seed-1\n\nhttps://example.com/seed-2\n",
+    )
+    .expect("write seed file failed");
+    let seed_file_arg = format!("--seed-file={}", seed_file.to_string_lossy());
 
     let co_submit_result = run_command(
         ctx,
@@ -1762,7 +1790,6 @@ fn test_agent_and_collective_commands(ctx: &mut E2ECtx) {
     assert_eq!(
         snapshot.plain_commands,
         vec![
-            "collect the latest updates".to_string(),
             "https://example.com/direct -deadline 2026-03-30T00:00:00Z -expires 1d -refresh -parse -storeContent".to_string(),
             "https://example.com/seed-1 -deadline 2026-03-30T00:00:00Z -expires 1d -refresh -parse -storeContent".to_string(),
             "https://example.com/seed-2 -deadline 2026-03-30T00:00:00Z -expires 1d -refresh -parse -storeContent".to_string(),
@@ -1771,11 +1798,11 @@ fn test_agent_and_collective_commands(ctx: &mut E2ECtx) {
     );
     assert_eq!(
         snapshot.status_queries,
-        vec!["agent-task-1".to_string(), "collective-job-42".to_string()]
+        vec!["collective-job-42".to_string()]
     );
     assert_eq!(
         snapshot.result_queries,
-        vec!["agent-task-1".to_string(), "collective-job-42".to_string()]
+        vec!["collective-job-42".to_string()]
     );
 }
 
@@ -1804,16 +1831,17 @@ fn excluded_commands() -> HashSet<&'static str> {
 /// sync with what the test functions actually call.
 fn tested_commands() -> HashSet<&'static str> {
     [
-        // test_session_and_navigation
+        // test_session_lifecycle
         "open",
         "list",
+        "close",
+        // test_navigation_and_storage
         "goto",
         "go-back",
         "go-forward",
         "reload",
         "delete-data",
-        "close",
-        // test_interaction_console_and_export
+        // test_interaction_commands
         "resize",
         "type",
         "fill",
@@ -1824,6 +1852,7 @@ fn tested_commands() -> HashSet<&'static str> {
         "dblclick",
         "hover",
         "drag",
+        // test_form_controls_and_exports
         "select",
         "check",
         "uncheck",
@@ -1832,12 +1861,14 @@ fn tested_commands() -> HashSet<&'static str> {
         "snapshot",
         "screenshot",
         "pdf",
-        // test_agent_and_collective_commands
+        // test_collective_session_and_agent_tools
         "extract",
         "summarize",
+        // test_agent_task_commands
         "agent-run",
         "agent-status",
         "agent-result",
+        // test_collective_submission_commands
         "co-create",
         "co-submit",
         "co-scrape",
@@ -1915,19 +1946,43 @@ fn verify_e2e_command_coverage() {
     );
 }
 
-fn run_named_test(name: &str, test_fn: fn()) {
-    print!("test {name} ... ");
-    std::io::stdout().flush().expect("stdout flush failed");
-    test_fn();
-    println!("ok");
+fn format_duration(duration: Duration) -> String {
+    format!("{:.2}s", duration.as_secs_f64())
 }
 
-fn run_named_scenario(name: &str, resources: &mut E2ETestResources, test_fn: fn(&mut E2ECtx)) {
+fn run_named_test(name: &str, test_fn: fn()) -> Duration {
     print!("test {name} ... ");
     std::io::stdout().flush().expect("stdout flush failed");
-    resources.restart_browser4();
+    let started_at = Instant::now();
+    test_fn();
+    let duration = started_at.elapsed();
+    println!("ok ({})", format_duration(duration));
+    duration
+}
+
+fn run_named_scenario(
+    name: &str,
+    resources: &mut E2ETestResources,
+    requires_browser4: bool,
+    restart_browser4: bool,
+    test_fn: fn(&mut E2ECtx),
+) -> Duration {
+    print!("test {name} ... ");
+    std::io::stdout().flush().expect("stdout flush failed");
+    if requires_browser4 {
+        if restart_browser4 {
+            resources.restart_browser4();
+        } else {
+            resources.ensure_browser4();
+        }
+    } else {
+        resources.browser4 = None;
+    }
+    let started_at = Instant::now();
     test_fn(&mut resources.ctx);
-    println!("ok");
+    let duration = started_at.elapsed();
+    println!("ok ({})", format_duration(duration));
+    duration
 }
 
 type ScenarioFn = fn(&mut E2ECtx);
@@ -1936,34 +1991,74 @@ type ScenarioFn = fn(&mut E2ECtx);
 struct ScenarioDef {
     name: &'static str,
     short_name: &'static str,
+    requires_browser4: bool,
+    restart_browser4: bool,
     test_fn: ScenarioFn,
 }
 
 const SCENARIOS: &[ScenarioDef] = &[
     ScenarioDef {
-        name: "test_e2e_session_and_navigation",
-        short_name: "test_session_and_navigation",
-        test_fn: test_session_and_navigation,
+        name: "test_e2e_session_lifecycle",
+        short_name: "test_session_lifecycle",
+        requires_browser4: true,
+        restart_browser4: true,
+        test_fn: test_session_lifecycle,
     },
     ScenarioDef {
-        name: "test_e2e_interaction_console_and_export",
-        short_name: "test_interaction_console_and_export",
-        test_fn: test_interaction_console_and_export,
+        name: "test_e2e_navigation_and_storage",
+        short_name: "test_navigation_and_storage",
+        requires_browser4: true,
+        restart_browser4: false,
+        test_fn: test_navigation_and_storage,
+    },
+    ScenarioDef {
+        name: "test_e2e_interaction_commands",
+        short_name: "test_interaction_commands",
+        requires_browser4: true,
+        restart_browser4: true,
+        test_fn: test_interaction_commands,
+    },
+    ScenarioDef {
+        name: "test_e2e_form_controls_and_exports",
+        short_name: "test_form_controls_and_exports",
+        requires_browser4: true,
+        restart_browser4: false,
+        test_fn: test_form_controls_and_exports,
     },
     ScenarioDef {
         name: "test_e2e_mouse_and_dialog",
         short_name: "test_mouse_and_dialog",
+        requires_browser4: true,
+        restart_browser4: true,
         test_fn: test_mouse_and_dialog,
     },
     ScenarioDef {
         name: "test_e2e_tab_commands",
         short_name: "test_tab_commands",
+        requires_browser4: true,
+        restart_browser4: false,
         test_fn: test_tab_commands,
     },
     ScenarioDef {
-        name: "test_e2e_agent_and_collective_commands",
-        short_name: "test_agent_and_collective_commands",
-        test_fn: test_agent_and_collective_commands,
+        name: "test_e2e_collective_session_and_agent_tools",
+        short_name: "test_collective_session_and_agent_tools",
+        requires_browser4: false,
+        restart_browser4: false,
+        test_fn: test_collective_session_and_agent_tools,
+    },
+    ScenarioDef {
+        name: "test_e2e_agent_task_commands",
+        short_name: "test_agent_task_commands",
+        requires_browser4: false,
+        restart_browser4: false,
+        test_fn: test_agent_task_commands,
+    },
+    ScenarioDef {
+        name: "test_e2e_collective_submission_commands",
+        short_name: "test_collective_submission_commands",
+        requires_browser4: false,
+        restart_browser4: false,
+        test_fn: test_collective_submission_commands,
     },
 ];
 
@@ -2006,15 +2101,24 @@ fn main() {
     let run_coverage = selected_scenarios.len() == SCENARIOS.len();
     let total_tests = selected_scenarios.len() + usize::from(run_coverage);
     println!("running {total_tests} tests");
+    let mut timings: Vec<(String, Duration)> = Vec::with_capacity(total_tests);
 
     if run_coverage {
-        run_named_test("test_e2e_command_coverage", verify_e2e_command_coverage);
+        let duration = run_named_test("test_e2e_command_coverage", verify_e2e_command_coverage);
+        timings.push(("test_e2e_command_coverage".to_string(), duration));
         kill_all_browsers();
     }
 
     let mut resources = create_e2e_test_resources();
     for scenario in selected_scenarios {
-        run_named_scenario(scenario.name, &mut resources, scenario.test_fn);
+        let duration = run_named_scenario(
+            scenario.name,
+            &mut resources,
+            scenario.requires_browser4,
+            scenario.restart_browser4,
+            scenario.test_fn,
+        );
+        timings.push((scenario.name.to_string(), duration));
         kill_all_browsers();
     }
 
@@ -2022,6 +2126,10 @@ fn main() {
         "test result: ok. {} passed; 0 failed; 0 ignored; 0 measured; 0 filtered out",
         total_tests
     );
+    println!("per-test timing:");
+    for (name, duration) in timings {
+        println!("  {name}: {}", format_duration(duration));
+    }
 
     kill_all_browsers();
 }
