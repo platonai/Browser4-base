@@ -3,10 +3,58 @@
 A command-line interface for controlling a [Browser4](https://github.com/platonai/Browser4)
 server. Designed for use by AI agents through SKILLS + CLI.
 
+## Install
+
+### macOS / Linux installer
+
+The repository now includes an installer that:
+
+- checks the required build/runtime dependencies
+- installs Java 17+, Google Chrome, and Rust when they are missing
+- downloads the latest released `Browser4.jar` to `~/.browser4/lib/Browser4.jar`
+- downloads the latest tagged Browser4 source and installs `browser4-cli` to `~/.local/bin`
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/platonai/Browser4/master/sdks/browser4-cli/install.sh | bash
+```
+
+Optional environment overrides:
+
+| Variable | Description |
+|---|---|
+| `BROWSER4_INSTALL_VERSION` | Install a specific release tag instead of the latest one |
+| `BROWSER4_INSTALL_ROOT` | Override the Cargo install root (default: `~/.local`) |
+| `BROWSER4_LIB_DIR` | Override where `Browser4.jar` is stored (default: `~/.browser4/lib`) |
+
+### Windows PowerShell installer
+
+The repository now also includes a Windows installer that:
+
+- checks for the required Windows build/runtime dependencies
+- installs Visual C++ Build Tools, Java 17+, Google Chrome, and Rust when they are missing
+- downloads the latest released `Browser4.jar` to `%USERPROFILE%\.browser4\lib\Browser4.jar`
+- downloads the latest tagged Browser4 source and installs `browser4-cli.exe` to `%USERPROFILE%\.cargo\bin`
+
+Run from an elevated PowerShell session:
+
+```powershell
+$installer = Join-Path $env:TEMP 'browser4-cli-install.ps1'
+Invoke-WebRequest 'https://raw.githubusercontent.com/platonai/Browser4/master/sdks/browser4-cli/install.ps1' -OutFile $installer
+powershell.exe -ExecutionPolicy Bypass -File $installer
+```
+
+Optional environment overrides:
+
+| Variable | Description |
+|---|---|
+| `BROWSER4_INSTALL_VERSION` | Install a specific release tag instead of the latest one |
+| `BROWSER4_INSTALL_ROOT` | Override the Cargo install root (default: `%USERPROFILE%\.cargo`) |
+| `BROWSER4_LIB_DIR` | Override where `Browser4.jar` is stored (default: `%USERPROFILE%\.browser4\lib`) |
+
 ## Prerequisites
 
 - A running Browser4 server (default port **8182**)
-- Rust 1.70+ (to build from source)
+- Rust 1.70+ (to build from source manually)
 
 ## Build
 

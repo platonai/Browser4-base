@@ -131,6 +131,14 @@ Browser4 CLI is compatible with Playwright and supports a wide range of commands
 It can be used in scripts, terminal sessions, or integrated into AI agents through SKILLS.
 
 ```shell
+# install the latest Unix CLI + Browser4.jar
+curl -fsSL https://raw.githubusercontent.com/platonai/Browser4/master/sdks/browser4-cli/install.sh | bash
+
+# install the latest Windows CLI + Browser4.jar (run in elevated PowerShell)
+$installer = Join-Path $env:TEMP 'browser4-cli-install.ps1'
+Invoke-WebRequest 'https://raw.githubusercontent.com/platonai/Browser4/master/sdks/browser4-cli/install.ps1' -OutFile $installer
+powershell.exe -ExecutionPolicy Bypass -File $installer
+
 # open new browser
 browser4-cli open
 # navigate to a page
@@ -388,4 +396,3 @@ If you need this type of URL, please contact your proxy service provider.
 ## License
 
 Apache 2.0 License. See [LICENSE](LICENSE) for details.
-
