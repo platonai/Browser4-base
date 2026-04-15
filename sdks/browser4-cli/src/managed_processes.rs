@@ -235,8 +235,13 @@ fn is_process_running(pid: u32) -> bool {
     #[cfg(unix)]
     {
         use std::process::Command;
-        // SIGCHECK (signal 0) returns success if process exists
-        let status = Command::new("kill").args(["-0", &pid.to_string()]).status();
+        // SIGCHECK (signal 0) returns success if process exists.
+        // Suppress stderr to avoid "kill: No such process" noise when the
+        // process has already exited.
+        let status = Command::new("kill")
+            .args(["-0", &pid.to_string()])
+            .stderr(std::process::Stdio::null())
+            .status();
         status.map(|s| s.success()).unwrap_or(false)
     }
     #[cfg(windows)]

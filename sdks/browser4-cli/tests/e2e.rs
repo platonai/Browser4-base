@@ -1999,10 +1999,17 @@ fn test_batch_error_handling(ctx: &mut E2ECtx) {
         ],
         "Batch command 2 failed",
     );
-    // Type should have executed (before the error)
+    // Type should have executed (before the error).
+    // `type` simulates keystrokes and appends to existing input, so check
+    // that the value ends with the typed text rather than expecting an exact match.
     wait_for_state(
         ctx,
-        |s| s["typeValue"].as_str() == Some("bail test"),
+        |s| {
+            s["typeValue"]
+                .as_str()
+                .map(|v| v.ends_with("bail test"))
+                .unwrap_or(false)
+        },
         15_000,
     );
     // Fill should NOT have executed
@@ -2026,9 +2033,16 @@ fn test_batch_error_handling(ctx: &mut E2ECtx) {
         ],
         "2 batch command(s) failed.",
     );
+    // `type` simulates keystrokes and appends to existing input, so check
+    // that the value ends with the typed text rather than expecting an exact match.
     wait_for_state(
         ctx,
-        |s| s["typeValue"].as_str() == Some("still works"),
+        |s| {
+            s["typeValue"]
+                .as_str()
+                .map(|v| v.ends_with("still works"))
+                .unwrap_or(false)
+        },
         15_000,
     );
 
