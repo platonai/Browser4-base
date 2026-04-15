@@ -131,10 +131,10 @@ Browser4 CLI is compatible with Playwright and supports a wide range of commands
 It can be used in scripts, terminal sessions, or integrated into AI agents through SKILLS.
 
 ```shell
-# install the latest Unix CLI + Browser4.jar
+# install the latest Unix CLI (+ Browser4.jar fallback runtime)
 curl -fsSL https://raw.githubusercontent.com/platonai/Browser4/master/sdks/browser4-cli/install.sh | bash
 
-# Windows: download Browser4.jar, then install the CLI from source
+# Windows: keep a Browser4 checkout for localhost Maven auto-start; Browser4.jar remains the fallback runtime
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.browser4\lib" | Out-Null
 Invoke-WebRequest 'https://github.com/platonai/Browser4/releases/latest/download/Browser4.jar' -OutFile "$env:USERPROFILE\.browser4\lib\Browser4.jar"
 git clone https://github.com/platonai/Browser4.git

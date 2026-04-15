@@ -117,6 +117,24 @@ pub struct ShutdownResult {
     pub remaining_pids: Vec<u32>,
 }
 
+/// Result of force-killing Browser4 Chrome processes.
+#[derive(Debug, Default)]
+pub struct BrowserKillResult {
+    pub killed_pids: Vec<u32>,
+    pub remaining_pids: Vec<u32>,
+}
+
+/// Result of force-stopping Browser4 server processes and their related Chrome processes.
+#[derive(Debug, Default)]
+pub struct ForceStopBrowser4ServerResult {
+    pub shutdown: ShutdownResult,
+    pub browser_kill: BrowserKillResult,
+}
+
+fn stop_browser4_server(force: bool) -> ShutdownResult {
+    shutdown_managed_server_processes(force, None, 5_000, 250)
+}
+
 /// Shut down all managed server processes, optionally forcing them.
 pub fn shutdown_managed_server_processes(
     force: bool,
@@ -170,19 +188,61 @@ pub fn shutdown_managed_server_processes(
     result
 }
 
+/// Gracefully stop all managed Browser4 server processes.
+pub fn stop_browser4_server_gracefully() -> ShutdownResult {
+    stop_browser4_server(false)
+}
+
+/// Force-stop all managed Browser4 server processes, then kill all related Chrome processes.
+pub fn stop_browser4_server_forcibly() -> ForceStopBrowser4ServerResult {
+    ForceStopBrowser4ServerResult {
+        shutdown: stop_browser4_server(true),
+        browser_kill: kill_all_browsers(),
+    }
+}
+
 /// Kill all found Browser4 Chrome processes (marked with PULSAR_CHROME).
-pub fn kill_all_browsers() -> Vec<u32> {
+pub fn kill_all_browsers() -> BrowserKillResult {
+    const KILL_TIMEOUT_MS: u64 = 15_000;
+    const WAIT_BETWEEN_SWEEPS_MS: u64 = 250;
+    const WAIT_AFTER_KILL_MS: u64 = 2_000;
+
+    let start = std::time::Instant::now();
+    let timeout = std::time::Duration::from_millis(KILL_TIMEOUT_MS);
+    let sweep_delay = std::time::Duration::from_millis(WAIT_BETWEEN_SWEEPS_MS);
+    let mut result = BrowserKillResult::default();
+
+    loop {
+        let pids = find_unique_pulsar_browser_processes();
+        if pids.is_empty() {
+            break;
+        }
+
+        result.killed_pids.extend(pids.iter().copied());
+        for pid in &pids {
+            force_stop_browser_process(*pid);
+        }
+        for pid in &pids {
+            let _ = wait_for_exit(*pid, WAIT_AFTER_KILL_MS, 100);
+        }
+
+        if start.elapsed() >= timeout {
+            break;
+        }
+
+        std::thread::sleep(sweep_delay);
+    }
+
+    result.killed_pids.sort_unstable();
+    result.killed_pids.dedup();
+    result.remaining_pids = find_unique_pulsar_browser_processes();
+    result
+}
+
+fn find_unique_pulsar_browser_processes() -> Vec<u32> {
     let mut pids = find_pulsar_browser_processes();
     pids.sort_unstable();
     pids.dedup();
-
-    for pid in &pids {
-        force_stop(*pid);
-    }
-    for pid in &pids {
-        let _ = wait_for_exit(*pid, 5_000, 100);
-    }
-
     pids
 }
 
@@ -193,12 +253,7 @@ fn find_pulsar_browser_processes() -> Vec<u32> {
     {
         use std::process::Command;
         if let Ok(output) = Command::new("pgrep").args(["-f", "PULSAR_CHROME"]).output() {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            for line in stdout.lines() {
-                if let Ok(pid) = line.trim().parse::<u32>() {
-                    pids.push(pid);
-                }
-            }
+            pids.extend(parse_pid_list(&output.stdout));
         }
     }
 
@@ -206,25 +261,29 @@ fn find_pulsar_browser_processes() -> Vec<u32> {
     {
         use std::process::Command;
         let ps_command = r#"
-            Get-Process -Name "chrome" -ErrorAction SilentlyContinue | ForEach-Object {
-                $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId = $($_.Id)").CommandLine
-                if ($cmdLine -match "PULSAR_CHROME") { $_.Id }
-            }
+            Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe'" -ErrorAction SilentlyContinue |
+                Where-Object {
+                    -not [string]::IsNullOrWhiteSpace($_.CommandLine) -and
+                    $_.CommandLine -match 'PULSAR_CHROME'
+                } |
+                Select-Object -ExpandProperty ProcessId
         "#;
         if let Ok(output) = Command::new("powershell")
             .args(["-NoProfile", "-NonInteractive", "-Command", ps_command])
             .output()
         {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            for line in stdout.lines() {
-                if let Ok(pid) = line.trim().parse::<u32>() {
-                    pids.push(pid);
-                }
-            }
+            pids.extend(parse_pid_list(&output.stdout));
         }
     }
 
     pids
+}
+
+fn parse_pid_list(stdout: &[u8]) -> Vec<u32> {
+    String::from_utf8_lossy(stdout)
+        .lines()
+        .filter_map(|line| line.trim().parse::<u32>().ok())
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -310,6 +369,30 @@ fn force_stop(pid: u32) {
     }
 }
 
+fn force_stop_browser_process(pid: u32) {
+    #[cfg(unix)]
+    {
+        force_stop(pid);
+    }
+
+    #[cfg(windows)]
+    {
+        let taskkill_failed = match std::process::Command::new("taskkill")
+            .args(["/PID", &pid.to_string(), "/T", "/F"])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+        {
+            Ok(status) => !status.success(),
+            Err(_) => true,
+        };
+
+        if taskkill_failed {
+            force_stop(pid);
+        }
+    }
+}
+
 fn wait_for_exit(pid: u32, timeout_ms: u64, poll_interval_ms: u64) -> bool {
     let start = std::time::Instant::now();
     let timeout = std::time::Duration::from_millis(timeout_ms);
@@ -376,5 +459,11 @@ mod tests {
 
         clear_managed_server_processes(Some(&reg_path));
         assert!(!reg_path.exists());
+    }
+
+    #[test]
+    fn test_parse_pid_list_ignores_noise() {
+        let stdout = b"123\nwarning\n\n456 \nnot-a-pid\n789\r\n";
+        assert_eq!(parse_pid_list(stdout), vec![123, 456, 789]);
     }
 }

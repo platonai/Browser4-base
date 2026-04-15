@@ -11,7 +11,7 @@ The repository now includes an installer that:
 
 - checks the required build/runtime dependencies
 - installs Java 17+, Google Chrome, and Rust when they are missing
-- downloads the latest released `Browser4.jar` to `~/.browser4/lib/Browser4.jar`
+- downloads the latest released `Browser4.jar` to `~/.browser4/lib/Browser4.jar` as a fallback runtime
 - downloads the latest tagged Browser4 source and installs `browser4-cli` to `~/.local/bin`
 
 ```bash
@@ -47,7 +47,8 @@ By default, Cargo installs the executable to `%USERPROFILE%\.cargo\bin`. Ensure 
 
 ## Prerequisites
 
-- A running Browser4 server (default port **8182**)
+- For localhost auto-start, prefer running the CLI from a Browser4 source checkout with Java 17+ and Maven available
+- Or point the CLI at an already-running Browser4 server (default port **8182**)
 - Rust 1.70+ (to build from source manually)
 
 ## Build
@@ -245,7 +246,7 @@ The Rust CLI is structured as follows:
 | `commands.rs` | Command definitions mapping to MCP tool names and parameters |
 | `http.rs` | HTTP client for calling `/mcp/call-tool` |
 | `state.rs` | Persistent state management (`~/.browser4/cli-state.json`) |
-| `daemon.rs` | Server auto-start and health checking |
+| `daemon.rs` | Local server auto-start (prefer Maven from repo root, fall back to jar) and health checking |
 | `managed_processes.rs` | Registry for browser4 server processes |
 | `snapshot.rs` | Snapshot and screenshot file helpers |
 | `help.rs` | Help text generation |
@@ -254,6 +255,7 @@ The Rust CLI is structured as follows:
 
 ```bash
 cargo test
+cargo test --test e2e -- --nocapture --scenario=test_e2e_batch_multi_interaction
 ```
 
 ## License

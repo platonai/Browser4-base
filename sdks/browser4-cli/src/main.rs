@@ -41,8 +41,8 @@ use http::{
     submit_batch_commands, submit_plain_command,
 };
 use managed_processes::{
-    kill_all_browsers, read_managed_server_processes, shutdown_managed_server_processes,
-    ShutdownResult,
+    read_managed_server_processes, stop_browser4_server_forcibly,
+    stop_browser4_server_gracefully, ShutdownResult,
 };
 use snapshot::{resolve_output_path, save_binary, save_snapshot};
 use state::{
@@ -355,6 +355,8 @@ async fn handle_close(
     base_url: &str,
     session_name: Option<&str>,
 ) -> Result<(), String> {
+    // `close` is intentionally scoped to one browser session. Global Browser4
+    // server shutdown and PULSAR_CHROME cleanup belong to `close-all`/`kill-all`.
     let state = require_session(session_name)?;
     let session_id = get_session_id(&state)?.to_string();
     // Ignore errors — session might already be closed
@@ -394,8 +396,8 @@ async fn handle_close_all(client: &Client, base_url: &str) -> Result<(), String>
         }
     }
 
-    let shutdown_result = shutdown_managed_server_processes(false, None, 5_000, 250);
-    clear_all_state(None);
+    let shutdown_result = stop_browser4_server_gracefully();
+    finalize_global_cleanup("Stopped", &shutdown_result);
 
     if close_results.is_empty() {
         println!("No reachable Browser4 servers responded to close-all.");
@@ -404,7 +406,6 @@ async fn handle_close_all(client: &Client, base_url: &str) -> Result<(), String>
             println!("{}", r);
         }
     }
-    log_shutdown_result("Stopped", &shutdown_result);
 
     if !close_errors.is_empty() {
         eprintln!("close-all warnings: {}", close_errors.join(" | "));
@@ -413,20 +414,40 @@ async fn handle_close_all(client: &Client, base_url: &str) -> Result<(), String>
 }
 
 async fn handle_kill_all() -> Result<(), String> {
-    let result = shutdown_managed_server_processes(true, None, 5_000, 250);
-    clear_all_state(None);
-    log_shutdown_result("Killed", &result);
+    let result = stop_browser4_server_forcibly();
+    finalize_global_cleanup("Killed", &result.shutdown);
 
-    let browser_pids = kill_all_browsers();
-    if !browser_pids.is_empty() {
-        let pids: Vec<String> = browser_pids.iter().map(|p| p.to_string()).collect();
+    let browser_result = result.browser_kill;
+    if !browser_result.killed_pids.is_empty() {
+        let pids: Vec<String> = browser_result
+            .killed_pids
+            .iter()
+            .map(|p| p.to_string())
+            .collect();
         println!(
             "Killed found Browser4 Chrome process(es): {}",
             pids.join(", ")
         );
     }
 
+    if !browser_result.remaining_pids.is_empty() {
+        let pids: Vec<String> = browser_result
+            .remaining_pids
+            .iter()
+            .map(|p| p.to_string())
+            .collect();
+        return Err(format!(
+            "Browser cleanup incomplete. Remaining Browser4 Chrome process(es): {}",
+            pids.join(", ")
+        ));
+    }
+
     Ok(())
+}
+
+fn finalize_global_cleanup(action: &str, result: &ShutdownResult) {
+    clear_all_state(None);
+    log_shutdown_result(action, result);
 }
 
 fn log_shutdown_result(action: &str, result: &ShutdownResult) {

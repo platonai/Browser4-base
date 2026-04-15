@@ -542,6 +542,9 @@ class MCPToolController(
         )
     }
 
+    /**
+     * TODO: DO NOT REWRITE PRESS IMPLEMENTATION, dispatch to AgentToolExecutor instead
+     * */
     private suspend fun executeBatchPress(sessionId: String, selector: String, key: String): String {
         val selectorLiteral = jacksonObjectMapper().writeValueAsString(selector)
         val keyLiteral = jacksonObjectMapper().writeValueAsString(key)

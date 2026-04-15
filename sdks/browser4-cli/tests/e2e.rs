@@ -38,7 +38,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use browser4_cli::commands::all_commands;
-use browser4_cli::managed_processes::kill_all_browsers;
+use browser4_cli::managed_processes::stop_browser4_server_forcibly;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -2758,7 +2758,7 @@ fn main() {
     if run_coverage {
         let duration = run_named_test("test_e2e_command_coverage", verify_e2e_command_coverage);
         timings.push(("test_e2e_command_coverage".to_string(), duration));
-        kill_all_browsers();
+        stop_browser4_server_forcibly();
     }
 
     let mut resources = create_e2e_test_resources();
@@ -2771,7 +2771,7 @@ fn main() {
             scenario.test_fn,
         );
         timings.push((scenario.name.to_string(), duration));
-        kill_all_browsers();
+        stop_browser4_server_forcibly();
     }
 
     println!(
@@ -2783,5 +2783,5 @@ fn main() {
         println!("  {name}: {}", format_duration(duration));
     }
 
-    kill_all_browsers();
+    stop_browser4_server_forcibly();
 }
