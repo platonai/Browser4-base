@@ -224,6 +224,7 @@ class MCPToolControllerTest {
         val tools = ((result.body as Map<String, Any>)["tools"] as List<String>).toSet()
 
         assertTrue(tools.contains("open_session"))
+        assertTrue(tools.contains("command_batch"))
         assertTrue(tools.contains("navigate"))
         assertTrue(tools.contains("browser_navigate"))
         assertTrue(tools.contains("browser_click"))
@@ -704,6 +705,41 @@ class MCPToolControllerTest {
         assertEquals("run", captor.value.method)
         assertEquals(false, captor.value.arguments["async"])
         Unit
+    }
+
+    @Test
+    fun testCommandBatchOpenAndTool() = runBlocking {
+        `when`(managedSession.sessionId).thenReturn("batch-session")
+        `when`(sessionManager.createSession(any())).thenReturn(managedSession)
+        `when`(sessionManager.getSession("batch-session")).thenReturn(managedSession)
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("Batch Title"))
+
+        val request = MCPToolCallRequest(
+            tool = "command_batch",
+            arguments = mapOf(
+                "steps" to listOf(
+                    mapOf("op" to "open"),
+                    mapOf(
+                        "op" to "tool",
+                        "tool" to "page_title",
+                        "arguments" to emptyMap<String, Any?>(),
+                    ),
+                )
+            )
+        )
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        @Suppress("UNCHECKED_CAST")
+        val payload = objectMapper.readValue(result.body!!.content[0].text, Map::class.java) as Map<String, Any?>
+        assertEquals("batch-session", payload["sessionId"])
+        @Suppress("UNCHECKED_CAST")
+        val results = payload["results"] as List<Map<String, Any?>>
+        assertEquals(true, results[0]["ok"])
+        assertEquals("Session opened: batch-session", results[0]["text"])
+        assertEquals(true, results[1]["ok"])
+        assertEquals("Batch Title", results[1]["text"])
     }
 
     @Test

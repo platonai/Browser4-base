@@ -20,11 +20,13 @@ mod managed_processes;
 mod snapshot;
 mod state;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::io::Read;
+use std::path::PathBuf;
 
 use base64::Engine;
 use reqwest::Client;
+use serde::Deserialize;
 use serde_json::{json, Value};
 
 use args::{
@@ -36,7 +38,7 @@ use daemon::{ensure_server_running, resolve_base_url};
 use help::{generate_command_help, generate_help};
 use http::{
     call_tool, get_command_result, get_command_status, is_stale_session_error, make_client,
-    submit_plain_command,
+    submit_batch_commands, submit_plain_command,
 };
 use managed_processes::{
     kill_all_browsers, read_managed_server_processes, shutdown_managed_server_processes,
@@ -44,8 +46,8 @@ use managed_processes::{
 };
 use snapshot::{resolve_output_path, save_binary, save_snapshot};
 use state::{
-    clear_all_state, clear_state, read_state, resolve_default_state_dir, write_state, CliState,
-    MousePosition,
+    clear_all_state, clear_state, read_state, resolve_default_state_dir, resolve_ref, write_state,
+    CliState, MousePosition,
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -1257,6 +1259,55 @@ struct BatchCommandSpec {
     tokens: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+enum PlannedBatchOutput {
+    Text,
+    Snapshot { path: PathBuf },
+    Screenshot { path: PathBuf },
+}
+
+#[derive(Debug, Clone)]
+enum PlannedBatchEntry {
+    Backend {
+        display: String,
+        request_indices: Vec<usize>,
+        outputs: Vec<PlannedBatchOutput>,
+    },
+    LocalFailure {
+        display: String,
+        error: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+struct CompiledBatchRequest {
+    steps: Vec<Value>,
+    entries: Vec<PlannedBatchEntry>,
+    final_state: CliState,
+    requires_response_session_id: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct BatchExecutionResponse {
+    session_id: Option<String>,
+    stopped_on_error: bool,
+    results: Vec<BatchExecutionResult>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct BatchExecutionResult {
+    index: usize,
+    ok: bool,
+    text: Option<String>,
+    error: Option<String>,
+    page_url: Option<String>,
+    page_title: Option<String>,
+    snapshot: Option<String>,
+    screenshot: Option<String>,
+}
+
 fn read_batch_stdin() -> Result<String, String> {
     let mut input = String::new();
     std::io::stdin()
@@ -1282,6 +1333,399 @@ fn format_batch_command(tokens: &[String]) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+fn normalize_batch_step_args(args: &Value) -> Value {
+    let mut normalized = args.clone();
+    let ref_keys = ["selector", "ref", "startRef", "endRef"];
+    if let Value::Object(map) = &mut normalized {
+        for key in ref_keys {
+            if let Some(Value::String(value)) = map.get(key) {
+                map.insert(key.to_string(), json!(resolve_ref(value)));
+            }
+        }
+    }
+    normalized
+}
+
+fn push_batch_local_failure(
+    entries: &mut Vec<PlannedBatchEntry>,
+    spec: &BatchCommandSpec,
+    error: String,
+    bail: bool,
+) -> bool {
+    entries.push(PlannedBatchEntry::LocalFailure {
+        display: spec.display.clone(),
+        error,
+    });
+    bail
+}
+
+fn compile_batch_request(
+    commands: &[BatchCommandSpec],
+    bail: bool,
+    base_url: &str,
+    session_name: Option<&str>,
+) -> Result<CompiledBatchRequest, String> {
+    let mut final_state = read_state(None, session_name);
+    final_state.base_url = base_url.to_string();
+
+    let mut active_selector = final_state.active_selector.clone();
+    let mut last_mouse_position = final_state.last_mouse_position.clone();
+    let mut requires_response_session_id = false;
+    let mut steps: Vec<Value> = Vec::new();
+    let mut entries: Vec<PlannedBatchEntry> = Vec::new();
+    let command_map = commands_map();
+
+    for spec in commands {
+        let nested_global = parse_global_flags(&spec.tokens);
+        if nested_global.server_url.is_some() {
+            if push_batch_local_failure(
+                &mut entries,
+                spec,
+                "Batch subcommands cannot override --server.".to_string(),
+                bail,
+            ) {
+                break;
+            }
+            continue;
+        }
+        if nested_global.session_name.is_some() {
+            if push_batch_local_failure(
+                &mut entries,
+                spec,
+                "Batch subcommands cannot override -s/--session.".to_string(),
+                bail,
+            ) {
+                break;
+            }
+            continue;
+        }
+
+        let (nested_command, effective_nested_global) = normalize_command_invocation(&nested_global);
+        if nested_command.is_empty() {
+            if push_batch_local_failure(
+                &mut entries,
+                spec,
+                "Batch command is empty.".to_string(),
+                bail,
+            ) {
+                break;
+            }
+            continue;
+        }
+        if nested_command == "batch" {
+            if push_batch_local_failure(
+                &mut entries,
+                spec,
+                "Nested batch commands are not supported.".to_string(),
+                bail,
+            ) {
+                break;
+            }
+            continue;
+        }
+
+        let cmd_def = match command_map.get(&nested_command) {
+            Some(def) => def,
+            None => {
+                if push_batch_local_failure(
+                    &mut entries,
+                    spec,
+                    format!(
+                        "Unknown command: {}. Run 'browser4-cli help' for usage.",
+                        nested_command
+                    ),
+                    bail,
+                ) {
+                    break;
+                }
+                continue;
+            }
+        };
+
+        let raw_parsed = parse_raw_args(&effective_nested_global.args);
+        let arg_names: Vec<&str> = cmd_def.args.iter().map(|arg| arg.name).collect();
+        let parsed = match build_command_args(&raw_parsed, &arg_names) {
+            Ok(parsed) => parsed,
+            Err(error) => {
+                if push_batch_local_failure(&mut entries, spec, error, bail) {
+                    break;
+                }
+                continue;
+            }
+        };
+
+        let tool_name = (cmd_def.tool_name_fn)(&parsed);
+        let tool_params = (cmd_def.tool_params_fn)(&parsed);
+
+        match nested_command.as_str() {
+            "open" => {
+                let mut capabilities = json!({});
+                if let Some(headed) = tool_params.get("headed") {
+                    capabilities["headed"] = headed.clone();
+                }
+                if let Some(persistent) = tool_params.get("persistent") {
+                    capabilities["persistent"] = persistent.clone();
+                }
+                if let Some(profile_path) = tool_params.get("profilePath") {
+                    capabilities["profilePath"] = profile_path.clone();
+                }
+
+                let url = tool_params
+                    .get("url")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("about:blank");
+
+                let request_index = steps.len();
+                steps.push(json!({
+                    "op": "open",
+                    "command": spec.display,
+                    "capabilities": capabilities,
+                }));
+                let mut request_indices = vec![request_index];
+                let mut outputs = vec![PlannedBatchOutput::Text];
+                if url != "about:blank" {
+                    let navigate_request_index = steps.len();
+                    steps.push(json!({
+                        "op": "tool",
+                        "command": spec.display,
+                        "tool": "browser_navigate",
+                        "arguments": { "url": url },
+                    }));
+                    request_indices.push(navigate_request_index);
+                    outputs.push(PlannedBatchOutput::Text);
+                }
+                entries.push(PlannedBatchEntry::Backend {
+                    display: spec.display.clone(),
+                    request_indices,
+                    outputs,
+                });
+
+                final_state.session_id = None;
+                final_state.active_selector = None;
+                final_state.last_mouse_position = None;
+                active_selector = None;
+                last_mouse_position = None;
+                requires_response_session_id = true;
+            }
+            "close" => {
+                let request_index = steps.len();
+                steps.push(json!({
+                    "op": "close",
+                    "command": spec.display,
+                }));
+                entries.push(PlannedBatchEntry::Backend {
+                    display: spec.display.clone(),
+                    request_indices: vec![request_index],
+                    outputs: vec![PlannedBatchOutput::Text],
+                });
+
+                final_state.session_id = None;
+                final_state.active_selector = None;
+                final_state.last_mouse_position = None;
+                active_selector = None;
+                last_mouse_position = None;
+                requires_response_session_id = false;
+            }
+            "snapshot" => {
+                let filename = tool_params.get("filename").and_then(|value| value.as_str());
+                let output_path = resolve_output_path(filename, "snapshot", "yml");
+                let mut arguments = tool_params.clone();
+                if let Value::Object(map) = &mut arguments {
+                    map.remove("filename");
+                }
+
+                let request_index = steps.len();
+                steps.push(json!({
+                    "op": "snapshot",
+                    "command": spec.display,
+                    "tool": tool_name,
+                    "arguments": normalize_batch_step_args(&arguments),
+                }));
+                entries.push(PlannedBatchEntry::Backend {
+                    display: spec.display.clone(),
+                    request_indices: vec![request_index],
+                    outputs: vec![PlannedBatchOutput::Snapshot { path: output_path }],
+                });
+            }
+            "screenshot" => {
+                let filename = tool_params.get("filename").and_then(|value| value.as_str());
+                let output_path = resolve_output_path(filename, "screenshot", "png");
+                let mut arguments = tool_params.clone();
+                if let Value::Object(map) = &mut arguments {
+                    map.remove("filename");
+                }
+
+                let request_index = steps.len();
+                steps.push(json!({
+                    "op": "screenshot",
+                    "command": spec.display,
+                    "tool": tool_name,
+                    "arguments": normalize_batch_step_args(&arguments),
+                }));
+                entries.push(PlannedBatchEntry::Backend {
+                    display: spec.display.clone(),
+                    request_indices: vec![request_index],
+                    outputs: vec![PlannedBatchOutput::Screenshot { path: output_path }],
+                });
+            }
+            "press" => {
+                let selector = tool_params
+                    .get("ref")
+                    .and_then(|value| value.as_str())
+                    .or_else(|| tool_params.get("selector").and_then(|value| value.as_str()));
+                let key = tool_params.get("key").and_then(|value| value.as_str());
+
+                let (selector, key) = match (selector, key) {
+                    (Some(selector), Some(key)) => (selector.to_string(), key.to_string()),
+                    _ => {
+                        if push_batch_local_failure(
+                            &mut entries,
+                            spec,
+                            "Press requires both a target selector and a key.".to_string(),
+                            bail,
+                        ) {
+                            break;
+                        }
+                        continue;
+                    }
+                };
+
+                let request_index = steps.len();
+                steps.push(json!({
+                    "op": "press",
+                    "command": spec.display,
+                    "selector": selector,
+                    "key": key,
+                }));
+                entries.push(PlannedBatchEntry::Backend {
+                    display: spec.display.clone(),
+                    request_indices: vec![request_index],
+                    outputs: vec![PlannedBatchOutput::Text],
+                });
+
+                active_selector = Some(selector);
+                final_state.active_selector = active_selector.clone();
+            }
+            "list" | "close-all" | "kill-all" | "delete-data" | "agent-run" | "agent-status"
+            | "agent-result" | "co-create" | "co-submit" | "co-scrape" | "co-status"
+            | "co-result" => {
+                if push_batch_local_failure(
+                    &mut entries,
+                    spec,
+                    format!("Batch does not support command '{}'.", nested_command),
+                    bail,
+                ) {
+                    break;
+                }
+            }
+            _ => {
+                if tool_name.is_empty() {
+                    if push_batch_local_failure(
+                        &mut entries,
+                        spec,
+                        format!("Batch does not support command '{}'.", nested_command),
+                        bail,
+                    ) {
+                        break;
+                    }
+                    continue;
+                }
+
+                let mut step = json!({
+                    "op": "tool",
+                    "command": spec.display,
+                    "tool": tool_name,
+                    "arguments": normalize_batch_step_args(&tool_params),
+                });
+
+                if matches!(nested_command.as_str(), "keydown" | "keyup") {
+                    if let Some(selector) = active_selector
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|selector| !selector.is_empty() && !selector.starts_with("backend:"))
+                    {
+                        step["preFocusSelector"] = json!(selector);
+                    }
+                }
+
+                if matches!(nested_command.as_str(), "mousedown" | "mouseup" | "mousewheel") {
+                    if let Some(position) = &last_mouse_position {
+                        step["preMousePosition"] = json!({
+                            "x": position.x,
+                            "y": position.y,
+                        });
+                    }
+                }
+
+                let request_index = steps.len();
+                steps.push(step);
+                entries.push(PlannedBatchEntry::Backend {
+                    display: spec.display.clone(),
+                    request_indices: vec![request_index],
+                    outputs: vec![PlannedBatchOutput::Text],
+                });
+
+                if nested_command == "mousemove" {
+                    let x = parse_number_arg(&tool_params, "x")?;
+                    let y = parse_number_arg(&tool_params, "y")?;
+                    last_mouse_position = Some(MousePosition { x, y });
+                    final_state.last_mouse_position = last_mouse_position.clone();
+                }
+
+                if let Some(selector) = tracked_selector(&tool_params) {
+                    active_selector = Some(selector.to_string());
+                    final_state.active_selector = active_selector.clone();
+                }
+            }
+        }
+    }
+
+    Ok(CompiledBatchRequest {
+        steps,
+        entries,
+        final_state,
+        requires_response_session_id,
+    })
+}
+
+fn render_batch_result(
+    output: &PlannedBatchOutput,
+    result: &BatchExecutionResult,
+) -> Result<(), String> {
+    match output {
+        PlannedBatchOutput::Text => {
+            if let Some(text) = result.text.as_deref().map(str::trim).filter(|text| !text.is_empty()) {
+                println!("{}", text);
+            }
+        }
+        PlannedBatchOutput::Snapshot { path } => {
+            let snapshot = result
+                .snapshot
+                .as_deref()
+                .ok_or_else(|| "Batch snapshot response was missing snapshot content.".to_string())?;
+            save_snapshot(path, snapshot).map_err(|e| e.to_string())?;
+            println!("### Page");
+            println!("- Page URL: {}", result.page_url.as_deref().unwrap_or_default());
+            println!("- Page Title: {}", result.page_title.as_deref().unwrap_or_default());
+            println!("### Snapshot");
+            println!("[Snapshot]({})", path.display());
+        }
+        PlannedBatchOutput::Screenshot { path } => {
+            let encoded = result
+                .screenshot
+                .as_deref()
+                .ok_or_else(|| "Batch screenshot response was missing image data.".to_string())?;
+            let bytes = base64::engine::general_purpose::STANDARD
+                .decode(encoded.trim())
+                .map_err(|e| format!("Failed to decode screenshot: {e}"))?;
+            save_binary(path, &bytes).map_err(|e| e.to_string())?;
+            println!("[Screenshot]({})", path.display());
+        }
+    }
+
+    Ok(())
 }
 
 fn resolve_batch_commands(
@@ -1314,56 +1758,138 @@ fn resolve_batch_commands(
 
 async fn handle_batch(global: &args::GlobalFlags) -> Result<(), String> {
     let (bail, commands) = resolve_batch_commands(global)?;
-    let mut failures: Vec<String> = Vec::new();
+    let base_url = resolve_base_url(global.server_url.as_deref(), global.session_name.as_deref());
 
-    for (index, spec) in commands.iter().enumerate() {
-        let mut nested_global = parse_global_flags(&spec.tokens);
-        if nested_global.session_name.is_none() {
-            nested_global.session_name = global.session_name.clone();
-        }
-        if nested_global.server_url.is_none() {
-            nested_global.server_url = global.server_url.clone();
-        }
-
-        let (nested_command, effective_nested_global) =
-            normalize_command_invocation(&nested_global);
-        if nested_command.is_empty() {
-            let failure = format!("Batch command {} is empty: {}", index + 1, spec.display);
-            if bail {
-                return Err(failure);
-            }
-            eprintln!("{failure}");
-            failures.push(failure);
-            continue;
-        }
-        if nested_command == "batch" {
-            let failure = format!(
-                "Nested batch commands are not supported (command {}: {}).",
-                index + 1,
-                spec.display
-            );
-            if bail {
-                return Err(failure);
-            }
-            eprintln!("{failure}");
-            failures.push(failure);
-            continue;
-        }
-
-        if let Err(err) = Box::pin(run(&nested_command, &effective_nested_global)).await {
-            let failure = format!(
-                "Batch command {} failed ({}): {}",
-                index + 1,
-                spec.display,
-                err
-            );
-            if bail {
-                return Err(failure);
-            }
-            eprintln!("{failure}");
-            failures.push(failure);
+    if let Some(ref server_url) = global.server_url {
+        let current_state = read_state(None, global.session_name.as_deref());
+        if server_url != &current_state.base_url {
+            let mut updated = current_state;
+            updated.base_url = server_url.clone();
+            write_state(&updated, None, global.session_name.as_deref())
+                .map_err(|e| e.to_string())?;
         }
     }
+
+    ensure_server_running(&base_url).await?;
+    let client = make_client();
+    let compiled = compile_batch_request(
+        &commands,
+        bail,
+        &base_url,
+        global.session_name.as_deref(),
+    )?;
+
+    let backend_response = if compiled.steps.is_empty() {
+        None
+    } else {
+        let initial_state = read_state(None, global.session_name.as_deref());
+        let initial_session_id = initial_state
+            .session_id
+            .filter(|id| !id.trim().is_empty());
+        let payload = json!({
+            "bail": bail,
+            "sessionId": initial_session_id,
+            "steps": compiled.steps,
+        });
+        let raw = submit_batch_commands(&client, &base_url, payload).await?;
+        Some(
+            serde_json::from_str::<BatchExecutionResponse>(&raw)
+                .map_err(|e| format!("Failed to parse batch response JSON: {e}"))?,
+        )
+    };
+
+    let mut result_map: HashMap<usize, BatchExecutionResult> = backend_response
+        .as_ref()
+        .map(|response| {
+            response
+                .results
+                .iter()
+                .cloned()
+                .map(|result| (result.index, result))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let mut failures: Vec<String> = Vec::new();
+    let mut stop_processing = false;
+
+    for (index, entry) in compiled.entries.iter().enumerate() {
+        if stop_processing {
+            break;
+        }
+
+        match entry {
+            PlannedBatchEntry::LocalFailure { display, error } => {
+                let failure = format!("Batch command {} failed ({}): {}", index + 1, display, error);
+                if bail {
+                    stop_processing = true;
+                }
+                eprintln!("{failure}");
+                failures.push(failure);
+            }
+            PlannedBatchEntry::Backend {
+                display,
+                request_indices,
+                outputs,
+            } => {
+                let mut command_failed = false;
+                for (request_index, output) in request_indices.iter().zip(outputs.iter()) {
+                    let Some(result) = result_map.remove(request_index) else {
+                        if backend_response
+                            .as_ref()
+                            .map(|response| response.stopped_on_error)
+                            .unwrap_or(false)
+                        {
+                            stop_processing = true;
+                            break;
+                        }
+                        return Err(format!(
+                            "Batch backend response was missing command {} ({}).",
+                            index + 1,
+                            display
+                        ));
+                    };
+
+                    if result.ok {
+                        render_batch_result(output, &result)?;
+                    } else {
+                        let failure = format!(
+                            "Batch command {} failed ({}): {}",
+                            index + 1,
+                            display,
+                            result
+                                .error
+                                .as_deref()
+                                .unwrap_or("Unknown batch execution error")
+                        );
+                        eprintln!("{failure}");
+                        failures.push(failure);
+                        command_failed = true;
+                        if bail
+                            || backend_response
+                                .as_ref()
+                                .map(|response| response.stopped_on_error)
+                                .unwrap_or(false)
+                        {
+                            stop_processing = true;
+                        }
+                        break;
+                    }
+                }
+                if command_failed && bail {
+                    stop_processing = true;
+                }
+            }
+        }
+    }
+
+    let mut final_state = compiled.final_state.clone();
+    if let Some(response) = &backend_response {
+        if compiled.requires_response_session_id || response.session_id.is_some() {
+            final_state.session_id = response.session_id.clone();
+        }
+    }
+    write_state(&final_state, None, global.session_name.as_deref()).map_err(|e| e.to_string())?;
 
     if failures.is_empty() {
         Ok(())

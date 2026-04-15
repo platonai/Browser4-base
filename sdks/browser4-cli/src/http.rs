@@ -141,6 +141,15 @@ pub async fn get_command_result(
     .await
 }
 
+/// Execute a batch of CLI-derived operations in a single backend request.
+pub async fn submit_batch_commands(
+    client: &Client,
+    base_url: &str,
+    args: Value,
+) -> Result<String, String> {
+    call_tool(client, base_url, "command_batch", args).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
