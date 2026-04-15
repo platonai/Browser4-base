@@ -9,7 +9,7 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 
 /// Parsed global flags that appear before the command name.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct GlobalFlags {
     /// `-s=<name>` session name
     pub session_name: Option<String>,
@@ -17,6 +17,13 @@ pub struct GlobalFlags {
     pub server_url: Option<String>,
     /// Remaining arguments (command + its args/options)
     pub args: Vec<String>,
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct BatchArgs {
+    pub bail: bool,
+    pub json: bool,
+    pub commands: Vec<String>,
 }
 
 /// Parse global flags that may appear before the command.
@@ -131,6 +138,160 @@ pub fn build_command_args(
     Ok(result)
 }
 
+/// Parse `browser4-cli batch` flags and positional command strings.
+pub fn parse_batch_args(raw_args: &[String]) -> Result<BatchArgs, String> {
+    let mut parsed = BatchArgs::default();
+    let mut parsing_options = true;
+
+    for arg in raw_args {
+        if parsing_options {
+            match arg.as_str() {
+                "--" => {
+                    parsing_options = false;
+                    continue;
+                }
+                "--bail" => {
+                    parsed.bail = true;
+                    continue;
+                }
+                "--json" => {
+                    parsed.json = true;
+                    continue;
+                }
+                _ => parsing_options = false,
+            }
+        }
+        parsed.commands.push(arg.clone());
+    }
+
+    if parsed.json && !parsed.commands.is_empty() {
+        return Err("Batch --json mode does not accept positional command arguments.".to_string());
+    }
+
+    if !parsed.json && parsed.commands.is_empty() {
+        return Err(
+            "Batch requires at least one command argument or JSON input via --json.".to_string(),
+        );
+    }
+
+    Ok(parsed)
+}
+
+/// Split a single batch command string into CLI tokens, honoring simple shell-style
+/// single quotes, double quotes, and backslash escaping.
+pub fn parse_command_string(command: &str) -> Result<Vec<String>, String> {
+    let mut tokens = Vec::new();
+    let mut current = String::new();
+    let mut chars = command.chars().peekable();
+    let mut in_single = false;
+    let mut in_double = false;
+    let mut escaped = false;
+    let mut token_started = false;
+
+    while let Some(ch) = chars.next() {
+        if escaped {
+            current.push(ch);
+            escaped = false;
+            token_started = true;
+            continue;
+        }
+
+        match ch {
+            '\\' if !in_single => escaped = true,
+            '\'' if !in_double => {
+                in_single = !in_single;
+                token_started = true;
+            }
+            '"' if !in_single => {
+                in_double = !in_double;
+                token_started = true;
+            }
+            c if c.is_whitespace() && !in_single && !in_double => {
+                if token_started {
+                    tokens.push(std::mem::take(&mut current));
+                    token_started = false;
+                }
+                while let Some(next) = chars.peek() {
+                    if next.is_whitespace() {
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+            }
+            _ => {
+                current.push(ch);
+                token_started = true;
+            }
+        }
+    }
+
+    if escaped {
+        return Err("Command ends with an unfinished escape sequence.".to_string());
+    }
+    if in_single || in_double {
+        return Err("Command has an unclosed quote.".to_string());
+    }
+    if token_started {
+        tokens.push(current);
+    }
+    if tokens.is_empty() {
+        return Err("Batch command entries cannot be empty.".to_string());
+    }
+
+    Ok(tokens)
+}
+
+/// Parse JSON stdin for `browser4-cli batch --json`.
+///
+/// Accepts a JSON array where each entry is either:
+/// - a command string, e.g. `"open https://example.com"`
+/// - an array of string arguments, e.g. `["open", "https://example.com"]`
+pub fn parse_batch_json_commands(input: &str) -> Result<Vec<Vec<String>>, String> {
+    let value: Value =
+        serde_json::from_str(input).map_err(|e| format!("Invalid batch JSON input: {e}"))?;
+    let entries = value
+        .as_array()
+        .ok_or_else(|| "Batch JSON input must be an array.".to_string())?;
+
+    let mut commands = Vec::with_capacity(entries.len());
+    for (index, entry) in entries.iter().enumerate() {
+        let tokens = match entry {
+            Value::String(command) => parse_command_string(command)
+                .map_err(|e| format!("Invalid batch command at index {index}: {e}"))?,
+            Value::Array(parts) => {
+                let mut tokens = Vec::with_capacity(parts.len());
+                for part in parts {
+                    let part = part.as_str().ok_or_else(|| {
+                        format!(
+                            "Batch JSON command at index {index} must contain only string arguments."
+                        )
+                    })?;
+                    tokens.push(part.to_string());
+                }
+                if tokens.is_empty() {
+                    return Err(format!(
+                        "Batch JSON command at index {index} must not be empty."
+                    ));
+                }
+                tokens
+            }
+            _ => {
+                return Err(format!(
+                    "Batch JSON command at index {index} must be a string or string array."
+                ));
+            }
+        };
+        commands.push(tokens);
+    }
+
+    if commands.is_empty() {
+        return Err("Batch JSON input must contain at least one command.".to_string());
+    }
+
+    Ok(commands)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -222,5 +383,105 @@ mod tests {
         let result = build_command_args(&raw, &["dx", "dy"]).unwrap();
         assert_eq!(result.get("dx"), Some(&json!(1.5)));
         assert_eq!(result.get("dy"), Some(&json!(-2.25)));
+    }
+
+    #[test]
+    fn test_parse_batch_args_argument_mode() {
+        let args = vec![
+            "--bail".to_string(),
+            "open https://example.com".to_string(),
+            "snapshot".to_string(),
+        ];
+        let parsed = parse_batch_args(&args).unwrap();
+        assert_eq!(
+            parsed,
+            BatchArgs {
+                bail: true,
+                json: false,
+                commands: vec![
+                    "open https://example.com".to_string(),
+                    "snapshot".to_string()
+                ],
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_batch_args_rejects_positional_with_json() {
+        let args = vec!["--json".to_string(), "snapshot".to_string()];
+        let err = parse_batch_args(&args).unwrap_err();
+        assert!(err.contains("--json"));
+    }
+
+    #[test]
+    fn test_parse_batch_args_treats_dash_prefixed_command_as_command() {
+        let args = vec![
+            "--server=http://example.com open https://example.com".to_string(),
+            "snapshot".to_string(),
+        ];
+        let parsed = parse_batch_args(&args).unwrap();
+        assert_eq!(
+            parsed.commands,
+            vec![
+                "--server=http://example.com open https://example.com".to_string(),
+                "snapshot".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_command_string_supports_quotes() {
+        let parsed = parse_command_string(r##"type "#search-input" "hello world""##).unwrap();
+        assert_eq!(parsed, vec!["type", "#search-input", "hello world"]);
+    }
+
+    #[test]
+    fn test_parse_command_string_supports_single_quotes_and_escapes() {
+        let parsed = parse_command_string("type '#search input' it\\ works").unwrap();
+        assert_eq!(parsed, vec!["type", "#search input", "it works"]);
+    }
+
+    #[test]
+    fn test_parse_command_string_rejects_unclosed_quotes() {
+        let err = parse_command_string(r##"type "#search"##).unwrap_err();
+        assert!(err.contains("unclosed quote"));
+    }
+
+    #[test]
+    fn test_parse_command_string_preserves_empty_quoted_argument() {
+        let parsed = parse_command_string(r#"open "" "#).unwrap();
+        assert_eq!(parsed, vec!["open", ""]);
+    }
+
+    #[test]
+    fn test_parse_batch_json_commands_array_entries() {
+        let parsed =
+            parse_batch_json_commands(r#"[["open","https://example.com"],["snapshot"]]"#).unwrap();
+        assert_eq!(
+            parsed,
+            vec![
+                vec!["open".to_string(), "https://example.com".to_string()],
+                vec!["snapshot".to_string()],
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_batch_json_commands_string_entries() {
+        let parsed =
+            parse_batch_json_commands(r#"["open https://example.com","snapshot"]"#).unwrap();
+        assert_eq!(
+            parsed,
+            vec![
+                vec!["open".to_string(), "https://example.com".to_string()],
+                vec!["snapshot".to_string()],
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_batch_json_commands_rejects_non_strings() {
+        let err = parse_batch_json_commands(r#"[["open",1]]"#).unwrap_err();
+        assert!(err.contains("string arguments"));
     }
 }

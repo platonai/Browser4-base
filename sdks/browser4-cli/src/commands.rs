@@ -149,6 +149,31 @@ pub fn all_commands() -> Vec<CommandDef> {
             tool_params_fn: |_| json!({}),
         },
         CommandDef {
+            name: "batch",
+            description: "Execute multiple commands in one invocation",
+            category: Category::Core,
+            hidden: false,
+            args: &[ArgDef {
+                name: "command...",
+                description: "Quoted command strings to execute sequentially",
+                optional: true,
+            }],
+            options: &[
+                OptionDef {
+                    name: "bail",
+                    description: "Stop on the first command failure",
+                    is_bool: true,
+                },
+                OptionDef {
+                    name: "json",
+                    description: "Read commands as JSON from stdin",
+                    is_bool: true,
+                },
+            ],
+            tool_name_fn: |_| String::new(),
+            tool_params_fn: |_| json!({}),
+        },
+        CommandDef {
             name: "goto",
             description: "Navigate to a URL",
             category: Category::Core,
@@ -911,6 +936,7 @@ mod tests {
         for expected in &[
             "open",
             "close",
+            "batch",
             "goto",
             "click",
             "type",
@@ -947,6 +973,15 @@ mod tests {
         let cmd = map.get("open").unwrap();
         let args = HashMap::new();
         assert_eq!((cmd.tool_name_fn)(&args), "browser_snapshot");
+    }
+
+    #[test]
+    fn test_batch_command_is_help_only() {
+        let map = commands_map();
+        let cmd = map.get("batch").unwrap();
+        let args = HashMap::new();
+        assert!((cmd.tool_name_fn)(&args).is_empty());
+        assert_eq!((cmd.tool_params_fn)(&args), json!({}));
     }
 
     #[test]

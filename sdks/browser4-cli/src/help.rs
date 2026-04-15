@@ -132,6 +132,7 @@ mod tests {
     fn test_generate_help_contains_commands() {
         let help = generate_help();
         assert!(help.contains("goto"));
+        assert!(help.contains("batch"));
         assert!(help.contains("click"));
         assert!(help.contains("snapshot"));
         assert!(help.contains("Core:"));
@@ -152,6 +153,17 @@ mod tests {
         let help = generate_command_help(goto);
         assert!(help.contains("browser4-cli goto <url>"));
         assert!(help.contains("Navigate to a URL"));
+    }
+
+    #[test]
+    fn test_generate_command_help_batch() {
+        let cmds = all_commands();
+        let batch = cmds.iter().find(|c| c.name == "batch").unwrap();
+        let help = generate_command_help(batch);
+        assert!(help.contains("browser4-cli batch [command...]"));
+        assert!(help.contains("Execute multiple commands in one invocation"));
+        assert!(help.contains("--bail"));
+        assert!(help.contains("--json"));
     }
 
     #[test]

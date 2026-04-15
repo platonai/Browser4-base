@@ -906,19 +906,46 @@ impl E2ETestResources {
 
 /// Run `browser4-cli --server=<url> <args...>` in the workspace dir with the isolated state dir.
 fn run_cli_process(ctx: &E2ECtx, args: &[&str]) -> CliRunResult {
+    run_cli_process_with_stdin(ctx, args, None)
+}
+
+fn run_cli_process_with_stdin(
+    ctx: &E2ECtx,
+    args: &[&str],
+    stdin_payload: Option<&str>,
+) -> CliRunResult {
     let server_arg = format!("--server={}", ctx.browser4_base_url);
     let mut full_args: Vec<&str> = vec![server_arg.as_str()];
     full_args.extend_from_slice(args);
 
-    let output = Command::new(cli_binary())
+    let mut command = Command::new(cli_binary());
+    command
         .args(&full_args)
         .current_dir(&ctx.workspace_dir)
         .env("BROWSER4_CLI_STATE_DIR", &ctx.state_dir)
-        .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .output()
-        .expect("failed to spawn browser4-cli process");
+        .stderr(Stdio::piped());
+
+    let output = if let Some(payload) = stdin_payload {
+        let mut child = command
+            .stdin(Stdio::piped())
+            .spawn()
+            .expect("failed to spawn browser4-cli process");
+        child
+            .stdin
+            .as_mut()
+            .expect("stdin pipe should be available")
+            .write_all(payload.as_bytes())
+            .expect("failed to write stdin payload");
+        child
+            .wait_with_output()
+            .expect("failed to wait for browser4-cli process")
+    } else {
+        command
+            .stdin(Stdio::null())
+            .output()
+            .expect("failed to spawn browser4-cli process")
+    };
 
     CliRunResult {
         stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -930,6 +957,16 @@ fn run_cli_process(ctx: &E2ECtx, args: &[&str]) -> CliRunResult {
 /// Run a command, asserting it succeeds (exit code 0).
 fn run_command<'a>(ctx: &mut E2ECtx, args: &[&'a str]) -> CliRunResult {
     let result = run_cli_process_with_retry(ctx, args);
+    assert_eq!(
+        result.exit_code, 0,
+        "Command {:?} failed (exit={}):\nstdout:\n{}\nstderr:\n{}",
+        args, result.exit_code, result.stdout, result.stderr
+    );
+    result
+}
+
+fn run_command_with_stdin(ctx: &mut E2ECtx, args: &[&str], stdin_payload: &str) -> CliRunResult {
+    let result = run_cli_process_with_retry_and_stdin(ctx, args, stdin_payload);
     assert_eq!(
         result.exit_code, 0,
         "Command {:?} failed (exit={}):\nstdout:\n{}\nstderr:\n{}",
@@ -956,12 +993,25 @@ fn run_command_expecting_failure(ctx: &mut E2ECtx, args: &[&str], pattern: &str)
 }
 
 fn run_cli_process_with_retry(ctx: &E2ECtx, args: &[&str]) -> CliRunResult {
+    run_cli_process_with_retry_and_stdin(ctx, args, "")
+}
+
+fn run_cli_process_with_retry_and_stdin(
+    ctx: &E2ECtx,
+    args: &[&str],
+    stdin_payload: &str,
+) -> CliRunResult {
     let max_attempts = 5;
     let mut attempt = 0;
+    let use_stdin = !stdin_payload.is_empty();
 
     loop {
         attempt += 1;
-        let result = run_cli_process(ctx, args);
+        let result = if use_stdin {
+            run_cli_process_with_stdin(ctx, args, Some(stdin_payload))
+        } else {
+            run_cli_process(ctx, args)
+        };
         if attempt >= max_attempts || !is_transient_retryable_failure(&result) {
             return result;
         }
@@ -1257,7 +1307,7 @@ fn assert_collective_session_call(mock_server: &MockBrowser4Server) {
     );
 }
 
-fn test_session_open_and_list(ctx: &mut E2ECtx) {
+fn test_session_lifecycle(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
     let open_result = run_command(ctx, &["open"]);
@@ -1274,10 +1324,7 @@ fn test_session_open_and_list(ctx: &mut E2ECtx) {
         "Expected session id '{session_id}' in list output:\n{}",
         list_result.stdout
     );
-    // Session remains open for test_session_close
-}
 
-fn test_session_close(ctx: &mut E2ECtx) {
     let close_result = run_command(ctx, &["close"]);
     assert!(
         close_result.stdout.contains("Session closed."),
@@ -1286,7 +1333,7 @@ fn test_session_close(ctx: &mut E2ECtx) {
     );
 }
 
-fn test_navigation(ctx: &mut E2ECtx) {
+fn test_navigation_and_storage(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
     run_command(ctx, &["open"]);
@@ -1338,10 +1385,7 @@ fn test_navigation(ctx: &mut E2ECtx) {
         15_000,
         "Expected other page title after reload",
     );
-    // Session remains open for test_storage
-}
 
-fn test_storage(ctx: &mut E2ECtx) {
     let delete_result = run_command(ctx, &["delete-data"]);
     let stripped = strip_snapshot_output(&delete_result.stdout).to_lowercase();
     assert!(
@@ -1353,7 +1397,7 @@ fn test_storage(ctx: &mut E2ECtx) {
     run_command(ctx, &["close"]);
 }
 
-fn test_typing_commands(ctx: &mut E2ECtx) {
+fn test_interaction_commands(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
     open_resized_interactive_page(ctx);
 
@@ -1383,10 +1427,7 @@ fn test_typing_commands(ctx: &mut E2ECtx) {
         },
         15_000,
     );
-    // Session and interactive page remain open for test_keyboard_and_pointer_commands
-}
 
-fn test_keyboard_and_pointer_commands(ctx: &mut E2ECtx) {
     run_command(ctx, &["click", "#type-target"]);
     let keydown_before = key_event_count(&read_interactive_state(ctx));
     run_command(ctx, &["keydown", "Shift"]);
@@ -1440,7 +1481,7 @@ fn test_keyboard_and_pointer_commands(ctx: &mut E2ECtx) {
     run_command(ctx, &["close"]);
 }
 
-fn test_form_controls(ctx: &mut E2ECtx) {
+fn test_form_controls_and_exports(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
     open_interactive_page(ctx);
 
@@ -1461,10 +1502,7 @@ fn test_form_controls(ctx: &mut E2ECtx) {
         |s| s["uploadName"].as_str() == Some("upload.txt"),
         15_000,
     );
-    // Session and interactive page remain open for test_export_commands
-}
 
-fn test_export_commands(ctx: &mut E2ECtx) {
     run_command_expecting_failure(
         ctx,
         &["console", "info"],
@@ -1508,7 +1546,91 @@ fn test_export_commands(ctx: &mut E2ECtx) {
     run_command(ctx, &["close"]);
 }
 
-fn test_mouse_commands(ctx: &mut E2ECtx) {
+fn test_batch_commands(ctx: &mut E2ECtx) {
+    reset_cli_artifacts(ctx);
+
+    let interactive_url = ctx.interactive_url();
+    let open_command = format!("open {interactive_url}");
+    let type_command = "type #type-target 'hello batch'".to_string();
+    let click_command = "click #click-target".to_string();
+
+    run_command(
+        ctx,
+        &[
+            "batch",
+            open_command.as_str(),
+            type_command.as_str(),
+            click_command.as_str(),
+        ],
+    );
+    wait_for_state(
+        ctx,
+        |s| s["typeValue"].as_str() == Some("hello batch") && s["clickCount"].as_u64() == Some(1),
+        15_000,
+    );
+
+    let key_events_before = key_event_count(&read_interactive_state(ctx));
+    run_command_with_stdin(
+        ctx,
+        &["batch", "--json"],
+        r##"
+[
+  ["fill", "#fill-target", "from json"],
+  ["keydown", "Shift"],
+  ["keyup", "Shift"]
+]
+"##,
+    );
+    wait_for_state(
+        ctx,
+        |s| {
+            s["fillValue"].as_str() == Some("from json")
+                && key_event_count(s) > key_events_before
+                && s["keyEvents"]
+                    .as_array()
+                    .and_then(|events| events.last())
+                    .and_then(|event| event.as_str())
+                    == Some("up:Shift")
+        },
+        15_000,
+    );
+
+    let continue_failure = run_command_expecting_failure(
+        ctx,
+        &["batch", "not-a-command", "snapshot"],
+        "1 batch command(s) failed.",
+    );
+    assert!(
+        continue_failure.stdout.contains("[Snapshot]("),
+        "Expected later batch command output after a non-bailing failure:\n{}",
+        continue_failure.stdout
+    );
+
+    let bail_failure = run_command_expecting_failure(
+        ctx,
+        &[
+            "batch",
+            "--bail",
+            "not-a-command",
+            "fill #fill-target 'should not run'",
+        ],
+        "Batch command 1 failed",
+    );
+    assert!(
+        !bail_failure.stdout.contains("should not run"),
+        "Expected --bail to stop before the second command:\n{}",
+        bail_failure.stdout
+    );
+    let fill_value = read_interactive_state(ctx)["fillValue"]
+        .as_str()
+        .unwrap_or_default()
+        .to_string();
+    assert_eq!(fill_value, "from json");
+
+    run_command(ctx, &["close"]);
+}
+
+fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
     open_resized_interactive_page(ctx);
 
@@ -1550,10 +1672,7 @@ fn test_mouse_commands(ctx: &mut E2ECtx) {
             && wheel_state["lastWheel"][1].as_i64() == Some(0),
         "Expected lastWheel to equal [160, 0], got {wheel_state:#?}"
     );
-    // Session and interactive page remain open for test_dialog_commands
-}
 
-fn test_dialog_commands(ctx: &mut E2ECtx) {
     eval_text(
         ctx,
         "(() => { setTimeout(() => document.getElementById('prompt-target').click(), 100); return 'scheduled'; })()",
@@ -1581,7 +1700,7 @@ fn test_dialog_commands(ctx: &mut E2ECtx) {
     run_command(ctx, &["close"]);
 }
 
-fn test_tab_list_and_new(ctx: &mut E2ECtx) {
+fn test_tab_commands(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
     open_interactive_page(ctx);
@@ -1606,13 +1725,7 @@ fn test_tab_list_and_new(ctx: &mut E2ECtx) {
         tab_output.contains(&other_url),
         "Expected other URL in updated tab-list"
     );
-    // Two tabs remain open for test_tab_select_and_close
-}
 
-fn test_tab_select_and_close(ctx: &mut E2ECtx) {
-    let other_url = ctx.other_url();
-    let tab_list_result = run_command(ctx, &["tab-list"]);
-    let tab_output = strip_snapshot_output(&tab_list_result.stdout);
     let other_tab_id = extract_tab_id(&tab_output, &other_url);
 
     run_command(ctx, &["tab-select", &other_tab_id]);
@@ -1852,36 +1965,33 @@ fn excluded_commands() -> HashSet<&'static str> {
 /// sync with what the test functions actually call.
 fn tested_commands() -> HashSet<&'static str> {
     [
-        // test_session_open_and_list
+        // test_session_lifecycle
         "open",
         "list",
-        // test_session_close
         "close",
-        // test_navigation
+        // test_navigation_and_storage
         "goto",
         "go-back",
         "go-forward",
         "reload",
-        // test_storage
         "delete-data",
-        // test_typing_commands
+        "batch",
+        // test_interaction_commands
         "resize",
         "type",
         "fill",
         "press",
-        // test_keyboard_and_pointer_commands
         "keydown",
         "keyup",
         "click",
         "dblclick",
         "hover",
         "drag",
-        // test_form_controls
+        // test_form_controls_and_exports
         "select",
         "check",
         "uncheck",
         "upload",
-        // test_export_commands
         "console",
         "snapshot",
         "screenshot",
@@ -1899,18 +2009,16 @@ fn tested_commands() -> HashSet<&'static str> {
         "co-scrape",
         "co-status",
         "co-result",
-        // test_mouse_commands
+        // test_mouse_and_dialog
         "mousemove",
         "mousedown",
         "mouseup",
         "mousewheel",
-        // test_dialog_commands
         "dialog-accept",
         "dialog-dismiss",
-        // test_tab_list_and_new
+        // test_tab_commands
         "tab-list",
         "tab-new",
-        // test_tab_select_and_close
         "tab-select",
         "tab-close",
         // eval is exercised indirectly by the eval_text helper
@@ -1998,9 +2106,6 @@ fn run_named_scenario(
     std::io::stdout().flush().expect("stdout flush failed");
     if requires_browser4 {
         if restart_browser4 {
-            // Kill lingering Chrome processes before restarting Browser4 so that
-            // they don't interfere with the fresh service instance.
-            kill_all_browsers();
             resources.restart_browser4();
         } else {
             resources.ensure_browser4();
@@ -2028,88 +2133,53 @@ struct ScenarioDef {
 
 const SCENARIOS: &[ScenarioDef] = &[
     ScenarioDef {
-        name: "test_e2e_session_open_and_list",
-        short_name: "test_session_open_and_list",
+        name: "test_e2e_session_lifecycle",
+        short_name: "test_session_lifecycle",
         requires_browser4: true,
         restart_browser4: true,
-        test_fn: test_session_open_and_list,
+        test_fn: test_session_lifecycle,
     },
     ScenarioDef {
-        name: "test_e2e_session_close",
-        short_name: "test_session_close",
+        name: "test_e2e_navigation_and_storage",
+        short_name: "test_navigation_and_storage",
         requires_browser4: true,
         restart_browser4: false,
-        test_fn: test_session_close,
+        test_fn: test_navigation_and_storage,
     },
     ScenarioDef {
-        name: "test_e2e_navigation",
-        short_name: "test_navigation",
-        requires_browser4: true,
-        restart_browser4: false,
-        test_fn: test_navigation,
-    },
-    ScenarioDef {
-        name: "test_e2e_storage",
-        short_name: "test_storage",
-        requires_browser4: true,
-        restart_browser4: false,
-        test_fn: test_storage,
-    },
-    ScenarioDef {
-        name: "test_e2e_typing_commands",
-        short_name: "test_typing_commands",
+        name: "test_e2e_interaction_commands",
+        short_name: "test_interaction_commands",
         requires_browser4: true,
         restart_browser4: true,
-        test_fn: test_typing_commands,
+        test_fn: test_interaction_commands,
     },
     ScenarioDef {
-        name: "test_e2e_keyboard_and_pointer_commands",
-        short_name: "test_keyboard_and_pointer_commands",
+        name: "test_e2e_batch_commands",
+        short_name: "test_batch_commands",
         requires_browser4: true,
         restart_browser4: false,
-        test_fn: test_keyboard_and_pointer_commands,
+        test_fn: test_batch_commands,
     },
     ScenarioDef {
-        name: "test_e2e_form_controls",
-        short_name: "test_form_controls",
+        name: "test_e2e_form_controls_and_exports",
+        short_name: "test_form_controls_and_exports",
         requires_browser4: true,
         restart_browser4: false,
-        test_fn: test_form_controls,
+        test_fn: test_form_controls_and_exports,
     },
     ScenarioDef {
-        name: "test_e2e_export_commands",
-        short_name: "test_export_commands",
-        requires_browser4: true,
-        restart_browser4: false,
-        test_fn: test_export_commands,
-    },
-    ScenarioDef {
-        name: "test_e2e_mouse_commands",
-        short_name: "test_mouse_commands",
+        name: "test_e2e_mouse_and_dialog",
+        short_name: "test_mouse_and_dialog",
         requires_browser4: true,
         restart_browser4: true,
-        test_fn: test_mouse_commands,
+        test_fn: test_mouse_and_dialog,
     },
     ScenarioDef {
-        name: "test_e2e_dialog_commands",
-        short_name: "test_dialog_commands",
+        name: "test_e2e_tab_commands",
+        short_name: "test_tab_commands",
         requires_browser4: true,
         restart_browser4: false,
-        test_fn: test_dialog_commands,
-    },
-    ScenarioDef {
-        name: "test_e2e_tab_list_and_new",
-        short_name: "test_tab_list_and_new",
-        requires_browser4: true,
-        restart_browser4: false,
-        test_fn: test_tab_list_and_new,
-    },
-    ScenarioDef {
-        name: "test_e2e_tab_select_and_close",
-        short_name: "test_tab_select_and_close",
-        requires_browser4: true,
-        restart_browser4: false,
-        test_fn: test_tab_select_and_close,
+        test_fn: test_tab_commands,
     },
     ScenarioDef {
         name: "test_e2e_collective_session_and_agent_tools",
@@ -2191,6 +2261,7 @@ fn main() {
             scenario.test_fn,
         );
         timings.push((scenario.name.to_string(), duration));
+        kill_all_browsers();
     }
 
     println!(

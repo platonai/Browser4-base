@@ -90,6 +90,7 @@ browser4-cli -s=<session> <command> [args] [options]
 |---|---|
 | `open [url]` | Open a new browser session (optionally navigate to URL) |
 | `close` | Close the active session |
+| `batch [command...]` | Execute multiple commands in one invocation |
 | `goto <url>` | Navigate to a URL |
 | `click <ref> [button]` | Click an element |
 | `dblclick <ref> [button]` | Double-click an element |
@@ -214,6 +215,20 @@ browser4-cli screenshot
 
 # Use a custom server URL
 browser4-cli open --server http://localhost:9090
+
+# Execute multiple commands in one process
+browser4-cli batch "open https://example.com" "snapshot"
+
+# Stop on the first batch failure
+browser4-cli batch --bail "open https://example.com" "click e1" "screenshot"
+
+# Pipe batch commands as JSON via stdin
+echo '[
+  ["open", "https://example.com"],
+  ["snapshot"],
+  ["click", "e1"],
+  ["screenshot", "--filename=result.png"]
+]' | browser4-cli batch --json
 
 # Close the session when done
 browser4-cli close

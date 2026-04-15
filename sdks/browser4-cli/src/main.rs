@@ -21,12 +21,16 @@ mod snapshot;
 mod state;
 
 use std::collections::HashSet;
+use std::io::Read;
 
 use base64::Engine;
 use reqwest::Client;
 use serde_json::{json, Value};
 
-use args::{build_command_args, parse_global_flags, parse_raw_args};
+use args::{
+    build_command_args, parse_batch_args, parse_batch_json_commands, parse_command_string,
+    parse_global_flags, parse_raw_args,
+};
 use commands::commands_map;
 use daemon::{ensure_server_running, resolve_base_url};
 use help::{generate_command_help, generate_help};
@@ -1228,13 +1232,8 @@ fn rewrite_co_prefix(args: &[String]) -> Option<Vec<String>> {
     Some(rewritten)
 }
 
-#[tokio::main]
-async fn main() {
-    let raw_args: Vec<String> = std::env::args().skip(1).collect();
-    let global = parse_global_flags(&raw_args);
-
-    // Handle "co <subcommand>" → "co-<subcommand>" prefix rewriting.
-    let (command, effective_global) = if let Some(rewritten) = rewrite_co_prefix(&global.args) {
+fn normalize_command_invocation(global: &args::GlobalFlags) -> (String, args::GlobalFlags) {
+    if let Some(rewritten) = rewrite_co_prefix(&global.args) {
         let cmd = rewritten[0].clone();
         let new_global = args::GlobalFlags {
             session_name: global.session_name.clone(),
@@ -1248,8 +1247,136 @@ async fn main() {
             .first()
             .map(|s| s.to_string())
             .unwrap_or_default();
-        (cmd, global)
+        (cmd, global.clone())
+    }
+}
+
+#[derive(Debug, Clone)]
+struct BatchCommandSpec {
+    display: String,
+    tokens: Vec<String>,
+}
+
+fn read_batch_stdin() -> Result<String, String> {
+    let mut input = String::new();
+    std::io::stdin()
+        .read_to_string(&mut input)
+        .map_err(|e| format!("Failed to read batch JSON from stdin: {e}"))?;
+
+    if input.trim().is_empty() {
+        return Err("Batch --json mode requires JSON input on stdin.".to_string());
+    }
+
+    Ok(input)
+}
+
+fn format_batch_command(tokens: &[String]) -> String {
+    tokens
+        .iter()
+        .map(|token| {
+            if token.chars().any(char::is_whitespace) {
+                serde_json::to_string(token).unwrap_or_else(|_| token.clone())
+            } else {
+                token.clone()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn resolve_batch_commands(
+    global: &args::GlobalFlags,
+) -> Result<(bool, Vec<BatchCommandSpec>), String> {
+    let batch_args = parse_batch_args(&global.args[1..])?;
+    let commands = if batch_args.json {
+        parse_batch_json_commands(&read_batch_stdin()?)?
+            .into_iter()
+            .map(|tokens| BatchCommandSpec {
+                display: format_batch_command(&tokens),
+                tokens,
+            })
+            .collect()
+    } else {
+        batch_args
+            .commands
+            .iter()
+            .map(|command| {
+                Ok(BatchCommandSpec {
+                    display: command.clone(),
+                    tokens: parse_command_string(command)?,
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?
     };
+
+    Ok((batch_args.bail, commands))
+}
+
+async fn handle_batch(global: &args::GlobalFlags) -> Result<(), String> {
+    let (bail, commands) = resolve_batch_commands(global)?;
+    let mut failures: Vec<String> = Vec::new();
+
+    for (index, spec) in commands.iter().enumerate() {
+        let mut nested_global = parse_global_flags(&spec.tokens);
+        if nested_global.session_name.is_none() {
+            nested_global.session_name = global.session_name.clone();
+        }
+        if nested_global.server_url.is_none() {
+            nested_global.server_url = global.server_url.clone();
+        }
+
+        let (nested_command, effective_nested_global) =
+            normalize_command_invocation(&nested_global);
+        if nested_command.is_empty() {
+            let failure = format!("Batch command {} is empty: {}", index + 1, spec.display);
+            if bail {
+                return Err(failure);
+            }
+            eprintln!("{failure}");
+            failures.push(failure);
+            continue;
+        }
+        if nested_command == "batch" {
+            let failure = format!(
+                "Nested batch commands are not supported (command {}: {}).",
+                index + 1,
+                spec.display
+            );
+            if bail {
+                return Err(failure);
+            }
+            eprintln!("{failure}");
+            failures.push(failure);
+            continue;
+        }
+
+        if let Err(err) = Box::pin(run(&nested_command, &effective_nested_global)).await {
+            let failure = format!(
+                "Batch command {} failed ({}): {}",
+                index + 1,
+                spec.display,
+                err
+            );
+            if bail {
+                return Err(failure);
+            }
+            eprintln!("{failure}");
+            failures.push(failure);
+        }
+    }
+
+    if failures.is_empty() {
+        Ok(())
+    } else {
+        Err(format!("{} batch command(s) failed.", failures.len()))
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let raw_args: Vec<String> = std::env::args().skip(1).collect();
+    let global = parse_global_flags(&raw_args);
+    let (command, effective_global) = normalize_command_invocation(&global);
 
     if let Err(e) = run(&command, &effective_global).await {
         eprintln!("Error: {}", e);
@@ -1275,6 +1402,10 @@ async fn run(command: &str, global: &args::GlobalFlags) -> Result<(), String> {
     if command == "--version" || command == "-v" || command == "version" {
         println!("browser4-cli {}", VERSION);
         return Ok(());
+    }
+
+    if command == "batch" {
+        return handle_batch(global).await;
     }
 
     // Resolve base URL: --server flag > persisted state > default
