@@ -100,7 +100,7 @@ class MCPToolController(
             "browser_file_upload" to "upload",
             "browser_check" to "check",
             "browser_uncheck" to "uncheck",
-            "browser_evaluate" to "evaluate",
+            "browser_evaluate" to "evaluate_value",
             "browser_resize" to "resize",
             "browser_take_screenshot" to "screenshot",
         )
@@ -879,6 +879,15 @@ class MCPToolController(
                 val legacyValue = normalized.remove("value")
                 if (!normalized.containsKey("values") && legacyValue != null) {
                     normalized["values"] = listOf(legacyValue.toString())
+                }
+            }
+
+            "evaluate_value", "evaluate_value_detail" -> {
+                val selector = normalized["selector"]?.toString()?.takeIf { it.isNotBlank() }
+                val expression = normalized["expression"]?.toString()?.takeIf { it.isNotBlank() }
+                if (selector != null && expression != null && !normalized.containsKey("functionDeclaration")) {
+                    normalized.remove("expression")
+                    normalized["functionDeclaration"] = expression
                 }
             }
         }

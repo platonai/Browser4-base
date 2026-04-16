@@ -314,8 +314,38 @@ class BrowserTabToolExecutor: AbstractToolExecutor() {
             // JavaScript evaluation
             "evaluate" -> { validateArgs(args, allowed("expression"), setOf("expression"), functionName); driver.evaluate(paramString(args, "expression", functionName)!!) }
             "evaluateDetail" -> { validateArgs(args, allowed("expression"), setOf("expression"), functionName); driver.evaluateDetail(paramString(args, "expression", functionName)!!) }
-            "evaluateValue" -> { validateArgs(args, allowed("expression"), setOf("expression"), functionName); driver.evaluateValue(paramString(args, "expression", functionName)!!) }
-            "evaluateValueDetail" -> { validateArgs(args, allowed("expression"), setOf("expression"), functionName); driver.evaluateValueDetail(paramString(args, "expression", functionName)!!) }
+            "evaluateValue" -> {
+                when {
+                    args.containsKey("selector") && args.containsKey("functionDeclaration") -> {
+                        validateArgs(args, allowed("selector", "functionDeclaration"), setOf("selector", "functionDeclaration"), functionName)
+                        driver.evaluateValue(
+                            paramString(args, "selector", functionName)!!,
+                            paramString(args, "functionDeclaration", functionName)!!
+                        )
+                    }
+                    args.containsKey("expression") -> {
+                        validateArgs(args, allowed("expression"), setOf("expression"), functionName)
+                        driver.evaluateValue(paramString(args, "expression", functionName)!!)
+                    }
+                    else -> throw IllegalArgumentException("evaluateValue requires 'expression' or ('selector','functionDeclaration')")
+                }
+            }
+            "evaluateValueDetail" -> {
+                when {
+                    args.containsKey("selector") && args.containsKey("functionDeclaration") -> {
+                        validateArgs(args, allowed("selector", "functionDeclaration"), setOf("selector", "functionDeclaration"), functionName)
+                        driver.evaluateValueDetail(
+                            paramString(args, "selector", functionName)!!,
+                            paramString(args, "functionDeclaration", functionName)!!
+                        )
+                    }
+                    args.containsKey("expression") -> {
+                        validateArgs(args, allowed("expression"), setOf("expression"), functionName)
+                        driver.evaluateValueDetail(paramString(args, "expression", functionName)!!)
+                    }
+                    else -> throw IllegalArgumentException("evaluateValueDetail requires 'expression' or ('selector','functionDeclaration')")
+                }
+            }
 
             // Element geometry
             "clickablePoint" -> { validateArgs(args, allowed("selector"), setOf("selector"), functionName); driver.clickablePoint(paramString(args, "selector", functionName)!!) }

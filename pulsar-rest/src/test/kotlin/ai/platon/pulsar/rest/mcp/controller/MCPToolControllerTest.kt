@@ -364,6 +364,62 @@ class MCPToolControllerTest {
     }
 
     @Test
+    fun `test browser evaluate maps to evaluateValue`() = runBlocking {
+        mockTool("tab", "evaluateValue")
+
+        val request = MCPToolCallRequest(
+            tool = "browser_evaluate",
+            arguments = mapOf("sessionId" to sessionId, "expression" to "document.title")
+        )
+
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("Browser4 CLI Other Fixture"))
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertEquals("Browser4 CLI Other Fixture", result.body!!.content[0].text)
+
+        val captor = ArgumentCaptor.forClass(ToolCall::class.java)
+        Mockito.verify(agentToolExecutor).execute(capture(captor))
+        val toolCall = captor.value
+
+        assertEquals("tab", toolCall.domain)
+        assertEquals("evaluateValue", toolCall.method)
+        assertEquals("document.title", toolCall.arguments["expression"])
+    }
+
+    @Test
+    fun `test browser evaluate with ref remaps to function declaration`() = runBlocking {
+        mockTool("tab", "evaluateValue")
+
+        val request = MCPToolCallRequest(
+            tool = "browser_evaluate",
+            arguments = mapOf(
+                "sessionId" to sessionId,
+                "ref" to "#page-marker",
+                "expression" to "(element) => element.textContent"
+            )
+        )
+
+        `when`(agentToolExecutor.execute(anyToolCall())).thenReturn(toolCallResult("other page"))
+
+        val result = controller.callTool(request, response)
+
+        assertEquals(HttpStatus.OK, result.statusCode)
+        assertEquals("other page", result.body!!.content[0].text)
+
+        val captor = ArgumentCaptor.forClass(ToolCall::class.java)
+        Mockito.verify(agentToolExecutor).execute(capture(captor))
+        val toolCall = captor.value
+
+        assertEquals("tab", toolCall.domain)
+        assertEquals("evaluateValue", toolCall.method)
+        assertEquals("#page-marker", toolCall.arguments["selector"])
+        assertEquals("(element) => element.textContent", toolCall.arguments["functionDeclaration"])
+        assertTrue("expression" !in toolCall.arguments)
+    }
+
+    @Test
     fun `test frontend tab select maps to browser switchTab`() = runBlocking {
         val request = MCPToolCallRequest(
             tool = "browser_tabs",
