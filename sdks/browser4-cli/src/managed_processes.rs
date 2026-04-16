@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
-
+use std::thread::sleep;
 use crate::state::resolve_default_state_dir;
 
 const DEFAULT_REGISTRY_NAME: &str = "cli-managed-processes.json";
@@ -196,10 +196,12 @@ pub fn stop_browser4_server_gracefully() -> ShutdownResult {
 
 /// Force-stop all managed Browser4 server processes, then kill all related Chrome processes.
 pub fn stop_browser4_server_forcibly() -> ForceStopBrowser4ServerResult {
-    ForceStopBrowser4ServerResult {
+    let result = ForceStopBrowser4ServerResult {
         shutdown: stop_browser4_server(true),
         browser_kill: kill_all_browsers(),
-    }
+    };
+    sleep(std::time::Duration::from_secs(5));
+    result
 }
 
 /// Kill all found Browser4 Chrome processes (marked with PULSAR_CHROME).
@@ -239,10 +241,12 @@ pub fn kill_all_browsers() -> BrowserKillResult {
     result.killed_pids.dedup();
     result.remaining_pids = find_unique_pulsar_browser_processes();
 
-    // println!("Browser4 Chrome kill complete. Killed: {}, Remaining: {}",
-    //     result.killed_pids.len(),
-    //     result.remaining_pids.len()
-    // );
+    if (result.killed_pids.len() > 0) {
+        println!("Browser4 Chrome kill complete. Killed: {}, Remaining: {}",
+                 result.killed_pids.len(),
+                 result.remaining_pids.len()
+        );
+    }
 
     result
 }
