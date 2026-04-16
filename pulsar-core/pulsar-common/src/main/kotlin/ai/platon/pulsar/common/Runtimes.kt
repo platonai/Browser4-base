@@ -136,31 +136,32 @@ object Runtimes {
     }
 
     fun destroyProcess(process: Process, shutdownWaitTime: Duration) {
-        val info = formatProcessInfo(process.toHandle())
         val pid = process.pid()
+        val info = runCatching { formatProcessInfo(process.toHandle()) }.getOrElse { "pid=$pid" }
 
-        // Log and destroy child processes
-        val childCount = process.children().count().toInt()
-        if (childCount > 0) {
-            logger.info("Chrome process {} has {} child process(es), terminating them first", pid, childCount)
+        // Collect children once to avoid consuming the stream twice
+        val children = process.children().toList()
+        if (children.isNotEmpty()) {
+            logger.info("Process {} has {} child process(es), terminating them first", pid, children.size)
         }
-        process.children().forEach { destroyChildProcess(it) }
+        children.forEach { destroyChildProcess(it) }
 
         process.destroy()
         try {
             if (!process.waitFor(shutdownWaitTime.seconds, TimeUnit.SECONDS)) {
-                logger.warn("Chrome process {} did not exit gracefully within {} seconds, force killing", pid, shutdownWaitTime.seconds)
+                logger.warn("Process {} did not exit gracefully within {} seconds, force killing", pid, shutdownWaitTime.seconds)
                 process.destroyForcibly()
-                process.waitFor(shutdownWaitTime.seconds, TimeUnit.SECONDS)
+                if (!process.waitFor(shutdownWaitTime.seconds, TimeUnit.SECONDS)) {
+                    logger.error("Process {} still alive after destroyForcibly + {} s wait", pid, shutdownWaitTime.seconds)
+                }
             }
 
             logger.info("Exit | {}", info)
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
-            logger.warn("Interrupted while waiting for chrome process {} to exit, force killing", pid)
+            logger.warn("Interrupted while waiting for process {} to exit, force killing", pid)
             process.destroyForcibly()
             throw e
-        } finally {
         }
     }
 
