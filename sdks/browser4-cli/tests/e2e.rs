@@ -2769,6 +2769,7 @@ fn run_named_scenario(
     resources: &mut E2ETestResources,
     requires_browser4: bool,
     restart_browser4: bool,
+    cleanup_browser4: bool,
     test_fn: fn(&mut E2ECtx),
 ) -> TimingReport {
     print!("test {name} ... ");
@@ -2795,7 +2796,9 @@ fn run_named_scenario(
 
     // Forcibly stop server and Chrome regardless of success or failure.
     let cleanup_started_at = Instant::now();
-    stop_browser4_server_forcibly();
+    if (cleanup_browser4) {
+        stop_browser4_server_forcibly();
+    }
     let cleanup_step = TimedStep::new("browser4 service cleanup", cleanup_started_at.elapsed());
     let total_duration = total_started_at.elapsed();
 
@@ -2988,6 +2991,7 @@ fn main() {
             &mut resources,
             scenario.requires_browser4,
             scenario.restart_browser4,
+            false,
             scenario.test_fn,
         );
         timings.push(report);

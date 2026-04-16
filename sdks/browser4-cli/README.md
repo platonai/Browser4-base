@@ -255,7 +255,7 @@ The Rust CLI is structured as follows:
 
 ```bash
 cargo test
-cargo test --test e2e -- --nocapture --scenario=test_e2e_batch_multi_interaction
+cargo test --test e2e -- --nocapture --scenario=test_e2e_batch_form_submission
 ```
 
 ## License
