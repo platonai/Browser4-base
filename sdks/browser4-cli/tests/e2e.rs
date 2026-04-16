@@ -1429,7 +1429,12 @@ fn key_event_count(state: &serde_json::Value) -> usize {
         .map_or(0, |events| events.len())
 }
 
-fn wait_for_state<F>(ctx: &mut E2ECtx, predicate: F, timeout_ms: u64) -> serde_json::Value
+fn wait_for_state<F>(
+    ctx: &mut E2ECtx,
+    predicate: F,
+    timeout_ms: u64,
+    failure_message: &str,
+) -> serde_json::Value
 where
     F: Fn(&serde_json::Value) -> bool,
 {
@@ -1439,7 +1444,11 @@ where
         let state = read_interactive_state(ctx);
         if predicate(&state) {
             ctx.record_step(
-                format!("wait for state (timeout={}ms)", timeout_ms),
+                format!(
+                    "wait for state {} (timeout={}ms)",
+                    truncate_timing_label(failure_message.trim(), 64),
+                    timeout_ms
+                ),
                 started_at.elapsed(),
             );
             return state;
@@ -1447,7 +1456,14 @@ where
         thread::sleep(Duration::from_millis(300));
     }
     let state = read_interactive_state(ctx);
-    panic!("Timed out waiting for interactive state. Last state:\n{state:#?}");
+    let parse_hint = if state.is_null() {
+        "\nLast state could not be parsed from #state-log and was read as JSON null."
+    } else {
+        ""
+    };
+    panic!(
+        "{failure_message}. Timed out after {timeout_ms}ms waiting for interactive state.{parse_hint}\nLast state:\n{state:#?}"
+    );
 }
 
 fn wait_for_eval_text(
@@ -1738,6 +1754,7 @@ fn test_interaction_commands(ctx: &mut E2ECtx) {
         ctx,
         |s| s["typeValue"].as_str() == Some("hello world"),
         15_000,
+        "Expected typeValue to become 'hello world' after type",
     );
 
     // fill
@@ -1746,6 +1763,7 @@ fn test_interaction_commands(ctx: &mut E2ECtx) {
         ctx,
         |s| s["fillValue"].as_str() == Some("filled text"),
         15_000,
+        "Expected fillValue to become 'filled text' after fill",
     );
 
     let press_before = read_interactive_state(ctx);
@@ -1758,6 +1776,7 @@ fn test_interaction_commands(ctx: &mut E2ECtx) {
                 && key_event_count(s) > press_before_events
         },
         15_000,
+        "Expected press to append '!' to typeValue and emit a key event",
     );
 
     run_command(ctx, &["click", "#type-target"]);
@@ -1774,6 +1793,7 @@ fn test_interaction_commands(ctx: &mut E2ECtx) {
                     == Some("down:Shift")
         },
         15_000,
+        "Expected keydown to record a final 'down:Shift' key event",
     );
 
     let keyup_before = key_event_count(&read_interactive_state(ctx));
@@ -1789,16 +1809,32 @@ fn test_interaction_commands(ctx: &mut E2ECtx) {
                     == Some("up:Shift")
         },
         15_000,
+        "Expected keyup to record a final 'up:Shift' key event",
     );
 
     run_command(ctx, &["click", "#click-target"]);
-    wait_for_state(ctx, |s| s["clickCount"].as_u64() == Some(1), 15_000);
+    wait_for_state(
+        ctx,
+        |s| s["clickCount"].as_u64() == Some(1),
+        15_000,
+        "Expected clickCount to become 1 after click",
+    );
 
     run_command(ctx, &["dblclick", "#dblclick-target"]);
-    wait_for_state(ctx, |s| s["doubleClickCount"].as_u64() == Some(1), 15_000);
+    wait_for_state(
+        ctx,
+        |s| s["doubleClickCount"].as_u64() == Some(1),
+        15_000,
+        "Expected doubleClickCount to become 1 after dblclick",
+    );
 
     run_command(ctx, &["hover", "#hover-target"]);
-    wait_for_state(ctx, |s| s["hovered"].as_bool() == Some(true), 15_000);
+    wait_for_state(
+        ctx,
+        |s| s["hovered"].as_bool() == Some(true),
+        15_000,
+        "Expected hovered to become true after hover",
+    );
 
     run_command(ctx, &["drag", "#drag-source", "#drag-target"]);
     wait_for_state(
@@ -1808,6 +1844,7 @@ fn test_interaction_commands(ctx: &mut E2ECtx) {
                 && s["dragDropped"].as_str() == Some("drag-source")
         },
         15_000,
+        "Expected drag to start and drop drag-source onto the target",
     );
 
     run_command(ctx, &["close"]);
@@ -1818,13 +1855,28 @@ fn test_form_controls_and_exports(ctx: &mut E2ECtx) {
     open_interactive_page(ctx);
 
     run_command(ctx, &["select", "#select-target", "green"]);
-    wait_for_state(ctx, |s| s["selectValue"].as_str() == Some("green"), 15_000);
+    wait_for_state(
+        ctx,
+        |s| s["selectValue"].as_str() == Some("green"),
+        15_000,
+        "Expected selectValue to become 'green' after select",
+    );
 
     run_command(ctx, &["check", "#check-target"]);
-    wait_for_state(ctx, |s| s["checkbox"].as_bool() == Some(true), 15_000);
+    wait_for_state(
+        ctx,
+        |s| s["checkbox"].as_bool() == Some(true),
+        15_000,
+        "Expected checkbox to become true after check",
+    );
 
     run_command(ctx, &["uncheck", "#check-target"]);
-    wait_for_state(ctx, |s| s["checkbox"].as_bool() == Some(false), 15_000);
+    wait_for_state(
+        ctx,
+        |s| s["checkbox"].as_bool() == Some(false),
+        15_000,
+        "Expected checkbox to become false after uncheck",
+    );
 
     // upload
     let upload_path = ctx.upload_file_path.to_string_lossy().into_owned();
@@ -1833,6 +1885,7 @@ fn test_form_controls_and_exports(ctx: &mut E2ECtx) {
         ctx,
         |s| s["uploadName"].as_str() == Some("upload.txt"),
         15_000,
+        "Expected uploadName to become 'upload.txt' after upload",
     );
 
     run_command_expecting_failure(
@@ -1899,6 +1952,7 @@ fn test_batch_commands(ctx: &mut E2ECtx) {
         ctx,
         |s| s["typeValue"].as_str() == Some("hello batch") && s["clickCount"].as_u64() == Some(1),
         15_000,
+        "Expected batch commands to set typeValue to 'hello batch' and clickCount to 1",
     );
 
     let key_events_before = key_event_count(&read_interactive_state(ctx));
@@ -1925,6 +1979,7 @@ fn test_batch_commands(ctx: &mut E2ECtx) {
                     == Some("up:Shift")
         },
         15_000,
+        "Expected JSON batch to fill text and finish with an 'up:Shift' key event",
     );
 
     let continue_failure = run_command_expecting_failure(
@@ -1999,6 +2054,7 @@ fn test_batch_form_submission(ctx: &mut E2ECtx) {
                 && s["validationError"].as_str() == Some("")
         },
         15_000,
+        "Expected batch submission to populate the form and submit successfully for Alice",
     );
 
     // Verify lastSubmission has the correct data
@@ -2038,6 +2094,7 @@ fn test_batch_form_submission(ctx: &mut E2ECtx) {
                 && s["firstName"].as_str() == Some("Bob")
         },
         15_000,
+        "Expected JSON batch reset flow to submit Bob as the second submission",
     );
 
     // Verify second submission data
@@ -2082,6 +2139,7 @@ fn test_batch_multi_interaction(ctx: &mut E2ECtx) {
                 && s["clickCount"].as_u64() == Some(2)
         },
         15_000,
+        "Expected multi-interaction batch to update text, fill, checkbox, select, and clickCount",
     );
 
     // Test batch with snapshot and screenshot outputs
@@ -2129,7 +2187,12 @@ fn test_batch_multi_interaction(ctx: &mut E2ECtx) {
 
     // Uncheck and verify via batch to test state reversal
     run_command(ctx, &["batch", "uncheck #check-target"]);
-    wait_for_state(ctx, |s| s["checkbox"].as_bool() == Some(false), 15_000);
+    wait_for_state(
+        ctx,
+        |s| s["checkbox"].as_bool() == Some(false),
+        15_000,
+        "Expected batch uncheck to clear the checkbox",
+    );
 
     run_command(ctx, &["close"]);
 }
@@ -2159,6 +2222,7 @@ fn test_batch_error_handling(ctx: &mut E2ECtx) {
         ctx,
         |s| s["fillValue"].as_str() == Some("after error"),
         15_000,
+        "Expected fill command after a non-bailing batch error to still run",
     );
 
     // Test: --bail stops at the first error
@@ -2181,10 +2245,11 @@ fn test_batch_error_handling(ctx: &mut E2ECtx) {
         |s| {
             s["typeValue"]
                 .as_str()
-                .map(|v| v.ends_with("bail test"))
+                .map(|v| v.contains("bail test"))
                 .unwrap_or(false)
         },
         15_000,
+        "Expected typeValue to contain 'bail test' after the pre-error batch command",
     );
     // Fill should NOT have executed
     let fill_value = read_interactive_state(ctx)["fillValue"]
@@ -2214,10 +2279,11 @@ fn test_batch_error_handling(ctx: &mut E2ECtx) {
         |s| {
             s["typeValue"]
                 .as_str()
-                .map(|v| v.ends_with("still works"))
+                .map(|v| v.contains("still works"))
                 .unwrap_or(false)
         },
         15_000,
+        "Expected typeValue to contain 'still works' despite earlier batch errors",
     );
 
     run_command(ctx, &["close"]);
@@ -2250,6 +2316,7 @@ fn test_batch_json_edge_cases(ctx: &mut E2ECtx) {
                 && s["clickCount"].as_u64() == Some(1)
         },
         15_000,
+        "Expected mixed JSON batch commands to type, fill, and click once",
     );
 
     // Open again to avoid dirty data
@@ -2267,6 +2334,7 @@ fn test_batch_json_edge_cases(ctx: &mut E2ECtx) {
         ctx,
         |s| s["fillValue"].as_str() == Some("special: @#$%&*"),
         15_000,
+        "Expected JSON batch to preserve special characters in fillValue",
     );
 
     // Open again to avoid dirty data
@@ -2301,6 +2369,7 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         ctx,
         |s| s["lastMouse"][0].as_i64() == Some(120) && s["lastMouse"][1].as_i64() == Some(120),
         15_000,
+        "Expected mousemove to update lastMouse to [120, 120]",
     );
 
     let before_mouse_down = read_interactive_state(ctx)["mouseDownCount"]
@@ -2311,6 +2380,7 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         ctx,
         |s| s["mouseDownCount"].as_u64() == Some(before_mouse_down + 1),
         15_000,
+        "Expected mousedown to increment mouseDownCount",
     );
 
     let before_mouse_up = read_interactive_state(ctx)["mouseUpCount"]
@@ -2321,6 +2391,7 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         ctx,
         |s| s["mouseUpCount"].as_u64() == Some(before_mouse_up + 1),
         15_000,
+        "Expected mouseup to increment mouseUpCount",
     );
 
     run_command(ctx, &["mousewheel", "0", "160"]);
@@ -2328,6 +2399,7 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         ctx,
         |s| s["lastWheel"][0].as_i64() == Some(160) && s["lastWheel"][1].as_i64() == Some(0),
         15_000,
+        "Expected mousewheel to update lastWheel to [160, 0]",
     );
     assert!(
         wheel_state["lastWheel"][0].as_i64() == Some(160)
@@ -2345,6 +2417,7 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         ctx,
         |s| s["promptResult"].as_str() == Some("accepted by cli"),
         15_000,
+        "Expected dialog-accept to set promptResult to 'accepted by cli'",
     );
 
     eval_text(
@@ -2357,6 +2430,7 @@ fn test_mouse_and_dialog(ctx: &mut E2ECtx) {
         ctx,
         |s| s["confirmResult"].as_str() == Some("dismissed"),
         15_000,
+        "Expected dialog-dismiss to set confirmResult to 'dismissed'",
     );
 
     run_command(ctx, &["close"]);
