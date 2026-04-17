@@ -3,6 +3,7 @@ package ai.platon.pulsar.rest.mcp.service
 import ai.platon.pulsar.agentic.AgenticSession
 import ai.platon.pulsar.agentic.PerceptiveAgent
 import ai.platon.pulsar.agentic.context.AgenticContext
+import ai.platon.pulsar.core.api.PulsarSettings
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -78,7 +79,9 @@ class SessionManager(
         val sessionId = UUID.randomUUID().toString()
 
         val context = agenticContext
-        val agenticSession = context.createSession()
+
+        val settings = PulsarSettings.parse(capabilities)
+        val agenticSession = context.createSession(settings)
 
         val session = ManagedSession(
             sessionId = sessionId,
