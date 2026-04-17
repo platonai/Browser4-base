@@ -132,8 +132,8 @@ class ChromeLauncher constructor(
         val existingPort = checkExistingChromeProcess()
         if (existingPort > 0) {
             logger.info("Found existing Chrome process on port: {} for userDataDir: {}", existingPort, userDataDir)
-            logger.info("Reusing existing Chrome process feature is disabled temporarily")
-            // return ChromeImpl(existingPort)
+            // logger.info("Reusing existing Chrome process feature is disabled temporarily")
+            return ChromeImpl(existingPort)
         }
 
         // Attempt to prepare the user data directory

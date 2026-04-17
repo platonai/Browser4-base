@@ -362,7 +362,7 @@ pub fn kill_all_browsers() -> BrowserKillResult {
     result.killed_pids.dedup();
     result.remaining_pids = find_unique_pulsar_browser_processes();
 
-    if result.killed_pids.len() > 0 {
+    if result.killed_pids.len() + result.remaining_pids.len() > 0 {
         println!("Browser4 Chrome kill complete. Killed: {}, Remaining: {}",
                  result.killed_pids.len(),
                  result.remaining_pids.len()

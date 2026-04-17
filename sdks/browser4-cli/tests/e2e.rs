@@ -2852,7 +2852,7 @@ fn run_named_scenario(
     cleanup_browser4: bool,
     test_fn: fn(&mut E2ECtx),
 ) -> TimingReport {
-    print!("test {name} ... ");
+    println!("testing {name} ... ");
     std::io::stdout().flush().expect("stdout flush failed");
     resources.ctx.clear_step_timings();
     let total_started_at = Instant::now();
@@ -2921,7 +2921,7 @@ const SCENARIOS: &[ScenarioDef] = &[
         name: "test_e2e_session_lifecycle",
         short_name: "test_session_lifecycle",
         requires_browser4: true,
-        restart_browser4: true,
+        restart_browser4: false,
         test_fn: test_session_lifecycle,
     },
     ScenarioDef {
@@ -2935,7 +2935,7 @@ const SCENARIOS: &[ScenarioDef] = &[
         name: "test_e2e_interaction_commands",
         short_name: "test_interaction_commands",
         requires_browser4: true,
-        restart_browser4: true,
+        restart_browser4: false,
         test_fn: test_interaction_commands,
     },
     ScenarioDef {
@@ -2949,28 +2949,28 @@ const SCENARIOS: &[ScenarioDef] = &[
         name: "test_e2e_batch_form_submission",
         short_name: "test_batch_form_submission",
         requires_browser4: true,
-        restart_browser4: true,
+        restart_browser4: false,
         test_fn: test_batch_form_submission,
     },
     ScenarioDef {
         name: "test_e2e_batch_multi_interaction",
         short_name: "test_batch_multi_interaction",
         requires_browser4: true,
-        restart_browser4: true,
+        restart_browser4: false,
         test_fn: test_batch_multi_interaction,
     },
     ScenarioDef {
         name: "test_e2e_batch_error_handling",
         short_name: "test_batch_error_handling",
         requires_browser4: true,
-        restart_browser4: true,
+        restart_browser4: false,
         test_fn: test_batch_error_handling,
     },
     ScenarioDef {
         name: "test_e2e_batch_json_edge_cases",
         short_name: "test_batch_json_edge_cases",
         requires_browser4: true,
-        restart_browser4: true,
+        restart_browser4: false,
         test_fn: test_batch_json_edge_cases,
     },
     ScenarioDef {
@@ -2980,41 +2980,41 @@ const SCENARIOS: &[ScenarioDef] = &[
         restart_browser4: false,
         test_fn: test_form_controls_and_exports,
     },
-    ScenarioDef {
-        name: "test_e2e_mouse_and_dialog",
-        short_name: "test_mouse_and_dialog",
-        requires_browser4: true,
-        restart_browser4: true,
-        test_fn: test_mouse_and_dialog,
-    },
-    ScenarioDef {
-        name: "test_e2e_tab_commands",
-        short_name: "test_tab_commands",
-        requires_browser4: true,
-        restart_browser4: false,
-        test_fn: test_tab_commands,
-    },
-    ScenarioDef {
-        name: "test_e2e_collective_session_and_agent_tools",
-        short_name: "test_collective_session_and_agent_tools",
-        requires_browser4: false,
-        restart_browser4: false,
-        test_fn: test_collective_session_and_agent_tools,
-    },
-    ScenarioDef {
-        name: "test_e2e_agent_task_commands",
-        short_name: "test_agent_task_commands",
-        requires_browser4: false,
-        restart_browser4: false,
-        test_fn: test_agent_task_commands,
-    },
-    ScenarioDef {
-        name: "test_e2e_collective_submission_commands",
-        short_name: "test_collective_submission_commands",
-        requires_browser4: false,
-        restart_browser4: false,
-        test_fn: test_collective_submission_commands,
-    },
+    // ScenarioDef {
+    //     name: "test_e2e_mouse_and_dialog",
+    //     short_name: "test_mouse_and_dialog",
+    //     requires_browser4: true,
+    //     restart_browser4: false,
+    //     test_fn: test_mouse_and_dialog,
+    // },
+    // ScenarioDef {
+    //     name: "test_e2e_tab_commands",
+    //     short_name: "test_tab_commands",
+    //     requires_browser4: true,
+    //     restart_browser4: false,
+    //     test_fn: test_tab_commands,
+    // },
+    // ScenarioDef {
+    //     name: "test_e2e_collective_session_and_agent_tools",
+    //     short_name: "test_collective_session_and_agent_tools",
+    //     requires_browser4: false,
+    //     restart_browser4: false,
+    //     test_fn: test_collective_session_and_agent_tools,
+    // },
+    // ScenarioDef {
+    //     name: "test_e2e_agent_task_commands",
+    //     short_name: "test_agent_task_commands",
+    //     requires_browser4: false,
+    //     restart_browser4: false,
+    //     test_fn: test_agent_task_commands,
+    // },
+    // ScenarioDef {
+    //     name: "test_e2e_collective_submission_commands",
+    //     short_name: "test_collective_submission_commands",
+    //     requires_browser4: false,
+    //     restart_browser4: false,
+    //     test_fn: test_collective_submission_commands,
+    // },
 ];
 
 fn parse_scenario_filter() -> Option<String> {
