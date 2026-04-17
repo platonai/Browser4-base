@@ -14,6 +14,7 @@ import ai.platon.pulsar.skeleton.crawl.fetch.driver.IllegalWebDriverStateExcepti
 import kotlinx.coroutines.delay
 import java.text.MessageFormat
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class RobustRPC(
@@ -30,8 +31,10 @@ class RobustRPC(
     }
 
     private val logger = getLogger(this)
+    
+    private val _isActive = AtomicBoolean(false)
 
-    val isActive get() = driver.isActive
+    val isActive get() = driver.isActive && _isActive.get()
 
     val rpcFailures = AtomicInteger()
     var maxRPCFailures = MAX_RPC_FAILURES
@@ -61,12 +64,17 @@ class RobustRPC(
             return null
         }
 
+        if (!driver.devTools.isOpen) {
+            if (_isActive.compareAndSet(true, false)) {
+                logger.info("Devtools has been closed")
+            }
+            return null
+        }
+
         var result = kotlin.runCatching { invokeDeferred0(action, url, block) }
             .onFailure {
-                logger.info(
-                    "Oop, a bit slip-up executing action: [$action], retrying 1/$maxRetry time ...",
-                    it.brief()
-                )
+                logger.info("Oop, a bit slip-up executing action: " +
+                            "[$action], retrying 1/$maxRetry time ... | {}", it.brief())
             }
 
         var i = 1

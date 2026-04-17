@@ -254,17 +254,17 @@ fn notify_close_all_sessions_before_force_stop(
     registry_path: Option<&Path>,
     state_dir: Option<&Path>,
 ) {
-    let mut warnings = Vec::new();
-
-    for base_url in close_all_base_urls_for_force_stop(registry_path, state_dir) {
-        if let Err(error) = call_close_all_sessions(client, &base_url) {
-            warnings.push(format!("{}: {}", base_url, error));
-        }
-    }
-
-    if !warnings.is_empty() {
-        eprintln!("kill-all close-all warnings: {}", warnings.join(" | "));
-    }
+    // let mut warnings = Vec::new();
+    //
+    // for base_url in close_all_base_urls_for_force_stop(registry_path, state_dir) {
+    //     if let Err(error) = call_close_all_sessions(client, &base_url) {
+    //         warnings.push(format!("{}: {}", base_url, error));
+    //     }
+    // }
+    //
+    // if !warnings.is_empty() {
+    //     eprintln!("kill-all close-all warnings: {}", warnings.join(" | "));
+    // }
 }
 
 fn close_all_base_urls_for_force_stop(
