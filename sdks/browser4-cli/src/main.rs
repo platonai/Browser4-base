@@ -63,6 +63,7 @@ fn no_snapshot_commands() -> HashSet<&'static str> {
         "kill-all",
         "list",
         "help",
+        "eval",
         "snapshot",
         "screenshot",
         "pdf",
@@ -2225,6 +2226,11 @@ fn print_help(command_name: Option<&str>) {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn no_snapshot_commands_include_eval() {
+        assert!(no_snapshot_commands().contains("eval"));
+    }
 
     #[test]
     fn tracked_selector_prefers_ref() {
