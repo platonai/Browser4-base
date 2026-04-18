@@ -489,6 +489,18 @@
                 <scope>test</scope>
             </dependency>
 
+            <dependency>
+                <groupId>ai.platon.pulsar</groupId>
+                <artifactId>pulsar-tests-common</artifactId>
+                <version>${pulsar.modules.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ai.platon.pulsar</groupId>
+                <artifactId>pulsar-tests-common</artifactId>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+                <version>${pulsar.modules.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
