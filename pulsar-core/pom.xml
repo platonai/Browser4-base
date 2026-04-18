@@ -37,14 +37,6 @@
         <module>pulsar-browser</module>
         <module>pulsar-ql-common</module>
         <module>pulsar-ql</module>
+        <module>pulsar-core-tests</module>
     </modules>
-
-    <profiles>
-        <profile>
-            <id>pulsar-core-tests</id>
-            <modules>
-                <module>pulsar-core-tests</module>
-            </modules>
-        </profile>
-    </profiles>
 </project>
