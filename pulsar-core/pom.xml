@@ -35,7 +35,6 @@
         <module>pulsar-third</module>
         <module>pulsar-skeleton</module>
         <module>pulsar-browser</module>
-        <module>pulsar-spring-support</module>
         <module>pulsar-ql-common</module>
         <module>pulsar-ql</module>
     </modules>
