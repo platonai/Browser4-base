@@ -1,0 +1,36 @@
+name: Nightly Build
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every day
+    # This is a comprehensive nightly build including:
+    # - All unit tests (Fast + Slow)
+    # - Integration tests
+    # - Docker image building
+    # - Python SDK tests
+    # Note: E2E tests run separately in cli-e2e-tests.yml (manual only)
+    - cron: '0 0 * * *'
+  # Allow manual workflow runs
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_OPTS: '-Xmx3g -XX:+UseG1GC'
+
+jobs:
+  ci-build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
+      test_results: ${{ steps.tests.outputs.test_status }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        id: setup
+        uses: ./.github/actions/setup-environment
+        with:
+          java_version: ${{ env.JAVA_VERSION }}

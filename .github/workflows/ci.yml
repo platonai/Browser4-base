@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+-ci.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+-ci.[0-9]+'
+  # CI pipeline for tagged releases: Fast unit tests + Docker build + SDK tests
+  # Note: Comprehensive tests (including Slow + Integration) run in nightly.yml
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        default: false
+        type: boolean
+      debug_mode:
+        description: 'Enable debug mode'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_OPTS: '-Xmx3g -XX:+UseG1GC'
+
+jobs:
+  ci-build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
+      test_results: ${{ steps.tests.outputs.test_status }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        id: setup
+        uses: ./.github/actions/setup-environment
+        with:
+          java_version: ${{ env.JAVA_VERSION }}
