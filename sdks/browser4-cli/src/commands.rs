@@ -115,6 +115,7 @@ pub fn all_commands() -> Vec<CommandDef> {
                 OptionDef { name: "headed", description: "Run browser in headed mode", is_bool: true },
                 OptionDef { name: "persistent", description: "Use persistent browser profile", is_bool: true },
                 OptionDef { name: "profile", description: "Path to browser profile directory", is_bool: false },
+                OptionDef { name: "profile-mode", description: "Browser profile mode (temporary, default, system_default, prototype)", is_bool: false },
             ],
             tool_name_fn: |args| {
                 if args.get("url").and_then(|v| v.as_str()).map(|u| !u.is_empty()).unwrap_or(false) {
@@ -134,6 +135,9 @@ pub fn all_commands() -> Vec<CommandDef> {
                 }
                 if let Some(pf) = get_opt_str(args, "profile") {
                     params["profilePath"] = json!(pf);
+                }
+                if let Some(pm) = get_opt_str(args, "profile-mode") {
+                    params["profileMode"] = json!(pm);
                 }
                 params
             },
@@ -1066,6 +1070,18 @@ mod tests {
         let cmd = map.get("co-create").unwrap();
         let args = HashMap::new();
         assert_eq!((cmd.tool_name_fn)(&args), "open_session");
+    }
+
+    #[test]
+    fn test_open_params_with_profile_mode() {
+        let map = commands_map();
+        let cmd = map.get("open").unwrap();
+        let mut args = HashMap::new();
+        args.insert("profile-mode".to_string(), json!("TEMPORARY"));
+
+        let params = (cmd.tool_params_fn)(&args);
+
+        assert_eq!(params["profileMode"], "TEMPORARY");
     }
 
     #[test]

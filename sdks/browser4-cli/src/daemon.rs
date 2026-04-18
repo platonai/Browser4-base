@@ -3,12 +3,15 @@
 //! Ensures a Browser4 server is running before executing commands.
 //! Only manages localhost instances; remote servers are not touched.
 //! When a local Browser4 checkout is available, startup prefers
-//! `mvn spring-boot:run` from the repo root so the CLI uses the matching
-//! server version. If no checkout can be found, it falls back to the packaged
-//! Browser4 jar flow used by the standalone installer.
+//! `mvn spring-boot:run` from the `browser4/browser4-agents` module so the CLI
+//! uses the matching server version from source. If no checkout can be found,
+//! it falls back to the packaged Browser4 jar flow used by the standalone
+//! installer.
 
 use std::env;
 use std::fs;
+use std::io::Write;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -16,7 +19,12 @@ use std::time::{Duration, Instant};
 use reqwest::Client;
 
 use crate::managed_processes::{register_managed_server_process, ManagedServerProcess};
-use crate::state::read_state;
+use crate::state::{read_state, resolve_default_state_dir};
+
+const EXISTING_SERVER_READY_TIMEOUT: Duration = Duration::from_secs(120);
+const JAR_SERVER_READY_TIMEOUT: Duration = Duration::from_secs(60);
+const MAVEN_SERVER_READY_TIMEOUT: Duration = Duration::from_secs(180);
+const STARTUP_LOG_DIR_NAME: &str = "startup-logs";
 
 /// Ensure the Browser4 server is running, starting it if necessary.
 ///
@@ -27,6 +35,14 @@ pub async fn ensure_server_running(base_url: &str) -> Result<(), String> {
         return Ok(());
     }
 
+    let port = extract_port(base_url);
+    if !is_local_port_open(base_url) {
+        eprintln!("Browser4 server not running. Starting...");
+        let launch_spec = resolve_server_launch_spec(port).await?;
+        eprintln!("{}", launch_spec.description);
+        return start_server(&launch_spec, base_url, port).await;
+    }
+
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(5))
         .build()
@@ -35,14 +51,13 @@ pub async fn ensure_server_running(base_url: &str) -> Result<(), String> {
     match probe_server_state(&client, base_url).await {
         ServerState::Ready => return Ok(()),
         ServerState::Starting(_) => {
-            return wait_for_server_ready(&client, base_url, Duration::from_secs(60)).await;
+            return wait_for_server_ready(&client, base_url, EXISTING_SERVER_READY_TIMEOUT).await;
         }
         ServerState::Unreachable(_) => {}
     }
 
     eprintln!("Browser4 server not running. Starting...");
 
-    let port = extract_port(base_url);
     let launch_spec = resolve_server_launch_spec(port).await?;
     eprintln!("{}", launch_spec.description);
 
@@ -57,8 +72,33 @@ fn extract_port(base_url: &str) -> u16 {
     }
 }
 
+fn is_local_port_open(base_url: &str) -> bool {
+    let Ok(url) = reqwest::Url::parse(base_url) else {
+        return false;
+    };
+
+    let port = url.port().unwrap_or(8182);
+    let addr = match url.host_str() {
+        Some("localhost") => SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port),
+        Some(host) => match host.parse::<IpAddr>() {
+            Ok(ip) if ip.is_loopback() => SocketAddr::new(ip, port),
+            _ => return false,
+        },
+        None => return false,
+    };
+
+    TcpStream::connect_timeout(&addr, Duration::from_millis(250)).is_ok()
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ServerLaunchKind {
+    Maven,
+    Jar,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ServerLaunchSpec {
+    kind: ServerLaunchKind,
     program: PathBuf,
     args: Vec<String>,
     working_dir: PathBuf,
@@ -83,6 +123,14 @@ fn build_maven_launch_spec(repo_root: &Path, port: u16) -> Result<ServerLaunchSp
         ));
     }
 
+    let module_dir = repo_root.join("browser4").join("browser4-agents");
+    if !module_dir.join("pom.xml").is_file() {
+        return Err(format!(
+            "Browser4 agents module not found under {}",
+            module_dir.display()
+        ));
+    }
+
     let wrapper_name = if cfg!(windows) { "mvnw.cmd" } else { "mvnw" };
     let wrapper_path = repo_root.join(wrapper_name);
     let program = if wrapper_path.exists() {
@@ -94,19 +142,17 @@ fn build_maven_launch_spec(repo_root: &Path, port: u16) -> Result<ServerLaunchSp
     };
 
     Ok(ServerLaunchSpec {
+        kind: ServerLaunchKind::Maven,
         program: program.clone(),
         args: vec![
-            "-pl".to_string(),
-            "pulsar-rest".to_string(),
-            "-am".to_string(),
             "spring-boot:run".to_string(),
             format!("-Dspring-boot.run.arguments=--server.port={port}"),
         ],
-        working_dir: repo_root.to_path_buf(),
+        working_dir: module_dir.clone(),
         registry_target: program,
         description: format!(
             "Starting server via Maven spring-boot:run from {} on port {}...",
-            repo_root.display(),
+            module_dir.display(),
             port
         ),
     })
@@ -114,6 +160,7 @@ fn build_maven_launch_spec(repo_root: &Path, port: u16) -> Result<ServerLaunchSp
 
 fn build_jar_launch_spec(jar_path: &Path, port: u16) -> ServerLaunchSpec {
     ServerLaunchSpec {
+        kind: ServerLaunchKind::Jar,
         program: PathBuf::from("java"),
         args: vec![
             "-jar".to_string(),
@@ -134,6 +181,23 @@ fn build_jar_launch_spec(jar_path: &Path, port: u16) -> ServerLaunchSpec {
 }
 
 fn command_for_launch_spec(launch_spec: &ServerLaunchSpec) -> Command {
+    #[cfg(windows)]
+    if launch_spec.kind == ServerLaunchKind::Maven && is_windows_batch_program(&launch_spec.program) {
+        let mut command = Command::new("powershell.exe");
+        command
+            .args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                &build_powershell_batch_invocation(&launch_spec.program, &launch_spec.args),
+            ])
+            .current_dir(&launch_spec.working_dir)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        return command;
+    }
+
     let mut command = Command::new(&launch_spec.program);
     command
         .args(&launch_spec.args)
@@ -142,6 +206,32 @@ fn command_for_launch_spec(launch_spec: &ServerLaunchSpec) -> Command {
         .stdout(Stdio::null())
         .stderr(Stdio::null());
     command
+}
+
+fn launch_ready_timeout(launch_spec: &ServerLaunchSpec) -> Duration {
+    if launch_spec.kind == ServerLaunchKind::Maven {
+        MAVEN_SERVER_READY_TIMEOUT
+    } else {
+        JAR_SERVER_READY_TIMEOUT
+    }
+}
+
+#[cfg(windows)]
+fn is_windows_batch_program(program: &Path) -> bool {
+    matches!(
+        program.extension().and_then(|extension| extension.to_str()),
+        Some("cmd" | "bat")
+    )
+}
+
+#[cfg(windows)]
+fn build_powershell_batch_invocation(program: &Path, args: &[String]) -> String {
+    std::iter::once(program.to_string_lossy().to_string())
+        .chain(args.iter().cloned())
+        .map(|value| format!("'{}'", value.replace('\'', "''")))
+        .collect::<Vec<_>>()
+        .join(" ")
+        .pipe(|command| format!("& {command}"))
 }
 
 fn find_browser4_root() -> Option<PathBuf> {
@@ -192,7 +282,7 @@ fn find_browser4_root_from(start: &Path, deep_search: bool) -> Option<PathBuf> {
 fn is_browser4_root(path: &Path) -> bool {
     path.join("VERSION").is_file()
         && path.join("pom.xml").is_file()
-        && path.join("pulsar-rest").is_dir()
+        && path.join("browser4").join("browser4-agents").join("pom.xml").is_file()
         && path
             .join("sdks")
             .join("browser4-cli")
@@ -304,7 +394,13 @@ async fn start_server(
     base_url: &str,
     port: u16,
 ) -> Result<(), String> {
-    let mut child = command_for_launch_spec(launch_spec)
+    let startup_log = create_server_startup_log(launch_spec, port)?;
+    eprintln!("Browser4 startup log: {}", startup_log.path.display());
+
+    let mut command = command_for_launch_spec(launch_spec);
+    command.stdout(startup_log.stdout).stderr(startup_log.stderr);
+
+    let mut child = command
         .spawn()
         .map_err(|e| format!("Failed to start server: {e}"))?;
 
@@ -313,13 +409,18 @@ async fn start_server(
         .build()
         .map_err(|e| e.to_string())?;
 
-    if let Err(error) = wait_for_server_ready(&client, base_url, Duration::from_secs(60)).await {
+    let ready_timeout = launch_ready_timeout(launch_spec);
+
+    if let Err(error) = wait_for_server_ready(&client, base_url, ready_timeout).await {
         let exit_context = match child.try_wait() {
             Ok(Some(status)) => format!(" Process exited early with status {status}."),
             Ok(None) => String::new(),
             Err(wait_error) => format!(" Failed to inspect launcher process: {wait_error}."),
         };
-        return Err(format!("{error}{exit_context}"));
+        return Err(format!(
+            "{error}{exit_context} Inspect startup log: {}",
+            startup_log.path.display()
+        ));
     }
 
     let managed_pid = resolve_managed_server_pid(child.id());
@@ -339,8 +440,96 @@ async fn start_server(
     // running independently because we set all stdio to null and call drop().
     drop(child);
 
-    eprintln!("Server is up and running.");
+    eprintln!(
+        "Server is up and running. Startup log: {}",
+        startup_log.path.display()
+    );
     Ok(())
+}
+
+struct ServerStartupLog {
+    path: PathBuf,
+    stdout: Stdio,
+    stderr: Stdio,
+}
+
+fn create_server_startup_log(
+    launch_spec: &ServerLaunchSpec,
+    port: u16,
+) -> Result<ServerStartupLog, String> {
+    create_server_startup_log_in(None, launch_spec, port)
+}
+
+fn create_server_startup_log_in(
+    state_dir: Option<&Path>,
+    launch_spec: &ServerLaunchSpec,
+    port: u16,
+) -> Result<ServerStartupLog, String> {
+    let path = server_startup_log_path(state_dir, launch_spec, port);
+    let parent = path.parent().ok_or_else(|| {
+        format!(
+            "Startup log path does not have a parent directory: {}",
+            path.display()
+        )
+    })?;
+    fs::create_dir_all(parent).map_err(|e| {
+        format!(
+            "Failed to create Browser4 startup log directory {}: {e}",
+            parent.display()
+        )
+    })?;
+
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .map_err(|e| format!("Failed to open Browser4 startup log {}: {e}", path.display()))?;
+    writeln!(
+        file,
+        "[{}] Launching Browser4 {:?} on port {} from {}",
+        chrono::Utc::now().to_rfc3339(),
+        launch_spec.kind,
+        port,
+        launch_spec.working_dir.display()
+    )
+    .map_err(|e| format!("Failed to write Browser4 startup log header {}: {e}", path.display()))?;
+    writeln!(file, "program: {}", launch_spec.program.display())
+        .map_err(|e| format!("Failed to write Browser4 startup log header {}: {e}", path.display()))?;
+    writeln!(file, "args: {}", launch_spec.args.join(" "))
+        .map_err(|e| format!("Failed to write Browser4 startup log header {}: {e}", path.display()))?;
+    writeln!(file)
+        .map_err(|e| format!("Failed to write Browser4 startup log header {}: {e}", path.display()))?;
+
+    let stderr_file = file
+        .try_clone()
+        .map_err(|e| format!("Failed to clone Browser4 startup log handle {}: {e}", path.display()))?;
+
+    Ok(ServerStartupLog {
+        path,
+        stdout: Stdio::from(file),
+        stderr: Stdio::from(stderr_file),
+    })
+}
+
+fn server_startup_log_dir(state_dir: Option<&Path>) -> PathBuf {
+    state_dir
+        .map(Path::to_path_buf)
+        .unwrap_or_else(resolve_default_state_dir)
+        .join(STARTUP_LOG_DIR_NAME)
+}
+
+fn server_startup_log_path(
+    state_dir: Option<&Path>,
+    launch_spec: &ServerLaunchSpec,
+    port: u16,
+) -> PathBuf {
+    let kind = match launch_spec.kind {
+        ServerLaunchKind::Maven => "maven",
+        ServerLaunchKind::Jar => "jar",
+    };
+    let timestamp = chrono::Utc::now().format("%Y%m%dT%H%M%S%.3fZ");
+    server_startup_log_dir(state_dir)
+        .join(format!("browser4-server-{kind}-port{port}-{timestamp}.log"))
 }
 
 fn resolve_managed_server_pid(launcher_pid: u32) -> u32 {
@@ -439,6 +628,7 @@ async fn wait_for_server_ready(
 ) -> Result<(), String> {
     let start = Instant::now();
     let mut last_error = String::from("unknown");
+    let mut last_progress_log_at = Instant::now() - Duration::from_secs(10);
 
     while start.elapsed() <= timeout {
         match probe_server_state(client, base_url).await {
@@ -447,6 +637,18 @@ async fn wait_for_server_ready(
                 last_error = error;
             }
         }
+
+        if last_progress_log_at.elapsed() >= Duration::from_secs(10) {
+            eprintln!(
+                "Waiting for Browser4 server at {} ({}s/{}s): {}",
+                base_url,
+                start.elapsed().as_secs(),
+                timeout.as_secs(),
+                truncate_status_for_log(&last_error)
+            );
+            last_progress_log_at = Instant::now();
+        }
+
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
@@ -457,18 +659,50 @@ async fn wait_for_server_ready(
     ))
 }
 
+fn truncate_status_for_log(message: &str) -> String {
+    const MAX_CHARS: usize = 240;
+
+    let single_line = message.replace(['\r', '\n'], " ").trim().to_string();
+    if single_line.chars().count() <= MAX_CHARS {
+        return single_line;
+    }
+
+    let mut truncated = single_line
+        .chars()
+        .take(MAX_CHARS.saturating_sub(1))
+        .collect::<String>();
+    truncated.push('…');
+    truncated
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::fs::{create_dir_all, write};
     use tempfile::TempDir;
 
+    fn sample_launch_spec(kind: ServerLaunchKind) -> ServerLaunchSpec {
+        ServerLaunchSpec {
+            kind,
+            program: PathBuf::from("program"),
+            args: vec!["arg1".to_string(), "arg2".to_string()],
+            working_dir: PathBuf::from("."),
+            registry_target: PathBuf::from("registry-target"),
+            description: String::from("desc"),
+        }
+    }
+
     fn create_browser4_root(tmp: &TempDir) -> PathBuf {
         let root = tmp.path().join("Browser4");
-        create_dir_all(root.join("pulsar-rest")).unwrap();
+        create_dir_all(root.join("browser4").join("browser4-agents")).unwrap();
         create_dir_all(root.join("sdks").join("browser4-cli")).unwrap();
         write(root.join("VERSION"), "0.1.0\n").unwrap();
         write(root.join("pom.xml"), "<project />").unwrap();
+        write(
+            root.join("browser4").join("browser4-agents").join("pom.xml"),
+            "<project />",
+        )
+        .unwrap();
         write(
             root.join("sdks").join("browser4-cli").join("Cargo.toml"),
             "[package]\nname = \"browser4-cli\"\n",
@@ -520,12 +754,100 @@ mod tests {
     }
 
     #[test]
+    fn test_is_local_port_open_detects_listener() {
+        let listener = std::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let port = listener.local_addr().unwrap().port();
+
+        assert!(is_local_port_open(&format!("http://127.0.0.1:{port}")));
+        assert!(is_local_port_open(&format!("http://localhost:{port}")));
+    }
+
+    #[test]
+    fn test_is_local_port_open_returns_false_for_unbound_port() {
+        let listener = std::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        drop(listener);
+
+        assert!(!is_local_port_open(&format!("http://127.0.0.1:{port}")));
+    }
+
+    #[test]
+    fn test_launch_ready_timeout_prefers_maven_processes() {
+        let mut maven_spec = sample_launch_spec(ServerLaunchKind::Maven);
+        maven_spec.program = PathBuf::from(if cfg!(windows) { "mvnw.cmd" } else { "mvnw" });
+        let mut jar_spec = sample_launch_spec(ServerLaunchKind::Jar);
+        jar_spec.program = PathBuf::from("java");
+
+        assert_eq!(launch_ready_timeout(&maven_spec), MAVEN_SERVER_READY_TIMEOUT);
+        assert_eq!(launch_ready_timeout(&jar_spec), JAR_SERVER_READY_TIMEOUT);
+    }
+
+    #[test]
+    fn test_server_startup_log_dir_uses_provided_state_dir() {
+        let tmp = TempDir::new().unwrap();
+
+        assert_eq!(
+            server_startup_log_dir(Some(tmp.path())),
+            tmp.path().join(STARTUP_LOG_DIR_NAME)
+        );
+    }
+
+    #[test]
+    fn test_server_startup_log_path_includes_launch_kind_and_port() {
+        let tmp = TempDir::new().unwrap();
+        let maven_path = server_startup_log_path(
+            Some(tmp.path()),
+            &sample_launch_spec(ServerLaunchKind::Maven),
+            8182,
+        );
+        let jar_path = server_startup_log_path(
+            Some(tmp.path()),
+            &sample_launch_spec(ServerLaunchKind::Jar),
+            9292,
+        );
+
+        let maven_name = maven_path.file_name().unwrap().to_string_lossy();
+        let jar_name = jar_path.file_name().unwrap().to_string_lossy();
+
+        assert!(maven_path.starts_with(tmp.path().join(STARTUP_LOG_DIR_NAME)));
+        assert!(jar_path.starts_with(tmp.path().join(STARTUP_LOG_DIR_NAME)));
+        assert!(maven_name.starts_with("browser4-server-maven-port8182-"));
+        assert!(maven_name.ends_with(".log"));
+        assert!(jar_name.starts_with("browser4-server-jar-port9292-"));
+        assert!(jar_name.ends_with(".log"));
+    }
+
+    #[test]
+    fn test_create_server_startup_log_writes_header() {
+        let tmp = TempDir::new().unwrap();
+        let log = create_server_startup_log_in(
+            Some(tmp.path()),
+            &sample_launch_spec(ServerLaunchKind::Maven),
+            8123,
+        )
+        .expect("startup log creation should succeed");
+
+        drop(log.stdout);
+        drop(log.stderr);
+
+        let contents = fs::read_to_string(&log.path).expect("startup log should be readable");
+        assert!(contents.contains("Launching Browser4 Maven on port 8123"));
+        assert!(contents.contains("program: program"));
+        assert!(contents.contains("args: arg1 arg2"));
+    }
+
+    #[test]
     fn test_is_browser4_root_rejects_missing_version_marker() {
         let tmp = TempDir::new().unwrap();
         let root = tmp.path().join("Browser4");
-        create_dir_all(root.join("pulsar-rest")).unwrap();
+        create_dir_all(root.join("browser4").join("browser4-agents")).unwrap();
         create_dir_all(root.join("sdks").join("browser4-cli")).unwrap();
         write(root.join("pom.xml"), "<project />").unwrap();
+        write(
+            root.join("browser4").join("browser4-agents").join("pom.xml"),
+            "<project />",
+        )
+        .unwrap();
         write(
             root.join("sdks").join("browser4-cli").join("Cargo.toml"),
             "[package]\nname = \"browser4-cli\"\n",
@@ -538,10 +860,15 @@ mod tests {
     fn create_browser4_root_in(parent: &Path) -> PathBuf {
         let root = parent.join("Browser4");
         create_dir_all(&root).unwrap();
-        create_dir_all(root.join("pulsar-rest")).unwrap();
+        create_dir_all(root.join("browser4").join("browser4-agents")).unwrap();
         create_dir_all(root.join("sdks").join("browser4-cli")).unwrap();
         write(root.join("VERSION"), "0.1.0\n").unwrap();
         write(root.join("pom.xml"), "<project />").unwrap();
+        write(
+            root.join("browser4").join("browser4-agents").join("pom.xml"),
+            "<project />",
+        )
+        .unwrap();
         write(
             root.join("sdks").join("browser4-cli").join("Cargo.toml"),
             "[package]\nname = \"browser4-cli\"\n",
@@ -560,17 +887,32 @@ mod tests {
 
         let spec = build_maven_launch_spec(&root, 8199).unwrap();
 
+        assert_eq!(spec.kind, ServerLaunchKind::Maven);
         assert_eq!(spec.program, wrapper);
-        assert_eq!(spec.working_dir, root);
+        assert_eq!(spec.working_dir, root.join("browser4").join("browser4-agents"));
         assert_eq!(
             spec.args,
             vec![
-                "-pl",
-                "pulsar-rest",
-                "-am",
                 "spring-boot:run",
                 "-Dspring-boot.run.arguments=--server.port=8199",
             ]
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn test_build_powershell_batch_invocation_quotes_windows_maven_property() {
+        let invocation = build_powershell_batch_invocation(
+            Path::new(r"D:\workspace\Browser4Team\submodules\Browser4\mvnw.cmd"),
+            &[
+                "spring-boot:run".to_string(),
+                "-Dspring-boot.run.arguments=--server.port=8199".to_string(),
+            ],
+        );
+
+        assert_eq!(
+            invocation,
+            "& 'D:\\workspace\\Browser4Team\\submodules\\Browser4\\mvnw.cmd' 'spring-boot:run' '-Dspring-boot.run.arguments=--server.port=8199'"
         );
     }
 
@@ -584,17 +926,24 @@ mod tests {
 
         let spec = build_maven_launch_spec(&root, 8199).unwrap();
 
+        assert_eq!(spec.kind, ServerLaunchKind::Maven);
         assert_eq!(spec.program, wrapper);
-        assert_eq!(spec.working_dir, root);
+        assert_eq!(spec.working_dir, root.join("browser4").join("browser4-agents"));
         assert_eq!(
             spec.args,
             vec![
-                "-pl",
-                "pulsar-rest",
-                "-am",
                 "spring-boot:run",
                 "-Dspring-boot.run.arguments=--server.port=8199",
             ]
         );
     }
 }
+
+trait Pipe: Sized {
+    fn pipe<T, F: FnOnce(Self) -> T>(self, function: F) -> T {
+        function(self)
+    }
+}
+
+impl<T> Pipe for T {}
+

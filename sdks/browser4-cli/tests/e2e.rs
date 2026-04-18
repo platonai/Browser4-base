@@ -20,8 +20,9 @@
 //! 1. `BROWSER4_E2E_SERVICE_URL` environment variable – connect to an already-running
 //!    service (Docker-friendly; no JAR is needed).
 //! 2. `BROWSER4_E2E_SERVER_URL` environment variable – alias for the above.
-//! 3. Auto-start from JAR: `BROWSER4_E2E_JAR_PATH` or
-//!    `<repo_root>/browser4/browser4-agents/target/Browser4.jar`.
+//! 3. Otherwise, each local run lets `browser4-cli` auto-start the backend from
+//!    the Browser4 source checkout via Maven `spring-boot:run`, so E2E always
+//!    exercises the latest server code instead of a stale packaged JAR.
 //!
 //! When running against an external Docker service, also set:
 //! - `BROWSER4_E2E_FIXTURE_HOST` – hostname/IP the Browser4 container uses to
@@ -30,18 +31,21 @@
 
 use std::collections::HashSet;
 use std::fs;
-use std::io::{Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::thread::JoinHandle;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
 use browser4_cli::commands::all_commands;
 use browser4_cli::managed_processes::stop_browser4_server_forcibly;
+
+const OPEN_TEMPORARY_PROFILE_ARG: &str = "--profile-mode=TEMPORARY";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -60,22 +64,6 @@ const FORM_TITLE: &str = "Browser4 CLI Form Fixture";
 
 fn cli_binary() -> PathBuf {
     PathBuf::from(env!("CARGO_BIN_EXE_browser4-cli"))
-}
-
-fn repo_root() -> PathBuf {
-    // CARGO_MANIFEST_DIR → sdks/browser4-cli  →  pop twice → repo root
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.pop(); // browser4-cli
-    path.pop(); // sdks
-    path
-}
-
-fn default_jar_path() -> PathBuf {
-    repo_root()
-        .join("browser4")
-        .join("browser4-agents")
-        .join("target")
-        .join("Browser4.jar")
 }
 
 /// Returns the external Browser4 service URL if one has been provided via
@@ -910,45 +898,8 @@ fn write_http_response(stream: &mut TcpStream, status: &str, content_type: &str,
 }
 
 // ---------------------------------------------------------------------------
-// Browser4 backend server
+// Browser4 backend service readiness
 // ---------------------------------------------------------------------------
-
-struct Browser4Server {
-    child: Child,
-}
-
-impl Browser4Server {
-    /// Start the Browser4 jar on the given base URL's port.
-    fn start(base_url: &str, jar_path: &Path) -> Self {
-        let port = reqwest::Url::parse(base_url)
-            .ok()
-            .and_then(|u| u.port())
-            .map(|p| p.to_string())
-            .unwrap_or_else(|| "8182".to_string());
-
-        let child = Command::new("java")
-            .args([
-                "-jar",
-                jar_path.to_str().expect("jar path not UTF-8"),
-                &format!("--server.port={}", port),
-            ])
-            .current_dir(jar_path.parent().unwrap_or(Path::new(".")))
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()
-            .expect("failed to spawn Browser4 java process");
-
-        Self { child }
-    }
-}
-
-impl Drop for Browser4Server {
-    fn drop(&mut self) {
-        let _ = self.child.kill();
-        let _ = self.child.wait();
-    }
-}
 
 fn wait_for_health(base_url: &str, timeout_ms: u64) -> Result<(), String> {
     let health_url = format!("{}/actuator/health", base_url.trim_end_matches('/'));
@@ -1075,13 +1026,16 @@ impl E2ECtx {
 
 struct E2ETestResources {
     _temp_dir: tempfile::TempDir,
-    browser4: Option<Browser4Server>,
     _fixture: FixtureServer,
-    browser4_jar_path: PathBuf,
     /// `true` when the Browser4 service was provided externally via
     /// `BROWSER4_E2E_SERVICE_URL`. In this mode the suite never starts or
     /// restarts the server process.
     external_service: bool,
+    /// Tracks whether this harness has already started the local Browser4
+    /// server on `ctx.browser4_base_url`. Once started, later scenarios may
+    /// legitimately reuse the same healthy process without reprinting startup
+    /// diagnostics.
+    local_browser4_started: bool,
     ctx: E2ECtx,
 }
 
@@ -1099,40 +1053,88 @@ impl E2ETestResources {
             return steps;
         }
 
-        if self.browser4.is_none() {
-            let browser4_port = find_free_port();
-            self.ctx.browser4_base_url = format!("http://127.0.0.1:{}", browser4_port);
-            let started_at = Instant::now();
-            self.browser4 = Some(Browser4Server::start(
-                &self.ctx.browser4_base_url,
-                &self.browser4_jar_path,
-            ));
+        let started_at = Instant::now();
+        let startup_result = run_cli_process_with_live_output(&self.ctx, &["list"]);
+        let startup_log_hint = format_browser4_startup_log_hint(&startup_result.stderr);
+        let started_via_maven = startup_result.stderr.contains("Starting server via Maven spring-boot:run");
+        assert_eq!(
+            startup_result.exit_code,
+            0,
+            "Expected CLI-managed Browser4 startup to succeed.{}\nstdout:\n{}\nstderr:\n{}",
+            startup_log_hint,
+            startup_result.stdout,
+            startup_result.stderr,
+        );
+        if !self.local_browser4_started {
+            assert!(
+                started_via_maven,
+                "Expected local e2e startup to use Maven spring-boot:run so tests run against latest backend code.{}\nstdout:\n{}\nstderr:\n{}",
+                startup_log_hint,
+                startup_result.stdout,
+                startup_result.stderr,
+            );
+            assert!(
+                startup_result.stderr.contains("Browser4 startup log:"),
+                "Expected startup diagnostics to include the Browser4 startup log path.{}\nstdout:\n{}\nstderr:\n{}",
+                startup_log_hint,
+                startup_result.stdout,
+                startup_result.stderr,
+            );
+            self.local_browser4_started = true;
             steps.push(TimedStep::new(
-                "browser4 server launch",
+                "browser4 cli startup trigger",
                 started_at.elapsed(),
             ));
+        } else {
+            if started_via_maven {
+                assert!(
+                    startup_result.stderr.contains("Browser4 startup log:"),
+                    "Expected startup diagnostics to include the Browser4 startup log path when Browser4 restarts.{}\nstdout:\n{}\nstderr:\n{}",
+                    startup_log_hint,
+                    startup_result.stdout,
+                    startup_result.stderr,
+                );
+                steps.push(TimedStep::new(
+                    "browser4 cli startup trigger",
+                    started_at.elapsed(),
+                ));
+            } else {
+                steps.push(TimedStep::new(
+                    "browser4 cli readiness probe",
+                    started_at.elapsed(),
+                ));
+            }
         }
 
         let started_at = Instant::now();
-        wait_for_health(&self.ctx.browser4_base_url, 120_000)
-            .expect("Browser4 did not become healthy in time");
+        wait_for_health(&self.ctx.browser4_base_url, 120_000).unwrap_or_else(|error| {
+            panic!(
+                "Browser4 did not become healthy in time.{}\nhealth error: {}\nstartup stdout:\n{}\nstartup stderr:\n{}",
+                startup_log_hint,
+                error,
+                startup_result.stdout,
+                startup_result.stderr,
+            )
+        });
         steps.push(TimedStep::new(
             "browser4 service ready wait",
             started_at.elapsed(),
         ));
+
+        // println!("end ensuring browser4");
 
         steps
     }
 
     fn restart_browser4(&mut self) -> Vec<TimedStep> {
         let mut steps = Vec::new();
-        self.browser4 = None;
         // Kill any lingering Chrome processes from the previous server before
         // starting a fresh one.  Without this, the new Java server may see
         // stale CDP browser contexts, leading to intermittent
         // "Cannot find context with specified id" errors.
         let cleanup_started_at = Instant::now();
         stop_browser4_server_forcibly();
+        self.local_browser4_started = false;
         steps.push(TimedStep::new(
             "browser4 pre-restart cleanup",
             cleanup_started_at.elapsed(),
@@ -1144,13 +1146,41 @@ impl E2ETestResources {
 
 /// Run `browser4-cli --server=<url> <args...>` in the workspace dir with the isolated state dir.
 fn run_cli_process(ctx: &E2ECtx, args: &[&str]) -> CliRunResult {
-    run_cli_process_with_stdin(ctx, args, None)
+    run_cli_process_internal(ctx, args, None, false)
+}
+
+fn extract_browser4_startup_log_path(stderr: &str) -> Option<&str> {
+    stderr.lines().find_map(|line| {
+        line.trim()
+            .strip_prefix("Browser4 startup log:")
+            .map(str::trim)
+            .filter(|path| !path.is_empty())
+    })
+}
+
+fn format_browser4_startup_log_hint(stderr: &str) -> String {
+    extract_browser4_startup_log_path(stderr)
+        .map(|path| format!("\nStartup log: {path}"))
+        .unwrap_or_default()
+}
+
+fn run_cli_process_with_live_output(ctx: &E2ECtx, args: &[&str]) -> CliRunResult {
+    run_cli_process_internal(ctx, args, None, true)
 }
 
 fn run_cli_process_with_stdin(
     ctx: &E2ECtx,
     args: &[&str],
     stdin_payload: Option<&str>,
+) -> CliRunResult {
+    run_cli_process_internal(ctx, args, stdin_payload, false)
+}
+
+fn run_cli_process_internal(
+    ctx: &E2ECtx,
+    args: &[&str],
+    stdin_payload: Option<&str>,
+    stream_output: bool,
 ) -> CliRunResult {
     let server_arg = format!("--server={}", ctx.browser4_base_url);
     let mut full_args: Vec<&str> = vec![server_arg.as_str()];
@@ -1175,20 +1205,186 @@ fn run_cli_process_with_stdin(
             .expect("stdin pipe should be available")
             .write_all(payload.as_bytes())
             .expect("failed to write stdin payload");
-        child
-            .wait_with_output()
-            .expect("failed to wait for browser4-cli process")
+        drop(child.stdin.take());
+        wait_for_cli_output(child, &full_args, stream_output)
     } else {
-        command
+        let child = command
             .stdin(Stdio::null())
-            .output()
-            .expect("failed to spawn browser4-cli process")
+            .spawn()
+            .expect("failed to spawn browser4-cli process");
+        wait_for_cli_output(child, &full_args, stream_output)
     };
 
     CliRunResult {
         stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
         stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
         exit_code: output.status.code().unwrap_or(-1),
+    }
+}
+
+const OUTPUT_COLLECTOR_DRAIN_TIMEOUT: Duration = Duration::from_secs(2);
+
+fn wait_for_cli_output(mut child: Child, full_args: &[&str], stream_output: bool) -> std::process::Output {
+    let stdout_handle = spawn_output_collector(
+        child.stdout.take().expect("stdout pipe should be available"),
+        "stdout",
+        stream_output,
+    );
+    let stderr_handle = spawn_output_collector(
+        child.stderr.take().expect("stderr pipe should be available"),
+        "stderr",
+        stream_output,
+    );
+    let timeout = cli_process_timeout(full_args);
+    let started_at = Instant::now();
+    let mut next_progress_log_at = Duration::from_secs(15);
+
+    let status = loop {
+        if let Some(status) = child
+            .try_wait()
+            .expect("failed to inspect browser4-cli process")
+        {
+            break status;
+        }
+
+        let elapsed = started_at.elapsed();
+        if elapsed >= timeout {
+            let _ = child.kill();
+            let status = child.wait().expect("failed to wait for timed out browser4-cli process");
+            let mut stdout = finish_output_collector(stdout_handle, "stdout", full_args);
+            let mut stderr = finish_output_collector(stderr_handle, "stderr", full_args);
+            if !stderr.ends_with('\n') && !stderr.is_empty() {
+                stderr.push('\n');
+            }
+            stderr.push_str(&format!(
+                "Timed out after {}s waiting for browser4-cli command: {}\n",
+                timeout.as_secs(),
+                full_args.join(" ")
+            ));
+            return std::process::Output {
+                status,
+                stdout: std::mem::take(&mut stdout).into_bytes(),
+                stderr: std::mem::take(&mut stderr).into_bytes(),
+            };
+        }
+
+        if stream_output && elapsed >= next_progress_log_at {
+            eprintln!(
+                "[browser4-cli wait] still running after {}s: {}",
+                elapsed.as_secs(),
+                full_args.join(" ")
+            );
+            next_progress_log_at += Duration::from_secs(15);
+        }
+
+        thread::sleep(Duration::from_millis(200));
+    };
+
+    println!("browser4-cli command completed in {}s with exit code {}: {}",
+        started_at.elapsed().as_secs(),
+        status.code().unwrap_or(-1),
+        full_args.join(" ")
+    );
+
+    let stdout = finish_output_collector(stdout_handle, "stdout", full_args);
+    let stderr = finish_output_collector(stderr_handle, "stderr", full_args);
+
+    std::process::Output {
+        status,
+        stdout: stdout.into_bytes(),
+        stderr: stderr.into_bytes(),
+    }
+}
+
+struct OutputCollector {
+    handle: JoinHandle<()>,
+    buffer: Arc<Mutex<String>>,
+}
+
+fn spawn_output_collector<R>(reader: R, stream_name: &'static str, stream_output: bool) -> OutputCollector
+where
+    R: Read + Send + 'static,
+{
+    let buffer = Arc::new(Mutex::new(String::new()));
+    let buffer_for_thread = Arc::clone(&buffer);
+
+    let handle = thread::spawn(move || {
+        let mut reader = BufReader::new(reader);
+        let mut line = String::new();
+
+        loop {
+            line.clear();
+            let bytes_read = reader
+                .read_line(&mut line)
+                .expect("failed to read browser4-cli child output");
+            if bytes_read == 0 {
+                break;
+            }
+
+            if stream_output {
+                match stream_name {
+                    "stderr" => eprint!("[browser4-cli stderr] {line}"),
+                    _ => print!("[browser4-cli stdout] {line}"),
+                }
+            }
+
+            buffer_for_thread
+                .lock()
+                .expect("output collector buffer lock poisoned")
+                .push_str(&line);
+        }
+
+    });
+
+    OutputCollector { handle, buffer }
+}
+
+fn finish_output_collector(collector: OutputCollector, stream_name: &str, full_args: &[&str]) -> String {
+    let started_at = Instant::now();
+    while !collector.handle.is_finished() && started_at.elapsed() < OUTPUT_COLLECTOR_DRAIN_TIMEOUT {
+        thread::sleep(Duration::from_millis(25));
+    }
+
+    if collector.handle.is_finished() {
+        collector
+            .handle
+            .join()
+            .unwrap_or_else(|_| panic!("failed to join browser4-cli {stream_name} collector"));
+        return collector
+            .buffer
+            .lock()
+            .expect("output collector buffer lock poisoned")
+            .clone();
+    }
+
+    let mut output = collector
+        .buffer
+        .lock()
+        .expect("output collector buffer lock poisoned")
+        .clone();
+    if !output.ends_with('\n') && !output.is_empty() {
+        output.push('\n');
+    }
+    output.push_str(&format!(
+        "[test harness] Timed out draining browser4-cli {stream_name} after process exit for command: {}\n",
+        full_args.join(" ")
+    ));
+    output
+}
+
+fn cli_process_timeout(full_args: &[&str]) -> Duration {
+    if let Ok(raw) = std::env::var("BROWSER4_E2E_CLI_TIMEOUT_SECS") {
+        if let Ok(seconds) = raw.trim().parse::<u64>() {
+            if seconds > 0 {
+                return Duration::from_secs(seconds);
+            }
+        }
+    }
+
+    if full_args.iter().any(|arg| *arg == "list") {
+        Duration::from_secs(240)
+    } else {
+        Duration::from_secs(120)
     }
 }
 
@@ -1517,19 +1713,6 @@ fn reset_cli_artifacts(ctx: &mut E2ECtx) {
 fn create_e2e_test_resources() -> E2ETestResources {
     let service_url = external_service_url();
     let is_external = service_url.is_some();
-
-    let jar_path = std::env::var("BROWSER4_E2E_JAR_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| default_jar_path());
-
-    if !is_external {
-        assert!(
-            jar_path.exists(),
-            "Browser4 jar not found at {jar_path:?}. \
-            Build browser4/browser4-agents first, set BROWSER4_E2E_JAR_PATH, \
-            or set BROWSER4_E2E_SERVICE_URL to point to a running service."
-        );
-    }
     assert!(
         cli_binary().exists(),
         "CLI binary not found at {:?}. Run `cargo build` first.",
@@ -1562,10 +1745,9 @@ fn create_e2e_test_resources() -> E2ETestResources {
 
     E2ETestResources {
         _temp_dir: temp_dir,
-        browser4: None,
         _fixture: fixture,
-        browser4_jar_path: jar_path,
         external_service: is_external,
+        local_browser4_started: false,
         ctx: E2ECtx {
             fixture_base_url,
             browser4_base_url,
@@ -1582,9 +1764,17 @@ fn create_e2e_test_resources() -> E2ETestResources {
 // ---------------------------------------------------------------------------
 
 fn open_interactive_page(ctx: &mut E2ECtx) {
-    run_command(ctx, &["open"]);
+    run_open_command(ctx);
     let interactive_url = ctx.interactive_url();
     run_command(ctx, &["goto", &interactive_url]);
+}
+
+fn run_open_command(ctx: &mut E2ECtx) -> CliRunResult {
+    run_command(ctx, &["open", OPEN_TEMPORARY_PROFILE_ARG])
+}
+
+fn batch_open_command(url: &str) -> String {
+    format!("open {OPEN_TEMPORARY_PROFILE_ARG} {url}")
 }
 
 fn open_resized_interactive_page(ctx: &mut E2ECtx) {
@@ -1659,10 +1849,34 @@ fn assert_collective_session_call(mock_server: &MockBrowser4Server) {
     );
 }
 
+fn test_open_uses_temporary_profile_mode(ctx: &mut E2ECtx) {
+    reset_cli_artifacts(ctx);
+
+    let mock_server = MockBrowser4Server::start();
+    ctx.browser4_base_url = mock_server.base_url();
+
+    let open_result = run_open_command(ctx);
+    assert!(
+        open_result.stdout.contains("Session opened: collective-session-1"),
+        "Expected mocked session open output in:\n{}",
+        open_result.stdout
+    );
+
+    let tool_calls = mock_server.snapshot().tool_calls;
+    let open_session_call = tool_calls
+        .iter()
+        .find(|call| call.tool == "open_session")
+        .expect("expected open_session call");
+    assert_eq!(
+        open_session_call.arguments["capabilities"]["profileMode"],
+        "TEMPORARY"
+    );
+}
+
 fn test_session_lifecycle(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
-    let open_result = run_command(ctx, &["open"]);
+    let open_result = run_open_command(ctx);
     assert!(
         open_result.stdout.contains("Session opened:"),
         "Expected 'Session opened:' in:\n{}",
@@ -1688,7 +1902,7 @@ fn test_session_lifecycle(ctx: &mut E2ECtx) {
 fn test_navigation_and_storage(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
-    run_command(ctx, &["open"]);
+    run_open_command(ctx);
 
     let interactive_url = ctx.interactive_url();
     let other_url = ctx.other_url();
@@ -1939,7 +2153,7 @@ fn test_batch_commands(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
     let interactive_url = ctx.interactive_url();
-    let open_command = format!("open {interactive_url}");
+    let open_command = batch_open_command(&interactive_url);
     let type_command = "type #type-target 'hello batch'".to_string();
     let click_command = "click #click-target".to_string();
 
@@ -2027,7 +2241,7 @@ fn test_batch_form_submission(ctx: &mut E2ECtx) {
     // Use batch to open page, navigate to form, fill it out, and submit — all
     // in a single invocation.
     let form_url = ctx.form_url();
-    let open_command = format!("open {form_url}");
+    let open_command = batch_open_command(&form_url);
 
     run_command(
         ctx,
@@ -2116,7 +2330,7 @@ fn test_batch_multi_interaction(ctx: &mut E2ECtx) {
 
     // Test a complex batch with multiple interaction types on the interactive page
     let interactive_url = ctx.interactive_url();
-    let open_command = format!("open {interactive_url}");
+    let open_command = batch_open_command(&interactive_url);
 
     // Batch: open, type, fill, check, select, click — all in one call
     run_command(
@@ -2205,7 +2419,7 @@ fn test_batch_error_handling(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
     let interactive_url = ctx.interactive_url();
-    let open_command = format!("open {interactive_url}");
+    let open_command = batch_open_command(&interactive_url);
 
     // First open a session for subsequent tests
     run_command(ctx, &["batch", open_command.as_str()]);
@@ -2297,7 +2511,7 @@ fn test_batch_json_edge_cases(ctx: &mut E2ECtx) {
     reset_cli_artifacts(ctx);
 
     let interactive_url = ctx.interactive_url();
-    let open_command = format!("open {interactive_url}");
+    let open_command = batch_open_command(&interactive_url);
 
     // Open a session first
     run_command(ctx, &["batch", open_command.as_str()]);
@@ -2860,8 +3074,9 @@ fn run_named_scenario(
 
     // Forcibly stop server and Chrome regardless of success or failure.
     let cleanup_started_at = Instant::now();
-    if (cleanup_browser4) {
+    if cleanup_browser4 {
         stop_browser4_server_forcibly();
+        resources.local_browser4_started = false;
     }
     let cleanup_step = TimedStep::new("browser4 service cleanup", cleanup_started_at.elapsed());
 
@@ -2881,8 +3096,6 @@ fn run_named_scenario(
                 resources.ensure_browser4()
             };
             harness_steps.extend(setup_steps);
-        } else {
-            resources.browser4 = None;
         }
         test_fn(&mut resources.ctx);
     }));
@@ -3020,6 +3233,13 @@ const SCENARIOS: &[ScenarioDef] = &[
         requires_browser4: false,
         restart_browser4: false,
         test_fn: test_collective_session_and_agent_tools,
+    },
+    ScenarioDef {
+        name: "test_e2e_open_uses_temporary_profile_mode",
+        short_name: "test_open_uses_temporary_profile_mode",
+        requires_browser4: false,
+        restart_browser4: false,
+        test_fn: test_open_uses_temporary_profile_mode,
     },
     ScenarioDef {
         name: "test_e2e_agent_task_commands",

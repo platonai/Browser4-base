@@ -200,14 +200,8 @@ pub fn stop_browser4_server_gracefully() -> ShutdownResult {
 pub fn stop_browser4_server_forcibly() -> ForceStopBrowser4ServerResult {
     println!("Force-stopping Browser4 server processes and related browsers...");
 
-    let client = reqwest::blocking::Client::builder()
-        .timeout(std::time::Duration::from_secs(2))
-        .build()
-        .expect("HTTP client construction should not fail");
-    let state_dir = resolve_default_state_dir();
-
     let result = stop_browser4_server_forcibly_with_steps(
-        || notify_close_all_sessions_before_force_stop(&client, None, Some(&state_dir)),
+        || notify_close_all_sessions_before_force_stop(None, None),
         kill_all_browsers,
         || stop_browser4_server(true),
         || sleep(std::time::Duration::from_secs(5)),
@@ -250,9 +244,8 @@ where
 }
 
 fn notify_close_all_sessions_before_force_stop(
-    client: &reqwest::blocking::Client,
-    registry_path: Option<&Path>,
-    state_dir: Option<&Path>,
+    _registry_path: Option<&Path>,
+    _state_dir: Option<&Path>,
 ) {
     // let mut warnings = Vec::new();
     //
@@ -267,6 +260,7 @@ fn notify_close_all_sessions_before_force_stop(
     // }
 }
 
+#[allow(dead_code)]
 fn close_all_base_urls_for_force_stop(
     registry_path: Option<&Path>,
     state_dir: Option<&Path>,
@@ -295,6 +289,7 @@ fn close_all_base_urls_for_force_stop(
     base_urls
 }
 
+#[allow(dead_code)]
 fn call_close_all_sessions(
     client: &reqwest::blocking::Client,
     base_url: &str,

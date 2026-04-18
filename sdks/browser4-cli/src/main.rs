@@ -52,6 +52,7 @@ use state::{
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const TEST_TEMPORARY_PROFILE_ENV: &str = "BROWSER4_CLI_TEST_TEMPORARY_PROFILE";
 
 /// Commands that should NOT trigger a post-command snapshot.
 fn no_snapshot_commands() -> HashSet<&'static str> {
@@ -195,7 +196,10 @@ async fn create_session(
     session_name: Option<&str>,
     capabilities: Option<Value>,
 ) -> Result<String, String> {
-    let params = capabilities.unwrap_or(json!({}));
+    let params = capabilities
+        .filter(|caps| !caps.as_object().map(|map| map.is_empty()).unwrap_or(false))
+        .map(|caps| json!({ "capabilities": caps }))
+        .unwrap_or_else(|| json!({}));
     let result = call_tool(client, base_url, "open_session", params).await?;
     // The server response may be a JSON object `{"sessionId":"..."}` or a plain
     // string. Try JSON first; fall back to using the raw string as the session ID.
@@ -216,6 +220,56 @@ async fn create_session(
     new_state.last_mouse_position = None;
     write_state(&new_state, None, session_name).map_err(|e| e.to_string())?;
     Ok(session_id)
+}
+
+fn build_open_session_capabilities(tool_params: &Value) -> Value {
+    build_open_session_capabilities_with_test_mode(tool_params, should_use_test_temporary_profile())
+}
+
+fn should_use_test_temporary_profile() -> bool {
+    matches!(
+        std::env::var(TEST_TEMPORARY_PROFILE_ENV).ok().as_deref(),
+        Some("1" | "true" | "TRUE" | "yes" | "YES" | "on" | "ON")
+    )
+}
+
+fn build_open_session_capabilities_with_test_mode(
+    tool_params: &Value,
+    use_test_temporary_profile: bool,
+) -> Value {
+    let mut caps = json!({});
+
+    if let Some(pm) = tool_params.get("profileMode") {
+        caps["profileMode"] = pm.clone();
+    }
+
+    if let Some(h) = tool_params.get("headed") {
+        caps["headed"] = h.clone();
+    }
+
+    let persistent = tool_params
+        .get("persistent")
+        .and_then(|value| value.as_bool())
+        .unwrap_or(false);
+    if let Some(p) = tool_params.get("persistent") {
+        caps["persistent"] = p.clone();
+    }
+
+    let has_profile_path = tool_params
+        .get("profilePath")
+        .and_then(|value| value.as_str())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .is_some();
+    if let Some(pp) = tool_params.get("profilePath") {
+        caps["profilePath"] = pp.clone();
+    }
+
+    if use_test_temporary_profile && !persistent && !has_profile_path {
+        caps["profileMode"] = json!("TEMPORARY");
+    }
+
+    caps
 }
 
 fn invalidate_session(state: &CliState, base_url: &str, session_name: Option<&str>) {
@@ -317,19 +371,7 @@ async fn handle_open(
     let mut state = read_state(None, session_name);
     state.session_name = session_name.map(|s| s.to_string());
 
-    let capabilities = {
-        let mut caps = json!({});
-        if let Some(h) = tool_params.get("headed") {
-            caps["headed"] = h.clone();
-        }
-        if let Some(p) = tool_params.get("persistent") {
-            caps["persistent"] = p.clone();
-        }
-        if let Some(pp) = tool_params.get("profilePath") {
-            caps["profilePath"] = pp.clone();
-        }
-        caps
-    };
+    let capabilities = build_open_session_capabilities(tool_params);
 
     let session_id =
         create_session(client, base_url, &state, session_name, Some(capabilities)).await?;
@@ -1504,16 +1546,7 @@ fn compile_batch_request(
 
         match nested_command.as_str() {
             "open" => {
-                let mut capabilities = json!({});
-                if let Some(headed) = tool_params.get("headed") {
-                    capabilities["headed"] = headed.clone();
-                }
-                if let Some(persistent) = tool_params.get("persistent") {
-                    capabilities["persistent"] = persistent.clone();
-                }
-                if let Some(profile_path) = tool_params.get("profilePath") {
-                    capabilities["profilePath"] = profile_path.clone();
-                }
+                let capabilities = build_open_session_capabilities(&tool_params);
 
                 let url = tool_params
                     .get("url")
@@ -2250,5 +2283,48 @@ mod tests {
                 "http://127.0.0.1:9444".to_string(),
             ]
         );
+    }
+
+    #[test]
+    fn build_open_session_capabilities_does_not_default_to_temporary_profile_outside_tests() {
+        let caps = build_open_session_capabilities_with_test_mode(&json!({}), false);
+
+        assert!(caps.get("profileMode").is_none());
+    }
+
+    #[test]
+    fn build_open_session_capabilities_defaults_to_temporary_profile_for_tests() {
+        let caps = build_open_session_capabilities_with_test_mode(&json!({}), true);
+
+        assert_eq!(caps["profileMode"], json!("TEMPORARY"));
+    }
+
+    #[test]
+    fn build_open_session_capabilities_does_not_force_temporary_when_persistent() {
+        let caps = build_open_session_capabilities_with_test_mode(&json!({
+            "persistent": true,
+        }), true);
+
+        assert_eq!(caps["persistent"], json!(true));
+        assert!(caps.get("profileMode").is_none());
+    }
+
+    #[test]
+    fn build_open_session_capabilities_does_not_force_temporary_when_profile_path_is_set() {
+        let caps = build_open_session_capabilities_with_test_mode(&json!({
+            "profilePath": "C:/tmp/browser-profile",
+        }), true);
+
+        assert_eq!(caps["profilePath"], json!("C:/tmp/browser-profile"));
+        assert!(caps.get("profileMode").is_none());
+    }
+
+    #[test]
+    fn build_open_session_capabilities_keeps_explicit_profile_mode() {
+        let caps = build_open_session_capabilities_with_test_mode(&json!({
+            "profileMode": "TEMPORARY",
+        }), false);
+
+        assert_eq!(caps["profileMode"], json!("TEMPORARY"));
     }
 }

@@ -31,7 +31,6 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
-import java.text.MessageFormat
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -61,7 +60,11 @@ class ChromeLauncher constructor(
             return text.trim().replace("\\", "/")
         }
 
-        internal fun commandLineContainsUserDataDir(cmdLine: String, userDataDir: String, ignoreCase: Boolean = false): Boolean {
+        internal fun commandLineContainsUserDataDir(
+            cmdLine: String,
+            userDataDir: String,
+            ignoreCase: Boolean = false
+        ): Boolean {
             if (cmdLine.isBlank() || userDataDir.isBlank()) {
                 return false
             }
@@ -94,9 +97,11 @@ class ChromeLauncher constructor(
     private val cdpUrlPath get() = userDataDir.resolveSibling(CDP_URL_FILE_NAME)
     private val lastOutputPath get() = userDataDir.resolveSibling("chrome-launch-output.log")
     private val temporaryUddExpiry = BrowserFiles.TEMPORARY_UDD_EXPIRY
+
     // The number of recent temporary user data directories to keep, the browser has to be closed
     private val recentNToKeep = 10
     private var process: Process? = null
+
     @Volatile
     private var lastChromeProcessOutput: String = ""
 
@@ -670,7 +675,12 @@ class ChromeLauncher constructor(
 
                             // Save CDP URL to file
                             try {
-                                Files.writeString(cdpUrlPath, cdpUrl, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+                                Files.writeString(
+                                    cdpUrlPath,
+                                    cdpUrl,
+                                    StandardOpenOption.CREATE,
+                                    StandardOpenOption.TRUNCATE_EXISTING
+                                )
                                 logger.info("CDP WebSocket URL saved: {}", cdpUrl)
                             } catch (e: Exception) {
                                 logger.warn("Failed to write CDP URL to file: {}", e.message)
@@ -702,8 +712,10 @@ class ChromeLauncher constructor(
             val output = processOutput.toString()
             val isAlive = process.isAlive
             val exitValue = if (!isAlive) process.exitValue() else "N/A"
-            val message = String.format("Failed to start chrome process, alive: %s, exit code: %s\n" +
-                    "Process output:>>>\n%s\n<<<", isAlive, exitValue, output)
+            val message = String.format(
+                "Failed to start chrome process, alive: %s, exit code: %s\n" +
+                        "Process output:>>>\n%s\n<<<", isAlive, exitValue, output
+            )
             logger.warn(message)
 
             if (output.contains("Opening in existing browser session") || output.contains("正在现有的浏览器会话中打开")) {
@@ -922,7 +934,12 @@ ${scriptPath.toUri()}
     /**
      * Builds comprehensive launch report data.
      */
-    private fun buildLaunchReportData(chromeBinaryPath: Path, options: ChromeOptions, port: Int, launchDuration: Long): Map<String, Any> {
+    private fun buildLaunchReportData(
+        chromeBinaryPath: Path,
+        options: ChromeOptions,
+        port: Int,
+        launchDuration: Long
+    ): Map<String, Any> {
         val currentProcess = process
         val reportData = mutableMapOf<String, Any>()
 
@@ -946,7 +963,8 @@ ${scriptPath.toUri()}
         val chromeOptionsInfo = mutableMapOf<String, Any>()
         chromeOptionsInfo["headless"] = options.headless
         chromeOptionsInfo["arguments"] = options.toList()
-        chromeOptionsInfo["isSystemDefaultBrowser"] = userDataDir.startsWith(AppPaths.SYSTEM_DEFAULT_BROWSER_DATA_DIR_PLACEHOLDER)
+        chromeOptionsInfo["isSystemDefaultBrowser"] =
+            userDataDir.startsWith(AppPaths.SYSTEM_DEFAULT_BROWSER_DATA_DIR_PLACEHOLDER)
         reportData["chromeOptions"] = chromeOptionsInfo
 
         // System information

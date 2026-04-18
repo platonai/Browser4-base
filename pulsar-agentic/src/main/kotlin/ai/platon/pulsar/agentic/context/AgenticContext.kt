@@ -43,7 +43,6 @@ abstract class AbstractAgenticContext(
     }
 
     override fun createSession(settings: PulsarSettings): AgenticSession {
-        // settings.profileMode?.let { PulsarSettings.withBrowserContextMode(it) }
         return createSession().also { settings.overrideConfiguration(it.sessionConfig) }
     }
 
