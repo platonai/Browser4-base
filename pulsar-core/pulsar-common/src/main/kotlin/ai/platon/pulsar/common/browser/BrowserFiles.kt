@@ -1,6 +1,7 @@
 package ai.platon.pulsar.common.browser
 
 import ai.platon.pulsar.common.*
+import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.browser.fingerprint.Fingerprint
 import com.google.common.collect.Iterators
 import org.apache.commons.io.FileUtils
@@ -146,7 +147,7 @@ object BrowserFiles {
             .filter { it !in cleanedUserDataDirs } // not processed
             .filter { it.toString().contains("cx.") } // context dir
             .filter { it.resolve("$PID_FILE_NAME.bak").exists() } // already launched and closed
-            .filter { it.resolve("$PORT_FILE_NAME.bak").notExists() }
+            .filter { it.resolve("$PORT_FILE_NAME.bak").exists() } // already launched and closed
             .toList()
             .toSet()
 
@@ -338,7 +339,7 @@ object BrowserFiles {
         }
 
         // Double-check for the presence of a sibling PID file to ensure it's safe to delete the directory.
-        val hasSiblingPidFile = Files.exists(dirToDelete.resolveSibling(PID_FILE_NAME))
+        val hasSiblingPidFile = Files.exists(dirToDelete.resolveSibling("$PID_FILE_NAME.bak"))
         if (!hasSiblingPidFile) {
             return
         }
@@ -412,7 +413,7 @@ object BrowserFiles {
 
         // build the base dir
         val baseDir = AppPaths.getTmpContextGroupDir(group)
-            // .resolve(browserType.name) // when create the user data dir, the dir with browserType will be created
+        // .resolve(browserType.name) // when create the user data dir, the dir with browserType will be created
         Files.createDirectories(baseDir)
 
         // build the file name
