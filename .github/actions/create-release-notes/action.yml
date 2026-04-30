@@ -49,7 +49,7 @@ runs:
 
         # Create release notes
         cat > ${{ inputs.output_file }} << EOF
-        # 🚀 Browser4 v${{ inputs.version }} Release Notes
+        # 🚀 Browser4-base v${{ inputs.version }} Release Notes
 
         **Release Date:** $BUILD_DATE
         **Java Version:** ${{ inputs.java_version }}
