@@ -411,16 +411,17 @@ object BrowserFiles {
             require(channel.isOpen) { "The lock file channel is closed" }
         }
 
+        val monthDay = MonthDay.now()
+        val monthValue = monthDay.monthValue
+        val dayOfMonth = monthDay.dayOfMonth
+
         // build the base dir
-        val baseDir = AppPaths.getTmpContextGroupDir(group)
+        val baseDir = AppPaths.getTmpContextGroupDir(group).resolve(dayOfMonth.toString())
         // .resolve(browserType.name) // when create the user data dir, the dir with browserType will be created
         Files.createDirectories(baseDir)
 
         // build the file name
         val prefix = CONTEXT_DIR_PREFIX
-        val monthDay = MonthDay.now()
-        val monthValue = monthDay.monthValue
-        val dayOfMonth = monthDay.dayOfMonth
         val rand = RandomStringUtils.secure().nextAlphanumeric(5)
         val contextCount = computeContextCount(baseDir, prefix, channel)
         val fileName = String.format("%s%02d%02d%s%s", prefix, monthValue, dayOfMonth, rand, contextCount)
