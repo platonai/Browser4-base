@@ -3,6 +3,7 @@ package ai.platon.browser4.driver.chrome
 import ai.platon.browser4.driver.chrome.common.ChromeOptions
 import ai.platon.browser4.driver.chrome.common.LauncherOptions
 import ai.platon.browser4.driver.chrome.impl.ChromeImpl
+import ai.platon.browser4.driver.chrome.patch.BrowserFilesPatch
 import ai.platon.browser4.driver.chrome.util.ChromeLaunchException
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.browser.BrowserFiles
@@ -116,7 +117,7 @@ class ChromeLauncher constructor(
     }
 
     private fun clearProcessMarkers() {
-        BrowserFiles.clearProcessMarkers(userDataDir)
+        BrowserFilesPatch.clearProcessMarkers(userDataDir)
     }
 
     /**
@@ -815,10 +816,10 @@ ${scriptPath.toUri()}
 
     private fun cleanUpContextFiles() {
         try {
-            runCatching {
+            kotlin.runCatching {
                 clearProcessMarkers()
-                BrowserFiles.cleanUpContextTmpDir(temporaryUddExpiry)
-                BrowserFiles.cleanOldestContextTmpDirs(Duration.ofMinutes(2), recentNToKeep)
+                BrowserFilesPatch.cleanUpContextTmpDir(temporaryUddExpiry)
+                BrowserFilesPatch.cleanOldestContextTmpDirs(Duration.ofMinutes(2), recentNToKeep)
             }.onFailure { warnForClose(this, it) }
         } catch (t: Throwable) {
             // ignored

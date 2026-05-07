@@ -46,6 +46,10 @@ open class BrowserSettings constructor(
          * */
         @JvmStatic
         fun withBrowser(browserType: BrowserType, conf: MutableConfig? = null): Companion {
+            if (browserType == BrowserType.PLAYWRIGHT_CHROME) {
+                System.err.println("Warning: PLAYWRIGHT support is deprecated")
+            }
+
             if (conf == null) {
                 System.setProperty(BROWSER_TYPE, browserType.name)
             } else {
@@ -96,7 +100,7 @@ open class BrowserSettings constructor(
         }
 
         private fun withSystemDefaultBrowserInternal(browserType: BrowserType, conf: MutableConfig? = null): Companion {
-            val clazz = "ai.platon.pulsar.skeleton.crawl.fetch.privacy.SystemDefaultPrivacyAgentGenerator"
+            val clazz = "ai.platon.pulsar.skeleton.workflow.fetch.privacy.SystemDefaultPrivacyAgentGenerator"
             if (conf == null) {
                 System.setProperty(PRIVACY_AGENT_GENERATOR_CLASS, clazz)
             } else {
@@ -107,7 +111,7 @@ open class BrowserSettings constructor(
         }
 
         private fun withDefaultBrowserInternal(browserType: BrowserType, conf: MutableConfig? = null): Companion {
-            val clazz = "ai.platon.pulsar.skeleton.crawl.fetch.privacy.DefaultPrivacyAgentGenerator"
+            val clazz = "ai.platon.pulsar.skeleton.workflow.fetch.privacy.DefaultPrivacyAgentGenerator"
             if (conf == null) {
                 System.setProperty(PRIVACY_AGENT_GENERATOR_CLASS, clazz)
             } else {
@@ -118,7 +122,7 @@ open class BrowserSettings constructor(
         }
 
         private fun withPrototypeBrowserInternal(browserType: BrowserType, conf: MutableConfig? = null): Companion {
-            val clazz = "ai.platon.pulsar.skeleton.crawl.fetch.privacy.PrototypePrivacyAgentGenerator"
+            val clazz = "ai.platon.pulsar.skeleton.workflow.fetch.privacy.PrototypePrivacyAgentGenerator"
             if (conf == null) {
                 System.setProperty(PRIVACY_AGENT_GENERATOR_CLASS, clazz)
             } else {
@@ -145,7 +149,7 @@ open class BrowserSettings constructor(
                 conf[BROWSER_CONTEXT_MODE] = "SEQUENTIAL"
                 conf[MAX_SEQUENTIAL_PRIVACY_AGENT_NUMBER] = "$maxAgents"
             }
-            val clazz = "ai.platon.pulsar.skeleton.crawl.fetch.privacy.SequentialPrivacyAgentGenerator"
+            val clazz = "ai.platon.pulsar.skeleton.workflow.fetch.privacy.SequentialPrivacyAgentGenerator"
             if (conf == null) {
                 System.setProperty(PRIVACY_AGENT_GENERATOR_CLASS, clazz)
             } else {
@@ -155,7 +159,7 @@ open class BrowserSettings constructor(
         }
 
         private fun withTemporaryBrowserInternal(browserType: BrowserType, conf: MutableConfig? = null): Companion {
-            val clazz = "ai.platon.pulsar.skeleton.crawl.fetch.privacy.RandomPrivacyAgentGenerator"
+            val clazz = "ai.platon.pulsar.skeleton.workflow.fetch.privacy.RandomPrivacyAgentGenerator"
             if (conf == null) {
                 System.setProperty(PRIVACY_AGENT_GENERATOR_CLASS, clazz)
             } else {

@@ -1,8 +1,9 @@
 package ai.platon.browser4.driver.chrome.dom
 
+import ai.platon.browser4.driver.chrome.RemoteDevTools
+import ai.platon.browser4.driver.chrome.experimental.CDP
 import ai.platon.cdt.kt.protocol.types.accessibility.AXNode
 import ai.platon.cdt.kt.protocol.types.page.FrameTree
-import ai.platon.browser4.driver.chrome.RemoteDevTools
 import ai.platon.pulsar.common.getLogger
 
 class AccessibilityHandler(
@@ -10,10 +11,9 @@ class AccessibilityHandler(
 ) {
     private val logger = getLogger(this)
     private val tracer get() = logger.takeIf { it.isTraceEnabled }
+    private val cdp = CDP(devTools)
 
     private val isActive get() = devTools.isOpen
-    private val pageAPI get() = devTools.page.takeIf { isActive }
-    private val accessibilityAPI get() = devTools.accessibility.takeIf { isActive }
 
     @Volatile
     private var accessibilityEnabled = false
@@ -27,16 +27,15 @@ class AccessibilityHandler(
         // Ensure the Accessibility domain is enabled
         ensureEnabled()
 
-        val page = pageAPI ?: return AccessibilityTreeResult.EMPTY
-        val accessibility = accessibilityAPI ?: return AccessibilityTreeResult.EMPTY
+        if (!isActive) return AccessibilityTreeResult.EMPTY
 
         // Small retry loop to wait for AX cache to populate on dynamic pages
         repeat(5) { attempt ->
             val frameTree = try {
-                page.getFrameTree()
+                cdp.getFrameTree()
             } catch (e: Exception) {
                 tracer?.debug("Page.getFrameTree failed, using last known tree | err={}", e.toString())
-                page.getFrameTree()
+                cdp.getFrameTree()
             }
 
             val frameById = linkedMapOf<String, FrameTree>()
@@ -50,14 +49,14 @@ class AccessibilityHandler(
 
             if (frameIds.isEmpty()) {
                 // Fallback: try fetching AX tree without specifying a frameId (root document)
-                val nodes = runCatching { accessibility.getFullAXTree(depth) }.getOrElse { emptyList() }
+                val nodes = runCatching { cdp.getFullAXTree(depth) }.getOrElse { emptyList() }
                 if (nodes.isNotEmpty()) {
                     val rootFrameId = frameTree.frame.id
                     return singleFrameResult(nodes, rootFrameId)
                 }
                 // If a specific target frame was requested, try that directly as well
                 if (targetFrameId != null) {
-                    val targeted = runCatching { accessibility.getFullAXTree(depth) }.getOrElse { emptyList() }
+                    val targeted = runCatching { cdp.getFullAXTree(depth) }.getOrElse { emptyList() }
                     if (targeted.isNotEmpty()) return singleFrameResult(targeted, targetFrameId)
                 }
                 // Wait a bit and retry
@@ -69,7 +68,7 @@ class AccessibilityHandler(
                 val byBackend = LinkedHashMap<Int, MutableList<AXNode>>()
 
                 frameIds.forEach { frameId ->
-                    val nodes = runCatching { accessibility.getFullAXTree(depth) }
+                    val nodes = runCatching { cdp.getFullAXTree(depth) }
                         .onFailure { e -> logger.warn("Accessibility.getFullAXTree failed | frameId={} err={}", frameId, e.toString()) }
                         .getOrElse { emptyList() }
                     if (nodes.isEmpty()) {
@@ -123,7 +122,7 @@ class AccessibilityHandler(
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             val frame = current.frame
-            val frameId = frame?.id
+            val frameId = frame.id
             if (!frameId.isNullOrBlank()) {
                 acc.putIfAbsent(frameId, current)
             }
@@ -152,12 +151,12 @@ class AccessibilityHandler(
     private suspend fun ensureEnabled() {
         if (!isActive) return
         // Enable Page/DOM domains to stabilize frame tree & AX associations
-        runCatching { devTools.page.enable() }
-        runCatching { devTools.dom.enable() }
+        runCatching { cdp.pageEnable() }
+        runCatching { cdp.domEnable() }
 
-        val a11y = accessibilityAPI ?: return
+        if (!isActive) return
         if (!accessibilityEnabled) {
-            runCatching { a11y.enable() }
+            runCatching { cdp.accessibilityEnable() }
                 .onFailure { e -> logger.warn("Accessibility.enable failed | err={}", e.toString()) }
             accessibilityEnabled = true
         }

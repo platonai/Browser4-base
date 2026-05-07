@@ -1,9 +1,11 @@
 package ai.platon.browser4.driver.chrome
 
-import ai.platon.cdt.kt.protocol.ChromeDevTools
+import ai.platon.browser4.driver.chrome.experimental.CDP
 import ai.platon.cdt.kt.protocol.commands.DOM
 import ai.platon.cdt.kt.protocol.commands.Page
-import ai.platon.cdt.kt.protocol.types.input.*
+import ai.platon.cdt.kt.protocol.types.input.DispatchDragEventType
+import ai.platon.cdt.kt.protocol.types.input.DispatchKeyEventType
+import ai.platon.cdt.kt.protocol.types.input.DragData
 import ai.platon.pulsar.common.DescriptiveResult
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.io.KeyboardModifier
@@ -14,8 +16,6 @@ import ai.platon.pulsar.common.math.geometric.DimD
 import ai.platon.pulsar.common.math.geometric.OffsetD
 import ai.platon.pulsar.common.math.geometric.PointD
 import ai.platon.pulsar.common.math.geometric.RectD
-import ai.platon.pulsar.common.printlnPro
-import ai.platon.pulsar.common.serialize.json.prettyPulsarObjectMapper
 import kotlinx.coroutines.delay
 import org.apache.commons.lang3.SystemUtils
 import org.apache.commons.math3.util.Precision
@@ -23,6 +23,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 data class NodeClip(
     var node: NodeRef? = null,
@@ -31,30 +32,65 @@ data class NodeClip(
     var rect: RectD? = null,
 )
 
+private val SHIFTED_CHARACTER_BASE_KEYS: Map<Char, String> = mapOf(
+    '~' to "`",
+    '!' to "1",
+    '@' to "2",
+    '#' to "3",
+    '$' to "4",
+    '%' to "5",
+    '^' to "6",
+    '&' to "7",
+    '*' to "8",
+    '(' to "9",
+    ')' to "0",
+    '_' to "-",
+    '+' to "=",
+    '{' to "[",
+    '}' to "]",
+    '|' to "\\",
+    ':' to ";",
+    '"' to "'",
+    '<' to ",",
+    '>' to ".",
+    '?' to "/",
+)
+
+internal fun normalizeKeyStringForPress(keyString: String): String {
+    if (keyString.length != 1) {
+        return keyString
+    }
+
+    val char = keyString.single()
+    return when {
+        char.isUpperCase() -> "Shift+${char.lowercaseChar()}"
+        char in SHIFTED_CHARACTER_BASE_KEYS -> "Shift+${SHIFTED_CHARACTER_BASE_KEYS.getValue(char)}"
+        else -> keyString
+    }
+}
+
 /**
  * ClickableDOM provides a set of methods to help users to click on a specified DOM correctly.
  *
  * @author Vincent Zhang, ivincent.zhang@gmail.com, platon.ai
  */
 class ClickableDOM(
-    val page: Page,
-    val dom: DOM,
+    val cdp: CDP,
     val node: NodeRef,
     val offset: OffsetD? = null
 ) {
     companion object {
-        fun create(page: Page?, dom: DOM?, node: NodeRef?, offset: OffsetD? = null): ClickableDOM? {
+        fun create(cdp: CDP?, node: NodeRef?, offset: OffsetD? = null): ClickableDOM? {
             if (node == null) return null
-            if (page == null) return null
-            if (dom == null) return null
-            return ClickableDOM(page, dom, node, offset)
+            if (cdp == null) return null
+            return ClickableDOM(cdp, node, offset)
         }
     }
 
     suspend fun clickablePoint(): DescriptiveResult<PointD> {
         val contentQuads = runCatching {
             // dom.getContentQuads(node.nodeId, node.backendNodeId, node.objectId)
-            dom.getContentQuads(node.nodeId)
+            cdp.getContentQuads(node.nodeId)
         }
             .onFailure { getLogger(this).warn("Failed to get content quads for node ${node.nodeId}", it) }
             .getOrNull()
@@ -64,7 +100,7 @@ class ClickableDOM(
             return DescriptiveResult("error:notvisible")
         }
 
-        val layoutMetrics = page.getLayoutMetrics()
+        val layoutMetrics = cdp.getLayoutMetrics()
 
         val viewport = layoutMetrics.cssLayoutViewport
 
@@ -118,7 +154,7 @@ class ClickableDOM(
 
     suspend fun boundingBox(): RectD? {
         // Only provide nodeId to satisfy the "exactly one id" requirement
-        val box = dom.getBoxModel(node.nodeId, null, null)
+        val box = cdp.getBoxModel(node.nodeId)
 
         val quad = box.border.takeIf { it.isNotEmpty() } ?: return null
 
@@ -177,11 +213,12 @@ class ClickableDOM(
  *
  * @author Vincent Zhang, ivincent.zhang@gmail.com, platon.ai
  */
-class Mouse(private val devTools: ChromeDevTools) {
-    private val input get() = devTools.input
+class Mouse(private val cdp: CDP) {
+    private val input get() = cdp.input
 
     var currentX = 0.0
     var currentY = 0.0
+
     // Track current pressed buttons bitfield. For left button only, we use 1 as Chromium does.
     private var buttonsState: Int = 0
 
@@ -197,11 +234,11 @@ class Mouse(private val devTools: ChromeDevTools) {
         for (cc in 1..max(1, clickCount)) {
             down(x, y, cc, modifiers)
             if (delayMillis > 0) {
-                delay(delayMillis)
+                delay(delayMillis.milliseconds)
             }
             up(x, y, cc, modifiers)
             if (cc < clickCount && delayMillis > 0) {
-                delay(delayMillis)
+                delay(delayMillis.milliseconds)
             }
         }
     }
@@ -228,7 +265,7 @@ class Mouse(private val devTools: ChromeDevTools) {
             cdpMoveTo(x1, y1)
 
             if (delayMillis > 0) {
-                delay(delayMillis)
+                delay(delayMillis.milliseconds)
             }
 
             ++i
@@ -236,21 +273,7 @@ class Mouse(private val devTools: ChromeDevTools) {
     }
 
     private suspend fun cdpMoveTo(x: Double, y: Double) {
-        input.dispatchMouseEvent(
-            type = DispatchMouseEventType.MOUSE_MOVED, x = x, y = y,
-            modifiers = null, timestamp = null,
-            button = null, // button
-            buttons = buttonsState, // buttons
-            clickCount = null,
-            force = null, // force
-            tangentialPressure = null,
-            tiltX = null,
-            tiltY = null,
-            twist = null, // twist
-            deltaX = null,
-            deltaY = null,
-            pointerType = null
-        )
+        cdp.dispatchMouseMoved(x, y, buttonsState)
     }
 
     /**
@@ -278,21 +301,7 @@ class Mouse(private val devTools: ChromeDevTools) {
     suspend fun down(x: Double, y: Double, clickCount: Int = 1, modifiers: Int? = null) {
         // Update buttons bitfield to include left button (1)
         buttonsState = buttonsState or 1
-        input.dispatchMouseEvent(
-            type = DispatchMouseEventType.MOUSE_PRESSED, x = x, y = y,
-            button = MouseButton.LEFT,
-            modifiers = modifiers, timestamp = null,
-            buttons = buttonsState, // buttons after press
-            clickCount = clickCount,
-            force = 0.5, // force
-            tangentialPressure = null,
-            tiltX = null,
-            tiltY = null,
-            twist = null, // twist
-            deltaX = null,
-            deltaY = null,
-            pointerType = null
-        )
+        cdp.dispatchMousePressed(x, y, clickCount, modifiers, buttonsState)
     }
 
     suspend fun up() {
@@ -306,31 +315,11 @@ class Mouse(private val devTools: ChromeDevTools) {
     suspend fun up(x: Double, y: Double, clickCount: Int = 1, modifiers: Int? = null) {
         // Update buttons bitfield to reflect release of left button
         buttonsState = buttonsState and 1.inv()
-        input.dispatchMouseEvent(
-            type = DispatchMouseEventType.MOUSE_RELEASED, x = x, y = y,
-            button = MouseButton.LEFT,
-            clickCount = clickCount,
-            modifiers = modifiers,
-            buttons = buttonsState
-        )
+        cdp.dispatchMouseReleased(x, y, clickCount, modifiers, buttonsState)
     }
 
     suspend fun scroll(deltaX: Double = 0.0, deltaY: Double = 10.0) {
-        input.dispatchMouseEvent(
-            type = DispatchMouseEventType.MOUSE_WHEEL, x = currentX, y = currentY,
-            modifiers = null, timestamp = null,
-            button = null, // button
-            buttons = null, // buttons
-            clickCount = null,
-            force = null, // force
-            tangentialPressure = null,
-            tiltX = null, // tiltX
-            tiltY = null, // tiltY
-            twist = null, // twist
-            deltaX = deltaX, // deltaX
-            deltaY = deltaY, // deltaY
-            pointerType = null
-        )
+        cdp.dispatchMouseWheel(currentX, currentY, deltaX, deltaY)
     }
 
     /**
@@ -393,21 +382,7 @@ class Mouse(private val devTools: ChromeDevTools) {
      * @param y Y coordinate
      */
     suspend fun wheel(x: Double, y: Double, deltaX: Double, deltaY: Double) {
-        input.dispatchMouseEvent(
-            type = DispatchMouseEventType.MOUSE_WHEEL, x = x, y = y,
-            modifiers = null, timestamp = null,
-            button = null, // button
-            buttons = null, // buttons
-            clickCount = null,
-            force = null, // force
-            tangentialPressure = null,
-            tiltX = null, // tiltX
-            tiltY = null, // tiltY
-            twist = null, // twist
-            deltaX = deltaX, // deltaX
-            deltaY = deltaY, // deltaY
-            pointerType = null
-        )
+        cdp.dispatchMouseWheel(x, y, deltaX, deltaY)
     }
 
     /**
@@ -419,7 +394,7 @@ class Mouse(private val devTools: ChromeDevTools) {
     suspend fun drag(start: PointD, target: PointD): DragData? {
         var dragData: DragData? = null
 
-        input.setInterceptDrags(true)
+        cdp.setInterceptDrags(true)
         input.onDragIntercepted {
             dragData = it.data
         }
@@ -433,12 +408,12 @@ class Mouse(private val devTools: ChromeDevTools) {
             // The event should fire during the moveTo operations, but add a small buffer
             // to account for CDP event delivery latency
             if (dragData == null) {
-                delay(100)
+                delay(100.milliseconds)
             }
         } finally {
             // Always release button and disable interception
             runCatching { up() }
-            runCatching { input.setInterceptDrags(false) }
+            runCatching { cdp.setInterceptDrags(false) }
         }
 
         return dragData
@@ -450,7 +425,7 @@ class Mouse(private val devTools: ChromeDevTools) {
      * @param data - drag data containing items and operations mask
      */
     suspend fun dragEnter(target: PointD, data: DragData) {
-        input.dispatchDragEvent(
+        cdp.dispatchDragEvent(
             DispatchDragEventType.DRAG_ENTER, target.x, target.y,
             data
         )
@@ -462,7 +437,7 @@ class Mouse(private val devTools: ChromeDevTools) {
      * @param data - drag data containing items and operations mask
      */
     suspend fun dragOver(target: PointD, data: DragData) {
-        input.dispatchDragEvent(
+        cdp.dispatchDragEvent(
             DispatchDragEventType.DRAG_OVER, target.x, target.y,
             data
         )
@@ -474,7 +449,7 @@ class Mouse(private val devTools: ChromeDevTools) {
      * @param data - drag data containing items and operations mask
      */
     suspend fun drop(target: PointD, data: DragData) {
-        input.dispatchDragEvent(
+        cdp.dispatchDragEvent(
             DispatchDragEventType.DROP, target.x, target.y,
             data
         )
@@ -497,7 +472,7 @@ class Mouse(private val devTools: ChromeDevTools) {
             dragEnter(target, data)
             dragOver(target, data)
             if (delayMillis > 0) {
-                delay(delayMillis)
+                delay(delayMillis.milliseconds)
             }
             drop(target, data)
         } finally {
@@ -510,8 +485,7 @@ class Mouse(private val devTools: ChromeDevTools) {
 /**
  * Keyboard provides an api for managing a virtual keyboard.
  * */
-class Keyboard(private val devTools: ChromeDevTools) {
-    private val input get() = devTools.input
+class Keyboard(private val cdp: CDP) {
     private val pressedModifiers = mutableSetOf<String>()
     private val pressedKeys = mutableSetOf<String>()
 
@@ -520,11 +494,11 @@ class Keyboard(private val devTools: ChromeDevTools) {
             if (Character.isISOControl(char)) {
                 press("$char", delayMillis)
             } else {
-                input.insertText("$char")
+                cdp.insertText("$char")
             }
 
             if (delayMillis > 0) {
-                delay(delayMillis)
+                delay(delayMillis.milliseconds)
             }
         }
     }
@@ -545,7 +519,16 @@ class Keyboard(private val devTools: ChromeDevTools) {
             return
         }
 
-        val tokens = splitKeyString(keyString).ifEmpty { return@press }
+        if (keyString.length == 1) {
+            val char = keyString.single()
+            if (char.isUpperCase() || char in SHIFTED_CHARACTER_BASE_KEYS) {
+                pressShiftedPrintableChar(char, delayMillis)
+                return
+            }
+        }
+
+        val normalizedKeyString = normalizeKeyStringForPress(keyString)
+        val tokens = splitKeyString(normalizedKeyString).ifEmpty { return@press }
 
         val key = tokens.last()
 
@@ -555,7 +538,7 @@ class Keyboard(private val devTools: ChromeDevTools) {
 
         try {
             down(key)
-            delay(delayMillis)
+            delay(delayMillis.coerceAtLeast(60).milliseconds)
         } finally {
             up(key)
         }
@@ -565,10 +548,52 @@ class Keyboard(private val devTools: ChromeDevTools) {
         }
     }
 
+    private suspend fun pressShiftedPrintableChar(char: Char, delayMillis: Long) {
+        val baseKey = when {
+            char.isUpperCase() -> char.lowercaseChar().toString()
+            else -> SHIFTED_CHARACTER_BASE_KEYS[char]
+        } ?: throw IllegalArgumentException("Unknown shifted key: >$char<")
+
+        val baseVirtualKey = VirtualKeyboard.KEYBOARD_LAYOUT[baseKey]
+            ?: throw IllegalArgumentException("Unknown base key for shifted key: >$char<")
+        val shiftKey = createVirtualKeyForSingleKeyString("Shift")
+
+        down(shiftKey)
+        try {
+            val autoRepeat = pressedKeys.contains(baseVirtualKey.code)
+            pressedKeys.add(baseVirtualKey.code)
+            cdp.dispatchKeyEvent(
+                type = DispatchKeyEventType.KEY_DOWN,
+                modifiers = toModifiersMask(pressedModifiers),
+                windowsVirtualKeyCode = baseVirtualKey.keyCodeWithoutLocation,
+                code = baseVirtualKey.code,
+                key = "$char",
+                text = "$char",
+                unmodifiedText = "$char",
+                location = baseVirtualKey.location,
+                isKeypad = baseVirtualKey.location == KEYPAD_LOCATION,
+                autoRepeat = autoRepeat,
+                commands = emptyList(),
+            )
+            delay(delayMillis.coerceAtLeast(60).milliseconds)
+            cdp.dispatchKeyEvent(
+                type = DispatchKeyEventType.KEY_UP,
+                modifiers = toModifiersMask(pressedModifiers),
+                windowsVirtualKeyCode = baseVirtualKey.keyCodeWithoutLocation,
+                code = baseVirtualKey.code,
+                key = "$char",
+                location = baseVirtualKey.location,
+            )
+        } finally {
+            pressedKeys.remove(baseVirtualKey.code)
+            up(shiftKey)
+        }
+    }
+
     suspend fun press(key: VirtualKey, delayMillis: Long) {
         try {
             down(key)
-            delay(delayMillis.coerceAtLeast(20))
+            delay(delayMillis.coerceAtLeast(60).milliseconds)
         } finally {
             up(key)
         }
@@ -674,8 +699,8 @@ class Keyboard(private val devTools: ChromeDevTools) {
 
         val type = if (key.text.isEmpty()) DispatchKeyEventType.RAW_KEY_DOWN else DispatchKeyEventType.KEY_DOWN
         val commands = emptyList<String>()
-        input.dispatchKeyEvent(
-            type,
+        cdp.dispatchKeyEvent(
+            type = type,
             modifiers = toModifiersMask(modifiers),
             windowsVirtualKeyCode = key.keyCodeWithoutLocation,
             code = key.code,
@@ -698,7 +723,7 @@ class Keyboard(private val devTools: ChromeDevTools) {
         }
         pressedKeys.remove(key.code)
 
-        input.dispatchKeyEvent(
+        cdp.dispatchKeyEvent(
             type = DispatchKeyEventType.KEY_UP,
             modifiers = toModifiersMask(modifiers),
             key = key.key,
@@ -717,11 +742,17 @@ class EmulationHandler(
     private val devTools: RemoteDevTools? = null
 ) {
     private val logger = getLogger(this)
+    private val cdp = devTools?.let { CDP(it) }
 
     suspend fun click(
         node: NodeRef, count: Int, position: String = "center", modifier: String? = null, delayMillis: Long = 100
     ) {
         val point = getInteractPoint(node, position, useRandomOffset = true) ?: return
+
+        if (dispatchDomClick(node, point, count, modifier, delayMillis)) {
+            // TODO: click/dblclick 事件不太可靠，先用 DOM 事件模拟，后续优化
+            return
+        }
 
         if (modifier != null) {
             clickWithModifiers(point, modifier, count, delayMillis = delayMillis)
@@ -749,7 +780,7 @@ class EmulationHandler(
         val point = getInteractPoint(node, position, useRandomOffset = false) ?: return
 
         // Get bounding box to calculate a point outside the element
-        val clickableDOM = ClickableDOM(p, d, node, null)
+        val clickableDOM = ClickableDOM.create(cdp, node, null) ?: return
         val box = runCatching { clickableDOM.boundingBox() }
             .onFailure { logger.warn("Failed to get bounding box for hover", it) }
             .getOrNull()
@@ -794,7 +825,7 @@ class EmulationHandler(
             return null
         }
 
-        val clickableDOM = ClickableDOM(p, d, node, offset)
+        val clickableDOM = ClickableDOM.create(cdp, node, offset) ?: return null
         val point = clickableDOM.clickablePoint().value ?: return null
 
         val box = runCatching { clickableDOM.boundingBox() }
@@ -854,7 +885,12 @@ class EmulationHandler(
                 // Use CDP-compliant modifier bitmask for mouse events
                 cdpModifiers = modifierMaskForKeyString(normModifier.name)
                 if (!modifier.equals(mappedModifierName, true)) {
-                    logger.info("OS mapped modifier {} -> {} (macOS={})", modifier, mappedModifierName, SystemUtils.IS_OS_MAC)
+                    logger.info(
+                        "OS mapped modifier {} -> {} (macOS={})",
+                        modifier,
+                        mappedModifierName,
+                        SystemUtils.IS_OS_MAC
+                    )
                 }
                 logger.info("Clicking with virtual key: {}, modifiers: {}", virtualKey, cdpModifiers)
             }
@@ -876,6 +912,104 @@ class EmulationHandler(
             "shift" -> 8
             else -> 0
         }
+    }
+
+    private suspend fun dispatchDomClick(
+        node: NodeRef,
+        point: PointD,
+        count: Int,
+        modifier: String?,
+        delayMillis: Long,
+    ): Boolean {
+        val localCdp = cdp ?: return false
+        val m = mouse ?: return false
+        val clickCount = max(1, count)
+        val modifierState = buildMouseModifierState(modifier)
+
+        return withNodeObjectId(localCdp, node) { objectId ->
+            m.moveTo(point)
+            if (delayMillis > 0) {
+                delay(delayMillis.milliseconds)
+            }
+
+            val script = """
+                function() {
+                    const target = this instanceof Element ? this : null;
+                    if (!target) return false;
+                    if (target instanceof HTMLElement) {
+                        target.focus({ preventScroll: true });
+                    }
+
+                    const createInit = (detail, buttons) => ({
+                        bubbles: true,
+                        cancelable: true,
+                        composed: true,
+                        button: 0,
+                        buttons,
+                        clientX: ${point.x},
+                        clientY: ${point.y},
+                        screenX: ${point.x},
+                        screenY: ${point.y},
+                        detail,
+                        altKey: ${modifierState.altKey},
+                        ctrlKey: ${modifierState.ctrlKey},
+                        metaKey: ${modifierState.metaKey},
+                        shiftKey: ${modifierState.shiftKey},
+                    });
+
+                    for (let detail = 1; detail <= $clickCount; detail += 1) {
+                        target.dispatchEvent(new MouseEvent('mousedown', createInit(detail, 1)));
+                        target.dispatchEvent(new MouseEvent('mouseup', createInit(detail, 0)));
+                        setTimeout(() => {
+                            if (!${modifierState.hasModifier} && target instanceof HTMLElement) {
+                                target.click();
+                            } else {
+                                target.dispatchEvent(new MouseEvent('click', createInit(detail, 0)));
+                            }
+                        }, 0);
+                    }
+
+                    if ($clickCount >= 2) {
+                        setTimeout(() => {
+                            target.dispatchEvent(new MouseEvent('dblclick', createInit($clickCount, 0)));
+                        }, 0);
+                    }
+
+                    return true;
+                }
+            """.trimIndent()
+
+            localCdp.callFunctionOn(
+                script,
+                objectId = objectId,
+                returnByValue = true,
+                userGesture = true,
+                awaitPromise = true,
+            ).result.value as? Boolean ?: false
+        } ?: false
+    }
+
+    private fun buildMouseModifierState(modifier: String?): MouseModifierState {
+        if (modifier.isNullOrBlank()) {
+            return MouseModifierState()
+        }
+
+        return when (mapModifierForOS(modifier).trim().lowercase()) {
+            "alt" -> MouseModifierState(altKey = true)
+            "control", "ctrl" -> MouseModifierState(ctrlKey = true)
+            "meta", "command", "cmd", "win", "super" -> MouseModifierState(metaKey = true)
+            "shift" -> MouseModifierState(shiftKey = true)
+            else -> MouseModifierState()
+        }
+    }
+
+    private data class MouseModifierState(
+        val altKey: Boolean = false,
+        val ctrlKey: Boolean = false,
+        val metaKey: Boolean = false,
+        val shiftKey: Boolean = false,
+    ) {
+        val hasModifier: Boolean get() = altKey || ctrlKey || metaKey || shiftKey
     }
 
     // Map Ctrl->Meta on macOS for consistency with platform conventions.

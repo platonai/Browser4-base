@@ -1,6 +1,7 @@
 package ai.platon.pulsar.protocol.browser.driver.cdt
 
 import ai.platon.browser4.driver.chrome.*
+import ai.platon.browser4.driver.chrome.experimental.CDP
 import ai.platon.browser4.driver.chrome.impl.ChromeImpl
 import ai.platon.browser4.driver.chrome.impl.ChromeImpl.Companion.ABOUT_BLANK_PAGE
 import ai.platon.browser4.driver.chrome.util.ChromeDriverException
@@ -13,8 +14,8 @@ import ai.platon.pulsar.common.warnForClose
 import ai.platon.pulsar.common.warnInterruptible
 import ai.platon.pulsar.skeleton.common.AppSystemInfo
 import ai.platon.pulsar.skeleton.context.PulsarContexts
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.*
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.*
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
@@ -211,7 +212,8 @@ class PulsarBrowser(
 
         val uniqueID = chromeTab.id
         val devTools = createDevTools(chromeTab, toolsConfig)
-        val driver = PulsarWebDriver(uniqueID, chromeTab, devTools, this)
+        val cdp = CDP(devTools)
+        val driver = PulsarWebDriver(uniqueID, chromeTab, cdp, this)
         mutableDrivers[chromeTab.id] = driver
 
         if (recovered) {

@@ -1,7 +1,10 @@
 package ai.platon.pulsar.skeleton.crawl.fetch.driver
 
 import ai.platon.browser4.driver.common.BrowserSettings
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.NavigateHistory
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.WebDriver
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.WebDriverException
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 
 /**
  * The Browser defines methods and events to manipulate a real browser.

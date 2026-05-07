@@ -9,13 +9,14 @@ import ai.platon.pulsar.common.brief
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.stringify
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserUnavailableException
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.IllegalWebDriverStateException
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.BrowserUnavailableException
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.IllegalWebDriverStateException
 import kotlinx.coroutines.delay
 import java.text.MessageFormat
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration.Companion.milliseconds
 
 class RobustRPC(
     private val driver: PulsarWebDriver
@@ -85,7 +86,7 @@ class RobustRPC(
                 logger.warn("Encountered non-retryable exception: [$action], aborting retries | {}", exception.message)
                 break
             }
-            delay(200)
+            delay(200.milliseconds)
             result = kotlin.runCatching { invokeDeferred0(action, url, block) }
                 .onFailure { logger.warn("Exception to execute action: [$action], retrying $i/$maxRetry times", it) }
         }

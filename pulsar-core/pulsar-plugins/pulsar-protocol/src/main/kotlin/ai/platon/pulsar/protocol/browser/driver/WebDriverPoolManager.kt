@@ -11,10 +11,10 @@ import ai.platon.pulsar.protocol.browser.emulator.WebDriverPoolExhaustedExceptio
 import ai.platon.pulsar.protocol.browser.impl.BasicBrowserManager
 import ai.platon.pulsar.skeleton.common.metrics.MetricsSystem
 import ai.platon.pulsar.skeleton.common.persist.ext.eventHandlers
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchResult
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchTask
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.*
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchResult
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchTask
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.*
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 import com.codahale.metrics.Gauge
 import com.google.common.annotations.Beta
 import kotlinx.coroutines.*
@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 open class WebDriverPoolManager constructor(
     val browserManager: BrowserManager,
-    val browserFactory: BrowserFactory,
     val immutableConfig: ImmutableConfig,
     val suppressMetrics: Boolean = false,
 ) : Parameterized, PreemptChannelSupport("WebDriverPoolManager"), AutoCloseable {
@@ -249,7 +248,7 @@ open class WebDriverPoolManager constructor(
      * Create a driver pool, but the driver pool is not added to [workingDriverPools].
      * */
     fun createUnmanagedDriverPool(browserId: BrowserId): LoadingWebDriverPool {
-        return LoadingWebDriverPool(browserId, browserManager, browserFactory, immutableConfig)
+        return LoadingWebDriverPool(browserId, browserManager, immutableConfig)
     }
 
     /**

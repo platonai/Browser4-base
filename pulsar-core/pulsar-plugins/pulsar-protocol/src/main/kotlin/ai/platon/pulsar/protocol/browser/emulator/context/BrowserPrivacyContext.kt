@@ -24,13 +24,13 @@ import ai.platon.pulsar.persist.AbstractWebPage
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolManager
 import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.proxy.UniversalProxyParser
-import ai.platon.pulsar.skeleton.crawl.CoreMetrics
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchResult
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchTask
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.AbstractPrivacyContext
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserProfile
+import ai.platon.pulsar.skeleton.CoreMetrics
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchResult
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchTask
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.WebDriver
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.AbstractPrivacyContext
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserProfile
 import com.google.common.annotations.Beta
 
 open class BrowserPrivacyContext(

@@ -1,5 +1,6 @@
 package ai.platon.browser4.driver.chrome
 
+import ai.platon.browser4.driver.chrome.experimental.CDP
 import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.cdt.kt.protocol.types.page.CaptureScreenshotFormat
 import ai.platon.cdt.kt.protocol.types.page.Viewport
@@ -14,9 +15,11 @@ class ScreenshotHandler(
     private val devTools: RemoteDevTools,
 ) {
     private val logger = getLogger(this)
+    private val cdp = CDP(devTools)
     private val isActive get() = AppContext.isActive && devTools.isOpen
-    private val page get() = devTools.page.takeIf { isActive }
-    private val dom get() = devTools.dom.takeIf { isActive }
+    private fun activeCdp() = cdp.takeIf { isActive }
+    private fun activePage() = if (isActive) cdp.page else null
+    private fun activeDom() = if (isActive) cdp.dom else null
     private val debugLevel = System.getProperty("browser.additionalDebugLevel")?.toIntOrNull() ?: 0
 
     /**
@@ -24,39 +27,38 @@ class ScreenshotHandler(
      * */
     suspend fun screenshot(fullPage: Boolean): String? {
         if (!fullPage) {
-            return page?.captureScreenshot()
+            return activePage()?.captureScreenshot()
         }
 
-        val metrics = page?.getLayoutMetrics() ?: return null
-        val emulation = devTools.emulation.takeIf { isActive }
-        val rect = metrics.cssContentSize
+        val metrics = activePage()?.getLayoutMetrics() ?: return null
+        val rect = metrics.contentSize
         val width = rect.width.toInt()
         val height = rect.height.toInt()
 
-        emulation?.setDeviceMetricsOverride(
+        cdp.setDeviceMetricsOverride(
             mobile = false,
             width = width,
             height = height,
             deviceScaleFactor = 1.0,
             screenWidth = width,
             screenHeight = height,
-        ) ?: return null
+        )
 
         // PNG = Crisp, precise, lossless, and supports transparency (ideal for testing and UI design)
         // JPEG = Compact, softly detailed, lossy, and opaque (suitable for presentation and archiving)
         val format = CaptureScreenshotFormat.JPEG
-        val result = page?.captureScreenshot(
+        val result = cdp.captureScreenshot(
             format = format,
             captureBeyondViewport = true,
         )
 
-        emulation.clearDeviceMetricsOverride()
+        cdp.clearDeviceMetricsOverride()
 
         return result
     }
 
     suspend fun screenshot(selector: String): String? {
-        val node = pageHandler.querySelector(selector)
+        val node = pageHandler.queryLocator(selector)
         if (node == null) {
             logger.info("No such element <{}>", selector)
             return null
@@ -106,18 +108,20 @@ class ScreenshotHandler(
         // The viewport has to be visible before screenshot
         if (node != null) {
             // Exactly one of nodeId, backendNodeId, objectId must be provided; use nodeId for stability
-            dom?.scrollIntoViewIfNeeded(node.nodeId, null, null, null)
+            activeDom()?.scrollIntoViewIfNeeded(node.nodeId, null, null, null)
         }
 
-        val visible = ClickableDOM.create(page, dom, node)?.isVisible() ?: false
+        val visible = ClickableDOM.create(activeCdp(), node)?.isVisible() ?: false
         if (!visible) {
             return null
         }
 
-        return page?.captureScreenshot(
-            format, quality, viewport,
+        return cdp.captureScreenshot(
+            format = format,
+            quality = quality,
+            clip = viewport,
             fromSurface = true,
-            captureBeyondViewport = false
+            captureBeyondViewport = false,
         )
     }
 
@@ -131,8 +135,7 @@ class ScreenshotHandler(
 
         val rect = calculateNodeClip0(node, selector)
 
-        val p = page ?: return null
-//        val d = dom ?: return null
+        val p = activePage() ?: return null
 
         val viewport = p.getLayoutMetrics().cssLayoutViewport
         val pageX = viewport.pageX
@@ -146,7 +149,7 @@ class ScreenshotHandler(
     }
 
     private suspend fun calculateNodeClip0(node: NodeRef, selector: String): RectD? {
-        val clickableDOM = ClickableDOM(page!!, dom!!, node)
+        val clickableDOM = ClickableDOM.create(activeCdp(), node) ?: return null
         return clickableDOM.boundingBox()
     }
 
@@ -156,7 +159,7 @@ class ScreenshotHandler(
 
         var clientRects = pageHandler.jsHandler.evaluate("__pulsar_utils__.queryClientRects('$selector')")
         println(clientRects)
-        var contentQuads = dom?.getContentQuads(node.nodeId, null, null)
+        var contentQuads = activeCdp()?.getContentQuads(node.nodeId)
         println(contentQuads)
 
         var clientRect = pageHandler.jsHandler.evaluate("__pulsar_utils__.queryClientRect('$selector')")?.toString()
@@ -164,7 +167,7 @@ class ScreenshotHandler(
         println("clientRect: ")
         println(clientRect)
 
-        var clickableDOM = ClickableDOM(page!!, dom!!, node)
+        var clickableDOM = ClickableDOM.create(activeCdp(), node) ?: return
         println(clickableDOM.boundingBox())
         println(clickableDOM.clickablePoint())
 
@@ -173,7 +176,7 @@ class ScreenshotHandler(
 
         clientRects = pageHandler.jsHandler.evaluate("__pulsar_utils__.queryClientRects('$selector')")
         println(clientRects)
-        contentQuads = dom?.getContentQuads(node.nodeId, null, null)
+        contentQuads = activeCdp()?.getContentQuads(node.nodeId)
         println(contentQuads)
 
         clientRect = pageHandler.jsHandler.evaluate("__pulsar_utils__.queryClientRect('$selector')")?.toString()
@@ -181,12 +184,11 @@ class ScreenshotHandler(
         println("clientRect: ")
         println(clientRect)
 
-        clickableDOM = ClickableDOM(page!!, dom!!, node)
+        clickableDOM = ClickableDOM.create(activeCdp(), node) ?: return
         println(clickableDOM.boundingBox())
         println(clickableDOM.clickablePoint())
 
-        val p = page ?: return
-//        val d = dom ?: return null
+        val p = activePage() ?: return
 
         val viewport = p.getLayoutMetrics().cssLayoutViewport
         val pageX = viewport.pageX

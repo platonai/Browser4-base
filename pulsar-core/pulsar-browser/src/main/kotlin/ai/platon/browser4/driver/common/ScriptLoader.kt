@@ -37,6 +37,7 @@ open class ScriptLoader(
     }
 
     private val jsCache: MutableMap<String, String> = LinkedHashMap()
+
     /**
      * The JavaScript code to inject into the browser.
      * */
@@ -91,7 +92,7 @@ open class ScriptLoader(
         val configs = GsonBuilder().create().toJson(jsInitParameters.toMap())
 
         // set predefined variables shared between JavaScript and jvm program
-        val configVar = confuser.confuse( "__pulsar_CONFIGS")
+        val configVar = confuser.confuse("__pulsar_CONFIGS")
         return """
             ;
             let $configVar = $configs;

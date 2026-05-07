@@ -1,13 +1,12 @@
 package ai.platon.browser4.driver.chrome
 
+import ai.platon.browser4.driver.chrome.experimental.CDP
 import ai.platon.browser4.driver.chrome.util.ChromeDriverException
+import ai.platon.browser4.driver.common.B4JsUtils
 import ai.platon.cdt.kt.protocol.types.runtime.CallFunctionOn
 import ai.platon.cdt.kt.protocol.types.runtime.Evaluate
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.common.js.JsUtils
-import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 
 class JsHandler(
     private val devTools: RemoteDevTools,
@@ -15,12 +14,9 @@ class JsHandler(
     private val isolatedWorldManager: IsolatedWorldManager,
 ) {
     private val logger = getLogger(this)
+    private val cdp = CDP(devTools)
 
     private val isActive get() = AppContext.isActive && devTools.isOpen
-    private val pageAPI get() = devTools.page.takeIf { isActive }
-    private val domAPI get() = devTools.dom.takeIf { isActive }
-    private val cssAPI get() = devTools.css.takeIf { isActive }
-    private val runtimeAPI get() = devTools.runtime.takeIf { isActive }
 
     private val confuser get() = isolatedWorldManager.settings.confuser
 
@@ -33,12 +29,12 @@ class JsHandler(
      * */
     @Throws(ChromeDriverException::class)
     suspend fun evaluateDetail(script: String): Evaluate? {
-        val expression: String = JsUtils.toCDPCompatibleExpression(script)
+        val expression: String = B4JsUtils.toCDPCompatibleExpression(script)
 
         val confusedExpr = confuser.confuse(expression)
 
         val isolatedContextId = isolatedWorldManager
-            .getContextId(runCatching { pageAPI?.getFrameTree()?.frame?.id }.getOrNull())
+            .getContextId(runCatching { cdp.mainFrame().id }.getOrNull())
         if (isolatedContextId != null && isolatedContextId > 0) {
             val isolatedResult = evaluateInContext(confusedExpr, isolatedContextId, returnByValue = false)
             if (isolatedResult != null) {
@@ -47,35 +43,21 @@ class JsHandler(
         }
 
         return try {
-            runtimeAPI?.evaluate(confusedExpr)
+            cdp.evaluate(confusedExpr)
         } catch (e: Exception) {
-            logger.warn("Failed to evaluate $expression", e)
+            logger.warn("Failed to evaluate $script", e)
             null
         }
     }
 
     @Throws(ChromeDriverException::class)
     suspend fun callFunctionOn(selector: String, functionDeclaration: String): CallFunctionOn? {
-        val node = pageHandler.querySelector(selector) ?: return null
-        // Resolve a fresh objectId and ensure it's released after the call
-        val resolved = try {
-            when {
-                node.nodeId > 0 -> domAPI?.resolveNode(node.nodeId, null, null, null)
-                node.backendNodeId > 0 -> domAPI?.resolveNode(null, node.backendNodeId, null, null)
-                else -> null
-            }
-        } catch (e: Exception) {
-            null
-        } ?: return null
-
-        val oid = resolved.objectId ?: return null
+        val node = pageHandler.queryLocator(selector) ?: return null
+        val resolved = resolveNodeObjectId(devTools, node) ?: return null
         return try {
-            runtimeAPI?.callFunctionOn(functionDeclaration, objectId = oid, returnByValue = true)
+            cdp.callFunctionOn(functionDeclaration, objectId = resolved.objectId, returnByValue = true)
         } finally {
-            try {
-                runtimeAPI?.releaseObject(oid)
-            } catch (_: Exception) {
-            }
+            releaseNodeObjectIfNeeded(devTools, resolved)
         }
     }
 
@@ -89,12 +71,7 @@ class JsHandler(
     @Throws(ChromeDriverException::class)
     suspend fun evaluate(script: String): Any? {
         require(script.isNotBlank()) { "Script must not be blank" }
-        val evaluate = if (script.contains("__pulsar_utils__")) {
-            // Just for debugging purpose
-            evaluateDetail(script)
-        } else {
-            evaluateDetail(script.trim())
-        }
+        val evaluate = evaluateDetail(script.trim())
 
         val exception = evaluate?.exceptionDetails?.exception
         if (exception != null) {
@@ -117,12 +94,12 @@ class JsHandler(
      * */
     @Throws(ChromeDriverException::class)
     suspend fun evaluateValueDetail(script: String): Evaluate? {
-        val expression: String = JsUtils.toCDPCompatibleExpression(script)
+        val expression: String = B4JsUtils.toCDPCompatibleExpression(script)
 
         val confusedExpr = confuser.confuse(expression)
 
         val isolatedContextId = isolatedWorldManager
-            .getContextId(runCatching { pageAPI?.getFrameTree()?.frame?.id }.getOrNull())
+            .getContextId(runCatching { cdp.mainFrame().id }.getOrNull())
         if (isolatedContextId != null && isolatedContextId > 0) {
             val isolatedResult = evaluateInContext(confusedExpr, isolatedContextId, returnByValue = true)
             if (isolatedResult != null) {
@@ -131,7 +108,7 @@ class JsHandler(
         }
 
         return try {
-            runtimeAPI?.evaluate(confusedExpr, returnByValue = true)
+            cdp.evaluate(confusedExpr, returnByValue = true)
         } catch (e: Exception) {
             logger.warn("Failed to evaluate $script", e)
             null
@@ -191,23 +168,6 @@ class JsHandler(
      * @return Detailed evaluation result, or null if evaluation fails
      * */
     private suspend fun evaluateInContext(expression: String, contextId: Int, returnByValue: Boolean): Evaluate? {
-        return runtimeAPI?.evaluate(expression = expression, contextId = contextId, returnByValue = returnByValue)
-    }
-
-    private suspend fun evaluateInContext2(expression: String, contextId: Int, returnByValue: Boolean): Evaluate? {
-        val params = mutableMapOf<String, Any?>(
-            "expression" to expression,
-            "contextId" to contextId,
-            "returnByValue" to returnByValue,
-            "awaitPromise" to true,
-        )
-
-        // runtimeAPI.evaluate()
-        val raw = devTools.invoke<Map<String, Any?>>("Runtime.evaluate", params, null) ?: return null
-        return runCatching {
-            pulsarObjectMapper().convertValue<Evaluate>(raw)
-        }.onFailure { e ->
-            logger.warn("Failed to convert evaluation result to Evaluate type", e)
-        }.getOrNull()
+        return cdp.evaluate(expression = expression, contextId = contextId, returnByValue = returnByValue)
     }
 }

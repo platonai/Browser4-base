@@ -12,11 +12,11 @@ import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.MultiSinkMessageWriter
 import ai.platon.pulsar.common.alwaysFalse
 import ai.platon.pulsar.common.warnInterruptible
-import ai.platon.pulsar.skeleton.crawl.common.InternalURLUtil
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.JsEvaluation
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.JsException
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.NavigateEntry
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
+import ai.platon.pulsar.skeleton.workflow.common.InternalURLUtil
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.JsEvaluation
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.JsException
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.NavigateEntry
+import ai.platon.pulsar.skeleton.workflow.fetch.driver.WebDriver
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -131,7 +131,7 @@ class WebDriverHelper(
                 } else if (scrollIntoView) {
                     page.scrollIntoViewIfNeeded(selector)
                 } else {
-                    page.querySelector(selector)
+                    page.queryLocator(selector)
                 }
 
                 if (node != null) {
