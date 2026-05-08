@@ -78,19 +78,6 @@ jobs:
           timeout_minutes: '35'
           report_name: 'release-test-reports'
 
-      - name: Find Release JAR
-        id: find-jar
-        run: |
-          JAR_PATH=$(find . -name "*.jar" -path "*/target/*" ! -name "*sources*" ! -name "*javadoc*" -printf "%T@ %p\n" 2>/dev/null | sort -nr | head -1 | awk '{print $2}')
-          if [ -z "$JAR_PATH" ]; then
-            echo "❌ No JAR artifact found in target directories"
-            exit 1
-          fi
-          JAR_NAME=$(basename "$JAR_PATH")
-          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
-          echo "jar_name=$JAR_NAME" >> $GITHUB_OUTPUT
-          echo "📦 Release JAR: $JAR_PATH"
-
       - name: Create Release Notes
         id: release-notes
         uses: ./.github/actions/create-release-notes
