@@ -32,12 +32,12 @@ object InternalURLUtil {
     private val logger = LoggerFactory.getLogger(InternalURLUtil::class.java)
 
     fun getHost(url: String): String? {
-        val u = getURLOrNull(url) ?: return null
+        val u = URLUtils.getURLOrNull2(url) ?: return null
         return getHost(u, GroupMode.BY_HOST)
     }
 
     fun getHost(url: String, groupMode: GroupMode): String? {
-        val u = getURLOrNull(url) ?: return null
+        val u = URLUtils.getURLOrNull2(url) ?: return null
         return getHost(u, groupMode)
     }
 

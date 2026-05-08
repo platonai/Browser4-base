@@ -186,7 +186,7 @@ object PowerSelector {
             return PowerQueryParser.parse(cssQuery)
         } catch (e: PowerSelectorParseException) {
             var message = e.brief()
-            if (!message.isNullOrBlank()) {
+            if (message.isNotBlank()) {
                 val host = URLUtils.getURLOrNull2(baseUri)?.host
                 val key = "$host $cssQuery"
                 message = "$key\n>>>$message<<<"
