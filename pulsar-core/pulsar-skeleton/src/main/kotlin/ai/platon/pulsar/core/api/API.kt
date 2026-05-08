@@ -1,10 +1,5 @@
 package ai.platon.pulsar.core.api
 
-import ai.platon.pulsar.skeleton.event.BrowseEventHandlers
-import ai.platon.pulsar.skeleton.event.CrawlEventHandlers
-import ai.platon.pulsar.skeleton.event.LoadEventHandlers
-import ai.platon.pulsar.skeleton.event.PageEventHandlers
-
 typealias ImmutableConfig = ai.platon.pulsar.common.config.ImmutableConfig
 typealias MutableConfig = ai.platon.pulsar.common.config.MutableConfig
 typealias VolatileConfig = ai.platon.pulsar.common.config.VolatileConfig
@@ -13,10 +8,10 @@ typealias InteractSettings = ai.platon.browser4.driver.common.InteractSettings
 typealias PulsarSettings = ai.platon.pulsar.skeleton.PulsarSettings
 typealias LoadOptions = ai.platon.pulsar.skeleton.common.options.LoadOptions
 
-typealias PageEventHandlers = PageEventHandlers
-typealias CrawlEventHandlers = CrawlEventHandlers
-typealias LoadEventHandlers = LoadEventHandlers
-typealias BrowserEventHandlers = BrowseEventHandlers
+typealias PageEventHandlers = ai.platon.pulsar.skeleton.event.PageEventHandlers
+typealias CrawlEventHandlers = ai.platon.pulsar.skeleton.event.CrawlEventHandlers
+typealias LoadEventHandlers = ai.platon.pulsar.skeleton.event.LoadEventHandlers
+typealias BrowserEventHandlers = ai.platon.pulsar.skeleton.event.BrowseEventHandlers
 
 typealias BrowserManager = ai.platon.pulsar.skeleton.workflow.fetch.driver.BrowserManager
 typealias Browser = ai.platon.pulsar.skeleton.workflow.fetch.driver.Browser

@@ -3,8 +3,6 @@ package ai.platon.pulsar.skeleton.workflow.protocol
 import ai.platon.pulsar.common.config.VolatileConfig
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.skeleton.workflow.common.LazyConfigurable
-import ai.platon.pulsar.skeleton.workflow.protocol.ProtocolOutput
-import ai.platon.pulsar.skeleton.workflow.protocol.Response
 import crawlercommons.robots.BaseRobotRules
 
 /**
