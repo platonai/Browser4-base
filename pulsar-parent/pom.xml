@@ -36,7 +36,7 @@ under the License.
         It guarantees dependency consistency and simplifies maintenance throughout the project ecosystem.
     </description>
 
-    <url>https://browser4.io</url>
+    <url>https://platon.ai</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
         <license>
@@ -46,7 +46,7 @@ under the License.
     </licenses>
     <organization>
         <name>Enable AI to browse the web</name>
-        <url>https://browser4.io</url>
+        <url>https://platon.ai</url>
     </organization>
     <developers>
         <developer>

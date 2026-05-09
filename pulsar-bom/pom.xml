@@ -22,7 +22,7 @@
 
     <description>Bill of Materials POM for getting full, complete set of compatible versions of Browser4 modules
     </description>
-    <url>https://browser4.io</url>
+    <url>https://platon.ai</url>
 
     <licenses>
         <license>
@@ -33,15 +33,15 @@
     <inceptionYear>2024</inceptionYear>
 
     <organization>
-        <name>browser4.io</name>
-        <url>https://browser4.io</url>
+        <name>platon.ai</name>
+        <url>https://platon.ai</url>
     </organization>
 
     <developers>
         <developer>
             <name>Vincent Zhang</name>
             <email>ivincent.zhang@gmail.com</email>
-            <organization>browser4.io</organization>
+            <organization>platon.ai</organization>
             <timezone>+8</timezone>
         </developer>
     </developers>

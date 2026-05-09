@@ -22,7 +22,7 @@
 
     <description>Pulsar Dependencies</description>
 
-    <url>https://browser4.io</url>
+    <url>https://platon.ai</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
         <license>
@@ -32,7 +32,7 @@
     </licenses>
     <organization>
         <name>Enable AI to browse the web</name>
-        <url>https://browser4.io</url>
+        <url>https://platon.ai</url>
     </organization>
     <developers>
         <developer>
