@@ -5,6 +5,7 @@ import org.springframework.context.annotation.ImportResource
 
 @SpringBootApplication(
     scanBasePackages = [
+        "ai.platon.pulsar.boot.autoconfigure",
         "ai.platon.pulsar.test.server"
     ]
 )

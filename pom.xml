@@ -24,7 +24,7 @@
     <version>4.7.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Browser4</name>
+    <name>Browser4 Base</name>
     <description>A lightning-fast, coroutine-safe browser for your AI.</description>
 
     <licenses>
@@ -89,6 +89,7 @@
         <module>pulsar-dependencies</module>
         <module>pulsar-core</module>
         <module>pulsar-bom</module>
+        <module>pulsar-spring-support</module>
         <module>pulsar-tests</module>
     </modules>
 
@@ -465,16 +466,13 @@
 
             <dependency>
                 <groupId>ai.platon.pulsar</groupId>
-                <artifactId>pulsar-qa</artifactId>
+                <artifactId>pulsar-beans</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>ai.platon.pulsar</groupId>
-                <artifactId>pulsar-qa</artifactId>
+                <artifactId>pulsar-boot</artifactId>
                 <version>${project.version}</version>
-                <type>test-jar</type>
-                <classifier>tests</classifier>
-                <scope>test</scope>
             </dependency>
 
             <dependency>

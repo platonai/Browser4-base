@@ -6,10 +6,11 @@ import ai.platon.pulsar.persist.WebDb
 import ai.platon.pulsar.persist.gora.FileBackendPageStore
 import ai.platon.pulsar.skeleton.TaskLoops
 import ai.platon.pulsar.skeleton.session.PulsarSession
+import ai.platon.pulsar.util.server.EnableMockServerApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest
+@SpringBootTest(classes = [EnableMockServerApplication::class])
 class TestBase {
     val logger get() = getLogger(this)
 

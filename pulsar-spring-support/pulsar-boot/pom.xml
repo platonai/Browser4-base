@@ -11,24 +11,20 @@
 	language governing permissions and limitations under the License. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>ai.platon.pulsar</groupId>
-        <artifactId>pulsar</artifactId>
+        <artifactId>pulsar-spring-support</artifactId>
         <version>4.7.4-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>pulsar-it-tests</artifactId>
-    <name>Pulsar IT Tests</name>
-
-    <build>
-        <defaultGoal>package</defaultGoal>
-    </build>
+    <artifactId>pulsar-boot</artifactId>
+    <name>Pulsar Boot</name>
 
     <dependencies>
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-browser</artifactId>
+            <artifactId>pulsar-persist</artifactId>
         </dependency>
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
@@ -36,48 +32,30 @@
         </dependency>
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-beans</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-boot</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-tests-common</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!--
-        If your build relies on dependency management support from Spring Boot, you should not import
-        the junit-bom in your build script since that will result in duplicate
-        (and potentially conflicting) management of JUnit dependencies.
-        see https://junit.org/junit5/docs/current/user-guide/#running-tests-build-spring-boot
-         -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-protocol</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.platon.pulsar</groupId>
             <artifactId>pulsar-ql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ai.platon.pulsar</groupId>
+            <artifactId>pulsar-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
