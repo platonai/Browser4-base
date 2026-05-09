@@ -46,6 +46,7 @@ import kotlinx.coroutines.delay
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.Instant
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Created by Vincent on 18-1-1.
@@ -647,7 +648,7 @@ open class InteractiveBrowserEmulator(
 
         var n = 10
         while (n-- > 0 && !isScriptInjected(driver)) {
-            delay(1000)
+            delay(1000.milliseconds)
         }
 
         if (n <= 0) {

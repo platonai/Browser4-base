@@ -448,7 +448,7 @@ open class StreamingTaskRunner(
             if (k++ % 20 == 0) {
                 logger.info("The Main loop is paused, use resume() to resume the Main loop")
             }
-            delay(1000)
+            delay(1000.milliseconds)
         }
         k = 0 // reset k explicitly
 
@@ -910,7 +910,7 @@ open class StreamingTaskRunner(
                 "Context leaks too fast: {} leaks/seconds, available memory: {}",
                 contextLeaksRate, AppSystemInfo.formatAvailableMemory()
             )
-            delay(1000)
+            delay(1000.milliseconds)
 
             contextLeaks.update()
 
@@ -922,7 +922,7 @@ open class StreamingTaskRunner(
 
     private suspend fun handleProxyOutOfService() {
         while (isActive && proxyOutOfService > 0) {
-            delay(1000)
+            delay(1000.milliseconds)
             globalState.proxyVendorWaitingTime += Duration.ofSeconds(1)
             handleProxyOutOfService0()
         }
@@ -984,12 +984,12 @@ open class StreamingTaskRunner(
         while (globalState.wrongProfile.hourlyCounter.count > 60) {
             globalState.criticalWarning = CriticalWarning.WRONG_PROFILE
             logger.takeIf { k++ % 20 == 0 }?.warn("{}, wrong profile", globalState.criticalWarning?.message ?: "")
-            delay(1000)
+            delay(1000.milliseconds)
         }
     }
 
     private suspend fun randomDelay(baseMills: Int, randomDelta: Int) =
-        delay(baseMills.toLong() + Random.nextInt(randomDelta))
+        delay((baseMills + Random.nextInt(randomDelta)).milliseconds)
 
     private fun generateFinishCommand() {
         if (SystemUtils.IS_OS_UNIX) {

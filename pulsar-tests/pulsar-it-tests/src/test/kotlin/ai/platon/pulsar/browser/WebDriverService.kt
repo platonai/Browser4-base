@@ -131,7 +131,7 @@ open class WebDriverService(
         var n = scrollCount
         while (n-- > 0) {
             driver.scrollDown(1)
-            delay(1000)
+            delay(1000.milliseconds)
         }
         driver.scrollToTop()
 

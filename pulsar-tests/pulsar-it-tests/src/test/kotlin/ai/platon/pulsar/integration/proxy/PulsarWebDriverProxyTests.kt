@@ -20,6 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.DisplayName
+import kotlin.time.Duration.Companion.milliseconds
 
 class PulsarWebDriverProxyTests : WebDriverTestBase() {
     private val proxyLoader by lazy { ProxyHubLoader(conf) }
@@ -101,7 +102,7 @@ class PulsarWebDriverProxyTests : WebDriverTestBase() {
             driver.navigate("https://www.baidu.com/")
             driver.waitForNavigation()
             driver.waitForSelector("body")
-            delay(1000)
+            delay(1000.milliseconds)
             val source = driver.pageSource()
             assertTrue { source != null && source.length > 1000 }
         }
