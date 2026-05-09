@@ -735,13 +735,13 @@ class Keyboard(private val cdp: CDP) {
 }
 
 class EmulationHandler(
-    private val pageAPI: Page?,
-    private val domAPI: DOM?,
     private val keyboard: Keyboard?,
     private val mouse: Mouse?,
     private val cdp: CDP? = null
 ) {
     private val logger = getLogger(this)
+    private val pageAPI: Page? = cdp?.page
+    private val domAPI: DOM? = cdp?.dom
 
     suspend fun click(
         node: NodeRef, count: Int, position: String = "center", modifier: String? = null, delayMillis: Long = 100
