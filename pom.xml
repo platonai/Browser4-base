@@ -566,10 +566,6 @@
 
         <!-- Test execution control properties -->
         <runITs>false</runITs>
-        <runE2ETests>false</runE2ETests>
-        <runSDKTests>false</runSDKTests>
-        <runCoreTests>false</runCoreTests>
-        <runRestTests>false</runRestTests>
 
         <!-- Default excludedGroups: exclude all non-Fast tests
              Includes both new taxonomy tags and legacy tags for backward compatibility:
@@ -578,7 +574,7 @@
              Migration: Gradually migrate tests from legacy tags to new taxonomy -->
         <surefire.excludedGroups>
             Slow,Heavy,RequiresServer,RequiresBrowser,RequiresAI,RequiresDocker,
-            Integration,E2E,SDK,ManualOnly,
+            E2E,SDK,ManualOnly,
             SkippableLowerLevelTest,TestInfraCheck,OptionalTest,
             IntegrationTest,E2ETest,HeavyTest
         </surefire.excludedGroups>
