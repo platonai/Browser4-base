@@ -328,7 +328,8 @@ open class ProxyEntry(
         val TEST_URLS = mutableListOf<URL>()
 
         init {
-            ResourceLoader.readAllLines(PROXY_TEST_WEB_SITES_FILE).mapNotNullTo(TEST_URLS) { URLUtils.getURLOrNull2(it) }
+            ResourceLoader.readAllLines(PROXY_TEST_WEB_SITES_FILE)
+                .mapNotNullTo(TEST_URLS) { URLUtils.getURLOrNull2(it) }
         }
 
         fun create(

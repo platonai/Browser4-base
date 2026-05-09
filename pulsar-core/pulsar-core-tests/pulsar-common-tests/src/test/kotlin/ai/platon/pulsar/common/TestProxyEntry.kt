@@ -1,6 +1,7 @@
 package ai.platon.pulsar.common
 
 import ai.platon.pulsar.common.proxy.ProxyEntry
+import ai.platon.pulsar.common.proxy.ProxyEntry.Companion.PROXY_TEST_WEB_SITES_FILE
 import ai.platon.pulsar.common.urls.URLUtils
 import java.net.Proxy
 import java.net.URI
@@ -26,7 +27,9 @@ class TestProxyEntry {
             .readAllLines(ProxyEntry.PROXY_TEST_WEB_SITES_FILE)
             .mapNotNullTo(ProxyEntry.TEST_URLS) { URLUtils.getURLOrNull2(it) }
         assertTrue(ProxyEntry.TEST_URLS.isNotEmpty())
-        assertTrue(URI.create("http://www.dongqiudi.com").toURL() in ProxyEntry.TEST_URLS)
+        val url = URI.create("http://www.mi.com/").toURL()
+        assertEquals(url, ProxyEntry.TEST_URLS.first { it.toString().contains("mi.com") })
+        assertTrue { url in ProxyEntry.TEST_URLS }
     }
 
     @Test
