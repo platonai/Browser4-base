@@ -1,368 +1,458 @@
-# Browser4-base
+# 🤖 Browser4
 
-English | [简体中文](README-CN.md) | [中国镜像](https://gitee.com/platonai_galaxyeye/Browser4)
+[![Docker Pulls](https://img.shields.io/docker/pulls/galaxyeye88/browser4?style=flat-square)](https://hub.docker.com/r/galaxyeye88/browser4)
+[![License: APACHE2](https://img.shields.io/badge/license-APACHE2-green?style=flat-square)](https://github.com/platonai/browser4/blob/main/LICENSE)
 
-## 🥁 Introduce
+---
 
-💖 **Browser4: Your Ultimate AI-RPA Solution!** 💖
+[English](README.md) | 简体中文 | [中国镜像](https://gitee.com/platonai_galaxyeye/Browser4)
 
-**Browser4** is a **high-performance**, **distributed**, and **open-source** Robotic Process Automation (RPA) framework.
-Designed for **large-scale automation**, it excels in **browser automation**, **web content understanding**,
-and **data extraction**. Browser4 tackles the challenges of modern web automation,
-ensuring **accurate** and **comprehensive** data extraction even from the most **complex** and **dynamic** websites.
+> 本文件已与英文版 README 同步（同步日期：2026-04-20），如有差异请以英文版为准。
 
-## Videos
+<!-- TOC -->
+**目录**
+- [🤖 Browser4](#-browser4)
+    - [🌟 项目介绍](#-项目介绍)
+        - [✨ 核心能力](#-核心能力)
+    - [🎥 演示视频](#-演示视频)
+    - [🚀 快速开始](#-快速开始)
+    - [💡 使用示例](#-使用示例)
+        - [浏览器智能体](#浏览器智能体)
+        - [工作流自动化](#工作流自动化)
+        - [LLM + X-SQL](#llm--x-sql)
+        - [高速并行处理](#高速并行处理)
+        - [自动抽取](#自动抽取)
+    - [📦 模块概览](#-模块概览)
+    - [📜 文档](#-文档)
+    - [🔧 代理配置 - 解锁网站访问](#-代理配置---解锁网站访问)
+    - [✨ 功能特性](#-功能特性)
+    - [🤝 支持与社区](#-支持与社区)
+<!-- /TOC -->
 
-YouTube:
-[![Watch the video](https://img.youtube.com/vi/lQXSSQSNQ7I/0.jpg)](https://www.youtube.com/watch?v=lQXSSQSNQ7I)
+## 🌟 项目介绍
 
-Bilibili:
+💖 **Browser4：为 AI 打造的闪电般快速、协程安全（coroutine-safe）的浏览器引擎** 💖
+
+### ✨ 核心能力
+
+* 👽 **浏览器智能体（Browser Agents）** — 能在浏览器中推理、规划并执行端到端任务的自主智能体。
+* 🤖 **浏览器自动化** — 面向工作流、导航与数据提取的高性能自动化能力。
+* ⚙️ **机器学习智能体** — 在复杂页面上学习字段结构，无需消耗 token。
+* ⚡ **极致性能** — 完全协程安全；支持单机每天访问 100k ~ 200k 复杂页面。
+* 🧬 **数据抽取** — 结合 LLM、ML 与选择器，在复杂页面中获得干净数据。
+
+## CLI & SKILLS
+
+```shell
+# 打开新浏览器窗口
+browser4-cli open
+
+# 导航到页面
+browser4-cli goto https://playwright.dev
+
+# 查看页面快照，注意交互节点上的 eN 标签
+browser4-cli snapshot
+
+# 使用快照中的 refs 进行交互
+browser4-cli click e15
+browser4-cli type e15 "Hello World"
+browser4-cli press e15 Enter
+browser4-cli keydown Shift
+browser4-cli mousemove 150 300
+browser4-cli mousewheel 0 100
+browser4-cli keyup Shift
+
+# 截图并保存到本地
+browser4-cli screenshot
+
+# 使用自定义服务地址
+browser4-cli open --server http://localhost:9090
+
+# 在同一进程中执行多条命令
+browser4-cli batch "open https://playwright.dev" "snapshot"
+
+# 遇到第一条失败命令即停止
+browser4-cli batch --bail "open https://playwright.dev" "click e1" "screenshot"
+
+# 通过 stdin 以 JSON 形式传入批处理命令
+echo '[
+  ["open", "https://playwright.dev"],
+  ["snapshot"],
+  ["click", "e1"],
+  ["screenshot", "--filename=result.png"]
+]' | browser4-cli batch --json
+
+# 使用完成后关闭会话
+browser4-cli close
+```
+
+---
+
+## 🎥 演示视频
+
+🎬 YouTube:
+[![Watch the video](https://img.youtube.com/vi/rJzXNXH3Gwk/0.jpg)](https://youtu.be/rJzXNXH3Gwk)
+
+📺 Bilibili:
+[https://www.bilibili.com/video/BV1fXUzBFE4L](https://www.bilibili.com/video/BV1fXUzBFE4L)
+
+---
+
+## 🚀 快速开始
+
+**前置要求**：Java 17+
+
+1. **克隆仓库**
+   ```shell
+   git clone https://github.com/platonai/browser4.git
+   cd browser4
+   ```
+
+2. **配置你的 LLM API key**
+
+   > 编辑 [application.properties](application.properties) 并添加你的 API key。
+
+3. **构建项目**
+   ```shell
+   ./mvnw -DskipTests
+   ```
+
+4. **运行示例**
+   ```shell
+   ./mvnw -pl examples/browser4-examples exec:java -D"exec.mainClass=ai.platon.pulsar.examples.agent.Browser4AgentKt"
+   ```
+   如果你在 Windows 上遇到编码问题：
+   ```shell
+   ./bin/run-agent-examples.ps1
+   ```
+
+   在 `browser4-examples` 模块中探索并运行示例，直观看到 Browser4 的能力。
+   Java 兼容示例已移除，请改用 Kotlin API、SDK 或 CLI 工具。
+
+Docker 部署见 [Docker Hub repository](https://hub.docker.com/r/galaxyeye88/browser4)。
+
+**Windows 用户**：你也可以将 Browser4 构建为独立 Windows 安装包。详见 [Windows Installer Guide](browser4-app/browser4-agents/README.md)。
+
+---
+
+## 💡 使用示例
+
+## CLI & SKILLS
+
+Browser4 CLI 是一个强大的命令行接口，可直接进行浏览器控制和自动化，面向人类用户与 AI agents。
+它提供简单语法，让你无需写代码即可完成复杂浏览器交互。
+
+Browser4 CLI 与 Playwright 兼容，支持导航、交互、数据提取等广泛命令。
+它可以用于脚本、终端会话，或通过 SKILLS 集成进 AI agents。
+
+```shell
+# 安装最新 Unix CLI（包含 Browser4.jar 兜底运行时）
+curl -fsSL https://raw.githubusercontent.com/platonai/Browser4/master/sdks/browser4-cli/install.sh | bash
+
+# Windows：保留 Browser4 仓库以支持 localhost Maven 自动启动；Browser4.jar 仍是兜底运行时
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.browser4\lib" | Out-Null
+Invoke-WebRequest 'https://github.com/platonai/Browser4/releases/latest/download/Browser4.jar' -OutFile "$env:USERPROFILE\.browser4\lib\Browser4.jar"
+git clone https://github.com/platonai/Browser4.git
+cd Browser4\sdks\browser4-cli
+cargo install --path . --locked
+
+# 打开新浏览器窗口
+browser4-cli open
+
+# 导航到页面
+browser4-cli goto https://playwright.dev
+
+# 查看页面快照，注意交互节点上的 eN 标签
+browser4-cli snapshot
+
+# 使用快照中的 refs 进行交互
+browser4-cli click e15
+browser4-cli type e15 "Hello World"
+browser4-cli press e15 Enter
+browser4-cli keydown Shift
+browser4-cli mousemove 150 300
+browser4-cli mousewheel 0 100
+browser4-cli keyup Shift
+
+# 截图并保存到本地
+browser4-cli screenshot
+
+# 使用自定义服务地址
+browser4-cli open --server http://localhost:9090
+
+# 在同一进程中执行多条命令
+browser4-cli batch "open https://playwright.dev" "snapshot"
+
+# 遇到第一条失败命令即停止
+browser4-cli batch --bail "open https://playwright.dev" "click e1" "screenshot"
+
+# 通过 stdin 以 JSON 形式传入批处理命令
+echo '[
+  ["open", "https://playwright.dev"],
+  ["snapshot"],
+  ["click", "e1"],
+  ["screenshot", "--filename=result.png"]
+]' | browser4-cli batch --json
+
+# 使用完成后关闭会话
+browser4-cli close
+```
+
+从源码构建 CLI：
+
+[README.md](sdks/browser4-cli/README.md)
+
+Browser4 CLI 为 AI agents 通过 SKILLS + CLI 使用而设计。
+
+[SKILL.md](sdks/skill/SKILL.md)
+
+---
+
+### 浏览器智能体
+
+可理解自然语言指令并执行复杂浏览器工作流的自主智能体。
+
+```kotlin
+val agent = AgenticContexts.getOrCreateAgent()
+
+val task = """
+    1. go to amazon.com
+    2. search for pens to draw on whiteboards
+    3. compare the first 4 ones
+    4. write the result to a markdown file
+    """
+
+agent.run(task)
+```
+
+### 工作流自动化
+
+低层浏览器自动化与数据提取，支持细粒度控制。
+
+**特性：**
+- 同时支持实时 DOM 访问与离线快照解析
+- 直接且完整的 Chrome DevTools Protocol（CDP）控制，协程安全
+- 精确元素交互（点击、滚动、输入）
+- 基于 CSS 选择器/XPath 的快速数据提取
+
+```kotlin
+val session = AgenticContexts.getOrCreateSession()
+val agent = session.companionAgent
+val driver = session.getOrCreateBoundDriver()
+
+// 加载输入 URL 对应的初始页面
+var page = session.open(url)
+
+// 用自然语言驱动浏览器动作
+agent.act("scroll to the comment section")
+// 从实时 DOM 中读取首个匹配评论节点
+val content = driver.selectFirstTextOrNull("#comments")
+
+// 将页面快照解析为内存文档，进行离线解析
+var document = session.parse(page)
+// 一次性将 CSS 选择器映射为结构化字段
+var fields = session.extract(document, mapOf("title" to "#title"))
+
+// 让 companion agent 执行多步导航/搜索流程
+val history = agent.run(
+    "Go to amazon.com, search for 'smart phone', open the product page with the highest ratings"
+)
+
+// 将更新后的浏览器状态捕获回 PageSnapshot
+page = session.capture(driver)
+document = session.parse(page)
+// 从捕获快照中提取更多字段
+fields = session.extract(document, mapOf("ratings" to "#ratings"))
+```
+
+### LLM + X-SQL
+
+适用于高复杂度数据抽取流水线，典型场景包含数十个实体、每个实体数百个字段。
+
+**优势：**
+- 相比传统方法，可多提取 10 倍实体与 100 倍字段
+- 结合 LLM 智能与精准 CSS 选择器/XPath
+- 类 SQL 语法，学习成本低
+
+```kotlin
+val context = AgenticContexts.create()
+val sql = """
+select
+  llm_extract(dom, 'product name, price, ratings') as llm_extracted_data,
+  dom_first_text(dom, '#productTitle') as title,
+  dom_first_text(dom, '#bylineInfo') as brand,
+  dom_first_text(dom, '#price tr td:matches(^Price) ~ td, #corePrice_desktop tr td:matches(^Price) ~ td') as price,
+  dom_first_text(dom, '#acrCustomerReviewText') as ratings,
+  str_first_float(dom_first_text(dom, '#reviewsMedley .AverageCustomerReviews span:contains(out of)'), 0.0) as score
+from load_and_select('https://www.amazon.com/dp/B08PP5MSVB -i 1s -njr 3', 'body');
+"""
+val rs = context.executeQuery(sql)
+println(ResultSetFormatter(rs, withHeader = true))
+```
+
+示例代码：
+
+* [使用 X-SQL 从亚马逊商品页抓取 100+ 字段](https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
+* [抓取多类型亚马逊页面的 X-SQL 集合](https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
+
+### 高速并行处理
+
+通过并行浏览器控制与智能资源优化获得极致吞吐。
+
+**性能：**
+- 单机每天访问 10k ~ 20k 复杂页面
+- 并发会话管理
+- 阻断无关资源，加速页面加载
+
+```kotlin
+val args = "-refresh -dropContent -interactLevel fastest"
+val blockingUrls = listOf("*.png", "*.jpg")
+val links = LinkExtractors.fromResource("urls.txt")
+    .map { ListenableHyperlink(it, "", args = args) }
+    .onEach {
+        it.eventHandlers.browseEventHandlers.onWillNavigate.addLast { page, driver ->
+            driver.addBlockedURLs(blockingUrls)
+        }
+    }
+
+session.submitAll(links)
+```
+
+🎬 YouTube:
+[![Watch the video](https://img.youtube.com/vi/_BcryqWzVMI/0.jpg)](https://www.youtube.com/watch?v=_BcryqWzVMI)
+
+📺 Bilibili:
 [https://www.bilibili.com/video/BV1kM2rYrEFC](https://www.bilibili.com/video/BV1kM2rYrEFC)
 
+---
 
+### 自动抽取
 
+基于自监督/无监督机器学习的自动化、大规模、高精度字段发现与抽取：无需 LLM API、无需 token、确定且快速。
 
+**能力：**
+- 高精度学习商品/详情页上的全部可抽取字段（通常几十到上百个）。
+- 当 Browser4 在 GitHub 达到 10K stars 时开源。
 
+**为什么不只用 LLM？**
+- LLM 抽取会带来延迟、成本与 token 限制。
+- 基于 ML 的自动抽取本地可复现，可扩展到 100k+ ~ 200k 页/天。
+- 可组合使用：自动抽取负责结构化基线，LLM 负责语义增强。
 
-
-
-
-
-
-
-
-## 🚀 Quick start
-
-### Chat about a webpage:
-
-```kotlin
-val document = session.loadDocument(url)
-val response = session.chat("Tell me something about this webpage", document)
+**快捷命令（PulsarRPAPro）：**
+```bash
+# 注意：需要 MongoDB
+curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/download/v4.6.0/PulsarRPAPro.jar
 ```
 
-Example code: [kotlin](/examples/browser4-examples/src/main/kotlin/ai/platon/pulsar/human/manual/llm/ChatAboutPage.kt).
+**集成状态：**
+- 当前可通过配套项目 [PulsarRPAPro](https://github.com/platonai/PulsarRPAPro) 使用。
+- 计划提供 Browser4 原生 API 暴露；请关注后续版本发布。
 
-### Tell the browser to get jobs done:
+**关键优势：**
+- 高精度：>95% 字段发现率；多数已测站点字段精度 >99%（指示性数据）。
+- 对选择器漂移与 HTML 噪声更鲁棒。
+- 零外部依赖（无需 API key），规模化成本更优。
+- 可解释：生成选择器与 SQL 透明且可审计。
 
-```kotlin
-val prompts = """
-move cursor to the element with id 'title' and click it
-scroll to middle
-scroll to top
-get the text of the element with id 'title'
-"""
+👽 使用机器学习智能体进行数据抽取：
 
-val eventHandlers = DefaultPageEventHandlers()
-eventHandlers.browseEventHandlers.onDocumentActuallyReady.addLast { page, driver ->
-    val result = session.instruct(prompts, driver)
-}
-session.open(url, eventHandlers)
-```
+![Auto Extraction Result Snapshot](docs/assets/images/amazon.png)
 
-Example code: [kotlin](/examples/browser4-examples/src/main/kotlin/ai/platon/pulsar/human/manual/llm/TalkToActivePage.kt).
+（即将推出：更丰富的仓库内示例与直接 API 挂钩。）
 
-### One line of code to scrape:
+---
 
-```kotlin
-session.scrapeOutPages(
-    "https://www.amazon.com/",  "-outLink a[href~=/dp/]", listOf("#title", "#acrCustomerReviewText"))
-```
+## 📦 模块概览
 
-### Crawl with Robotic Process Automation (RPA):
+| 模块 | 说明 |
+|-------------------|---------------------------------------------------------|
+| `browser4-core` | 核心引擎：会话、调度、DOM、浏览器控制 |
+| `browser4-agentic` | 智能体实现、MCP 与技能注册 |
+| `browser4-rest` | Spring Boot REST 层与命令端点 |
+| `browser4-agents` | 智能体与爬虫编排及产品打包 |
+| `sdks` | Rust 实现的 CLI，支持 SKILLS |
+| `examples` | 可运行示例与演示工程 |
+| `browser4-tests` | E2E 与重型集成/场景测试 |
 
-```kotlin
-val options = session.options(args)
-val event = options.eventHandlers.browseEventHandlers
-event.onBrowserLaunched.addLast { page, driver ->
-    // warp up the browser to avoid being blocked by the website,
-    // or choose the global settings, such as your location.
-    warnUpBrowser(page, driver)
-}
-event.onWillFetch.addLast { page, driver ->
-    // have to visit a referrer page before we can visit the desired page
-    waitForReferrer(page, driver)
-    // websites may prevent us from opening too many pages at a time, so we should open links one by one.
-    waitForPreviousPage(page, driver)
-}
-event.onWillCheckDocumentState.addLast { page, driver ->
-    // wait for a special fields to appear on the page
-    driver.waitForSelector("body h1[itemprop=name]")
-    // close the mask layer, it might be promotions, ads, or something else.
-    driver.click(".mask-layer-close-button")
-}
-// visit the URL and trigger events
-session.load(url, options)
-```
+---
 
-Example code: [kotlin](/examples/browser4-examples/src/main/kotlin/ai/platon/pulsar/human/manual/sites/food/dianping/RestaurantCrawler.kt).
+## ✨ 功能特性
 
-### Resolve *super complex* web data extraction problems using X-SQL:
+状态说明：[已提供] 在仓库中，[实验中] 正在迭代，[规划中] 暂未在仓库中，[指标] 性能目标值。
 
-```sql
-select
-    dom_first_text(dom, '#productTitle') as title,
-    dom_first_text(dom, '#bylineInfo') as brand,
-    dom_first_text(dom, '#price tr td:matches(^Price) ~ td, #corePrice_desktop tr td:matches(^Price) ~ td') as price,
-    dom_first_text(dom, '#acrCustomerReviewText') as ratings,
-    str_first_float(dom_first_text(dom, '#reviewsMedley .AverageCustomerReviews span:contains(out of)'), 0.0) as score
-from load_and_select('https://www.amazon.com/dp/B0C1H26C46  -i 1s -njr 3', 'body');
-```
+### AI 与智能体
+- [已提供] 面向问题求解的自主浏览器智能体
+- [已提供] 并行智能体会话
+- [实验中] LLM 辅助的页面理解与抽取
 
-Example code:
+### 浏览器自动化与 RPA
+- [已提供] 基于工作流的浏览器动作
+- [已提供] 协程安全的精确控制（滚动、点击、抽取）
+- [已提供] 灵活的事件处理与生命周期管理
 
-* [X-SQL to scrape 100+ fields from an Amazon's product page](https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
-* [X-SQLs to scrape all types of Amazon webpages](https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
+### 数据抽取与查询
+- [已提供] 一行命令式数据抽取
+- [已提供] 面向 DOM/内容的 X-SQL 扩展查询语言
+- [实验中] 结构化 + 非结构化混合抽取（LLM + ML + 选择器）
 
-### Continuous web crawling:
+### 性能与可扩展性
+- [已提供] 高效并行页面渲染
+- [已提供] 抗封锁设计与智能重试
+- [指标] 普通硬件下达到 100,000+ 复杂页面/天
 
-```kotlin
-fun main() {
-    val context = PulsarContexts.create()
+### 隐匿与可靠性
+- [实验中] 先进反机器人技术
+- [已提供] 通过 `PROXY_ROTATION_URL` 进行代理轮换
+- [已提供] 弹性调度与质量保障
 
-    val parseHandler = { _: WebPage, document: FeaturedDocument ->
-        // use the document
-        // ...
-        // and then extract further hyperlinks
-        context.submitAll(document.selectHyperlinks("a[href~=/dp/]"))
-    }
-    val urls = LinkExtractors.fromResource("seeds10.txt")
-        .map { ParsableHyperlink("$it -refresh", parseHandler) }
-    context.submitAll(urls).await()
-}
-```
+### 开发者体验
+- [已提供] 简洁 API 集成（REST、原生、文本命令）
+- [已提供] 丰富配置分层
+- [已提供] 清晰的结构化日志与指标
 
-Example code: [kotlin](/examples/browser4-examples/src/main/kotlin/ai/platon/pulsar/human/manual/_5_ContinuousCrawler.kt), [java](/examples/browser4-examples/src/main/java/ai/platon/pulsar/human/manual/ContinuousCrawler.java).
+### 存储与监控
+- [已提供] 本地文件系统与 MongoDB 支持（可扩展）
+- [已提供] 全面日志与透明度
 
+---
 
+## 🤝 支持与社区
 
+欢迎加入社区获取支持、反馈问题并参与协作！
 
+- **GitHub Discussions**：与开发者和用户交流。
+- **Issue Tracker**：报告 bug 或提交功能请求。
+- **Social Media**：关注我们的最新动态。
 
+我们欢迎贡献！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
+---
 
+## 📜 文档
 
+完整文档可在 `docs/` 目录和 [GitHub Pages site](https://platonai.github.io/browser4/) 查看。
 
+---
 
+## 🔧 代理配置 - 解锁网站访问
 
+<details>
 
-
-
-
-## 🚄 Features
-
-- Web Spider: Scalable crawling, browser rendering, AJAX data extraction, and more.
-
-- LLM Integration: Analyze and describe web content using natural, everyday language.
-
-- Text-to-Action: Control browser actions through simple, intuitive language commands.
-
-- RPA (Robotic Process Automation): Automate human-like tasks, including Single Page Application (SPA) crawling and other high-value workflows.
-
-- Simple API: Extract data with a single line of code or transform websites into structured tables with a single SQL query.
-
-- X-SQL: Extended SQL for managing web data—crawling, scraping, content mining, and web-based business intelligence.
-
-- Bot Stealth: Advanced evasion techniques, including web driver stealth, IP rotation, and privacy context rotation to avoid detection and bans.
-
-- High Performance: Optimized for efficiency, capable of rendering hundreds of pages in parallel on a single machine without being blocked.
-
-- Low Cost: Scrape 100,000+ browser-rendered e-commerce pages or process tens of millions of data points daily with minimal hardware requirements (8-core CPU, 32GB RAM).
-
-- Data Quantity Assurance: Smart retry mechanisms, precise scheduling, and comprehensive web data lifecycle management.
-
-- Large-Scale Capability: Fully distributed architecture designed for massive-scale web crawling.
-
-- Big Data Support: Flexible backend storage options, including Local File, MongoDB, HBase, and Gora.
-
-- Logs & Metrics: Comprehensive monitoring and detailed event logging for full transparency.
-
-- Auto Extraction: AI-powered pattern recognition to automatically and accurately extract all fields from webpages.
-
-## 🧮 Browser4 as an executable jar
-
-We have released a standalone executable JAR based on Browser4, which includes:
-
-- Data collection examples from top-tier websites.
-- A mini-program for automatic information extraction based on self-supervised machine learning. The AI algorithm can identify all fields on detail pages with field accuracy exceeding 99%.
-- A mini-program that automatically learns and outputs all collection rules based on self-supervised machine learning.
-- The ability to execute web data collection tasks directly from the command line without writing any code.
-- An upgraded Browser4 server that allows you to send SQL statements to collect web data.
-- A Web UI where you can write SQL statements and send them to the server.
-
-Download [Browser4Pro](https://github.com/platonai/Browser4Pro#download) and explore its capabilities with a single command line:
+将环境变量 `PROXY_ROTATION_URL` 设置为代理服务商提供的轮换 URL：
 
 ```shell
-java -jar Browser4Pro.jar
+export PROXY_ROTATION_URL=https://your-proxy-provider.com/rotation-endpoint
 ```
 
-## 🎁 Browser4 as a java library
+每次访问该轮换 URL 时，应返回一个或多个新的代理 IP。
+如需该类型 URL，请联系你的代理服务商。
 
-The simplest way to leverage the power of Browser4 is to add it to your project as a library.
+</details>
 
-Maven:
+---
 
-```xml
-<dependency>
-    <groupId>ai.platon.pulsar</groupId>
-    <artifactId>pulsar-bom</artifactId>
-    <version>VERSION</version>
-</dependency>
-```
+## 许可证
 
-Gradle:
-
-```kotlin
-implementation("ai.platon.pulsar:pulsar-bom:VERSION")
-```
-
-Clone the template project from github.com:
-[kotlin](https://github.com/platonai/pulsar-kotlin-template),
-[java-17](https://github.com/platonai/pulsar-java-17-template).
-
-Start your own large-scale web crawling projects based on our commercial-grade open source projects: [Browser4Pro](https://github.com/platonai/Browser4Pro), [Exotic-amazon](https://github.com/platonai/exotic-amazon).
-
-Check the [quick start](docs/get-started/2basic-usage.md) for more details.
-
-# 🌐 Browser4 as a REST Service
-
-When Browser4 runs as a REST service, X-SQL can be used to scrape webpages or to query web data directly at any time, from anywhere, without opening an IDE.
-
-## Build from Source
-
-```
-git clone https://github.com/platonai/Browser4.git
-cd Browser4 && bin/build-run.sh
-```
-
-For Chinese developers, we strongly suggest you to follow [this](/bin/tools/maven/maven-settings.md) instruction to accelerate the building process.
-
-## Use X-SQL to Query the Web
-
-Start the pulsar server if it is not started:
-
-```shell
-bin/pulsar
-```
-
-Scrape a webpage in another terminal window:
-
-```shell
-bin/scrape.sh
-```
-
-The bash script is straightforward. It merely uses curl to send a POST request with an X-SQL.
-
-```shell
-curl -X POST --location "http://localhost:8182/api/x/e" -H "Content-Type: text/plain" -d "
-  select
-      dom_base_uri(dom) as url,
-      dom_first_text(dom, '#productTitle') as title,
-      dom_first_slim_html(dom, 'img:expr(width > 400)') as img
-  from load_and_select('https://www.amazon.com/dp/B0C1H26C46', 'body');
-"
-```
-
-Example code: [bash](bin/scrape.sh), [PowerShell](bin/scrape.ps1), [batch](bin/scrape.bat), [java](/pulsar-client/src/main/java/ai/platon/pulsar/client/Scraper.java), [kotlin](/pulsar-client/src/main/kotlin/ai/platon/pulsar/client/Scraper.kt), [php](/pulsar-client/src/main/php/Scraper.php).
-
-Click [X-SQL](docs/x-sql.md) to see a detailed introduction and function descriptions about X-SQL.
-
-# 📖 Step-by-Step Course
-
-We have a step-by-step course by example:
-
-- [Home](docs/get-started/1home.md)
-- [Basic Usage](docs/get-started/2basic-usage.md)
-- [Load Options](docs/get-started/3load-options.md)
-- [Data Extraction](docs/get-started/4data-extraction.md)
-- [URL](docs/get-started/5URL.md)
-- [Java-style Async](docs/get-started/6Java-style-async.md)
-- [Kotlin-style Async](docs/get-started/7Kotlin-style-async.md)
-- [Continuous Crawling](docs/get-started/8continuous-crawling.md)
-- [Event Handling](docs/get-started/9event-handling.md)
-- [RPA](docs/get-started/10RPA.md)
-- [WebDriver](docs/get-started/11WebDriver.md)
-- [Massive Crawling](docs/get-started/12massive-crawling.md)
-- [X-SQL](docs/get-started/13X-SQL.md)
-- [AI Extraction](docs/get-started/14AI-extraction.md)
-- [REST](docs/get-started/15REST.md)
-- [Console](docs/get-started/16console.md)
-- [Top Practice](docs/get-started/17top-practice.md)
-- [Miscellaneous](docs/get-started/18miscellaneous.md)
-
-# 📊 Logs & Metrics
-
-Browser4 has carefully designed the logging and metrics subsystem to record every event that occurs in the system. Browser4 logs the status for every load execution, providing a clear and comprehensive overview of system performance. This detailed logging allows for quick assessment of the system’s health and efficiency. It answers key questions such as: Is the system operating smoothly? How many pages have been successfully retrieved? How many attempts were made to reload pages? And how many proxy IP addresses have been utilized? This information is invaluable for monitoring and troubleshooting purposes, ensuring that any issues can be promptly identified and addressed.
-
-By focusing on a concise set of indicators, you can unlock a deeper understanding of the system’s overall condition: 💯 💔 🗙  ?💿 🔃 🤺.
-
-Typical page loading logs are shown below. Check the [log-format](docs/log-format.md) to learn how to read the logs and gain insight into the state of the entire system at a glance.
-
-```plaintext
-2022-09-24 11:46:26.045  INFO [-worker-14] a.p.p.c.c.L.Task - 3313. 💯  ?U for N got 200 580.92 KiB in 1m14.277s, fc:1 | 75/284/96/277/6554 | 106.32.12.75 | 3xBpaR2 | https://www.walmart.com/ip/Restored-iPhone-7-32GB-Black-T-Mobile-Refurbished/329207863  -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
-2022-09-24 11:46:09.190  INFO [-worker-32] a.p.p.c.c.L.Task - 3738. 💯 💿 U got 200 452.91 KiB in 55.286s, last fetched 9h32m50s ago, fc:1 | 49/171/82/238/6172 | 121.205.2.0.5 | https://www.walmart.com/ip/Boost-Mobile-Apple-iPhone-SE-2-Cell-Phone-Black-64GB-Prepaid-Smartphone/490934488  -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
-2022-09-24 11:46:28.567  INFO [-worker-17] a.p.p.c.c.L.Task - 2269. 💯 🔃 U for SC got 200 565.07 KiB <- 543.41 KiB in 1m22.767s, last fetched 16m58s ago, fc:6 | 58/230/98/295/6272 | 27.158.125.76 | 9uwu602 | https://www.walmart.com/ip/Straight-Talk-Apple-iPhone-11-64GB-Purple-Prepaid-Smartphone/356345388?variantFieldId=actual_color  -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
-2022-09-24 11:47:18.390  INFO [r-worker-8] a.p.p.c.c.L.Task - 3732. 💔  ?U for N got 1601 0 <- 0 in 32.201s, fc:1/1 Retry(1601) rsp: CRAWL, rrs: EMPTY_0B | 2zYxg52 | https://www.walmart.com/ip/Apple-iPhone-7-256GB-Jet-Black-AT-T-Locked-Smartphone-Grade-B-Used/182353175?variantFieldId=actual_color  -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
-2022-09-24 11:47:13.860  INFO [-worker-60] a.p.p.c.c.L.Task - 2828. 🗙 🗙 U for SC got 200 0 <- 348.31 KiB <- 684.75 KiB in 0s, last fetched 18m55s ago, fc:2 | 34/130/52/181/5747 | 60.184.124.232 | 11zTa0r2 | https://www.walmart.com/ip/Walmart-Family-Mobile-Apple-iPhone-11-64GB-Black-Prepaid-Smartphone/209201965?athbdg=L1200  -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
-```
-# 💻 System Requirements
-
-- Memory 4G+
-- JDK 17+
-- `java` on the PATH
-- Latest Google Chrome
-- [Optional] MongoDB started
-
-Browser4 is tested on Ubuntu 18.04, Ubuntu 20.04, Windows 7, Windows 11, WSL, and any other operating system that meets the requirements should work as well.
-
-# 🛸 Advanced Topics
-
-Check the [advanced topics](docs/faq/advanced-topics.md) to find out the answers for the following questions:
-
-- What’s so difficult about scraping web data at scale?
-- How to scrape a million product pages from an e-commerce website a day?
-- How to scrape pages behind a login?
-- How to download resources directly within a browser context?
-- How to scrape a single page application (SPA)?
-- Resource mode
-- RPA mode
-- How to make sure all fields are extracted correctly?
-- How to crawl paginated links?
-- How to crawl newly discovered links?
-- How to crawl the entire website?
-- How to simulate human behaviors?
-- How to schedule priority tasks?
-- How to start a task at a fixed time point?
-- How to drop a scheduled task?
-- How to know the status of a task?
-- How to know what's going on in the system?
-- How to automatically generate the CSS selectors for fields to scrape?
-- How to extract content from websites using machine learning automatically with commercial accuracy?
-- How to scrape amazon.com to match industrial needs?
-
-# 🆚 Compare with Other Solutions
-
-In general, the features mentioned in the Feature section are well-supported by Browser4, but other solutions do not.
-
-Check the [solution comparison](docs/faq/solution-comparison.md) to see the detailed comparison to the other solutions:
-
-- Browser4 vs selenium/puppeteer/playwright
-- Browser4 vs nutch
-- Browser4 vs scrapy+splash
-
-# 🤓 Technical Details
-
-Check the [technical details](docs/faq/technical-details.md) to see answers for the following questions:
-
-- How to rotate my IP addresses?
-- How to hide my bot from being detected?
-- How & why to simulate human behaviors?
-- How to render as many pages as possible on a single machine without being blocked?
-
-# 🐦 Contact
-
-- Wechat: galaxyeye
-- Weibo: [galaxyeye](https://weibo.com/galaxyeye)
-- Email: galaxyeye@live.cn, ivincent.zhang@gmail.com
-- Twitter: galaxyeye8
-- Website: [platon.ai](http://platon.ai)
-
+Apache 2.0 License。详见 [LICENSE](LICENSE)。
 
