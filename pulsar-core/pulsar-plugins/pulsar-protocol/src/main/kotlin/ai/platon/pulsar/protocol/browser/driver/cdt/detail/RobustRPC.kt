@@ -9,7 +9,7 @@ import ai.platon.pulsar.common.brief
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.stringify
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
-import ai.platon.pulsar.skeleton.browser.BrowserUnavailableException
+import ai.platon.pulsar.skeleton.browser.driver.BrowserUnavailableException
 import ai.platon.pulsar.skeleton.browser.driver.IllegalWebDriverStateException
 import kotlinx.coroutines.delay
 import java.text.MessageFormat
