@@ -65,6 +65,7 @@ class ChromeVersion {
     val webSocketDebuggerUrl: String? = null
 }
 
+@Suppress("unused")
 class BrowserTab {
     var id: String = ""
     var parentId: String? = null
@@ -72,7 +73,13 @@ class BrowserTab {
     var title: String? = null
     var type: String? = null
     var url: String? = null
+    var devtoolsFrontendUrl: String? = null
     var webSocketDebuggerUrl: String? = null
+    var faviconUrl: String? = null
+
+    val createTime = Instant.now()
+
+    val urlOrEmpty get() = url ?: ""
 
     fun isPageType(): Boolean = PAGE_TYPE == type
 
