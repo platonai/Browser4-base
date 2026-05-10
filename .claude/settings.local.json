@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(./mvnw compile *)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(git ls-remote *)",
+      "Bash(git tag *)",
+      "Bash(git push *)"
     ]
   }
 }
