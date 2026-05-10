@@ -1,13 +1,14 @@
 package ai.platon.pulsar.driver.chrome.dom.impl
 
-import ai.platon.pulsar.driver.chrome.dom.model.DOMRect
-import ai.platon.pulsar.driver.chrome.dom.model.SnapshotNodeEx
-import ai.platon.pulsar.driver.chrome.dom.util.DomDebug
 import ai.platon.cdt.kt.protocol.support.annotations.Experimental
 import ai.platon.cdt.kt.protocol.support.annotations.Optional
 import ai.platon.cdt.kt.protocol.support.annotations.ParamName
 import ai.platon.cdt.kt.protocol.types.domsnapshot.CaptureSnapshot
 import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.driver.BrowserProtocol
+import ai.platon.pulsar.driver.chrome.dom.model.DOMRect
+import ai.platon.pulsar.driver.chrome.dom.model.SnapshotNodeEx
+import ai.platon.pulsar.driver.chrome.dom.util.DomDebug
 
 /**
  * Handler for DOMSnapshot domain operations.

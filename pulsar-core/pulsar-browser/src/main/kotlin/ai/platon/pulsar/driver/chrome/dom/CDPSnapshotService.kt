@@ -1,5 +1,8 @@
 package ai.platon.pulsar.driver.chrome.dom
 
+import ai.platon.cdt.kt.protocol.types.accessibility.AXNode
+import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.driver.BrowserProtocol
 import ai.platon.pulsar.driver.chrome.dom.impl.AccessibilityHandler
 import ai.platon.pulsar.driver.chrome.dom.impl.AccessibilityHandler.AccessibilityTreeResult
 import ai.platon.pulsar.driver.chrome.dom.impl.DomSnapshotHandler
@@ -10,8 +13,6 @@ import ai.platon.pulsar.driver.chrome.dom.util.DomDebug
 import ai.platon.pulsar.driver.chrome.dom.util.HashUtils
 import ai.platon.pulsar.driver.chrome.dom.util.ScrollUtils
 import ai.platon.pulsar.driver.chrome.dom.util.XPathUtils
-import ai.platon.cdt.kt.protocol.types.accessibility.AXNode
-import ai.platon.pulsar.common.getLogger
 import java.awt.Dimension
 import java.util.*
 

@@ -1,12 +1,13 @@
 package ai.platon.pulsar.driver.chrome.impl
 
-import ai.platon.pulsar.driver.chrome.IsolatedWorldManager
-import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
-import ai.platon.pulsar.driver.common.B4JsUtils
 import ai.platon.cdt.kt.protocol.types.runtime.CallFunctionOn
 import ai.platon.cdt.kt.protocol.types.runtime.Evaluate
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.driver.BrowserProtocol
+import ai.platon.pulsar.driver.chrome.IsolatedWorldManager
+import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
+import ai.platon.pulsar.driver.common.B4JsUtils
 
 class JsHandler(
     private val bp: BrowserProtocol,
@@ -14,8 +15,6 @@ class JsHandler(
     private val isolatedWorldManager: IsolatedWorldManager,
 ) {
     private val logger = getLogger(this)
-
-    private val isActive get() = AppContext.isActive && bp.isOpen
 
     private val confuser get() = isolatedWorldManager.settings.confuser
 

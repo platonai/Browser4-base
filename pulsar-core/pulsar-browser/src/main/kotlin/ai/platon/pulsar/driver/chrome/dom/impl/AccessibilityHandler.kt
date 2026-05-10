@@ -3,15 +3,13 @@ package ai.platon.pulsar.driver.chrome.dom.impl
 import ai.platon.cdt.kt.protocol.types.accessibility.AXNode
 import ai.platon.cdt.kt.protocol.types.page.FrameTree
 import ai.platon.pulsar.common.getLogger
-import kotlin.collections.plusAssign
+import ai.platon.pulsar.driver.BrowserProtocol
 
 class AccessibilityHandler(
     private val bp: BrowserProtocol
 ) {
     private val logger = getLogger(this)
     private val tracer get() = logger.takeIf { it.isTraceEnabled }
-
-    private val isActive get() = bp.isOpen
 
     @Volatile
     private var accessibilityEnabled = false
@@ -24,8 +22,6 @@ class AccessibilityHandler(
     suspend fun getFullAXTree(targetFrameId: String? = null, depth: Int? = null): AccessibilityTreeResult {
         // Ensure the Accessibility domain is enabled
         ensureEnabled()
-
-        if (!isActive) return AccessibilityTreeResult.EMPTY
 
         // Small retry loop to wait for AX cache to populate on dynamic pages
         repeat(5) { attempt ->
@@ -67,7 +63,13 @@ class AccessibilityHandler(
 
                 frameIds.forEach { frameId ->
                     val nodes = runCatching { bp.getFullAXTree(depth) }
-                        .onFailure { e -> logger.warn("Accessibility.getFullAXTree failed | frameId={} err={}", frameId, e.toString()) }
+                        .onFailure { e ->
+                            logger.warn(
+                                "Accessibility.getFullAXTree failed | frameId={} err={}",
+                                frameId,
+                                e.toString()
+                            )
+                        }
                         .getOrElse { emptyList() }
                     if (nodes.isEmpty()) {
                         return@forEach
@@ -89,7 +91,12 @@ class AccessibilityHandler(
                 }
 
                 if (allNodes.isNotEmpty()) {
-                    tracer?.debug("AX trees collected | frames={} totalNodes={} backends={}", frameIds.size, allNodes.size, byBackend.size)
+                    tracer?.debug(
+                        "AX trees collected | frames={} totalNodes={} backends={}",
+                        frameIds.size,
+                        allNodes.size,
+                        byBackend.size
+                    )
                     return AccessibilityTreeResult(
                         nodes = allNodes,
                         nodesByFrameId = byFrame.mapValues { it.value.toList() },
@@ -147,12 +154,10 @@ class AccessibilityHandler(
     }
 
     private suspend fun ensureEnabled() {
-        if (!isActive) return
         // Enable Page/DOM domains to stabilize frame tree & AX associations
         runCatching { bp.pageEnable() }
         runCatching { bp.domEnable() }
 
-        if (!isActive) return
         if (!accessibilityEnabled) {
             runCatching { bp.accessibilityEnable() }
                 .onFailure { e -> logger.warn("Accessibility.enable failed | err={}", e.toString()) }

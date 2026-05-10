@@ -7,6 +7,7 @@ import ai.platon.cdt.kt.protocol.types.page.Viewport
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.math.geometric.RectD
+import ai.platon.pulsar.driver.BrowserProtocol
 import com.google.gson.Gson
 import kotlin.math.roundToInt
 
@@ -15,7 +16,7 @@ class ScreenshotHandler(
     private val bp: BrowserProtocol,
 ) {
     private val logger = getLogger(this)
-    private val isActive get() = AppContext.isActive && bp.isOpen
+    private val isActive get() = AppContext.isActive && (bp as RemoteChromeProtocol).isOpen
     private fun activeCdp() = bp.takeIf { isActive }
     private val debugLevel = System.getProperty("browser.additionalDebugLevel")?.toIntOrNull() ?: 0
 

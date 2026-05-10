@@ -1,7 +1,8 @@
 package ai.platon.pulsar.driver.chrome.dom
 
-import ai.platon.pulsar.driver.chrome.dom.model.InteractiveDOMTreeNodeList
 import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.driver.BrowserProtocol
+import ai.platon.pulsar.driver.chrome.dom.model.InteractiveDOMTreeNodeList
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 

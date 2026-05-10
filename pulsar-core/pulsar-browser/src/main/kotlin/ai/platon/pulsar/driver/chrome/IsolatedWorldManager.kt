@@ -1,7 +1,8 @@
 package ai.platon.pulsar.driver.chrome
 
-import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.driver.BrowserProtocol
+import ai.platon.pulsar.driver.common.BrowserSettings
 import org.apache.commons.lang3.StringUtils
 
 /**
@@ -93,7 +94,10 @@ class IsolatedWorldManager(
                 if (attempt > 1) {
                     logger.warn("Failed to create isolated world | frameId=$resolvedFrameId, attempt=${attempt + 1}", e)
                 } else {
-                    logger.warn("Failed to create isolated world | frameId=$resolvedFrameId, attempt=${attempt + 1}: {}", e.message)
+                    logger.warn(
+                        "Failed to create isolated world | frameId=$resolvedFrameId, attempt=${attempt + 1}: {}",
+                        e.message
+                    )
                 }
             }
         }
