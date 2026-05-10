@@ -38,13 +38,6 @@ class ProtocolFactory(private val immutableConfig: ImmutableConfig) : AutoClosea
             .also { logger.debug(it) }
     }
 
-    /**
-     * Get the protocol for a page.
-     *
-     * Using major protocol/sub protocol is a good idea, for example:
-     * selenium:http://www.baidu.com/
-     * jdbc:h2:tcp://localhost/~/test
-     */
     fun getProtocol(page: WebPage): Protocol {
         val fetchMode = FetchMode.BROWSER
         page.fetchMode = fetchMode
