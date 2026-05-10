@@ -90,10 +90,28 @@
         <module>pulsar-core</module>
         <module>pulsar-bom</module>
         <module>pulsar-spring-support</module>
-        <module>pulsar-tests</module>
+        <module>pulsar-tests/pulsar-tests-common</module>
     </modules>
 
     <profiles>
+
+        <!-- Test execution profiles based on test-strategy.md -->
+        <profile>
+            <id>integration-tests</id>
+            <activation>
+                <property>
+                    <name>runITs</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <!-- Integration tests can be Slow/Heavy - this is expected behavior
+                     Integration tests CAN require Browser/AI/Docker for service collaboration
+                     Only exclude E2E, SDK, and ManualOnly tests -->
+                <surefire.excludedGroups>E2E,E2ETest,SDK,ManualOnly</surefire.excludedGroups>
+            </properties>
+        </profile>
+
         <!-- Deployment profile -->
         <profile>
             <id>deploy</id>
