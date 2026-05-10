@@ -1,8 +1,8 @@
 package ai.platon.pulsar.skeleton.workflow.fetch.driver
 
-import ai.platon.browser4.driver.chrome.ChromeOptions
-import ai.platon.browser4.driver.chrome.LauncherOptions
-import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.chrome.ChromeOptions
+import ai.platon.pulsar.driver.chrome.LauncherOptions
+import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 
 interface BrowserLauncher {

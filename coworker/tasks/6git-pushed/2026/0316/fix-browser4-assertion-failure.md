@@ -11,7 +11,7 @@ org.opentest4j.AssertionFailedError:
 	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)
 	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:179)
 	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1188)
-	at ai.platon.browser4.driver.chrome.dom.DOMStateBuilderTest.renderMatchesPlaywrightCursorPointerSuppressionForNestedInteractiveNodes(DOMStateBuilderTest.kt:609)
+	at ai.platon.pulsar.driver.chrome.dom.DOMStateBuilderTest.renderMatchesPlaywrightCursorPointerSuppressionForNestedInteractiveNodes(DOMStateBuilderTest.kt:609)
 
 
 org.opentest4j.AssertionFailedError:
@@ -26,7 +26,7 @@ Actual   :false
 	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:41)
 	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:35)
 	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:195)
-	at ai.platon.browser4.driver.chrome.dom.DOMStateBuilderTest.renderPreservesDescendantsUnderPresentationalContainers(DOMStateBuilderTest.kt:771)
+	at ai.platon.pulsar.driver.chrome.dom.DOMStateBuilderTest.renderPreservesDescendantsUnderPresentationalContainers(DOMStateBuilderTest.kt:771)
 
 
 org.opentest4j.AssertionFailedError:
@@ -39,4 +39,4 @@ org.opentest4j.AssertionFailedError:
 	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)
 	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:179)
 	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1188)
-	at ai.platon.browser4.driver.chrome.dom.DOMStateBuilderTest.renderFormatsPlaywrightStyleAriaSnapshotOutput(DOMStateBuilderTest.kt:401)
+	at ai.platon.pulsar.driver.chrome.dom.DOMStateBuilderTest.renderFormatsPlaywrightStyleAriaSnapshotOutput(DOMStateBuilderTest.kt:401)

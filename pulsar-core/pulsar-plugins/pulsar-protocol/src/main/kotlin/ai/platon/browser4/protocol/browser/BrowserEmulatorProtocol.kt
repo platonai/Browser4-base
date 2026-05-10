@@ -1,6 +1,6 @@
-package ai.platon.browser4.protocol.browser
+package ai.platon.pulsar.protocol.browser
 
-import ai.platon.browser4.protocol.crowd.ForwardingProtocol
+import ai.platon.pulsar.protocol.crowd.ForwardingProtocol
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.protocol.browser.emulator.IncognitoBrowserFetcher
 import ai.platon.pulsar.skeleton.context.PulsarContexts

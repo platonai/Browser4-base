@@ -1,6 +1,6 @@
 package ai.platon.pulsar.protocol.browser.impl
 
-import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.common.browser.BrowserProfileMode
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.common.getLogger

@@ -1,7 +1,7 @@
 package ai.platon.pulsar.skeleton.workflow.fetch.driver
 
-import ai.platon.browser4.driver.NetworkResourceResponse
-import ai.platon.browser4.driver.chrome.dom.SnapshotService
+import ai.platon.pulsar.driver.NetworkResourceResponse
+import ai.platon.pulsar.driver.chrome.dom.SnapshotService
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.URLUtils

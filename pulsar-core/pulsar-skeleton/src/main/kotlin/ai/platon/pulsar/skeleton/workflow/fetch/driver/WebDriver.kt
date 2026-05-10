@@ -1,9 +1,9 @@
 package ai.platon.pulsar.skeleton.workflow.fetch.driver
 
-import ai.platon.browser4.driver.NetworkResourceResponse
-import ai.platon.browser4.driver.NodeRef
-import ai.platon.browser4.driver.chrome.dom.model.NanoDOMTree
-import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.NetworkResourceResponse
+import ai.platon.pulsar.driver.NodeRef
+import ai.platon.pulsar.driver.chrome.dom.model.NanoDOMTree
+import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.common.ai.llm.MCP
 import ai.platon.pulsar.common.serialize.json.Pson
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper

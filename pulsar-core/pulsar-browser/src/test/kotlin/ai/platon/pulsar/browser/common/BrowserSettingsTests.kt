@@ -1,6 +1,6 @@
 package ai.platon.pulsar.browser.common
 
-import ai.platon.browser4.driver.InteractSettings
+import ai.platon.pulsar.driver.InteractSettings
 import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.config.MutableConfig
 import ai.platon.pulsar.common.serialize.json.pulsarObjectMapper

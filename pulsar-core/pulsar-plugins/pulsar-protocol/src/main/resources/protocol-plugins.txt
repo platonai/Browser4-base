@@ -5,4 +5,4 @@
 # crowd ai.platon.pulsar.protocol.crowd.ForwardingProtocol custom=true
 
 # Custom protocols
-browser ai.platon.browser4.protocol.browser.BrowserEmulatorProtocol custom=true
+browser ai.platon.pulsar.protocol.browser.BrowserEmulatorProtocol custom=true

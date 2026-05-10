@@ -1,9 +1,9 @@
 package ai.platon.pulsar.protocol.browser.driver.cdt.detail
 
-import ai.platon.browser4.driver.chrome.util.CDPReturnError
-import ai.platon.browser4.driver.chrome.util.ChromeDriverException
-import ai.platon.browser4.driver.chrome.util.ChromeIOException
-import ai.platon.browser4.driver.chrome.util.ChromeRPCException
+import ai.platon.pulsar.driver.chrome.util.CDPReturnError
+import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
+import ai.platon.pulsar.driver.chrome.util.ChromeIOException
+import ai.platon.pulsar.driver.chrome.util.ChromeRPCException
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.brief
 import ai.platon.pulsar.common.getLogger

@@ -1,6 +1,6 @@
 package ai.platon.pulsar.protocol.browser
 
-import ai.platon.browser4.protocol.browser.PulsarBrowserFactory
+import ai.platon.pulsar.protocol.browser.PulsarBrowserFactory
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.skeleton.workflow.fetch.driver.Browser
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId

@@ -1,15 +1,15 @@
 package ai.platon.pulsar.protocol.browser.driver.cdt
 
-import ai.platon.browser4.driver.BrowserTab
-import ai.platon.browser4.driver.DevToolsConfig
-import ai.platon.browser4.driver.chrome.*
-import ai.platon.browser4.driver.chrome.impl.RemoteBrowserProtocol
-import ai.platon.browser4.driver.chrome.impl.ChromeImpl
-import ai.platon.browser4.driver.chrome.impl.ChromeImpl.Companion.ABOUT_BLANK_PAGE
-import ai.platon.browser4.driver.chrome.util.ChromeDriverException
-import ai.platon.browser4.driver.chrome.util.ChromeIOException
-import ai.platon.browser4.driver.chrome.util.ChromeServiceException
-import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.BrowserTab
+import ai.platon.pulsar.driver.DevToolsConfig
+import ai.platon.pulsar.driver.chrome.*
+import ai.platon.pulsar.driver.chrome.impl.RemoteBrowserProtocol
+import ai.platon.pulsar.driver.chrome.impl.ChromeImpl
+import ai.platon.pulsar.driver.chrome.impl.ChromeImpl.Companion.ABOUT_BLANK_PAGE
+import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
+import ai.platon.pulsar.driver.chrome.util.ChromeIOException
+import ai.platon.pulsar.driver.chrome.util.ChromeServiceException
+import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.common.config.CapabilityTypes.BROWSER_REUSE_RECOVERED_DRIVERS
 import ai.platon.pulsar.common.urls.URLUtils
 import ai.platon.pulsar.common.warnForClose

@@ -1,6 +1,6 @@
 package ai.platon.pulsar.skeleton.workflow.fetch.driver
 
-import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.common.browser.BrowserProfileMode
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 

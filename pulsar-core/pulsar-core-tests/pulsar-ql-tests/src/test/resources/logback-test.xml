@@ -109,7 +109,7 @@
     <logger name="ai.platon.pulsar.protocol.browser.emulator.BrowserResponseHandler" level="INFO"/>
     <logger name="ai.platon.pulsar.protocol.browser.emulator.context" level="INFO"/>
 
-    <!--    <logger name="ai.platon.browser4.driver.chrome" level="TRACE"/>-->
+    <!--    <logger name="ai.platon.pulsar.driver.chrome" level="TRACE"/>-->
 
     <logger name="ai.platon.pulsar.examples" level="INFO"/>
 

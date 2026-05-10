@@ -11,4 +11,4 @@ Actual   :false
 	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:69)
 	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:41)
 	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:228)
-	at ai.platon.browser4.driver.chrome.dom.DOMStateBuilderTest.testHrefAndNavigationAttributesArePreservedInNanoDOMTree(DOMStateBuilderTest.kt:531)
+	at ai.platon.pulsar.driver.chrome.dom.DOMStateBuilderTest.testHrefAndNavigationAttributesArePreservedInNanoDOMTree(DOMStateBuilderTest.kt:531)

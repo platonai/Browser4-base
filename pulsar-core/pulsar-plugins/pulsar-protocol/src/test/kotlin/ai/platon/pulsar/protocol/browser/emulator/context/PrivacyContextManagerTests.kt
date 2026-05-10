@@ -1,8 +1,8 @@
 package ai.platon.pulsar.protocol.browser.emulator.context
 
-import ai.platon.browser4.driver.common.BrowserSettings
-import ai.platon.browser4.driver.common.UserAgent
-import ai.platon.browser4.protocol.browser.DefaultWebDriverPoolManager
+import ai.platon.pulsar.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.common.UserAgent
+import ai.platon.pulsar.protocol.browser.DefaultWebDriverPoolManager
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.browser.fingerprint.Fingerprint
 import ai.platon.pulsar.common.config.ImmutableConfig
