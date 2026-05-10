@@ -7,7 +7,7 @@ import ai.platon.pulsar.common.warnForClose
 import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.skeleton.browser.Browser
 import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
-import ai.platon.pulsar.skeleton.browser.driver.BrowserEvents
+import ai.platon.pulsar.skeleton.browser.BrowserEvents
 import ai.platon.pulsar.skeleton.browser.driver.NavigateEntry
 import ai.platon.pulsar.skeleton.browser.driver.NavigateHistory
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver

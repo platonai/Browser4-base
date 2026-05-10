@@ -11,10 +11,10 @@ import ai.platon.pulsar.skeleton.PulsarSettings
 import ai.platon.pulsar.skeleton.TaskLoops
 import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.urls.NormURL
-import ai.platon.pulsar.skeleton.browser.driver.Browser
+import ai.platon.pulsar.skeleton.browser.Browser
 import ai.platon.pulsar.skeleton.session.PulsarSession
 import ai.platon.pulsar.skeleton.workflow.common.GlobalCache
-import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
+import ai.platon.pulsar.skeleton.browser.BrowserLaunchException
 import ai.platon.pulsar.skeleton.browser.BrowserManager
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.workflow.filter.ChainedUrlNormalizer

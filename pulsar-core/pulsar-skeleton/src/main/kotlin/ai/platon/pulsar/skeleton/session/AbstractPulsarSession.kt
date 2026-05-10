@@ -14,14 +14,14 @@ import ai.platon.pulsar.dom.select.selectFirstOrNull
 import ai.platon.pulsar.external.ModelResponse
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.persist.model.GoraWebPage
+import ai.platon.pulsar.skeleton.browser.Browser
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.urls.NormURL
 import ai.platon.pulsar.skeleton.context.support.AbstractPulsarContext
-import ai.platon.pulsar.skeleton.browser.driver.Browser
 import ai.platon.pulsar.skeleton.event.PageEventHandlers
 import ai.platon.pulsar.skeleton.workflow.common.FetchEntry
 import ai.platon.pulsar.skeleton.workflow.common.url.ListenableHyperlink
-import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import org.jsoup.nodes.Element
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
@@ -594,7 +594,13 @@ abstract class AbstractPulsarSession(
             closableObjects.clear()
 
             val elapsed = DateTimes.elapsedTime(startTime)
-            logger.info("PulsarSession is closed in {} | #{} | {}#{}", elapsed, display, this.javaClass.name, hashCode())
+            logger.info(
+                "PulsarSession is closed in {} | #{} | {}#{}",
+                elapsed,
+                display,
+                this.javaClass.name,
+                hashCode()
+            )
         }
     }
 

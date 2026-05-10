@@ -22,7 +22,7 @@ import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.common.event.AbstractEventEmitter
 import ai.platon.pulsar.skeleton.common.metrics.MetricsSystem
 import ai.platon.pulsar.skeleton.workflow.fetch.FetchTask
-import ai.platon.pulsar.skeleton.browser.driver.BrowserErrorPageException
+import ai.platon.pulsar.skeleton.browser.BrowserErrorPageException
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.workflow.protocol.Response
 import ai.platon.pulsar.persist.ProtocolStatus

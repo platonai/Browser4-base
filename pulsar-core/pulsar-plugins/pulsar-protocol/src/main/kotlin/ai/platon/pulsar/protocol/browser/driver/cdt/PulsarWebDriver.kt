@@ -30,7 +30,7 @@ import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
 import ai.platon.pulsar.driver.chrome.util.ChromeIOException
 import ai.platon.pulsar.protocol.browser.driver.cdt.detail.*
 import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
-import ai.platon.pulsar.skeleton.browser.driver.BrowserEvents
+import ai.platon.pulsar.skeleton.browser.BrowserEvents
 import ai.platon.pulsar.skeleton.browser.driver.IllegalWebDriverStateException
 import ai.platon.pulsar.skeleton.browser.driver.JsEvaluation
 import ai.platon.pulsar.skeleton.browser.driver.NavigateEntry

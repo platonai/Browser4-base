@@ -14,7 +14,7 @@ import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.workflow.fetch.FetchResult
 import ai.platon.pulsar.skeleton.workflow.fetch.FetchTask
 import ai.platon.pulsar.skeleton.workflow.fetch.WebDriverFetcher
-import ai.platon.pulsar.skeleton.browser.driver.BrowserErrorPageException
+import ai.platon.pulsar.skeleton.browser.BrowserErrorPageException
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import com.google.common.annotations.Beta
 import org.slf4j.LoggerFactory

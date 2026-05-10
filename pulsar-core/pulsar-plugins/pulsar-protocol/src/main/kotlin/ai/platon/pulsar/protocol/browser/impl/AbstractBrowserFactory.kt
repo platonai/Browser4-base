@@ -7,7 +7,7 @@ import ai.platon.pulsar.driver.chrome.LauncherOptions
 import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.skeleton.browser.Browser
 import ai.platon.pulsar.skeleton.browser.BrowserFactory
-import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
+import ai.platon.pulsar.skeleton.browser.BrowserLaunchException
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 
 abstract class AbstractBrowserFactory(

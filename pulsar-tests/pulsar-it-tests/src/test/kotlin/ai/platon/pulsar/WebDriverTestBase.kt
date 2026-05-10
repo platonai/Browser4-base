@@ -10,7 +10,7 @@ import ai.platon.pulsar.driver.common.SimpleScriptConfuser
 import ai.platon.pulsar.browser.FastWebDriverService
 import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.protocol.browser.impl.DefaultBrowserFactory
-import ai.platon.pulsar.skeleton.browser.driver.Browser
+import ai.platon.pulsar.skeleton.browser.Browser
 import ai.platon.pulsar.skeleton.browser.BrowserFactory
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId

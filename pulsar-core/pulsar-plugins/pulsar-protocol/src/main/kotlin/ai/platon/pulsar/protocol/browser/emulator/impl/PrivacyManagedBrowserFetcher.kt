@@ -26,7 +26,7 @@ import ai.platon.pulsar.protocol.browser.emulator.BrowserEmulator
 import ai.platon.pulsar.protocol.browser.emulator.IncognitoBrowserFetcher
 import ai.platon.pulsar.protocol.browser.emulator.context.BrowserPrivacyManager
 import ai.platon.pulsar.skeleton.common.persist.ext.browseEventHandlers
-import ai.platon.pulsar.skeleton.browser.driver.Browser
+import ai.platon.pulsar.skeleton.browser.Browser
 import ai.platon.pulsar.skeleton.browser.BrowserManager
 import ai.platon.pulsar.skeleton.browser.driver.IllegalWebDriverStateException
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
