@@ -13,6 +13,7 @@ import ai.platon.pulsar.common.math.geometric.RectD
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.dom.nodes.GeoAnchor
 import ai.platon.pulsar.external.ModelResponse
+import ai.platon.pulsar.skeleton.browser.detail.AbstractBrowser
 import com.google.common.annotations.Beta
 import org.jsoup.Connection
 import java.io.Closeable

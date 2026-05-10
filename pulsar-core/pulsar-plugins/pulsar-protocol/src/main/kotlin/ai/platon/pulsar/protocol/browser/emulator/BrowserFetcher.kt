@@ -18,7 +18,7 @@ package ai.platon.pulsar.protocol.browser.emulator
 import ai.platon.pulsar.protocol.browser.emulator.context.BrowserPrivacyManager
 import ai.platon.pulsar.skeleton.workflow.fetch.Fetcher
 import ai.platon.pulsar.skeleton.workflow.fetch.WebDriverFetcher
-import ai.platon.pulsar.skeleton.browser.driver.BrowserFetcher
+import ai.platon.pulsar.skeleton.browser.BrowserFetcher
 
 /**
  * Created by Vincent on 18-1-1.

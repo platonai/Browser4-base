@@ -15,7 +15,7 @@ import ai.platon.pulsar.skeleton.browser.driver.Browser
 import ai.platon.pulsar.skeleton.session.PulsarSession
 import ai.platon.pulsar.skeleton.workflow.common.GlobalCache
 import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
-import ai.platon.pulsar.skeleton.browser.driver.BrowserManager
+import ai.platon.pulsar.skeleton.browser.BrowserManager
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.workflow.filter.ChainedUrlNormalizer
 import com.google.common.annotations.Beta

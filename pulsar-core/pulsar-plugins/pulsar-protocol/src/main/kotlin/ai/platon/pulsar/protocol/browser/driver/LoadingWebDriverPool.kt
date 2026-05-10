@@ -17,7 +17,7 @@ import ai.platon.pulsar.skeleton.common.AppSystemInfo
 import ai.platon.pulsar.skeleton.common.metrics.MetricsSystem
 import ai.platon.pulsar.skeleton.browser.driver.Browser
 import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
-import ai.platon.pulsar.skeleton.browser.driver.BrowserManager
+import ai.platon.pulsar.skeleton.browser.BrowserManager
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.browser.driver.WebDriverCancellationException
 import ai.platon.pulsar.skeleton.browser.driver.WebDriverException

@@ -7,8 +7,8 @@ import ai.platon.pulsar.skeleton.event.BrowseEventHandlers
 import ai.platon.pulsar.skeleton.event.CrawlEventHandlers
 import ai.platon.pulsar.skeleton.event.LoadEventHandlers
 import ai.platon.pulsar.skeleton.event.PageEventHandlers
-import ai.platon.pulsar.skeleton.browser.driver.rpa.BrowseRPA
-import ai.platon.pulsar.skeleton.browser.driver.rpa.DefaultBrowseRPA
+import ai.platon.pulsar.skeleton.browser.rpa.BrowseRPA
+import ai.platon.pulsar.skeleton.browser.rpa.DefaultBrowseRPA
 import ai.platon.pulsar.skeleton.event.AbstractBrowseEventHandlers
 import ai.platon.pulsar.skeleton.event.AbstractCrawlEventHandlers
 import ai.platon.pulsar.skeleton.event.AbstractLoadEventHandlers

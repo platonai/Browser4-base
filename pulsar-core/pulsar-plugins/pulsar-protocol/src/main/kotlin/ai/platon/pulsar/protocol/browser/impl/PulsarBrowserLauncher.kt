@@ -8,7 +8,7 @@ import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarBrowser
 import ai.platon.pulsar.skeleton.browser.driver.Browser
 import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
-import ai.platon.pulsar.skeleton.browser.driver.BrowserLauncher
+import ai.platon.pulsar.skeleton.browser.BrowserLauncher
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 
 /**

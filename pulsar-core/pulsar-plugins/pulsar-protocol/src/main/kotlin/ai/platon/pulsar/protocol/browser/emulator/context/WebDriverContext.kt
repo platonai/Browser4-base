@@ -23,7 +23,7 @@ import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolManager.Companion.D
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolManager.Companion.DRIVER_SAFE_CLOSE_TIME_OUT
 import ai.platon.pulsar.protocol.browser.emulator.WebDriverPoolException
 import ai.platon.pulsar.protocol.browser.emulator.WebDriverPoolExhaustedException
-import ai.platon.pulsar.skeleton.browser.driver.AbstractBrowser
+import ai.platon.pulsar.skeleton.browser.detail.AbstractBrowser
 import ai.platon.pulsar.skeleton.browser.driver.BrowserUnavailableException
 import ai.platon.pulsar.skeleton.browser.driver.IllegalWebDriverStateException
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver

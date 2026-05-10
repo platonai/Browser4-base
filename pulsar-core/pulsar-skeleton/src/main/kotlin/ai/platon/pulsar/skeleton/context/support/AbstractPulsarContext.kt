@@ -29,8 +29,8 @@ import ai.platon.pulsar.skeleton.workflow.component.BatchFetchComponent
 import ai.platon.pulsar.skeleton.workflow.component.LoadComponent
 import ai.platon.pulsar.skeleton.workflow.component.ParseComponent
 import ai.platon.pulsar.skeleton.workflow.component.UpdateComponent
-import ai.platon.pulsar.skeleton.browser.driver.BrowserFetcher
-import ai.platon.pulsar.skeleton.browser.driver.BrowserManager
+import ai.platon.pulsar.skeleton.browser.BrowserFetcher
+import ai.platon.pulsar.skeleton.browser.BrowserManager
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.workflow.filter.ChainedUrlNormalizer
 import org.slf4j.LoggerFactory

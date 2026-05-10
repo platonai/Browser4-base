@@ -1,4 +1,4 @@
-package ai.platon.pulsar.skeleton.browser.driver.rpa
+package ai.platon.pulsar.skeleton.browser.rpa
 
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.CheckState

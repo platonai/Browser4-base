@@ -1,5 +1,7 @@
 package ai.platon.pulsar.core.api
 
+import ai.platon.pulsar.skeleton.browser.BrowserManager
+
 typealias ImmutableConfig = ai.platon.pulsar.common.config.ImmutableConfig
 typealias MutableConfig = ai.platon.pulsar.common.config.MutableConfig
 typealias VolatileConfig = ai.platon.pulsar.common.config.VolatileConfig
@@ -13,7 +15,7 @@ typealias CrawlEventHandlers = ai.platon.pulsar.skeleton.event.CrawlEventHandler
 typealias LoadEventHandlers = ai.platon.pulsar.skeleton.event.LoadEventHandlers
 typealias BrowserEventHandlers = ai.platon.pulsar.skeleton.event.BrowseEventHandlers
 
-typealias BrowserManager = ai.platon.pulsar.skeleton.browser.driver.BrowserManager
+typealias BrowserManager = BrowserManager
 typealias Browser = ai.platon.pulsar.skeleton.browser.driver.Browser
 typealias WebDriver = ai.platon.pulsar.skeleton.browser.driver.WebDriver
 typealias PageSnapshot = ai.platon.pulsar.persist.PageSnapshot

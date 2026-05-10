@@ -14,7 +14,7 @@ import ai.platon.pulsar.common.config.CapabilityTypes.BROWSER_REUSE_RECOVERED_DR
 import ai.platon.pulsar.common.urls.URLUtils
 import ai.platon.pulsar.common.warnForClose
 import ai.platon.pulsar.common.warnInterruptible
-import ai.platon.pulsar.skeleton.browser.driver.AbstractBrowser
+import ai.platon.pulsar.skeleton.browser.detail.AbstractBrowser
 import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
 import ai.platon.pulsar.skeleton.browser.driver.BrowserUnavailableException
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver

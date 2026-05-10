@@ -1,10 +1,17 @@
-package ai.platon.pulsar.skeleton.browser.driver
+package ai.platon.pulsar.skeleton.browser.detail
 
-import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.event.AbstractEventEmitter
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.warnForClose
+import ai.platon.pulsar.driver.common.BrowserSettings
+import ai.platon.pulsar.skeleton.browser.Browser
+import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
+import ai.platon.pulsar.skeleton.browser.driver.BrowserEvents
+import ai.platon.pulsar.skeleton.browser.driver.NavigateEntry
+import ai.platon.pulsar.skeleton.browser.driver.NavigateHistory
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
+import ai.platon.pulsar.skeleton.browser.driver.WebDriverException
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 import java.time.Duration
 import java.time.Instant
