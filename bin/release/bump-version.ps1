@@ -129,7 +129,7 @@ foreach ($F in $VERSION_AWARE_FILES) {
         $content = Get-Content $F -Raw
         $content = $content -replace $SNAPSHOT_VERSION, $NEXT_SNAPSHOT_VERSION
         $content = $content -replace "v[0-9]+\.[0-9]+\.[0-9]+", "v$NEXT_VERSION"
-        $content | Set-Content $F
+        $content | Set-Content $F -Encoding utf8
     }
 }
 
