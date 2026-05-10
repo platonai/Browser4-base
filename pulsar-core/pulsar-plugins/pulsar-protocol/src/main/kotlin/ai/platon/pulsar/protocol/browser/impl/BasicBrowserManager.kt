@@ -11,7 +11,7 @@ import ai.platon.pulsar.skeleton.browser.BrowserFactory
 import ai.platon.pulsar.skeleton.browser.BrowserManager
 import ai.platon.pulsar.skeleton.browser.detail.AbstractBrowser
 import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
-import ai.platon.pulsar.skeleton.browser.BrowserEvents
+import ai.platon.pulsar.skeleton.browser.driver.BrowserEvents
 import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
