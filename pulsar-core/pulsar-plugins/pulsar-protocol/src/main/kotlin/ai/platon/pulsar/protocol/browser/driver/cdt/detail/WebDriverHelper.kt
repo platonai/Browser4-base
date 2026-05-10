@@ -11,8 +11,8 @@ import ai.platon.cdt.kt.protocol.types.runtime.Evaluate
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.MultiSinkMessageWriter
 import ai.platon.pulsar.common.alwaysFalse
+import ai.platon.pulsar.common.urls.URLUtils
 import ai.platon.pulsar.common.warnInterruptible
-import ai.platon.pulsar.skeleton.workflow.common.InternalURLUtil
 import ai.platon.pulsar.skeleton.workflow.fetch.driver.JsEvaluation
 import ai.platon.pulsar.skeleton.workflow.fetch.driver.JsException
 import ai.platon.pulsar.skeleton.workflow.fetch.driver.NavigateEntry
@@ -56,7 +56,7 @@ class WebDriverHelper(
         // page url is normalized
         val pageUrl = entry.pageUrl
         val resourceUrl = event.response.url
-        val host = InternalURLUtil.getHost(pageUrl) ?: "unknown"
+        val host = URLUtils.getHostNameOrNull(pageUrl) ?: "unknown"
         val reportDir = messageWriter.baseDir.resolve("trace").resolve(host)
 
         if (!Files.exists(reportDir)) {

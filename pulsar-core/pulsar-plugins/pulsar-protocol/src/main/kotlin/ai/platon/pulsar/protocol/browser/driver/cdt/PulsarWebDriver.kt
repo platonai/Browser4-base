@@ -1,23 +1,5 @@
 package ai.platon.pulsar.protocol.browser.driver.cdt
 
-import ai.platon.pulsar.driver.BrowserTab
-import ai.platon.pulsar.driver.NetworkResourceResponse
-import ai.platon.pulsar.driver.NodeRef
-import ai.platon.pulsar.driver.chrome.*
-import ai.platon.pulsar.driver.chrome.dom.SnapshotService
-import ai.platon.pulsar.driver.chrome.dom.model.NanoDOMTree
-import ai.platon.pulsar.driver.chrome.dom.model.SnapshotOptions
-import ai.platon.pulsar.driver.chrome.dom.model.ViewportSpec
-import ai.platon.pulsar.driver.chrome.impl.CheckableElementJs
-import ai.platon.pulsar.driver.chrome.impl.RemoteBrowserProtocol
-import ai.platon.pulsar.driver.chrome.impl.ChromeImpl
-import ai.platon.pulsar.driver.chrome.impl.ClickableDOM
-import ai.platon.pulsar.driver.chrome.impl.EmulationHandler
-import ai.platon.pulsar.driver.chrome.impl.PageHandler
-import ai.platon.pulsar.driver.chrome.impl.ScreenshotHandler
-import ai.platon.pulsar.driver.chrome.impl.withNodeObjectId
-import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
-import ai.platon.pulsar.driver.chrome.util.ChromeIOException
 import ai.platon.cdt.kt.protocol.events.network.RequestWillBeSent
 import ai.platon.cdt.kt.protocol.events.network.ResponseReceived
 import ai.platon.cdt.kt.protocol.events.page.FrameNavigated
@@ -33,8 +15,19 @@ import ai.platon.pulsar.common.math.geometric.OffsetD
 import ai.platon.pulsar.common.math.geometric.PointD
 import ai.platon.pulsar.common.math.geometric.RectD
 import ai.platon.pulsar.common.urls.URLUtils
+import ai.platon.pulsar.driver.BrowserTab
+import ai.platon.pulsar.driver.NetworkResourceResponse
+import ai.platon.pulsar.driver.NodeRef
+import ai.platon.pulsar.driver.chrome.IsolatedWorldManager
+import ai.platon.pulsar.driver.chrome.RemoteDevTools
+import ai.platon.pulsar.driver.chrome.dom.SnapshotService
+import ai.platon.pulsar.driver.chrome.dom.model.NanoDOMTree
+import ai.platon.pulsar.driver.chrome.dom.model.SnapshotOptions
+import ai.platon.pulsar.driver.chrome.dom.model.ViewportSpec
+import ai.platon.pulsar.driver.chrome.impl.*
+import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
+import ai.platon.pulsar.driver.chrome.util.ChromeIOException
 import ai.platon.pulsar.protocol.browser.driver.cdt.detail.*
-import ai.platon.pulsar.skeleton.workflow.common.InternalURLUtil
 import ai.platon.pulsar.skeleton.workflow.fetch.driver.*
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -1302,7 +1295,7 @@ function() {
         // page url is normalized
         val pageUrl = entry.pageUrl
         val resourceUrl = event.response.url
-        val host = InternalURLUtil.getHost(pageUrl) ?: "unknown"
+        val host = URLUtils.getHostNameOrNull(pageUrl) ?: "unknown"
         val reportDir = messageWriter.baseDir.resolve("trace").resolve(host)
 
         if (!Files.exists(reportDir)) {

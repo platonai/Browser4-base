@@ -184,7 +184,7 @@ object URLUtils {
      * */
     @JvmStatic
     fun isStandard(str: String?): Boolean {
-        return getURLOrNull(str) != null
+        return getURLOrNull2(str) != null
     }
 
     /**
@@ -1011,6 +1011,3 @@ object URLUtils {
         }
     }
 }
-
-@Deprecated("Inappropriate name", ReplaceWith("URLUtils"))
-typealias UrlUtils  = URLUtils
