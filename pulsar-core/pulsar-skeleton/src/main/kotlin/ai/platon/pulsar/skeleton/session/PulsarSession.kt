@@ -12,9 +12,9 @@ import ai.platon.pulsar.skeleton.common.urls.NormURL
 import ai.platon.pulsar.skeleton.context.PulsarContext
 import ai.platon.pulsar.skeleton.browser.Browser
 import ai.platon.pulsar.skeleton.event.PageEventHandlers
-import ai.platon.pulsar.skeleton.workflow.common.DocumentCatch
-import ai.platon.pulsar.skeleton.workflow.common.GlobalCache
-import ai.platon.pulsar.skeleton.workflow.common.PageCatch
+import ai.platon.pulsar.skeleton.common.DocumentCatch
+import ai.platon.pulsar.skeleton.common.GlobalCache
+import ai.platon.pulsar.skeleton.common.PageCatch
 import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import com.google.common.annotations.Beta
 import org.jsoup.nodes.Element

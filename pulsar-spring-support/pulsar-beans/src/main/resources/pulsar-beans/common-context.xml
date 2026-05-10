@@ -39,7 +39,7 @@
         <constructor-arg ref="conf" />
     </bean>
 
-    <bean id="globalCacheFactory" class="ai.platon.pulsar.skeleton.workflow.common.GlobalCacheFactory">
+    <bean id="globalCacheFactory" class="ai.platon.pulsar.skeleton.common.GlobalCacheFactory">
         <constructor-arg ref="conf"/>
     </bean>
 

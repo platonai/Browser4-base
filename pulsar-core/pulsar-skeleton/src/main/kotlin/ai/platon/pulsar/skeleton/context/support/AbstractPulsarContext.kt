@@ -23,8 +23,8 @@ import ai.platon.pulsar.skeleton.context.PulsarContext
 import ai.platon.pulsar.skeleton.session.AbstractPulsarSession
 import ai.platon.pulsar.skeleton.session.PulsarSession
 import ai.platon.pulsar.skeleton.workflow.common.FetchState
-import ai.platon.pulsar.skeleton.workflow.common.GlobalCache
-import ai.platon.pulsar.skeleton.workflow.common.GlobalCacheFactory
+import ai.platon.pulsar.skeleton.common.GlobalCache
+import ai.platon.pulsar.skeleton.common.GlobalCacheFactory
 import ai.platon.pulsar.skeleton.workflow.component.BatchFetchComponent
 import ai.platon.pulsar.skeleton.workflow.component.LoadComponent
 import ai.platon.pulsar.skeleton.workflow.component.ParseComponent

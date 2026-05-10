@@ -25,7 +25,7 @@ import ai.platon.pulsar.skeleton.event.PageEventHandlers
 import ai.platon.pulsar.skeleton.event.PulsarEventBus
 import ai.platon.pulsar.skeleton.workflow.common.FetchEntry
 import ai.platon.pulsar.skeleton.workflow.common.FetchState
-import ai.platon.pulsar.skeleton.workflow.common.GlobalCacheFactory
+import ai.platon.pulsar.skeleton.common.GlobalCacheFactory
 import ai.platon.pulsar.skeleton.workflow.common.url.CompletableHyperlink
 import ai.platon.pulsar.skeleton.workflow.common.url.ListenableUrl
 import ai.platon.pulsar.skeleton.workflow.common.url.toCompletableListenableHyperlink

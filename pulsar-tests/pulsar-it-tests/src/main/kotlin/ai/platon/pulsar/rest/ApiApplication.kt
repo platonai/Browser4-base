@@ -1,8 +1,8 @@
 package ai.platon.pulsar.rest
 
 import ai.platon.pulsar.skeleton.TaskLoops
-import ai.platon.pulsar.skeleton.workflow.common.GlobalCache
-import ai.platon.pulsar.skeleton.workflow.common.GlobalCacheFactory
+import ai.platon.pulsar.skeleton.common.GlobalCache
+import ai.platon.pulsar.skeleton.common.GlobalCacheFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.ComponentScan
