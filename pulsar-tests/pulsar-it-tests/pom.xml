@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor
 	license agreements. See the NOTICE file distributed with this work for additional
 	information regarding copyright ownership. The ASF licenses this file to
@@ -14,7 +14,7 @@
     <parent>
         <groupId>ai.platon.pulsar</groupId>
         <artifactId>pulsar</artifactId>
-        <version>4.6.0-SNAPSHOT</version>
+        <version>4.7.5-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -26,24 +26,23 @@
     </build>
 
     <dependencies>
-        <!-- Internal Dependencies -->
-        <dependency>
-            <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-rest</artifactId>
-        </dependency>
-
-        <!-- Ensure browser DOM service & debug utilities are available to tests -->
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
             <artifactId>pulsar-browser</artifactId>
-            <scope>test</scope>
         </dependency>
-
-        <!-- MCP functionality for testing -->
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-agentic</artifactId>
-            <scope>test</scope>
+            <artifactId>pulsar-skeleton</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ai.platon.pulsar</groupId>
+            <artifactId>pulsar-beans</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ai.platon.pulsar</groupId>
+            <artifactId>pulsar-boot</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -70,6 +69,15 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ai.platon.pulsar</groupId>
+            <artifactId>pulsar-protocol</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ai.platon.pulsar</groupId>
+            <artifactId>pulsar-ql</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

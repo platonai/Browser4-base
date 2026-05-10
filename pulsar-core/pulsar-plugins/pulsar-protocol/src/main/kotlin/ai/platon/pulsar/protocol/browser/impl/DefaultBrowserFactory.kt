@@ -1,22 +1,20 @@
 package ai.platon.pulsar.protocol.browser.impl
 
-import ai.platon.browser4.driver.chrome.common.ChromeOptions
-import ai.platon.browser4.driver.chrome.common.LauncherOptions
-import ai.platon.browser4.driver.common.BrowserSettings
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.config.ImmutableConfig
-import ai.platon.pulsar.protocol.browser.driver.playwright.PlaywrightBrowserLauncher
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserLauncher
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.driver.chrome.ChromeOptions
+import ai.platon.pulsar.driver.chrome.LauncherOptions
+import ai.platon.pulsar.driver.common.BrowserSettings
+import ai.platon.pulsar.skeleton.browser.Browser
+import ai.platon.pulsar.skeleton.browser.BrowserLauncher
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 
 class DefaultBrowserFactory(
     conf: ImmutableConfig = ImmutableConfig(loadDefaults = true),
     settings: BrowserSettings = BrowserSettings(conf)
 ) : AbstractBrowserFactory(conf, settings) {
     private val launchers = mapOf(
-        BrowserType.PULSAR_CHROME to PulsarBrowserLauncher(),
-        BrowserType.PLAYWRIGHT_CHROME to PlaywrightBrowserLauncher()
+        BrowserType.PULSAR_CHROME to PulsarBrowserLauncher()
     )
 
     constructor(conf: ImmutableConfig) : this(conf, BrowserSettings(conf))

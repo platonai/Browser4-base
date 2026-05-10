@@ -1,4 +1,4 @@
-# 内置 AI 协作助手（Builtin AI Coworker）
+﻿# 内置 AI 协作助手（Builtin AI Coworker）
 
 内置 AI 协作助手是一个代理（agent），可协助你在仓库中完成各种任务。你只需创建任务文件，协作助手会处理这些文件、执行任务，并可将更改提交回仓库。
 
@@ -34,10 +34,10 @@
 1. **草稿** — 在 `coworker/tasks/0draft/` 创建任务文件。
 2. **队列** — 准备好后将其移至 `coworker/tasks/1created/`。
 3. **执行** — 运行协作助手脚本处理任务：
-   - Windows: `.\coworker\scripts\coworker.ps1`
-   - Python: `python .\coworker\scripts\coworker.py`
-   - Linux/macOS: `./coworker/scripts/coworker.sh`
-   - Linux/macOS (Python): `python3 ./coworker/scripts/coworker.py`
+    - Windows: `.\coworker\scripts\coworker.ps1`
+    - Python: `python .\coworker\scripts\coworker.py`
+    - Linux/macOS: `./coworker/scripts/coworker.sh`
+    - Linux/macOS (Python): `python3 ./coworker/scripts/coworker.py`
 4. **审查** — 任务执行后会进入 `3_1complete`，可审查更改。
 5. **批准** — 将任务移至 `5approved`，定时任务会自动提交并推送。
 

@@ -4,8 +4,10 @@ import ai.platon.pulsar.common.proxy.ProxyEntry
 import ai.platon.pulsar.common.urls.URLUtils
 import java.net.Proxy
 import java.net.URI
-import java.net.URL
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Created by Vincent on 17-1-14.
@@ -24,9 +26,11 @@ class TestProxyEntry {
     fun testTestUrls() {
         ResourceLoader
             .readAllLines(ProxyEntry.PROXY_TEST_WEB_SITES_FILE)
-            .mapNotNullTo(ProxyEntry.TEST_URLS) { URLUtils.getURLOrNull(it) }
+            .mapNotNullTo(ProxyEntry.TEST_URLS) { URLUtils.getURLOrNull2(it) }
         assertTrue(ProxyEntry.TEST_URLS.isNotEmpty())
-        assertTrue(URI.create("http://www.dongqiudi.com").toURL() in ProxyEntry.TEST_URLS)
+        val url = URI.create("http://www.mi.com/").toURL()
+        assertEquals(url, ProxyEntry.TEST_URLS.first { it.toString().contains("mi.com") })
+        assertTrue { url in ProxyEntry.TEST_URLS }
     }
 
     @Test
@@ -38,10 +42,10 @@ class TestProxyEntry {
     @Test
     fun testParseProxyEntry2() {
         val proxies = arrayOf(
-                "58.218.200.226:6925 at:2019-08-24T15:34:28.255Z, spd:0.0",
-                "58.218.200.228:4169 at:2019-08-24T15:34:28.255Z, spd:0.0",
-                "58.218.200.226:6008 at:2019-08-24T15:34:28.255Z, ttl:2019-08-24T16:31:24.215Z, spd:0.0",
-                "58.218.200.226:6008 at:2019-08-24T15:34:28.255Z, ttl:2019-08-24T16:31:24.215Z, usr:abc, pwd:abc",
+            "58.218.200.226:6925 at:2019-08-24T15:34:28.255Z, spd:0.0",
+            "58.218.200.228:4169 at:2019-08-24T15:34:28.255Z, spd:0.0",
+            "58.218.200.226:6008 at:2019-08-24T15:34:28.255Z, ttl:2019-08-24T16:31:24.215Z, spd:0.0",
+            "58.218.200.226:6008 at:2019-08-24T15:34:28.255Z, ttl:2019-08-24T16:31:24.215Z, usr:abc, pwd:abc",
         )
         proxies.forEach {
             assertEquals(it.substringBefore(", "), ProxyEntry.parse(it)?.serialize()?.substringBefore(", "))
@@ -51,8 +55,8 @@ class TestProxyEntry {
     @Test
     fun testParsingProxyEntry2WithAuth() {
         val proxies = mapOf(
-                "http://abc:123@58.218.200.226:6008?at=2019-08-24T15:34:28.255Z&ttl=2019-08-24T16:31:24.215Z" to
-                        ProxyEntry("58.218.200.226", 6008, "abc", "123"),
+            "http://abc:123@58.218.200.226:6008?at=2019-08-24T15:34:28.255Z&ttl=2019-08-24T16:31:24.215Z" to
+                    ProxyEntry("58.218.200.226", 6008, "abc", "123"),
         )
 
         proxies.forEach { (proxyString, expected) ->

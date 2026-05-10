@@ -30,10 +30,4 @@ class BasicFingerprintGeneratorTest {
         assertNull(fingerprint.mediaParameters)
         assertNull(fingerprint.miscParameters)
     }
-
-    @Test
-    @DisplayName("test basic generator implements FingerprintGeneratorProvider")
-    fun testBasicGeneratorImplementsProvider() {
-        assertTrue(generator is FingerprintGenerator)
-    }
 }

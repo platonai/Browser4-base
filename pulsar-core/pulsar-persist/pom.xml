@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor
 	license agreements. See the NOTICE file distributed with this work for additional
 	information regarding copyright ownership. The ASF licenses this file to
@@ -15,7 +15,7 @@
     <parent>
         <groupId>ai.platon.pulsar</groupId>
         <artifactId>pulsar</artifactId>
-        <version>4.6.0-SNAPSHOT</version>
+        <version>4.7.5-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -51,16 +51,6 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <!-- Web graph computing -->
-        <dependency>
-            <groupId>org.jgrapht</groupId>
-            <artifactId>jgrapht-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jgrapht</groupId>
-            <artifactId>jgrapht-ext</artifactId>
         </dependency>
 
         <dependency>

@@ -36,7 +36,7 @@ open class ProxyHubLoader(conf: ImmutableConfig) : ProxyLoader(conf) {
             return listOf()
         }
 
-        val url = URLUtils.getURLOrNull(baseUrl) ?: throw IOException("No base url is set")
+        val url = URLUtils.getURLOrNull2(baseUrl) ?: throw IOException("No base url is set")
         val response = url.readText()
         if (response.isBlank()) {
             return listOf()

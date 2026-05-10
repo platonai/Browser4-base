@@ -46,6 +46,11 @@ if ($null -eq $repoRoot) {
 Set-Location $repoRoot
 Write-Host "Project root is: $repoRoot"
 
+# Import common utility script
+. $repoRoot\bin\common\Util.ps1
+
+Fix-Encoding-UTF8
+
 # Ensure we are not on the master/main branch
 $currentBranch = git rev-parse --abbrev-ref HEAD
 if ($currentBranch -in @('master', 'main')) {
@@ -94,14 +99,12 @@ if ($NEXT_SNAPSHOT_VERSION -notmatch "^\d+\.\d+\.\d+-SNAPSHOT$") {
 Write-Host "Current version: $SNAPSHOT_VERSION"
 Write-Host "New version: $NEXT_SNAPSHOT_VERSION"
 
-
-
 # Update VERSION file
 $NEXT_SNAPSHOT_VERSION | Set-Content "$repoRoot\VERSION"
 
 # Update pom.xml files using Maven
 $mvnCmd = if ($IsWindows) { "$repoRoot\mvnw.cmd" } else { "$repoRoot\mvnw" }
-& $mvnCmd versions:set -DnewVersion=$NEXT_SNAPSHOT_VERSION -DprocessAllModules -DgenerateBackupPoms=false
+& $mvnCmd versions:set -DnewVersion="$NEXT_SNAPSHOT_VERSION" -DprocessAllModules -DgenerateBackupPoms=false
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Maven versions:set command failed. Reverting VERSION file."
     $SNAPSHOT_VERSION | Set-Content "$repoRoot\VERSION"

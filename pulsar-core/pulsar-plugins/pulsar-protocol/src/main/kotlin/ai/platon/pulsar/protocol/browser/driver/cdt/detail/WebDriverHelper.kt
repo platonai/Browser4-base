@@ -1,9 +1,5 @@
 package ai.platon.pulsar.protocol.browser.driver.cdt.detail
 
-import ai.platon.browser4.driver.chrome.NodeRef
-import ai.platon.browser4.driver.chrome.PageHandler
-import ai.platon.browser4.driver.chrome.util.ChromeDriverException
-import ai.platon.cdt.kt.protocol.commands.Fetch
 import ai.platon.cdt.kt.protocol.events.network.ResponseReceived
 import ai.platon.cdt.kt.protocol.types.network.ResourceType
 import ai.platon.cdt.kt.protocol.types.runtime.CallFunctionOn
@@ -11,12 +7,17 @@ import ai.platon.cdt.kt.protocol.types.runtime.Evaluate
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.MultiSinkMessageWriter
 import ai.platon.pulsar.common.alwaysFalse
+import ai.platon.pulsar.common.urls.URLUtils
 import ai.platon.pulsar.common.warnInterruptible
-import ai.platon.pulsar.skeleton.crawl.common.InternalURLUtil
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.JsEvaluation
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.JsException
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.NavigateEntry
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
+import ai.platon.pulsar.driver.BrowserProtocol
+import ai.platon.pulsar.driver.NodeRef
+import ai.platon.pulsar.driver.chrome.impl.PageHandler
+import ai.platon.pulsar.driver.chrome.impl.RemoteChromeProtocol
+import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
+import ai.platon.pulsar.skeleton.browser.driver.JsEvaluation
+import ai.platon.pulsar.skeleton.browser.driver.JsException
+import ai.platon.pulsar.skeleton.browser.driver.NavigateEntry
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -24,11 +25,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Files
 
+
 class WebDriverHelper(
     val driver: WebDriver,
     val rpc: RobustRPC,
     val page: PageHandler,
-    val fetchAPI: Fetch?,
+    val bp: BrowserProtocol?,
     val messageWriter: MultiSinkMessageWriter
 ) {
     suspend fun reportInterestingResources(entry: NavigateEntry, event: ResponseReceived) {
@@ -54,7 +56,7 @@ class WebDriverHelper(
         // page url is normalized
         val pageUrl = entry.pageUrl
         val resourceUrl = event.response.url
-        val host = InternalURLUtil.getHost(pageUrl) ?: "unknown"
+        val host = URLUtils.getHostNameOrNull(pageUrl) ?: "unknown"
         val reportDir = messageWriter.baseDir.resolve("trace").resolve(host)
 
         if (!Files.exists(reportDir)) {
@@ -82,9 +84,10 @@ class WebDriverHelper(
         val saveResourceBody =
             mimeType == "application/json" && event.response.encodedDataLength < 1_000_000 && alwaysFalse()
         if (saveResourceBody) {
+            val fetch = (bp as RemoteChromeProtocol).fetch
             val body = rpc.invokeSilently("getResponseBody") {
-                fetchAPI?.enable()
-                fetchAPI?.getResponseBody(event.requestId)?.body
+                fetch.enable()
+                fetch.getResponseBody(event.requestId).body
             }
             if (!body.isNullOrBlank()) {
                 suffix = "-" + event.type.name.lowercase() + "-body.txt"
@@ -131,7 +134,7 @@ class WebDriverHelper(
                 } else if (scrollIntoView) {
                     page.scrollIntoViewIfNeeded(selector)
                 } else {
-                    page.querySelector(selector)
+                    page.queryLocator(selector)
                 }
 
                 if (node != null) {

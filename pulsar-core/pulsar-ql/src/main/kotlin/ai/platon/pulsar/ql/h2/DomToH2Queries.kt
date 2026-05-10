@@ -19,8 +19,8 @@ import ai.platon.pulsar.ql.common.ResultSets
 import ai.platon.pulsar.ql.common.types.ValueDom
 import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.urls.NormURL
-import ai.platon.pulsar.skeleton.crawl.common.url.CompletableListenableHyperlink
 import ai.platon.pulsar.skeleton.session.PulsarSession
+import ai.platon.pulsar.skeleton.workflow.common.url.CompletableListenableHyperlink
 import org.apache.commons.math3.linear.RealVector
 import org.h2.api.ErrorCode
 import org.h2.message.DbException
@@ -61,10 +61,12 @@ object DomToH2Queries {
                 pages = ArrayList()
                 pages.add(session.load(normURL))
             }
+
             is ValueArray ->
                 if (urls.list.isNotEmpty()) {
                     pages = session.loadAll(urls.list.mapTo(mutableSetOf()) { it.string })
                 }
+
             else -> throw DbException.get(ErrorCode.METHOD_NOT_FOUND_1, "Unsupported type ${Value::class}")
         }
 
@@ -95,6 +97,7 @@ object DomToH2Queries {
                 val doc = session.loadDocument(configuredUrls.string)
                 collection = transformer(doc.document, restrictCss, offset, limit)
             }
+
             is ValueArray -> {
                 collection = ArrayList()
                 for (configuredUrl in configuredUrls.list) {
@@ -102,6 +105,7 @@ object DomToH2Queries {
                     collection.addAll(transformer(doc.document, restrictCss, offset, limit))
                 }
             }
+
             else -> throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, "Unknown custom type")
         }
 
@@ -120,7 +124,8 @@ object DomToH2Queries {
         val limit2 = min(limit, normURL.options.topLinks)
 
         val document = session.loadDocument(normURL)
-        var links = transformer(document.document, restrictCss, offset, Int.MAX_VALUE).filter { !URLUtils.isInternal(it) }
+        var links =
+            transformer(document.document, restrictCss, offset, Int.MAX_VALUE).filter { !URLUtils.isInternal(it) }
 
         if (normalize) {
             links = links.mapNotNull { session.normalizeOrNull(it)?.urlString }
@@ -160,7 +165,11 @@ object DomToH2Queries {
     /**
      * Load all pages specified by [normUrls], wait until all pages are loaded or timeout
      * */
-    private fun loadAll2(session: PulsarSession, normUrls: Iterable<NormURL>, options: LoadOptions): Collection<WebPage> {
+    private fun loadAll2(
+        session: PulsarSession,
+        normUrls: Iterable<NormURL>,
+        options: LoadOptions
+    ): Collection<WebPage> {
         val globalCache = session.globalCache
         val queue = globalCache.urlPool.higher3Cache.reentrantQueue
         val timeoutSeconds = options.pageLoadTimeout.seconds + 1
@@ -171,8 +180,10 @@ object DomToH2Queries {
             .toList()
 
         queue.addAll(links)
-        logger.info("Waiting for {} completable hyperlinks, {}@{}, {}", links.size,
-            globalCache.javaClass, globalCache.hashCode(), globalCache.urlPool.hashCode())
+        logger.info(
+            "Waiting for {} completable hyperlinks, {}@{}, {}", links.size,
+            globalCache.javaClass, globalCache.hashCode(), globalCache.urlPool.hashCode()
+        )
 
         var i = 90
         val pendingLinks = links.toMutableList()

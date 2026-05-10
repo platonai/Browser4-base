@@ -398,7 +398,7 @@ object AppPaths {
      * Create a filename compatible string from the given url.
      * */
     fun fromHost(url: String): String {
-        val u = URLUtils.getURLOrNull(url) ?: return "unknown"
+        val u = URLUtils.getURLOrNull2(url) ?: return "unknown"
         return fromHost(u)
     }
 
@@ -409,7 +409,7 @@ object AppPaths {
      * Create a filename compatible string from the given uri.
      * */
     fun fromUri(uri: String, prefix: String = "", suffix: String = ""): String {
-        val u = URLUtils.getURLOrNull(uri) ?: return "${prefix}unknown$suffix"
+        val u = URLUtils.getURLOrNull2(uri) ?: return "${prefix}unknown$suffix"
 
         val dirForDomain = fromHost(u)
         val fileId = md5Hex(uri)

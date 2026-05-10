@@ -1,9 +1,7 @@
 package ai.platon.pulsar.browser
 
-import ai.platon.pulsar.boot.autoconfigure.test.PulsarTestContextInitializer
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ImportResource
-import org.springframework.test.context.ContextConfiguration
 
 @SpringBootApplication(
     scanBasePackages = [
@@ -12,5 +10,4 @@ import org.springframework.test.context.ContextConfiguration
     ]
 )
 @ImportResource("classpath:test-beans/app-context.xml")
-@ContextConfiguration(initializers = [PulsarTestContextInitializer::class])
 class Application

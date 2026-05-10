@@ -1,4 +1,4 @@
-<!--  Licensed to the Apache Software Foundation (ASF) under one or more contributor
+﻿<!--  Licensed to the Apache Software Foundation (ASF) under one or more contributor
     license agreements. See the NOTICE file distributed with this work for additional
     information regarding copyright ownership. The ASF licenses this file to
     you under the Apache License, Version 2.0 (the "License"); you may not use
@@ -17,12 +17,12 @@
     <groupId>ai.platon</groupId>
     <artifactId>pulsar-dependencies</artifactId>
     <name>Pulsar Dependencies</name>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.7.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>Pulsar Dependencies</description>
 
-    <url>https://browser4.io</url>
+    <url>https://platon.ai</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
         <license>
@@ -32,7 +32,7 @@
     </licenses>
     <organization>
         <name>Enable AI to browse the web</name>
-        <url>https://browser4.io</url>
+        <url>https://platon.ai</url>
     </organization>
     <developers>
         <developer>
@@ -81,6 +81,14 @@
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-bom</artifactId>
                 <version>${kotlin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Source: https://mvnrepository.com/artifact/com.google.guava/guava-bom -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava-bom</artifactId>
+                <version>${guava.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -163,24 +171,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Spreadsheet, CSV, etc -->
-            <dependency>
-                <groupId>org.apache.poi</groupId>
-                <artifactId>poi</artifactId>
-                <version>${poi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.poi</groupId>
-                <artifactId>poi-ooxml</artifactId>
-                <version>${poi-ooxml.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
@@ -235,42 +225,6 @@
                 <version>4.12.0</version>
             </dependency>
 
-            <!--  MCP SDK  -->
-            <dependency>
-                <groupId>io.modelcontextprotocol</groupId>
-                <artifactId>kotlin-sdk</artifactId>
-                <version>${mcp-sdk.version}</version>
-            </dependency>
-
-            <!--  NLP  -->
-            <dependency>
-                <groupId>org.apache.lucene</groupId>
-                <artifactId>lucene-core</artifactId>
-                <version>${lucene.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.lucene</groupId>
-                <artifactId>lucene-analyzers-common</artifactId>
-                <version>${lucene.version}</version>
-            </dependency>
-            <!--  https://mvnrepository.com/artifact/org.apache.lucene/lucene-analyzers-smartcn  -->
-            <dependency>
-                <groupId>org.apache.lucene</groupId>
-                <artifactId>lucene-analyzers-smartcn</artifactId>
-                <version>${lucene.version}</version>
-            </dependency>
-            <!--  First introduced for hyperlink graph computing  -->
-            <dependency>
-                <groupId>org.jgrapht</groupId>
-                <artifactId>jgrapht-core</artifactId>
-                <version>${jgrapht.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jgrapht</groupId>
-                <artifactId>jgrapht-ext</artifactId>
-                <version>${jgrapht.version}</version>
-            </dependency>
-
             <!--  Commander line parser  -->
             <dependency>
                 <groupId>com.beust</groupId>
@@ -282,11 +236,6 @@
                 <groupId>com.udojava</groupId>
                 <artifactId>EvalEx</artifactId>
                 <version>${EvalEx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.nield</groupId>
-                <artifactId>kotlin-statistics</artifactId>
-                <version>${kotlin-statistics.version}</version>
             </dependency>
 
             <!--  Logging, Tracking, Metrics  -->
@@ -303,56 +252,14 @@
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
-                <artifactId>metrics-jmx</artifactId>
-                <version>${metrics.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dropwizard.metrics</groupId>
-                <artifactId>metrics-json</artifactId>
-                <version>${metrics.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-graphite</artifactId>
                 <version>${metrics.version}</version>
             </dependency>
-
-<!--            &lt;!&ndash; OpenTelemetry for distributed tracing &ndash;&gt;-->
-<!--            <dependency>-->
-<!--                <groupId>io.opentelemetry</groupId>-->
-<!--                <artifactId>opentelemetry-bom</artifactId>-->
-<!--                <version>${opentelemetry.version}</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
-<!--            &lt;!&ndash; Java generated classes for semantic conventions &ndash;&gt;-->
-            <!-- Java generated classes for semantic conventions -->
-            <dependency>
-                <groupId>io.opentelemetry.semconv</groupId>
-                <artifactId>opentelemetry-semconv</artifactId>
-                <version>${opentelemetry.semconv.version}</version>
-            </dependency>
-
-<!--            &lt;!&ndash; Micrometer for metrics with Prometheus support &ndash;&gt;-->
-<!--            <dependency>-->
-<!--                <groupId>io.micrometer</groupId>-->
-<!--                <artifactId>micrometer-bom</artifactId>-->
-<!--                <version>${micrometer.version}</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
 
             <dependency>
                 <groupId>org.nibor.autolink</groupId>
                 <artifactId>autolink</artifactId>
                 <version>${autolink.version}</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>org.perf4j</groupId>
-                <artifactId>perf4j</artifactId>
-                <version>${perf4j.version}</version>
             </dependency>
 
             <dependency>
@@ -402,20 +309,14 @@
         <central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
         <!-- Apache common libraries -->
         <!-- managed by spring-boot-dependencies -->
-        <!--        <commons-lang.version>2.6</commons-lang.version>-->
         <commons-io.version>2.16.1</commons-io.version>
         <commons-codec.version>1.17.0</commons-codec.version>
         <commons-text.version>1.11.0</commons-text.version>
-        <!-- managed by spring-boot-dependencies -->
-        <!--        <commons-lang3.version>3.12.0</commons-lang3.version>-->
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-numbers-bom.version>1.1</commons-numbers-bom.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-logging.version>1.3.2</commons-logging.version>
         <commons-compress.version>1.26.2</commons-compress.version>
-
-        <poi-ooxml.version>5.3.0</poi-ooxml.version>
-        <poi.version>5.3.0</poi.version>
 
         <oshi-trove4j-core.version>6.6.6</oshi-trove4j-core.version>
 
@@ -435,27 +336,14 @@
         <!-- Web server -->
         <httptrove4j-core.version>4.4.15</httptrove4j-core.version>
         <httpclient.version>4.5.13</httpclient.version>
-        <!-- Java Servlet is the foundation web specification in the Java Enterprise Platform. Developers can build
-        web applications using the Servlet API to interact with the request/response workflow. -->
-        <!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api/4.0.1 -->
-        <!-- TODO: This artifact was moved to: jakarta.servlet » jakarta.servlet-api -->
-        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
-        <io.modelcontextprotocol.version>0.8.1</io.modelcontextprotocol.version>
         <!-- keep consistent with io.modelcontextprotocol:kotlin-sdk-core-jvm:jar:0.8.1 -->
         <ktor.version>3.2.3</ktor.version>
-        <!-- required by pulsar-browser -->
-        <websocket.api.version>1.1</websocket.api.version>
 
         <EvalEx.version>2.0</EvalEx.version>
         <jcommander.version>1.82</jcommander.version>
 
-        <guava.version>33.2.1-jre</guava.version>
-        <dataframe.version>0.13.1</dataframe.version>
-        <jgrapht.version>1.0.1</jgrapht.version>
-
-        <!-- NLP -->
-        <lucene.version>7.3.1</lucene.version>
+        <guava.version>33.6.0-jre</guava.version>
 
         <!-- AI -->
         <langchain4j.version>1.5.0</langchain4j.version>
@@ -463,22 +351,14 @@
         <!--  Misc Dependencies  -->
         <autolink.version>0.11.0</autolink.version>
 
-        <perf4j.version>0.9.16</perf4j.version>
-
         <!--  metrics analyze  -->
         <oshi.version>6.4.13</oshi.version>
         <!-- Dropwizard Metrics is an older, robust library, best for JVM-specific monitoring,
         but it lacks the dimensional (tagged) metrics and cloud-native integrations found in Micrometer. -->
         <metrics.version>4.2.12</metrics.version>
 
-        <opentelemetry.semconv.version>1.37.0</opentelemetry.semconv.version>
-
-        <!--  Matchers that can be combined to create flexible expressions of intent  -->
-        <hamcrest-all.version>1.3</hamcrest-all.version>
-        <org.hamcrest.version>1.3</org.hamcrest.version>
         <!-- Mockito is a popular and widely-used mocking framework for unit testing in Java. -->
         <!-- managed by spring-boot-dependencies -->
-        <!--        <mockito.version>5.12.0</mockito.version>-->
         <mockito-kotlin.version>5.4.0</mockito-kotlin.version>
         <!-- MockK is a powerful and flexible mocking library designed specifically for Kotlin. -->
 
@@ -498,9 +378,8 @@
 
         <kotlin.coroutine.version>1.10.2</kotlin.coroutine.version>
         <kotlin-statistics.version>1.2.1</kotlin-statistics.version>
-        <mcp-sdk.version>0.8.1</mcp-sdk.version>
 
-        <spring-boot.version>4.0.1</spring-boot.version>
+        <spring-boot.version>4.0.5</spring-boot.version>
 
         <!-- Pulsar dependency -->
         <pulsar-h2.version>1.4.197</pulsar-h2.version>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor
 	license agreements. See the NOTICE file distributed with this work for additional
 	information regarding copyright ownership. The ASF licenses this file to
@@ -14,13 +14,19 @@
     <parent>
         <groupId>ai.platon.pulsar</groupId>
         <artifactId>pulsar</artifactId>
-        <version>4.6.0-SNAPSHOT</version>
+        <version>4.7.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>pulsar-core</artifactId>
     <packaging>pom</packaging>
 
     <name>Pulsar Core</name>
+    <dependencies>
+        <dependency>
+            <groupId>ai.platon.pulsar</groupId>
+            <artifactId>pulsar-common</artifactId>
+        </dependency>
+    </dependencies>
 
     <build>
         <defaultGoal>package</defaultGoal>
@@ -35,17 +41,9 @@
         <module>pulsar-third</module>
         <module>pulsar-skeleton</module>
         <module>pulsar-browser</module>
-        <module>pulsar-spring-support</module>
         <module>pulsar-ql-common</module>
         <module>pulsar-ql</module>
-    </modules>
 
-    <profiles>
-        <profile>
-            <id>pulsar-core-tests</id>
-            <modules>
-                <module>pulsar-core-tests</module>
-            </modules>
-        </profile>
-    </profiles>
+        <module>pulsar-core-tests</module>
+    </modules>
 </project>

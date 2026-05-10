@@ -1,20 +1,22 @@
 package ai.platon.pulsar.protocol.browser.driver.cdt.detail
 
-import ai.platon.browser4.driver.chrome.util.CDPReturnError
-import ai.platon.browser4.driver.chrome.util.ChromeDriverException
-import ai.platon.browser4.driver.chrome.util.ChromeIOException
-import ai.platon.browser4.driver.chrome.util.ChromeRPCException
+import ai.platon.pulsar.driver.chrome.util.CDPReturnError
+import ai.platon.pulsar.driver.chrome.util.ChromeDriverException
+import ai.platon.pulsar.driver.chrome.util.ChromeIOException
+import ai.platon.pulsar.driver.chrome.util.ChromeRPCException
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.brief
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.stringify
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserUnavailableException
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.IllegalWebDriverStateException
+import ai.platon.pulsar.skeleton.browser.driver.BrowserUnavailableException
+import ai.platon.pulsar.skeleton.browser.driver.IllegalWebDriverStateException
 import kotlinx.coroutines.delay
 import java.text.MessageFormat
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration.Companion.milliseconds
 
 class RobustRPC(
     private val driver: PulsarWebDriver
@@ -31,7 +33,9 @@ class RobustRPC(
 
     private val logger = getLogger(this)
 
-    val isActive get() = driver.isActive
+    private val _isActive = AtomicBoolean(false)
+
+    val isActive get() = driver.isActive && _isActive.get()
 
     val rpcFailures = AtomicInteger()
     var maxRPCFailures = MAX_RPC_FAILURES
@@ -61,12 +65,17 @@ class RobustRPC(
             return null
         }
 
+        if (!driver.devTools.isOpen) {
+            if (_isActive.compareAndSet(true, false)) {
+                logger.info("Devtools has been closed")
+            }
+            return null
+        }
+
         var result = kotlin.runCatching { invokeDeferred0(action, url, block) }
             .onFailure {
-                logger.info(
-                    "Oop, a bit slip-up executing action: [$action], retrying 1/$maxRetry time ...",
-                    it.brief()
-                )
+                logger.info("Oop, a bit slip-up executing action: " +
+                            "[$action], retrying 1/$maxRetry time ... | {}", it.brief())
             }
 
         var i = 1
@@ -77,12 +86,16 @@ class RobustRPC(
                 logger.warn("Encountered non-retryable exception: [$action], aborting retries | {}", exception.message)
                 break
             }
-            delay(200)
+            delay(200.milliseconds)
             result = kotlin.runCatching { invokeDeferred0(action, url, block) }
                 .onFailure { logger.warn("Exception to execute action: [$action], retrying $i/$maxRetry times", it) }
         }
 
-        return result.getOrElse { throw it }
+        if (driver.checkState(action)) {
+            return result.getOrElse { throw it }
+        }
+
+        return null
     }
 
     /**

@@ -1,19 +1,18 @@
 package ai.platon.pulsar.basic.session
 
-import ai.platon.pulsar.agentic.BasicAgenticSession
+import ai.platon.pulsar.basic.TestBase
 import ai.platon.pulsar.common.LinkExtractors
+import ai.platon.pulsar.core.api.PulsarSession
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
 import ai.platon.pulsar.ql.SQLSession
 import ai.platon.pulsar.skeleton.common.persist.ext.loadEventHandlers
-import ai.platon.pulsar.skeleton.session.BasicPulsarSession
-import ai.platon.pulsar.basic.TestBase
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import java.util.concurrent.CompletableFuture
 import kotlin.test.*
-import org.junit.jupiter.api.DisplayName
 
-class SessionLoadTests: TestBase() {
+class SessionLoadTests : TestBase() {
     private val url = "https://www.amazon.com/Best-Sellers-Beauty/zgbs/beauty"
     private val urls = LinkExtractors.fromResource("categories.txt")
 
@@ -33,7 +32,6 @@ class SessionLoadTests: TestBase() {
     @Test
     fun ensureSessionCreatedBySQLContextIsNotSQLSession() {
         assertFalse { session is SQLSession }
-        assertTrue { session is BasicAgenticSession }
     }
 
     /**
@@ -43,7 +41,7 @@ class SessionLoadTests: TestBase() {
      * using the following command:
      *
      * ```kotlin
-     * mvn -X -pl pulsar-tests
+     * mvn -X -pl browser4-tests
      * ```
      *
      * It seems that await() never returns, and the test cases are blocked.
@@ -95,7 +93,7 @@ class SessionLoadTests: TestBase() {
      * using the following command:
      *
      * ```kotlin
-     * mvn -X -pl pulsar-tests
+     * mvn -X -pl browser4-tests
      * ```
      *
      * It seems that await() never returns, and the test cases are blocked.
@@ -139,7 +137,7 @@ class SessionLoadTests: TestBase() {
     }
 
     @Test
-        @DisplayName("When loaded a HTML page then the navigate state are correct")
+    @DisplayName("When loaded a HTML page then the navigate state are correct")
     fun whenLoadedAHtmlPageThenTheNavigateStateAreCorrect() {
         logger.info("Testing - When loaded a HTML page then the navigate state are correct")
 

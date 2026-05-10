@@ -1,20 +1,20 @@
 package ai.platon.pulsar.protocol.browser.impl
 
-import ai.platon.browser4.driver.chrome.ChromeLauncher
-import ai.platon.browser4.driver.chrome.common.ChromeOptions
-import ai.platon.browser4.driver.chrome.common.LauncherOptions
-import ai.platon.browser4.driver.chrome.util.ChromeLaunchException
-import ai.platon.browser4.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.chrome.ChromeLauncher
+import ai.platon.pulsar.driver.chrome.ChromeOptions
+import ai.platon.pulsar.driver.chrome.LauncherOptions
+import ai.platon.pulsar.driver.chrome.util.ChromeLaunchException
+import ai.platon.pulsar.driver.common.BrowserSettings
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarBrowser
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserLaunchException
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserLauncher
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.skeleton.browser.Browser
+import ai.platon.pulsar.skeleton.browser.BrowserLauncher
+import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 
 /**
  * A factory implementation to create browser instances.
  * */
-open class PulsarBrowserLauncher: BrowserLauncher {
+open class PulsarBrowserLauncher : BrowserLauncher {
 
     override fun connect(port: Int, settings: BrowserSettings): Browser {
         return PulsarBrowser(port, settings = settings)

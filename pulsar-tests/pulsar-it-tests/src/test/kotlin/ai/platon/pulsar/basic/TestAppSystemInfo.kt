@@ -6,7 +6,7 @@ import kotlin.test.*
 import oshi.SystemInfo
 
 /**
-    ISSUE: OSHI failed on Windows in module pulsar-tests and productions,
+    ISSUE: OSHI failed on Windows in module browser4-tests and productions,
     VERSION: pulsar-1.10.12
     CAUSE: jna relevant packages are overridden by kotlin-compiler-${version}.jar:com.sun.jna.Memory,
     which has no close() method.

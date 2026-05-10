@@ -1,24 +1,25 @@
 package ai.platon.pulsar.protocol.browser.emulator.context
 
-import ai.platon.browser4.driver.common.BrowserSettings
-import ai.platon.browser4.driver.common.UserAgent
+import ai.platon.pulsar.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.common.UserAgent
+import ai.platon.pulsar.protocol.browser.DefaultWebDriverPoolManager
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.browser.fingerprint.Fingerprint
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.printlnPro
 import ai.platon.pulsar.persist.WebPageExt
-import ai.platon.pulsar.protocol.browser.DefaultWebDriverPoolManager
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolManager
 import ai.platon.pulsar.skeleton.PulsarSettings
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchResult
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchTask
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserProfile
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.PrivacyContext
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchResult
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchTask
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserProfile
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.PrivacyContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils
+import org.junit.jupiter.api.DisplayName
 import java.net.URI
 import java.nio.file.Files
 import java.time.Duration
@@ -27,7 +28,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlin.test.*
-import org.junit.jupiter.api.DisplayName
+import kotlin.time.Duration.Companion.milliseconds
 
 class PrivacyContextManagerTests {
     private val logger = getLogger(this)
@@ -56,7 +57,7 @@ class PrivacyContextManagerTests {
     fun testPrivacyContextReport() {
         var report = String.format(
             "Privacy context has lived for %s | %s | %s" +
-                " | success: %s(%s pages/s) | small: %s(%s) | traffic: %s(%s/s) | tasks: %s total run: %s | proxy: %s",
+                    " | success: %s(%s pages/s) | small: %s(%s) | traffic: %s(%s/s) | tasks: %s total run: %s | proxy: %s",
             // Privacy context has lived for {} | {} | {}
             Duration.ofMinutes(1), "03092518dNOgA1", "active ready",
             // success: {}({} pages/s)
@@ -149,7 +150,7 @@ class PrivacyContextManagerTests {
     }
 
     @Test
-        @DisplayName("When a privacy context closed then it's removed from the active queue")
+    @DisplayName("When a privacy context closed then it's removed from the active queue")
     fun whenAPrivacyContextClosedThenItSRemovedFromTheActiveQueue() {
         val manager = MultiPrivacyContextManager(driverPoolManager, conf)
 
@@ -162,7 +163,7 @@ class PrivacyContextManagerTests {
     }
 
     @Test
-        @DisplayName("When tasks run then contexts rotates")
+    @DisplayName("When tasks run then contexts rotates")
     fun whenTasksRunThenContextsRotates() {
         val manager = MultiPrivacyContextManager(driverPoolManager, conf)
         val url = "about:blank"
@@ -180,7 +181,7 @@ class PrivacyContextManagerTests {
 
     @Ignore("Failed, will correct the test later")
     @Test
-        @DisplayName("When task run then maintainer started")
+    @DisplayName("When task run then maintainer started")
     fun whenTaskRunThenMaintainerStarted() {
         val manager = MultiPrivacyContextManager(driverPoolManager, conf)
         val url = "about:blank"
@@ -191,7 +192,7 @@ class PrivacyContextManagerTests {
             manager.run(task) { _, driver -> mockFetch(task, driver) }
             var n = 3600
             while (n-- > 0 && manager.maintainCount.get() <= 0) {
-                delay(1000)
+                delay(1000.milliseconds)
             }
 
             assertTrue { n > 0 }
@@ -203,4 +204,3 @@ class PrivacyContextManagerTests {
         return FetchResult.canceled(task)
     }
 }
-

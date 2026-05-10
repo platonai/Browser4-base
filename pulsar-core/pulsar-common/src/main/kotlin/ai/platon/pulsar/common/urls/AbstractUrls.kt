@@ -33,7 +33,7 @@ abstract class AbstractUrl(
     @get:Throws(MalformedURLException::class)
     override val toURL get() = URI.create(url).toURL()
 
-    override val toURLOrNull get() = URLUtils.getURLOrNull(url)
+    override val toURLOrNull get() = URLUtils.getURLOrNull2(url)
 
     override val isNil get() = url == AppConstants.NIL_PAGE_URL
 

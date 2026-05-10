@@ -12,12 +12,14 @@ import ai.platon.pulsar.common.readable
 import ai.platon.pulsar.common.stringify
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.protocol.browser.emulator.WebDriverPoolExhaustedException
+import ai.platon.pulsar.skeleton.browser.Browser
+import ai.platon.pulsar.skeleton.browser.BrowserManager
+import ai.platon.pulsar.skeleton.browser.driver.*
 import ai.platon.pulsar.skeleton.common.AppSystemInfo
 import ai.platon.pulsar.skeleton.common.metrics.MetricsSystem
-import ai.platon.pulsar.skeleton.crawl.BrowseEventHandlers
-import ai.platon.pulsar.skeleton.crawl.PulsarEventBus
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.*
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.skeleton.event.BrowseEventHandlers
+import ai.platon.pulsar.skeleton.event.PulsarEventBus
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
@@ -32,7 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger
 class LoadingWebDriverPool constructor(
     val browserId: BrowserId,
     val browserManager: BrowserManager,
-    val browserFactory: BrowserFactory,
     val immutableConfig: ImmutableConfig
 ) : AutoCloseable {
     companion object {
@@ -50,10 +51,11 @@ class LoadingWebDriverPool constructor(
     /**
      * The max number of drivers the pool can hold
      * */
-    val capacity: Int get() {
-        val c = immutableConfig.get(BROWSER_MAX_OPEN_TABS)?.toIntOrNull() ?: DEFAULT_BROWSER_MAX_OPEN_TABS
-        return c.coerceAtMost(50)
-    }
+    val capacity: Int
+        get() {
+            val c = immutableConfig.get(BROWSER_MAX_OPEN_TABS)?.toIntOrNull() ?: DEFAULT_BROWSER_MAX_OPEN_TABS
+            return c.coerceAtMost(50)
+        }
 
     /**
      * The browser who create all drivers for this pool.
@@ -229,7 +231,7 @@ class LoadingWebDriverPool constructor(
      * */
     @Throws(BrowserLaunchException::class, WebDriverPoolExhaustedException::class)
     suspend fun poll(priority: Int, conf: MutableConfig, event: BrowseEventHandlers?, page: WebPage): WebDriver {
-        val settings = browserFactory.settings
+        val settings = browserManager.settings
         val timeout = settings.pollingDriverTimeout
 
         // NOTE: concurrency note - if multiple threads come to the code snippet,
@@ -255,11 +257,15 @@ class LoadingWebDriverPool constructor(
         } else {
             val browser = driver.browser
             if (browser.isActive) {
-                logger.warn("Closing driver that doesn't work unexpectedly #{}: {} | browser #{}:{}",
-                    driver.id, driver.status, browser.instanceId, browser.readableState)
+                logger.warn(
+                    "Closing driver that doesn't work unexpectedly #{}: {} | browser #{}:{}",
+                    driver.id, driver.status, browser.instanceId, browser.readableState
+                )
             } else {
-                logger.debug("Closing driver that doesn't work #{}: {} | browser #{}:{}",
-                    driver.id, driver.status, browser.instanceId, browser.readableState)
+                logger.debug(
+                    "Closing driver that doesn't work #{}: {} | browser #{}:{}",
+                    driver.id, driver.status, browser.instanceId, browser.readableState
+                )
             }
 
             statefulDriverPool.close(driver)
@@ -361,7 +367,7 @@ class LoadingWebDriverPool constructor(
      * */
     @Throws(BrowserLaunchException::class)
     private fun resourceSafeCreateDriverIfNecessary(priority: Int, conf: MutableConfig) {
-        synchronized(browserFactory) {
+        synchronized(browserManager) {
             if (!isActive) {
                 return
             }
@@ -403,7 +409,7 @@ class LoadingWebDriverPool constructor(
             // should also: numDriverSlots > 0
             logger.debug(
                 "Enough online drivers, will not create new one." +
-                    " Resource consuming drivers: {}/{}/{} (slots/pool/browser)",
+                        " Resource consuming drivers: {}/{}/{} (slots/pool/browser)",
                 numDriverSlots, resourceConsumingDriversInPool, resourceConsumingDriversInBrowser
             )
         } else if (AppSystemInfo.isCriticalMemory) {
@@ -422,10 +428,10 @@ class LoadingWebDriverPool constructor(
         logger.debug("Launch browser and new driver | {}", browserId)
 
         // Use BrowserFactory's default settings
-        val settings = browserFactory.settings
+        val settings = browserManager.settings
         //  Launch a browser. If the browser with the id is already launched, return the existing one.
-        val browser = _browser ?: browserFactory.launch(browserId, settings)
-        // val browser = _browser ?: driverFactory.launchBrowser(browserId, conf)
+        // val browser = _browser ?: browserFactory.launch(browserId, settings)
+        val browser = _browser ?: browserManager.launch(browserId, settings)
         check(browser.isActive)
         // open a new tab about:blank
         val driver = browser.newDriver()

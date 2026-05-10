@@ -18,7 +18,7 @@ import org.junit.jupiter.api.DisplayName
  * using the following command:
  *
  * ```kotlin
- * mvn -X -pl pulsar-tests
+ * mvn -X -pl browser4-tests
  * ```
  *
  * It seems that await() never returns, and the test cases are blocked.

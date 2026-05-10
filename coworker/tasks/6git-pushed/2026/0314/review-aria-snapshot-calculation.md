@@ -1,6 +1,6 @@
 # Review ariaSnapshot calculation
 
-Run test ai.platon.browser4.driver.chrome.dom.SnapshotServiceE2ETest.testGetDomAxAndSnapshot, here is the output:
+Run test ai.platon.pulsar.driver.chrome.dom.SnapshotServiceE2ETest.testGetDomAxAndSnapshot, here is the output:
 
 ```
 {type=TargetTrees, devicePixelRatio=1.5, timingsMs={ax_tree=39, dom_tree=14, dpr=4, snapshot=26, total=85}, options=SnapshotOptions(maxDepth=1000, includeAX=true, includeSnapshot=true, includeStyles=true, includePaintOrder=true, includeDOMRects=true, includeScrollAnalysis=true, includeVisibility=true, includeInteractivity=true), axTree.size=241, snapshotByBackendId.size=190, domByBackendId.size=223, domTree.stats=depth=12, nodes=223, leaves=90, domTree.boundsStats=zero=0, positive=0, missing=223, domTree.bounds.zeroNonZero={zero=0, nonZero=0}, domTree.midBoundsNode1=null, domTree.midBoundsNode2=null, bounds.samples.gt200.count=0, bounds.coords.gt50.sorted=[]}

@@ -4,17 +4,18 @@ typealias ImmutableConfig = ai.platon.pulsar.common.config.ImmutableConfig
 typealias MutableConfig = ai.platon.pulsar.common.config.MutableConfig
 typealias VolatileConfig = ai.platon.pulsar.common.config.VolatileConfig
 
+typealias InteractSettings = ai.platon.pulsar.driver.InteractSettings
 typealias PulsarSettings = ai.platon.pulsar.skeleton.PulsarSettings
 typealias LoadOptions = ai.platon.pulsar.skeleton.common.options.LoadOptions
 
-typealias PageEventHandlers = ai.platon.pulsar.skeleton.crawl.PageEventHandlers
-typealias CrawlEventHandlers = ai.platon.pulsar.skeleton.crawl.CrawlEventHandlers
-typealias LoadEventHandlers = ai.platon.pulsar.skeleton.crawl.LoadEventHandlers
-typealias BrowserEventHandlers = ai.platon.pulsar.skeleton.crawl.BrowseEventHandlers
+typealias PageEventHandlers = ai.platon.pulsar.skeleton.event.PageEventHandlers
+typealias CrawlEventHandlers = ai.platon.pulsar.skeleton.event.CrawlEventHandlers
+typealias LoadEventHandlers = ai.platon.pulsar.skeleton.event.LoadEventHandlers
+typealias BrowserEventHandlers = ai.platon.pulsar.skeleton.event.BrowseEventHandlers
 
-typealias BrowserFactory = ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserFactory
-typealias Browser = ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
-typealias WebDriver = ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
+typealias BrowserManager = ai.platon.pulsar.skeleton.browser.BrowserManager
+typealias Browser = ai.platon.pulsar.skeleton.browser.Browser
+typealias WebDriver = ai.platon.pulsar.skeleton.browser.driver.WebDriver
 typealias PageSnapshot = ai.platon.pulsar.persist.PageSnapshot
 typealias WebPage = ai.platon.pulsar.persist.WebPage
 typealias ProtocolStatus = ai.platon.pulsar.persist.ProtocolStatus

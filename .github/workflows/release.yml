@@ -3,8 +3,10 @@ name: Release
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+'
+      # GitHub Actions uses glob patterns here, not regex.
+      - 'v*.*.*'
+      - '!v*.*.*-*'
+      - 'v*.*.*-rc.*'
   workflow_dispatch:
     inputs:
       tag:
@@ -29,523 +31,139 @@ permissions:
   id-token: write  # For artifact attestation
 
 env:
-  IMAGE_NAME: browser4
-  CONTAINER_NAME: browser4
-  NETWORK_NAME: 'browser4_backend'
-  DOCKER_USERNAME: galaxyeye88
-  PRODUCTION_JAR_MODULE_NAME: 'browser4-agents'
-  PRODUCTION_JAR_MODULE_PATH: 'browser4/browser4-agents'
-  PRODUCTION_JAR_NAME: 'Browser4.jar'
-  PRODUCTION_JAR_PATH: 'browser4/browser4-agents/target/Browser4.jar'
   JAVA_VERSION: '17'
   MAVEN_OPTS: '-Xmx3g -XX:+UseG1GC'
 
 jobs:
-  build-and-release:
+  ci-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      test_results: ${{ steps.tests.outputs.test_status }}
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate Release Branch
-        run: |
-          echo "🔍 Validating release configuration..."
-
-          # For non-prerelease, ensure we're releasing from master or can merge to master
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-          else
-            TAG=${GITHUB_REF#refs/tags/}
-          fi
-          VERSION=${TAG#v}
-
-          # Dynamic prerelease detection
-          IS_PRERELEASE="false"
-          if [[ "$VERSION" == *"-"* ]]; then
-            IS_PRERELEASE="true"
-          fi
-
-          if [ "$IS_PRERELEASE" = "false" ]; then
-            CURRENT_BRANCH=$(git branch --show-current || git rev-parse --abbrev-ref HEAD)
-            echo "Current branch: $CURRENT_BRANCH"
-            echo "Release type: Production"
-
-            # Check if master branch exists
-            if ! git ls-remote --exit-code --heads origin master >/dev/null 2>&1; then
-              echo "❌ Master branch does not exist"
-              exit 1
-            fi
-
-            echo "✅ Master branch exists and ready for merge"
-          else
-            echo "Release type: Prerelease (RC)"
-            echo "✅ Prerelease can be created from any branch"
-          fi
 
       - name: Setup Environment
         id: setup
         uses: ./.github/actions/setup-environment
         with:
           java_version: ${{ env.JAVA_VERSION }}
-          enable_cache: 'true'
 
-      - name: Extract version from tag
-        id: tag
+      - name: Determine Release Version
+        id: version
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
+            RAW_TAG="${{ inputs.tag }}"
           else
-            TAG=${GITHUB_REF#refs/tags/}
+            RAW_TAG="${{ github.ref_name }}"
           fi
-          VERSION=${TAG#v}
-
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+(\+.+)?)?$ ]]; then
-            echo "❌ Invalid version format: $VERSION"
-            echo "Expected: X.Y.Z or X.Y.Z-rc.N or X.Y.Z-rc.N+build.info"
-            exit 1
-          fi
-
-          # Dynamic prerelease detection
-          IS_PRERELEASE="false"
-          if [[ "$VERSION" == *"-"* ]]; then
-            IS_PRERELEASE="true"
-          fi
-
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "IS_PRERELEASE=$IS_PRERELEASE" >> $GITHUB_ENV
-
-      - name: Update Version
-        run: |
-          bin/release/update-versions.sh
+          VERSION="${RAW_TAG#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Release version: $VERSION"
 
       - name: Maven Build
-        id: maven-build
+        id: build
         uses: ./.github/actions/maven-build
         with:
-          maven_profiles: 'all-modules'
-          skip_tests: 'true'
-          parallel_builds: 'true'
-          timeout_minutes: '20'
-          maven_args: '-B -V'
+          skip_tests: ${{ inputs.skip_tests || 'false' }}
+          timeout_minutes: '30'
 
-      - name: Run Unit Tests (Release)
-        if: false && github.event.inputs.skip_tests != 'true' # Temporarily disabled to save time during release testing, can be re-enabled for full test coverage
+      - name: Run Tests
+        id: tests
+        if: ${{ !inputs.skip_tests }}
         uses: ./.github/actions/run-tests
         with:
-          maven_profiles: ''
-          test_excludes: ''
-          excluded_groups: ''
-          run_pulsar_tests: 'false'
-          timeout_minutes: '45'
-          report_name: 'unit-test-reports'
-
-      - name: Run Integration Tests (Release)
-        if: false && github.event.inputs.skip_tests != 'true' # Temporarily disabled to save time during release testing, can be re-enabled for full test coverage
-        uses: ./.github/actions/run-tests
-        with:
-          maven_profiles: ''
-          test_excludes: ''
-          excluded_groups: ''
-          run_pulsar_tests: 'true'
-          timeout_minutes: '90'
-          report_name: 'integration-test-reports'
-
-
-      - name: Cleanup Docker system to free space
-        run: |
-          docker system prune -af
-          docker volume prune -f
-          # rm -rf ~/.m2/repository  # If you no longer need Maven cache
-          sudo apt-get clean
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo df -h
-
-      - name: Build Docker image
-        id: docker-build
-        uses: ./.github/actions/docker-build
-        with:
-          image_name: '${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}'
-          version: ${{ env.VERSION }}
-          dockerfile: 'Dockerfile'
-          timeout_minutes: '25'
-          build_args: |
-            VERSION=${{ env.VERSION }}
-            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-            VCS_REF=${{ github.sha }}
-
-      - name: Security Scan Docker Image
-        if: success()
-        continue-on-error: true
-        run: |
-          echo "::group::Security Scanning"
-
-          image="${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}"
-
-          # Try Docker Scout if available
-          if command -v docker scout &> /dev/null; then
-            echo "🔍 Running Docker Scout security scan..."
-            docker scout cves "$image" --only-severity critical,high || echo "⚠️ Docker Scout scan completed with warnings"
-          fi
-
-          # Try Trivy if available
-          if command -v trivy &> /dev/null; then
-            echo "🔍 Running Trivy security scan..."
-            trivy image --severity HIGH,CRITICAL "$image" || echo "⚠️ Trivy scan completed with warnings"
-          fi
-
-          if ! command -v docker scout &> /dev/null && ! command -v trivy &> /dev/null; then
-            echo "ℹ️ No security scanning tools available (install docker scout or trivy for scanning)"
-          fi
-
-          echo "::endgroup::"
-
-      - name: Start Docker container for testing
-        if: success() && github.event.inputs.skip_tests != 'true'
-        run: |
-          echo "🧪 Starting Docker container for testing..."
-
-          # Create network if it doesn't exist
-          docker network create ${{ env.NETWORK_NAME }} || true
-
-          # Start container with health check
-          # --add-host allows the container to reach the test fixture server on the host
-          docker run -d --rm \
-            --name ${{ env.CONTAINER_NAME }} \
-            --network ${{ env.NETWORK_NAME }} \
-            -p 8182:8182 \
-            --add-host=host.docker.internal:host-gateway \
-            -e OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }} \
-            --health-cmd="curl -f http://localhost:8182/actuator/health || exit 1" \
-            --health-interval=10s \
-            --health-timeout=5s \
-            --health-retries=5 \
-            ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-
-          # Wait for container to be healthy
-          echo "⏳ Waiting for container to be healthy..."
-          timeout 120s bash -c 'until docker inspect --format="{{.State.Health.Status}}" ${{ env.CONTAINER_NAME }} | grep -q "healthy"; do sleep 5; done'
-
-          echo "✅ Container is healthy and ready for testing"
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
-
-
-
-
-
-      - name: Setup Rust Toolchain
-        id: rust-setup
-        if: success() && github.event.inputs.skip_tests != 'true'
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust Build Artifacts
-        if: success() && github.event.inputs.skip_tests != 'true'
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: sdks/browser4-cli
-
-      - name: Run browser4-cli E2E Tests
-        id: e2e-cli
-        if: success() && github.event.inputs.skip_tests != 'true'
-        timeout-minutes: 15
-        shell: bash
-        env:
-          BROWSER4_E2E_SERVICE_URL: http://localhost:8182
-          BROWSER4_E2E_FIXTURE_HOST: host.docker.internal
-        run: |
-          echo "::group::🧪 browser4-cli E2E Tests"
-
-          # Run the CLI tests against the already-running Docker container
-          echo "Running browser4-cli E2E tests..."
-          echo "Working directory: $(pwd)"
-          cd sdks/browser4-cli
-          cargo test --test e2e -- --nocapture
-          cd "$(git rev-parse --show-toplevel)"
-
-          echo "::endgroup::"
-
-
-
-
-      - name: Cleanup Docker Container
-        if: always()
-        uses: ./.github/actions/cleanup-resources
-        with:
-          container_name: ${{ env.CONTAINER_NAME }}
-          network_name: ${{ env.NETWORK_NAME }}
-          cleanup_compose: 'false'
-          cleanup_volumes: 'true'
-
-      - name: Check if already on master
-        id: check_master
-        if: success()
-        run: |
-          git fetch origin master
-          MAIN_SHA=$(git rev-parse origin/master)
-          CURRENT_SHA=$(git rev-parse HEAD)
-
-          if [ "$MAIN_SHA" = "$CURRENT_SHA" ]; then
-            echo "already_on_master=true" >> $GITHUB_OUTPUT
-            echo "✅ Current commit is already on master branch"
-          else
-            echo "already_on_master=false" >> $GITHUB_OUTPUT
-            echo "📝 Current commit needs to be merged to master"
-          fi
-
-      - name: Merge to master branch
-        id: merge_master
-        if: success() && env.IS_PRERELEASE == 'false' && steps.check_master.outputs.already_on_master == 'false'
-        run: |
-          echo "📦 Merging release to master branch..."
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          TAG="${{ env.TAG }}"
-          VERSION="${{ env.VERSION }}"
-
-          # Fetch and checkout master
-          git fetch origin master
-          git checkout master
-          git pull origin master
-
-          # Merge the tag
-          git merge --no-ff "$TAG" -m "chore: release $VERSION"
-
-          # Push to master
-          git push origin master
-
-          echo "✅ Successfully merged $TAG to master"
-
-      - name: Build Browser4 JAR
-        if: success()
-        run: |
-          JAR_PATH=${{ env.PRODUCTION_JAR_PATH }}
-          JAR_NAME=${{ env.PRODUCTION_JAR_NAME }}
-          MODULE_NAME=${{ env.PRODUCTION_JAR_MODULE_NAME }}
-          MODULE_PATH=${{ env.PRODUCTION_JAR_MODULE_PATH }}
-
-          echo "=== Building Browser4 JAR ==="
-          ./mvnw package -rf :$MODULE_NAME -pl ${MODULE_PATH} -DskipTests=true -Dmaven.javadoc.skip=true
-
-          if [ ! -f "$JAR_PATH" ]; then
-            echo "❌ $JAR_NAME not found at $JAR_PATH"
-            echo "Available JARs:"
-            find . -name "*.jar" -type f | head -10
-            exit 1
-          fi
-          echo "✅ $JAR_NAME built successfully"
-
-      - name: Find and Validate JAR
-        id: get_uberjar
-        if: success()
-        run: |
-          JAR_PATH=${{ env.PRODUCTION_JAR_PATH }}
-          JAR_NAME=${{ env.PRODUCTION_JAR_NAME }}
-
-          echo "::group::📦 JAR Discovery and Validation"
-
-          if [ ! -f "$JAR_PATH" ]; then
-            echo "❌ JAR file not found: $JAR_PATH"
-            exit 1
-          fi
-
-          JAR_SIZE=$(stat -c%s "$JAR_PATH" 2>/dev/null || echo 0)
-          UBERJAR_FILE=$(basename "$JAR_PATH")
-
-          echo "✅ Selected JAR: $UBERJAR_FILE"
-          echo "📍 Path: $JAR_PATH"
-          echo "📏 Size: $JAR_SIZE bytes ($(numfmt --to=iec --suffix=B $JAR_SIZE))"
-
-          # Validate JAR is not empty
-          if [ "$JAR_SIZE" -lt 1000000 ]; then
-            echo "❌ JAR file seems too small (< 1MB): $JAR_SIZE bytes"
-            exit 1
-          fi
-
-          echo "uberjar_file=$UBERJAR_FILE" >> $GITHUB_OUTPUT
-          echo "uberjar_path=$JAR_PATH" >> $GITHUB_OUTPUT
-
-          echo "::endgroup::"
+          timeout_minutes: '35'
+          report_name: 'release-test-reports'
 
       - name: Create Release Notes
-        uses: ./.github/actions/create-release-notes
         id: release-notes
+        uses: ./.github/actions/create-release-notes
         with:
-          version: ${{ env.VERSION }}
-          jar_name: ${{ steps.get_uberjar.outputs.uberjar_file }}
-          jar_path: ${{ steps.get_uberjar.outputs.uberjar_path }}
-          java_version: ${{ env.JAVA_VERSION }}+
-          output_file: release_notes.md
+          version: ${{ steps.version.outputs.version }}
+          java_version: ${{ env.JAVA_VERSION }}
+          output_file: 'release_notes.md'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.get_uberjar.outputs.uberjar_path }}
-          name: "🚀 Browser4 ${{ env.VERSION }}"
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Browser4 ${{ steps.version.outputs.tag }}
           body_path: release_notes.md
-          tag_name: ${{ env.TAG }}
           draft: false
-          prerelease: ${{ env.IS_PRERELEASE }}
-          generate_release_notes: true
-          make_latest: ${{ env.IS_PRERELEASE == 'false' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate Artifact Attestation
-        if: success()
-        uses: actions/attest-build-provenance@v1
+          prerelease: ${{ contains(steps.version.outputs.tag, '-rc.') || contains(steps.version.outputs.tag, '-alpha') || contains(steps.version.outputs.tag, '-beta') }}
+      - name: Update Documentation
+        id: update-docs
+        uses: ./.github/actions/update-docs
         with:
-          subject-path: ${{ steps.get_uberjar.outputs.uberjar_path }}
+          version: ${{ steps.version.outputs.version }}
+          push_changes: 'true'
 
-      - name: Verify Release
+  deploy:
+    runs-on: ubuntu-latest
+    needs: ci-build
+    if: needs.ci-build.result == 'success'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }} for Deployment
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          server-id: 'central'
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Prepare Maven Wrapper
+        shell: bash
+        run: chmod +x ./mvnw
+
+      - name: Deploy to Sonatype Central
+        shell: bash
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
         run: |
-          echo "::group::✅ Release Verification"
+          set -euo pipefail
 
-          JAR_SIZE=$(stat -c%s "${{ steps.get_uberjar.outputs.uberjar_path }}" 2>/dev/null || echo 0)
+          echo "=== Deploying to Maven Central ==="
+          ./mvnw --batch-mode --no-transfer-progress deploy -P deploy -DskipTests \
+            -Dgpg.passphrase="$GPG_PASSPHRASE" \
+            -Dgpg.batch=true \
+            -Dgpg.pinentry-mode=loopback \
+            --show-version --errors
 
-          echo "🎉 Release ${{ env.VERSION }} created successfully!"
-          echo ""
-          echo "📦 Release Details:"
-          echo "  - Tag: ${{ env.TAG }}"
-          echo "  - JAR: ${{ steps.get_uberjar.outputs.uberjar_file }}"
-          echo "  - Size: $(numfmt --to=iec --suffix=B $JAR_SIZE)"
-          echo "  - Prerelease: ${{ env.IS_PRERELEASE }}"
-          echo ""
-          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}"
-          echo ""
-          echo "📥 Download Command:"
-          echo "wget https://github.com/${{ github.repository }}/releases/download/${{ env.TAG }}/${{ steps.get_uberjar.outputs.uberjar_file }}"
+  release-summary:
+    runs-on: ubuntu-latest
+    needs:
+      - ci-build
+      - deploy
+    if: always()
+    permissions: {}
 
-          echo "::endgroup::"
-
+    steps:
       - name: Release Summary
-        if: success()
         run: |
-          echo "::group::📊 Release Summary"
-
-          echo "## 🚀 Release ${{ env.VERSION }} Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### ✅ Build Status" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tag**: ${{ env.TAG }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Prerelease**: ${{ env.IS_PRERELEASE }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "- **JAR**: ${{ steps.get_uberjar.outputs.uberjar_file }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Docker Image**: ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **GHCR Image**: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
-          echo "- [Release Page](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [Docker Hub](https://hub.docker.com/r/${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [GitHub Container Registry](https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/pkgs/container/${{ env.IMAGE_NAME }})" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### 📊 Build Metrics" >> $GITHUB_STEP_SUMMARY
-          echo "- **Maven Build**: ${{ steps.maven-build.outputs.build_time }}s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Docker Image Size**: ${{ steps.docker-build.outputs.image_size_mb }}MB" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "✅ Release pipeline completed successfully!" >> $GITHUB_STEP_SUMMARY
-
-          echo "::endgroup::"
-
-      - name: Push Docker Images to Docker Hub
-        if: success()
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-          # Tag images
-          docker tag ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-
-          # Push with retry logic
-          max_retries=3
-          for i in $(seq 1 $max_retries); do
-            if docker push ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} && \
-               docker push ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest; then
-              echo "✅ Successfully pushed images to Docker Hub"
-              break
-            else
-              if [ $i -lt $max_retries ]; then
-                echo "⚠️ Push failed, retrying ($i/$max_retries)..."
-                sleep 5
-              else
-                echo "❌ Failed to push after $max_retries attempts"
-                exit 1
-              fi
-            fi
-          done
-
-      - name: Push Docker Images to GitHub Container Registry
-        if: success()
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-          # Tag images for GitHub Container Registry
-          docker tag ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-          docker tag ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-
-          # Push with retry logic
-          max_retries=3
-          for i in $(seq 1 $max_retries); do
-            if docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} && \
-               docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest; then
-              echo "✅ Successfully pushed images to GHCR"
-              break
-            else
-              if [ $i -lt $max_retries ]; then
-                echo "⚠️ Push failed, retrying ($i/$max_retries)..."
-                sleep 5
-              else
-                echo "❌ Failed to push after $max_retries attempts"
-                exit 1
-              fi
-            fi
-          done
-
-      - name: Cleanup on Failure
-        if: failure() && github.event_name == 'push'
-        run: |
-          echo "⚠️ Release workflow failed!"
-          echo "Cleaning up tag ${{ env.TAG }}..."
-
-          # Delete remote tag if it was created by tag push
-          git push --delete origin ${{ env.TAG }} 2>/dev/null || echo "Tag cleanup skipped or already removed"
-
-          echo "::warning::Release failed. Tag ${{ env.TAG }} has been removed. Please fix issues and retry."
-
-#      - name: Set up JDK ${{ env.JAVA_VERSION }} For Deployment
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: ${{ env.JAVA_VERSION }}
-#          cache: maven
-#          server-id: 'central'                        # Matches <id> in your pom.xml for OSSRH
-#          server-username: CENTRAL_USERNAME
-#          server-password: CENTRAL_PASSWORD
-#          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}   # ASCII-armored (exported with --armor)
-#          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-#
-#      - name: Deploy to Sonatype OSSRH
-#        if: success()
-#        run: |
-#          echo "=== Deploying to Maven Central ==="
-#          ./mvnw --batch-mode deploy -P deploy,release -DskipTests \
-#            -Dgpg.passphrase="$GPG_PASSPHRASE" \
-#            -Dgpg.batch=true \
-#            -Dgpg.pinentry-mode=loopback \
-#            --show-version --errors
-#        env:
-#          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-#          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-#          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.ci-build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy | ${{ needs.deploy.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Results | ${{ needs.ci-build.outputs.test_results || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ needs.ci-build.outputs.version || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY

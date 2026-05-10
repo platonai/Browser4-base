@@ -5,7 +5,7 @@ import ai.platon.cdt.kt.protocol.types.network.ErrorReason
 import ai.platon.cdt.kt.protocol.types.network.Initiator
 import ai.platon.cdt.kt.protocol.types.network.Request
 import ai.platon.cdt.kt.protocol.types.network.ResourceType
-import ai.platon.browser4.driver.chrome.util.ChromeRPCException
+import ai.platon.pulsar.driver.chrome.util.ChromeRPCException
 import ai.platon.pulsar.common.http.HttpStatus
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
 import java.lang.ref.WeakReference

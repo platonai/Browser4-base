@@ -174,7 +174,7 @@ data class ObserveResult constructor(
 interface PerceptiveAgent : AutoCloseable {
     val uuid: UUID
 
-    val session: AgenticSession
+    val session: PulsarSession
 
     /**
      * The agent state history exists to give the AI agent a concise, sequential memory of what has been done.

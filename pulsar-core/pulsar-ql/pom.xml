@@ -14,7 +14,7 @@
     <parent>
         <groupId>ai.platon.pulsar</groupId>
         <artifactId>pulsar</artifactId>
-        <version>4.6.0-SNAPSHOT</version>
+        <version>4.7.5-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -66,11 +66,6 @@
 
         <dependency>
             <groupId>ai.platon.pulsar</groupId>
-            <artifactId>pulsar-beans</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>ai.platon.pulsar</groupId>
             <artifactId>pulsar-h2</artifactId>
         </dependency>
 
@@ -80,17 +75,6 @@
             <artifactId>spring-context</artifactId>
         </dependency>
 
-        <!-- TODO: try to remove spring-boot dependency -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-        </dependency>
-
-        <!-- TODO: try to remove spring-boot-starter dependency -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -99,20 +83,6 @@
         <dependency>
             <groupId>com.udojava</groupId>
             <artifactId>EvalEx</artifactId>
-        </dependency>
-
-        <!-- NLP -->
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-analyzers-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-analyzers-smartcn</artifactId>
         </dependency>
 
         <dependency>

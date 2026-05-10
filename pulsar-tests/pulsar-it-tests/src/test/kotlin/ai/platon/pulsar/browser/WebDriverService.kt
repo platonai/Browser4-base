@@ -1,14 +1,15 @@
 package ai.platon.pulsar.browser
 
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserFactory
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.core.api.Browser
+import ai.platon.pulsar.skeleton.browser.BrowserFactory
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.milliseconds
 
 open class WebDriverService(
     val browserFactory: BrowserFactory,
@@ -108,7 +109,7 @@ open class WebDriverService(
         var n = scrollCount
         while (n-- > 0) {
             driver.scrollDown(1)
-            delay(1000)
+            delay(1000.milliseconds)
         }
         driver.scrollToTop()
     }
@@ -130,7 +131,7 @@ open class WebDriverService(
         var n = scrollCount
         while (n-- > 0) {
             driver.scrollDown(1)
-            delay(1000)
+            delay(1000.milliseconds)
         }
         driver.scrollToTop()
 

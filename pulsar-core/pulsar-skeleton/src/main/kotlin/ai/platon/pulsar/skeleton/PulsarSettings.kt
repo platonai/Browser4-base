@@ -1,14 +1,15 @@
 package ai.platon.pulsar.skeleton
 
-import ai.platon.browser4.driver.common.BrowserSettings
-import ai.platon.browser4.driver.common.DisplayMode
-import ai.platon.browser4.driver.common.DomSettlePolicy
-import ai.platon.browser4.driver.common.InteractSettings
+import ai.platon.pulsar.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.DisplayMode
+import ai.platon.pulsar.driver.DomSettlePolicy
+import ai.platon.pulsar.driver.InteractSettings
 import ai.platon.pulsar.common.browser.BrowserProfileMode
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.browser.InteractLevel
 import ai.platon.pulsar.common.config.CapabilityTypes.*
 import ai.platon.pulsar.common.config.MutableConfig
+import ai.platon.pulsar.core.api.PulsarSettings
 
 /**
  * The [PulsarSettings] class defines a convenient interface to control the behavior of Browser4.
@@ -73,6 +74,25 @@ data class PulsarSettings(
     }
 
     companion object {
+
+        fun parse(capabilities: Map<String, Any?>? = null): PulsarSettings {
+            val spa: Boolean? = capabilities?.get("spa")?.toString()?.toBooleanStrictOrNull()
+            val displayMode: DisplayMode? = capabilities?.get("displayMode")?.toString()?.let { DisplayMode.fromString(it) }
+            val maxBrowsers: Int? = capabilities?.get("maxBrowsers")?.toString()?.toIntOrNull()
+            val maxOpenTabs: Int? = capabilities?.get("maxOpenTabs")?.toString()?.toIntOrNull()
+            val interactSettings: InteractSettings? = capabilities?.get("interactSettings")?.toString()?.let { InteractSettings.fromJsonOrNull(it) }
+            val profileMode = capabilities?.get("profileMode")?.toString()?.let { BrowserProfileMode.fromString(it) }
+
+            return PulsarSettings(
+                spa = spa,
+                displayMode = displayMode,
+                maxBrowsers = maxBrowsers,
+                maxOpenTabs = maxOpenTabs,
+                profileMode = profileMode,
+                interactSettings = interactSettings,
+            )
+        }
+
         @JvmStatic
         @JvmOverloads
         fun withBrowserContextMode(contextMode: BrowserProfileMode, conf: MutableConfig? = null): Companion =

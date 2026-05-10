@@ -4,7 +4,7 @@ import ai.platon.pulsar.test.TestUrls
 import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 
-class TestCases: TestBase() {
+class TestCases : TestBase() {
 
     @Test
     fun testXSqlHelp() {
@@ -35,8 +35,10 @@ class TestCases: TestBase() {
     @Test
     fun testCondition() {
         execute("SELECT * FROM LOAD_AND_GET_FEATURES('$productIndexUrl', '.shoplist li');")
-        execute("SELECT * FROM LOAD_AND_GET_FEATURES('$productIndexUrl', 'div', 1, 10000) " +
-                "WHERE WIDTH BETWEEN 200 AND 400 AND HEIGHT BETWEEN 200 AND 400 AND TXT_ND > 0;")
+        execute(
+            "SELECT * FROM LOAD_AND_GET_FEATURES('$productIndexUrl', 'div', 1, 10000) " +
+                    "WHERE WIDTH BETWEEN 200 AND 400 AND HEIGHT BETWEEN 200 AND 400 AND TXT_ND > 0;"
+        )
     }
 
     @Test

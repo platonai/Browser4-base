@@ -18,6 +18,8 @@ enum class BrowserType {
 
     /**
      * The playwright's browser implementation.
+     *
+     * Reserved.
      * */
     PLAYWRIGHT_CHROME;
 

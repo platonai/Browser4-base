@@ -16,7 +16,7 @@ open class ProxyVendorLoader(
 ) : ProxyLoader(conf) {
     private val logger = getLogger(this)
     private val proxyRotationURLSpec get() = conf[PROXY_ROTATION_URL]
-    private val proxyRotationURL get() = URLUtils.getURLOrNull(proxyRotationURLSpec)
+    private val proxyRotationURL get() = URLUtils.getURLOrNull2(proxyRotationURLSpec)
 
     override val parser: ProxyParser
         get() {

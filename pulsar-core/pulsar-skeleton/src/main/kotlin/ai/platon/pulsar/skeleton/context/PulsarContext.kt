@@ -8,17 +8,16 @@ import ai.platon.pulsar.external.ModelResponse
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.persist.gora.generated.GWebPage
 import ai.platon.pulsar.skeleton.PulsarSettings
+import ai.platon.pulsar.skeleton.TaskLoops
+import ai.platon.pulsar.skeleton.browser.Browser
+import ai.platon.pulsar.skeleton.browser.BrowserManager
+import ai.platon.pulsar.skeleton.browser.driver.BrowserLaunchException
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.urls.NormURL
-import ai.platon.pulsar.skeleton.crawl.TaskLoops
-import ai.platon.pulsar.skeleton.crawl.common.GlobalCache
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserFactory
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserLaunchException
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.BrowserManager
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
-import ai.platon.pulsar.skeleton.crawl.filter.ChainedUrlNormalizer
 import ai.platon.pulsar.skeleton.session.PulsarSession
+import ai.platon.pulsar.skeleton.common.GlobalCache
+import ai.platon.pulsar.skeleton.workflow.filter.ChainedUrlNormalizer
 import com.google.common.annotations.Beta
 import org.springframework.beans.BeansException
 import java.net.URL
@@ -56,11 +55,6 @@ interface PulsarContext : java.lang.AutoCloseable {
      * The global cache
      * */
     val globalCache: GlobalCache
-
-    /**
-     * The browser factory.
-     * */
-    val browserFactory: BrowserFactory
 
     /**
      * The browser manager.
@@ -122,25 +116,25 @@ interface PulsarContext : java.lang.AutoCloseable {
      * */
     @Throws(BrowserLaunchException::class)
     fun launchSystemDefaultBrowser(): Browser =
-        browserFactory.launchSystemDefaultBrowser().also { registerClosable(it) }
+        browserManager.launchSystemDefaultBrowser().also { registerClosable(it) }
 
     /**
      * Launch the default browser, notice, the default browser is not the one you used daily.
      * */
     @Throws(BrowserLaunchException::class)
-    fun launchDefaultBrowser(): Browser = browserFactory.launchDefaultBrowser().also { registerClosable(it) }
+    fun launchDefaultBrowser(): Browser = browserManager.launchDefaultBrowser().also { registerClosable(it) }
 
     /**
      * Launch the prototype browser, the prototype browser is a browser instance with default settings.
      * */
     @Throws(BrowserLaunchException::class)
-    fun launchPrototypeBrowser(): Browser = browserFactory.launchPrototypeBrowser().also { registerClosable(it) }
+    fun launchPrototypeBrowser(): Browser = browserManager.launchPrototypeBrowser().also { registerClosable(it) }
 
     /**
      * Launch a random temporary browser, the browser's user data dir is a random temporary dir.
      * */
     @Throws(BrowserLaunchException::class)
-    fun launchRandomTempBrowser(): Browser = browserFactory.launchRandomTempBrowser().also { registerClosable(it) }
+    fun launchRandomTempBrowser(): Browser = browserManager.launchRandomTempBrowser().also { registerClosable(it) }
 
     /**
      * Normalize a url, the url can be in one of the following forms:

@@ -2,16 +2,15 @@ package ai.platon.pulsar.common.browser
 
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.sleepMillis
+import org.junit.jupiter.api.DisplayName
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 import kotlin.test.*
-import org.junit.jupiter.api.DisplayName
 
 class BrowserFilesTests {
 
     private val group = "BrowserFilesTests"
-    private val groupBaseDir = AppPaths.getContextGroupDir(group)
     private val contextBaseDir = AppPaths.getContextBaseDir(group, BrowserType.PULSAR_CHROME)
 
     private val tempContextGroupDir = AppPaths.getTmpContextGroupDir(group)
@@ -36,16 +35,16 @@ class BrowserFilesTests {
     }
 
     @Test
-        @DisplayName("when deleteTemporaryUserDataDirWithLock then userDataDir is deleted")
-    fun whenDeletetemporaryuserdatadirwithlockThenUserDataDirIsDeleted() {
+    @DisplayName("when DeleteTemporaryUserDataDirWithLock then userDataDir is deleted")
+    fun whenDeleteTemporaryUserDataDirWithLockThenUserDataDirIsDeleted() {
         val userDataDir = tempContextGroupDir.resolve("user_data_dir")
         Files.createDirectories(userDataDir)
         deleteTemporaryUserDataDirWithLock(userDataDir)
     }
 
     @Test
-        @DisplayName("when parallel deleteTemporaryUserDataDirWithLock then userDataDirs are deleted")
-    fun whenParallelDeletetemporaryuserdatadirwithlockThenUserDataDirsAreDeleted() {
+    @DisplayName("when parallel DeleteTemporaryUserDataDirWithLock then userDataDirs are deleted")
+    fun whenParallelDeleteTemporaryUserDataDirWithLockThenUserDataDirsAreDeleted() {
         val userDataDirs = IntRange(0, 200).map { tempContextGroupDir.resolve("user_data_dir.$it") }
         userDataDirs.forEach { Files.createDirectories(it) }
         userDataDirs.parallelStream().forEach { deleteTemporaryUserDataDirWithLock(it) }
@@ -60,7 +59,7 @@ class BrowserFilesTests {
     }
 
     @Test
-        @DisplayName("when computeNextSequentialContextDir then next sequential context dir is created")
+    @DisplayName("when computeNextSequentialContextDir then next sequential context dir is created")
     fun whenComputeNextSequentialContextDirThenNextSequentialContextDirIsCreated() {
         val path = BrowserFiles.computeNextSequentialContextDir(group)
         // logPrintln(path)
@@ -69,7 +68,7 @@ class BrowserFilesTests {
     }
 
     @Test
-        @DisplayName("when parallel computeNextSequentialContextDir then multiple context dirs are created")
+    @DisplayName("when parallel computeNextSequentialContextDir then multiple context dirs are created")
     fun whenParallelComputeNextSequentialContextDirThenMultipleContextDirsAreCreated() {
         val numAgents = 13
         IntRange(1, 100).toList().parallelStream().forEach {
@@ -88,7 +87,7 @@ class BrowserFilesTests {
     private fun deleteTemporaryUserDataDirWithLock(userDataDir: Path) {
         // Arrange
         val expiry = Duration.ofSeconds(0)
-        val pidFile = userDataDir.resolveSibling(BrowserFiles.PID_FILE_NAME)
+        val pidFile = userDataDir.resolveSibling(BrowserFiles.PID_FILE_NAME + ".bak")
         if (!Files.exists(pidFile)) {
             Files.createFile(pidFile)
         }
@@ -103,7 +102,6 @@ class BrowserFilesTests {
 
         // Assert
         assertTrue { Files.exists(pidFile) } // PID file is not deleted
-        assertFalse { Files.exists(userDataDir) } // user data dir is deleted
+        assertFalse("User data dir should be deleted | $userDataDir") { Files.exists(userDataDir) } // user data dir is deleted
     }
 }
-

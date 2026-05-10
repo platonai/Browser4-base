@@ -25,7 +25,7 @@ public class NetUtil {
     }
 
     public static boolean testHttpNetwork(String url) {
-        var u = URLUtils.getURLOrNull(url);
+        var u = URLUtils.getURLOrNull2(url);
         if (u == null) {
             return false;
         }

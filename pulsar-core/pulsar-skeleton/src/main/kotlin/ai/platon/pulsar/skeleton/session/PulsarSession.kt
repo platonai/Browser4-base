@@ -10,12 +10,12 @@ import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.skeleton.common.options.LoadOptions
 import ai.platon.pulsar.skeleton.common.urls.NormURL
 import ai.platon.pulsar.skeleton.context.PulsarContext
-import ai.platon.pulsar.skeleton.crawl.PageEventHandlers
-import ai.platon.pulsar.skeleton.crawl.common.DocumentCatch
-import ai.platon.pulsar.skeleton.crawl.common.GlobalCache
-import ai.platon.pulsar.skeleton.crawl.common.PageCatch
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.Browser
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
+import ai.platon.pulsar.skeleton.browser.Browser
+import ai.platon.pulsar.skeleton.event.PageEventHandlers
+import ai.platon.pulsar.skeleton.common.DocumentCatch
+import ai.platon.pulsar.skeleton.common.GlobalCache
+import ai.platon.pulsar.skeleton.common.PageCatch
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
 import com.google.common.annotations.Beta
 import org.jsoup.nodes.Element
 import java.nio.ByteBuffer
@@ -1202,7 +1202,7 @@ interface PulsarSession : AutoCloseable {
     fun loadAllAsync(urls: List<NormURL>): List<CompletableFuture<WebPage>>
 
     /**
-     * Submit a url to the URL pool, and it will be subsequently processed in the crawl loop.
+     * Submit a url to the URL pool, and it will be subsequently processed in the Main loop.
      *
      * A submit operation is non-blocking, meaning it returns immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1218,7 +1218,7 @@ interface PulsarSession : AutoCloseable {
     fun submit(url: String): PulsarSession
 
     /**
-     * Submit a url to the URL pool, and it will be subsequently processed in the crawl loop.
+     * Submit a url to the URL pool, and it will be subsequently processed in the Main loop.
      *
      * A submit operation is non-blocking, meaning it returns immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1235,7 +1235,7 @@ interface PulsarSession : AutoCloseable {
     fun submit(url: String, args: String): PulsarSession
 
     /**
-     * Submit a url to the URL pool, and it will be subsequently processed in the crawl loop.
+     * Submit a url to the URL pool, and it will be subsequently processed in the Main loop.
      *
      * A submit operation is non-blocking, meaning it returns immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1276,7 +1276,7 @@ interface PulsarSession : AutoCloseable {
     fun submit(url: String, options: LoadOptions): PulsarSession
 
     /**
-     * Submit a url to the URL pool, and it will be subsequently processed in the crawl loop.
+     * Submit a url to the URL pool, and it will be subsequently processed in the Main loop.
      *
      * A submit operation is non-blocking, meaning it returns immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1339,13 +1339,13 @@ interface PulsarSession : AutoCloseable {
      *
      * @see PageEventHandlers
      * @see ai.platon.pulsar.common.urls.Hyperlink
-     * @see ai.platon.pulsar.skeleton.crawl.common.url.ListenableHyperlink
-     * @see ai.platon.pulsar.skeleton.crawl.common.url.ParsableHyperlink
+     * @see ai.platon.pulsar.skeleton.workflow.common.url.ListenableHyperlink
+     * @see ai.platon.pulsar.skeleton.workflow.common.url.ParsableHyperlink
      */
     fun submit(url: UrlAware): PulsarSession
 
     /**
-     * Submit a url to the URL pool, and it will be subsequently processed in the crawl loop.
+     * Submit a url to the URL pool, and it will be subsequently processed in the Main loop.
      *
      * A submit operation is non-blocking, meaning it returns immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1372,7 +1372,7 @@ interface PulsarSession : AutoCloseable {
     )
 
     /**
-     * Submit urls to the URL pool, and they will be subsequently processed in the crawl loop.
+     * Submit urls to the URL pool, and they will be subsequently processed in the Main loop.
      *
      * Submit operations are non-blocking, meaning they return immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1388,7 +1388,7 @@ interface PulsarSession : AutoCloseable {
     fun submitAll(urls: Iterable<String>): PulsarSession
 
     /**
-     * Submit urls to the URL pool, and they will be subsequently processed in the crawl loop.
+     * Submit urls to the URL pool, and they will be subsequently processed in the Main loop.
      *
      * Submit operations are non-blocking, meaning they return immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1405,7 +1405,7 @@ interface PulsarSession : AutoCloseable {
     fun submitAll(urls: Iterable<String>, args: String): PulsarSession
 
     /**
-     * Submit urls to the URL pool, and they will be subsequently processed in the crawl loop.
+     * Submit urls to the URL pool, and they will be subsequently processed in the Main loop.
      *
      * Submit operations are non-blocking, meaning they return immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1424,7 +1424,7 @@ interface PulsarSession : AutoCloseable {
     fun submitAll(urls: Iterable<String>, options: LoadOptions): PulsarSession
 
     /**
-     * Submit urls to the URL pool, and they will be subsequently processed in the crawl loop.
+     * Submit urls to the URL pool, and they will be subsequently processed in the Main loop.
      *
      * A submit operation is non-blocking, meaning it returns immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1443,7 +1443,7 @@ interface PulsarSession : AutoCloseable {
     fun submitAll(urls: Collection<UrlAware>): PulsarSession
 
     /**
-     * Submit urls to the URL pool, and they will be subsequently processed in the crawl loop.
+     * Submit urls to the URL pool, and they will be subsequently processed in the Main loop.
      *
      * A submit operation is non-blocking, meaning it returns immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1599,7 +1599,7 @@ interface PulsarSession : AutoCloseable {
      *
      * Option `-outLink` specifies the cssSelector for links in the portal page to load.
      *
-     * The submitted urls will be subsequently processed in the crawl loop.
+     * The submitted urls will be subsequently processed in the Main loop.
      *
      * Submit operations are non-blocking, meaning they return immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1622,7 +1622,7 @@ interface PulsarSession : AutoCloseable {
      *
      * Option `-outLink` specifies the cssSelector for links in the portal page to load.
      *
-     * The submitted urls will be subsequently processed in the crawl loop.
+     * The submitted urls will be subsequently processed in the Main loop.
      *
      * Submit operations are non-blocking, meaning they return immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1645,7 +1645,7 @@ interface PulsarSession : AutoCloseable {
      *
      * Option `-outLink` specifies the cssSelector for links in the portal page to load.
      *
-     * The submitted urls will be subsequently processed in the crawl loop.
+     * The submitted urls will be subsequently processed in the Main loop.
      *
      * Submit operations are non-blocking, meaning they return immediately without blocking the current thread or
      * suspending the current coroutine.
@@ -1668,7 +1668,7 @@ interface PulsarSession : AutoCloseable {
      *
      * Option `-outLink` specifies the cssSelector for links in the portal page to load.
      *
-     * The submitted urls will be subsequently processed in the crawl loop.
+     * The submitted urls will be subsequently processed in the Main loop.
      *
      * Submit operations are non-blocking, meaning they return immediately without blocking the current thread or
      * suspending the current coroutine.

@@ -136,31 +136,32 @@ object Runtimes {
     }
 
     fun destroyProcess(process: Process, shutdownWaitTime: Duration) {
-        val info = formatProcessInfo(process.toHandle())
         val pid = process.pid()
+        val info = runCatching { formatProcessInfo(process.toHandle()) }.getOrElse { "pid=$pid" }
 
-        // Log and destroy child processes
-        val childCount = process.children().count().toInt()
-        if (childCount > 0) {
-            logger.info("Chrome process {} has {} child process(es), terminating them first", pid, childCount)
+        // Collect children once to avoid consuming the stream twice
+        val children = process.children().toList()
+        if (children.isNotEmpty()) {
+            logger.info("Process {} has {} child process(es), terminating them first", pid, children.size)
         }
-        process.children().forEach { destroyChildProcess(it) }
+        children.forEach { destroyChildProcess(it) }
 
         process.destroy()
         try {
             if (!process.waitFor(shutdownWaitTime.seconds, TimeUnit.SECONDS)) {
-                logger.warn("Chrome process {} did not exit gracefully within {} seconds, force killing", pid, shutdownWaitTime.seconds)
+                logger.warn("Process {} did not exit gracefully within {} seconds, force killing", pid, shutdownWaitTime.seconds)
                 process.destroyForcibly()
-                process.waitFor(shutdownWaitTime.seconds, TimeUnit.SECONDS)
+                if (!process.waitFor(shutdownWaitTime.seconds, TimeUnit.SECONDS)) {
+                    logger.error("Process {} still alive after destroyForcibly + {} s wait", pid, shutdownWaitTime.seconds)
+                }
             }
 
             logger.info("Exit | {}", info)
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
-            logger.warn("Interrupted while waiting for chrome process {} to exit, force killing", pid)
+            logger.warn("Interrupted while waiting for process {} to exit, force killing", pid)
             process.destroyForcibly()
             throw e
-        } finally {
         }
     }
 
@@ -174,11 +175,11 @@ object Runtimes {
                 if (childCount > 0) {
                     logger.info("Forcibly killing process {} with {} child process(es)", pid, childCount)
                 }
-                
+
                 destroyChildProcess(handle)
                 if (handle.isAlive) handle.destroy()
                 if (handle.isAlive) handle.destroyForcibly()
-                
+
                 // Verify process was killed
                 if (handle.isAlive) {
                     logger.error("Failed to forcibly kill process {} using ProcessHandle", pid)
@@ -196,11 +197,11 @@ object Runtimes {
             SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC -> "kill -9 $pid"
             else -> "kill -9 $pid"
         }
-        runCatching { 
+        runCatching {
             exec(command)
             logger.info("Executed kill command for pid {}: {}", pid, command)
-        }.onFailure { 
-            logger.warn("Failed to forcibly kill pid {} using command: {}", pid, command, it) 
+        }.onFailure {
+            logger.warn("Failed to forcibly kill pid {} using command: {}", pid, command, it)
         }
     }
 
@@ -378,15 +379,20 @@ object Runtimes {
 
         val info = formatProcessInfo(process)
         val pid = process.pid()
-        
+
         process.destroy()
         if (process.isAlive) {
             process.destroyForcibly()
         }
-        
+
+        var n = 10
+        while (process.isAlive && n-- > 0) {
+            Thread.sleep(200)
+        }
+
         // Verify child was killed
         if (process.isAlive) {
-            logger.warn("Failed to kill child process {} | {}", pid, info)
+            logger.warn("Failed to kill children of process {} | {}", pid, info)
         } else {
             logger.debug("Exit child | {}", info)
         }

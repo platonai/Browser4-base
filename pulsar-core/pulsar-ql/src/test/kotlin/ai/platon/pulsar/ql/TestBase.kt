@@ -1,15 +1,19 @@
 package ai.platon.pulsar.ql
 
 import ai.platon.pulsar.common.browser.BrowserType
+import ai.platon.pulsar.common.config.MutableConfig
 import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.common.sql.ResultSetFormatter
-import ai.platon.pulsar.persist.WebPage
-import ai.platon.pulsar.ql.context.SQLContexts
 import ai.platon.pulsar.common.printlnPro
+import ai.platon.pulsar.common.sql.ResultSetFormatter
+import ai.platon.pulsar.core.api.PulsarSession
+import ai.platon.pulsar.ql.context.SQLContext
+import ai.platon.pulsar.ql.context.SQLContexts
 import ai.platon.pulsar.skeleton.common.options.LoadOptionDefaults
 import ai.platon.pulsar.test.TestUrls
-import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.slf4j.LoggerFactory
+import org.springframework.context.support.GenericApplicationContext
 import java.sql.ResultSet
 import java.time.Instant
 import java.util.*
@@ -39,18 +43,28 @@ abstract class TestBase {
         val history = mutableListOf<String>()
         val startTime = Instant.now()
 
-        val context = SQLContexts.create()
-        val session = context.getOrCreateSession()
+        // Use a minimal Spring context for SQL-only tests to avoid runtime bean resource coupling.
+        lateinit var context: SQLContext
 
-        fun ensurePage(url: String) {
-            val pageCondition = { page: WebPage -> page.protocolStatus.isSuccess && page.persistedContentLength > 8000 }
-            val page = session.load(url).takeIf(pageCondition) ?: session.load(url, "-refresh")
+        // Keep runtime session lazy so SQL-only tests do not fail during static initialization.
+        lateinit var session: PulsarSession
 
-            Assumptions.assumeTrue(page.protocolStatus.isSuccess)
-            Assumptions.assumeTrue(page.contentLength > 0)
-            if (page.isFetched) {
-                Assumptions.assumeTrue(page.persistedContentLength > 0)
-            }
+        @JvmStatic
+        @BeforeAll
+        fun setUp(): Unit {
+            context = SQLContexts.create(
+                GenericApplicationContext().apply {
+                    beanFactory.registerSingleton("conf", MutableConfig(loadDefaults = true))
+                    refresh()
+                }
+            )
+            session = context.createSession()
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun tearDown() {
+            context.close()
         }
     }
 

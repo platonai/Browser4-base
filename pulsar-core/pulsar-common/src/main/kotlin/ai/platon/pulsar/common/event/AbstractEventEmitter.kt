@@ -4,7 +4,7 @@ import ai.platon.pulsar.common.warnInterruptible
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
-abstract class AbstractEventEmitter<EventType>: EventEmitter<EventType> {
+abstract class AbstractEventEmitter<EventType> : EventEmitter<EventType> {
     protected val listenerMap = ConcurrentHashMap<EventType, CopyOnWriteArrayList<Function<Any>>>()
 
     val listeners: Map<EventType, List<Function<Any>>> get() = listenerMap
@@ -48,7 +48,10 @@ abstract class AbstractEventEmitter<EventType>: EventEmitter<EventType> {
         return this
     }
 
-    override fun <T, T2, T3> on1(event: EventType, handler: suspend (T, T2, T3) -> Any): AbstractEventEmitter<EventType> {
+    override fun <T, T2, T3> on1(
+        event: EventType,
+        handler: suspend (T, T2, T3) -> Any
+    ): AbstractEventEmitter<EventType> {
         listenerMap.computeIfAbsent(event) { CopyOnWriteArrayList() }.add(handler)
         return this
     }
@@ -175,7 +178,10 @@ abstract class AbstractEventEmitter<EventType>: EventEmitter<EventType> {
         return this
     }
 
-    override fun <T, T2, T3> off1(event: EventType, handler: suspend (T, T2, T3) -> Any): AbstractEventEmitter<EventType> {
+    override fun <T, T2, T3> off1(
+        event: EventType,
+        handler: suspend (T, T2, T3) -> Any
+    ): AbstractEventEmitter<EventType> {
         val list = listenerMap[event] ?: return this
         list.removeAll { it == handler }
         if (list.isEmpty()) {

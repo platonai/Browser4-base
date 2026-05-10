@@ -74,29 +74,6 @@ if ($exitCode -eq 0) {
   exit $exitCode
 }
 
-# The following commands are commented out to avoid accidental execution
-# mvn nexus-staging:close -P deploy
-# mvn nexus-staging:release -P deploy
-
-# Build browser4/browser4-agents/ but do not deploy the artifacts
-$PulsarAppPath = Join-Path $repoRoot 'browser4/browser4-agents/'
-if (Test-Path $PulsarAppPath) {
-  Set-Location $PulsarAppPath
-  & $MvnCmd clean install -DskipTests
-  if ($LastExitCode -ne 0) {
-    exit $LastExitCode
-  }
-} else {
-  Write-Host "browser4/browser4-agents/ not found, skipping build."
-}
-
-$exitCode =$LastExitCode
-if ($exitCode -eq 0) {
-  Write-Host "Build successfully"
-} else {
-  exit $exitCode
-}
-
 Set-Location $repoRoot
 
 Write-Host "Artifacts are uploaded, you should publish manually:"

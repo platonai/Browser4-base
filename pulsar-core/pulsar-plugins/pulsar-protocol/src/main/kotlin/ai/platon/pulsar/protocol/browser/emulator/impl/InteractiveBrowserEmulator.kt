@@ -15,8 +15,8 @@
  */
 package ai.platon.pulsar.protocol.browser.emulator.impl
 
-import ai.platon.browser4.driver.common.BrowserSettings
-import ai.platon.browser4.driver.common.DomSettlePolicy
+import ai.platon.pulsar.driver.common.BrowserSettings
+import ai.platon.pulsar.driver.DomSettlePolicy
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.AppConstants.VAR_CAPTURE
@@ -31,21 +31,28 @@ import ai.platon.pulsar.persist.model.ActiveDOMMessage
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolManager
 import ai.platon.pulsar.protocol.browser.driver.cdt.PulsarWebDriver
 import ai.platon.pulsar.protocol.browser.emulator.*
+import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
+import ai.platon.pulsar.skeleton.browser.driver.IllegalWebDriverStateException
+import ai.platon.pulsar.skeleton.browser.driver.NavigateEntry
+import ai.platon.pulsar.skeleton.browser.driver.NetworkResourceHelper
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
+import ai.platon.pulsar.skeleton.browser.driver.WebDriverCancellationException
+import ai.platon.pulsar.skeleton.browser.driver.WebDriverException
 import ai.platon.pulsar.skeleton.common.metrics.MetricsSystem
 import ai.platon.pulsar.skeleton.common.persist.ext.browseEventHandlers
 import ai.platon.pulsar.skeleton.common.persist.ext.options
-import ai.platon.pulsar.skeleton.crawl.PulsarEventBus
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchResult
-import ai.platon.pulsar.skeleton.crawl.fetch.FetchTask
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.*
-import ai.platon.pulsar.skeleton.crawl.protocol.ForwardingResponse
-import ai.platon.pulsar.skeleton.crawl.protocol.Response
-import ai.platon.pulsar.skeleton.crawl.protocol.http.ProtocolStatusTranslator
+import ai.platon.pulsar.skeleton.event.PulsarEventBus
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchResult
+import ai.platon.pulsar.skeleton.workflow.fetch.FetchTask
+import ai.platon.pulsar.skeleton.workflow.protocol.ForwardingResponse
+import ai.platon.pulsar.skeleton.workflow.protocol.Response
+import ai.platon.pulsar.skeleton.workflow.protocol.http.ProtocolStatusTranslator
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.Instant
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Created by Vincent on 18-1-1.
@@ -647,7 +654,7 @@ open class InteractiveBrowserEmulator(
 
         var n = 10
         while (n-- > 0 && !isScriptInjected(driver)) {
-            delay(1000)
+            delay(1000.milliseconds)
         }
 
         if (n <= 0) {

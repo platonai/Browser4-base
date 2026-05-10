@@ -1,158 +1,207 @@
 package ai.platon.pulsar.common.js
 
-import ai.platon.pulsar.common.js.JsUtils.toCDPCompatibleExpression
-import ai.platon.pulsar.common.js.JsUtils.toIIFEOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Test
-import kotlin.test.assertNull
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 
 class JsUtilsTest {
 
+    // ── toCDPCompatibleExpression ─────────────────────────────────────────────
+
     @Test
-        @DisplayName("test normal function expression")
-    fun testNormalFunctionExpression() {
-        val input = "function() { console.log('hello'); }"
-        val expected = "(function() { console.log('hello'); })();"
-        assertEquals(expected, toIIFEOrNull(input))
+    @DisplayName("toCDPCompatibleExpression strips leading return keyword with space")
+    fun toCdpCompatibleExpressionStripsLeadingReturnKeywordWithSpace() {
+        val result = JsUtils.toCDPCompatibleExpression("return document.title")
+        assertEquals("document.title", result)
     }
 
     @Test
-        @DisplayName("test function with leading and trailing spaces")
-    fun testFunctionWithLeadingAndTrailingSpaces() {
-        val input = "   function() {}   "
-        val expected = "(function() {})();"
-        assertEquals(expected, toIIFEOrNull(input))
+    @DisplayName("toCDPCompatibleExpression strips leading return keyword followed by parenthesis")
+    fun toCdpCompatibleExpressionStripsLeadingReturnFollowedByParenthesis() {
+        // `return(expr)` → strip `return` → `(expr)` is a plain parenthesised expression, not a function call
+        val result = JsUtils.toCDPCompatibleExpression("return(document.title)")
+        assertEquals("(document.title);", result)
     }
 
     @Test
-        @DisplayName("test function with semicolons")
-    fun testFunctionWithSemicolons() {
-        val input = ";(function(){});"
-        val expected = "((function(){}))();"
-        assertEquals(expected, toIIFEOrNull(input))
+    @DisplayName("toCDPCompatibleExpression does not strip return inside an identifier")
+    fun toCdpCompatibleExpressionDoesNotStripReturnInsideIdentifier() {
+        val result = JsUtils.toCDPCompatibleExpression("returnValue")
+        assertEquals("returnValue", result)
     }
 
     @Test
-        @DisplayName("test async function")
-    fun testAsyncFunction() {
-        val input = "async function() { await doSomething(); }"
-        val expected = "(async function() { await doSomething(); })();"
-        assertEquals(expected, toIIFEOrNull(input))
+    @DisplayName("toCDPCompatibleExpression returns empty string for blank input")
+    fun toCdpCompatibleExpressionReturnsEmptyForBlankInput() {
+        assertEquals("", JsUtils.toCDPCompatibleExpression(""))
+        assertEquals("", JsUtils.toCDPCompatibleExpression("   "))
+        assertEquals("", JsUtils.toCDPCompatibleExpression("  \n  "))
     }
 
     @Test
-        @DisplayName("test arrow function")
-    fun testArrowFunction() {
-        val input = "() => { return 42; }"
-        val expected = "(() => { return 42; })();"
-        assertEquals(expected, toIIFEOrNull(input))
+    @DisplayName("toCDPCompatibleExpression wraps single-line bare arrow function as IIFE")
+    fun toCdpCompatibleExpressionWrapsSingleLineArrowAsIife() {
+        val result = JsUtils.toCDPCompatibleExpression("x => x * 2")
+        assertEquals("(x => x * 2)();", result)
     }
 
     @Test
-        @DisplayName("test arrow function with arguments")
-    fun testArrowFunctionWithArguments() {
-        val input = "x => x * 2"
-        val args = "5"
-        val expected = "(x => x * 2)(5);"
-        assertEquals(expected, toIIFEOrNull(input, args))
+    @DisplayName("toCDPCompatibleExpression does not wrap assignment expression containing arrow as IIFE")
+    fun toCdpCompatibleExpressionDoesNotWrapAssignmentContainingArrow() {
+        // `const fn = x => x` is a statement, not a bare function expression
+        val result = JsUtils.toCDPCompatibleExpression("const fn = x => x")
+        assertEquals("const fn = x => x", result)
     }
 
     @Test
-        @DisplayName("test object literal should not be treated as function")
-    fun testObjectLiteralShouldNotBeTreatedAsFunction() {
-        val input = "{ key: 'value' }"
-        val expected = "({ key: 'value' });"
-        assertEquals(expected, toIIFEOrNull(input))
+    @DisplayName("toCDPCompatibleExpression keeps async-prefixed calls as plain calls")
+    fun toCdpCompatibleExpressionKeepsAsyncPrefixedCallsAsPlainCalls() {
+        val result = JsUtils.toCDPCompatibleExpression("asyncOperation()")
+        assertEquals("asyncOperation()", result)
+    }
+
+    // ── toExpression ─────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("toExpression strips leading return keyword")
+    fun toExpressionStripsLeadingReturnKeyword() {
+        assertEquals("document.title", JsUtils.toExpression("return document.title"))
     }
 
     @Test
-        @DisplayName("test invalid format returns error message")
-    fun testInvalidFormatReturnsErrorMessage() {
-        val input = "This is not a function"
-        // ❌ Unsupported format: not a valid JS function
-        assertNull(toIIFEOrNull(input))
+    @DisplayName("toExpression strips leading return followed by parenthesis")
+    fun toExpressionStripsLeadingReturnFollowedByParenthesis() {
+        // Single-line: toExpression returns the trimmed line as-is (no semicolon appended)
+        assertEquals("(x + 1)", JsUtils.toExpression("return(x + 1)"))
     }
 
     @Test
-        @DisplayName("test empty string returns error message")
-    fun testEmptyStringReturnsErrorMessage() {
-        val input = ""
-        // ❌ Unsupported format: not a valid JS function
-        assertNull(toIIFEOrNull(input))
+    @DisplayName("toExpression returns empty string for blank input")
+    fun toExpressionReturnsEmptyForBlankInput() {
+        assertEquals("", JsUtils.toExpression(""))
+        assertEquals("", JsUtils.toExpression("   \n  "))
     }
 
     @Test
-        @DisplayName("test function with multi-line expressions")
-    fun testFunctionWithMultiLineExpressions() {
-        val input = """
-            const a = 10;
-            const b = 20;
-            return a * b;
-        """.trimIndent()
+    @DisplayName("toExpression returns single trimmed line unchanged")
+    fun toExpressionReturnsSingleLineTrimmed() {
+        assertEquals("1 + 2", JsUtils.toExpression("  1 + 2  "))
+    }
 
-        // ❌ Unsupported format: not a valid JS function
-        assertNull(toIIFEOrNull(input))
+    // ── toIIFE ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("toIIFE wraps named function declaration as IIFE")
+    fun toIifeWrapsNamedFunctionDeclaration() {
+        val result = JsUtils.toIIFE("function() { return 42 }")
+        assertEquals("(function() { return 42 })();", result)
     }
 
     @Test
-        @DisplayName("test function starting with x")
-    fun testFunctionStartingWithX() {
-        val input = "x => x + 1"
-        val expected = "(x => x + 1)();"
-        assertEquals(expected, toIIFEOrNull(input))
+    @DisplayName("toIIFE wraps arrow function as IIFE with args")
+    fun toIifeWrapsArrowFunctionWithArgs() {
+        val result = JsUtils.toIIFE("x => x * 2", "5")
+        assertEquals("(x => x * 2)(5);", result)
     }
 
     @Test
-        @DisplayName("test function with custom arguments")
-    fun testFunctionWithCustomArguments() {
-        val input = "function(a, b) { return a + b; }"
-        val args = "1, 2"
-        val expected = "(function(a, b) { return a + b; })(1, 2);"
-        assertEquals(expected, toIIFEOrNull(input, args))
+    @DisplayName("toIIFE returns empty string and does not throw for unrecognised input")
+    fun toIifeReturnsEmptyStringForUnrecognisedInput() {
+        val result = JsUtils.toIIFE("const a = 1;\nconst b = 2;\nreturn a + b;")
+        assertEquals("", result)
+    }
+
+    // ── toIIFEOrNull ─────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("toIIFEOrNull returns null for plain statement sequence")
+    fun toIifeOrNullReturnsNullForStatementSequence() {
+        assertNull(JsUtils.toIIFEOrNull("const a = 1;\nconst b = 2;\nreturn a + b;"))
     }
 
     @Test
-        @DisplayName("test toCDPCompatibleExpression remove heading return")
-    fun testTocdpcompatibleexpressionRemoveHeadingReturn() {
-        var expected = "document.title"
-        assertEquals(expected, toCDPCompatibleExpression("return   document.title  "))
-        assertEquals(expected, toCDPCompatibleExpression("return   \ndocument.title  "))
-        assertEquals(expected, toCDPCompatibleExpression("   return   document.title  "))
-        assertEquals(expected, toCDPCompatibleExpression("\nreturn   document.title  "))
-        assertEquals(expected, toCDPCompatibleExpression("\n\nreturn\ndocument.title  "))
-
-        expected = "document.title; return 1;"
-        assertEquals(expected, toCDPCompatibleExpression("document.title; return 1;  "))
-        assertNotEquals(expected, toCDPCompatibleExpression("document.title;\n\nreturn 1;  "))
-        assertEquals(expected, toCDPCompatibleExpression("return   document.title; return 1;  "))
-        assertEquals(expected, toCDPCompatibleExpression("return   \ndocument.title; return 1;  "))
-        assertEquals(expected, toCDPCompatibleExpression("   return   document.title; return 1;  "))
-        assertEquals(expected, toCDPCompatibleExpression("\n\nreturn\ndocument.title; return 1;  "))
+    @DisplayName("toIIFEOrNull does not double-wrap an already-invoked IIFE")
+    fun toIifeOrNullDoesNotDoubleWrapAlreadyInvokedIife() {
+        val iife = "(() => { return 3 })()"
+        val result = JsUtils.toIIFEOrNull(iife)
+        assertNotNull(result)
+        assertTrue(result!!.trimEnd().endsWith(";"))
+        assertTrue(!result.contains("()()"))
     }
 
     @Test
-        @DisplayName("test toCDPCompatibleExpression wraps single line object literal")
-    fun testTocdpcompatibleexpressionWrapsSingleLineObjectLiteral() {
-        val input = "{ answer: 42 }"
-        val expected = "({ answer: 42 });"
-        assertEquals(expected, toCDPCompatibleExpression(input))
+    @DisplayName("toIIFEOrNull recognises already-invoked IIFE with nested parens in args")
+    fun toIifeOrNullRecognisesIifeWithNestedParensInArgs() {
+        val iife = "(fn)(someFunc(x))"
+        val result = JsUtils.toIIFEOrNull(iife)
+        assertNotNull(result)
+        // Should be normalised (trailing semicolon), not re-wrapped
+        assertTrue(result!!.startsWith("(fn)"))
     }
 
     @Test
-        @DisplayName("test toCDPCompatibleExpression converts single line function expression")
-    fun testTocdpcompatibleexpressionConvertsSingleLineFunctionExpression() {
-        val input = "function() { return 1 }"
-        val expected = "(function() { return 1 })();"
-        assertEquals(expected, toCDPCompatibleExpression(input))
+    @DisplayName("toIIFEOrNull wraps bare single-param arrow function")
+    fun toIifeOrNullWrapsBareArrowFunction() {
+        assertEquals("(x => x * 2)(5);", JsUtils.toIIFEOrNull("x => x * 2", "5"))
     }
 
     @Test
-        @DisplayName("test toCDPCompatibleExpression keeps normal expression")
-    fun testTocdpcompatibleexpressionKeepsNormalExpression() {
-        val input = "  document.title  "
-        val expected = "document.title"
-        assertEquals(expected, toCDPCompatibleExpression(input))
+    @DisplayName("toIIFEOrNull does not wrap assignment expression containing arrow")
+    fun toIifeOrNullDoesNotWrapAssignmentContainingArrow() {
+        assertNull(JsUtils.toIIFEOrNull("const fn = x => x"))
+    }
+
+    @Test
+    @DisplayName("toIIFEOrNull does not wrap async-prefixed calls")
+    fun toIifeOrNullDoesNotWrapAsyncPrefixedCalls() {
+        assertNull(JsUtils.toIIFEOrNull("asyncOperation()"))
+    }
+
+    @Test
+    @DisplayName("toIIFEOrNull wraps raw object literal as expression")
+    fun toIifeOrNullWrapsObjectLiteralAsExpression() {
+        val obj = "{ answer: 42, label: 'ok' }"
+        val result = JsUtils.toIIFEOrNull(obj)
+        assertNotNull(result)
+        assertEquals("({ answer: 42, label: 'ok' });", result)
+    }
+
+    @Test
+    @DisplayName("toIIFEOrNull returns null for code block starting with brace containing semicolon")
+    fun toIifeOrNullReturnsNullForCodeBlockWithSemicolon() {
+        assertNull(JsUtils.toIIFEOrNull("{ const x = 1; return x; }"))
+    }
+
+    @Test
+    @DisplayName("toIIFEOrNull returns null for code block starting with brace containing return keyword")
+    fun toIifeOrNullReturnsNullForCodeBlockWithReturn() {
+        assertNull(JsUtils.toIIFEOrNull("{ return document.title }"))
+    }
+
+    @Test
+    @DisplayName("toIIFEOrNull wraps async function expression as IIFE")
+    fun toIifeOrNullWrapsAsyncArrowFunction() {
+        val result = JsUtils.toIIFEOrNull("async () => { return 1 }")
+        assertNotNull(result)
+        assertTrue(result!!.startsWith("(async () => { return 1 })"))
+    }
+
+    @Test
+    @DisplayName("toIIFEOrNull wraps async function declaration as IIFE")
+    fun toIifeOrNullWrapsAsyncFunctionDeclaration() {
+        val result = JsUtils.toIIFEOrNull("async function() { return 1 }")
+        assertNotNull(result)
+        assertEquals("(async function() { return 1 })();", result)
+    }
+
+    @Test
+    @DisplayName("toIIFEOrNull wraps parenthesised function expression as IIFE")
+    fun toIifeOrNullWrapsParenthesisedFunctionExpression() {
+        val result = JsUtils.toIIFEOrNull("(function(){ return 2 * 3 })")
+        assertNotNull(result)
+        assertEquals("((function(){ return 2 * 3 }))();", result)
     }
 }

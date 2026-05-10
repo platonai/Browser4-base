@@ -1,17 +1,17 @@
 package ai.platon.pulsar.browser
 
-import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.protocol.browser.DefaultWebDriverPoolManager
+import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.skeleton.common.AppSystemInfo
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.WebDriver
-import ai.platon.pulsar.skeleton.crawl.fetch.privacy.BrowserId
+import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
+import ai.platon.pulsar.skeleton.browser.driver.WebDriver
+import ai.platon.pulsar.skeleton.workflow.fetch.privacy.BrowserId
+import org.junit.jupiter.api.DisplayName
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.test.*
-import org.junit.jupiter.api.DisplayName
 
 class TestWebDriverPoolManager {
     companion object {
@@ -32,7 +32,7 @@ class TestWebDriverPoolManager {
     }
 
     @Test
-        @DisplayName("test createUnmanagedDriverPool")
+    @DisplayName("test createUnmanagedDriverPool")
     fun testCreateUnmanagedDriverPool() {
         val driverPool = driverPoolManager.createUnmanagedDriverPool(BrowserId.RANDOM_TEMP)
         val workingDrivers = mutableListOf<WebDriver>()

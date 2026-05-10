@@ -1,23 +1,26 @@
 package ai.platon.pulsar.common.code
 
-import ai.platon.pulsar.common.getLogger
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import kotlin.io.path.notExists
-import kotlin.io.path.walk
 
 /**
  * A utility class for project-related operations, such as locating the project root directory
  * or finding specific files within the project structure.
  */
 object ProjectUtils {
-    private val logger = getLogger(this)
+    private val logger = LoggerFactory.getLogger(ProjectUtils::class.java)
 
     const val CODE_MIRROR_DIR = "code-mirror"
 
-    const val CODE_RESOURCE_DIR = "pulsar-core/pulsar-resources/src/main/resources/$CODE_MIRROR_DIR"
+    var PROJECT_ROOT_BEACON_FILE_NAME = "VERSION"
+
+    var PROJECT_BEACON_MODULE_NAME = "pulsar-common"
+
+    var CODE_RESOURCE_DIR = "pulsar-core/pulsar-resources/src/main/resources/$CODE_MIRROR_DIR"
 
     fun isInJar(): Boolean {
         val location = this::class.java.protectionDomain.codeSource.location
@@ -39,19 +42,30 @@ object ProjectUtils {
      * @param startDir The directory to start the search from.
      * @return The project root directory if found, otherwise null.
      */
-    fun findProjectRootDir(startDir: Path): Path? {
+    fun findProjectRootDir(startDir: Path, deepSearch: Boolean = true): Path? {
         if (isInJar()) {
             return null
         }
 
         var projectRootDir: Path? = startDir
 
-        while (projectRootDir != null && projectRootDir.resolve("VERSION").notExists()) {
+        while (projectRootDir != null && projectRootDir.resolve(PROJECT_ROOT_BEACON_FILE_NAME).notExists()) {
             projectRootDir = projectRootDir.parent
         }
 
+        if (projectRootDir == null && deepSearch) {
+            // The working directory may not be the project root, try to find the module directory first and then search for the project root.
+            val moduleDir = Files.walk(startDir)
+                .filter { it.fileName.toString().endsWith(PROJECT_BEACON_MODULE_NAME) }
+                .findFirst().orElse(null)?.toAbsolutePath()
+
+            if (moduleDir != null) {
+                return findProjectRootDir(moduleDir, false)
+            }
+        }
+
         if (projectRootDir == null) {
-            logger.warn("Project root directory not found. Please ensure you are running within a project structure containing a VERSION file.")
+            logger.warn("Project root directory not found. Please ensure you are running within a project structure containing a $PROJECT_ROOT_BEACON_FILE_NAME file.")
         }
 
         return projectRootDir

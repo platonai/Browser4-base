@@ -2,7 +2,7 @@
 
 在计算 ariaSnapshot 时，丢失了关键信息。
 
-如：在 ai.platon.browser4.driver.chrome.dom.SnapshotServiceE2ETest.writeDOMState 中，
+如：在 ai.platon.pulsar.driver.chrome.dom.SnapshotServiceE2ETest.writeDOMState 中，
 
 同时打印了 domState.ariaSnapshot 和 domState.serializableTree.toNanoTree().ariaSnapshot。
 

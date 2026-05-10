@@ -7,13 +7,14 @@ import ai.platon.pulsar.common.sleepSeconds
 import ai.platon.pulsar.common.urls.URLUtils
 import ai.platon.pulsar.persist.ProtocolStatus
 import ai.platon.pulsar.skeleton.PulsarSettings
-import ai.platon.pulsar.skeleton.crawl.TaskLoop
-import ai.platon.pulsar.skeleton.crawl.common.url.ListenableHyperlink
-import ai.platon.pulsar.skeleton.crawl.fetch.driver.AbstractWebDriver
+import ai.platon.pulsar.skeleton.TaskLoop
+import ai.platon.pulsar.skeleton.workflow.common.url.ListenableHyperlink
+import ai.platon.pulsar.skeleton.browser.driver.AbstractWebDriver
 import kotlinx.coroutines.delay
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteRecursively
@@ -38,6 +39,11 @@ class BrowserRotationTest : MassiveTestBase() {
             PulsarSettings.maxBrowserContexts(4).maxOpenTabs(8)
             // PulsarSettings.withTemporaryBrowser()
         }
+    }
+
+    @BeforeEach
+    fun checkPreconditions() {
+        Assumptions.assumeTrue { testFileCount > 0 }
     }
 
     @OptIn(ExperimentalPathApi::class)
@@ -124,4 +130,3 @@ class BrowserRotationTest : MassiveTestBase() {
         return link
     }
 }
-
