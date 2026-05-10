@@ -3,7 +3,7 @@ package ai.platon.browser4.driver.chrome.impl
 import ai.platon.browser4.driver.chrome.IsolatedWorldManager
 import ai.platon.browser4.driver.NodeRef
 import ai.platon.browser4.driver.chrome.dom.CDPSnapshotService
-import ai.platon.browser4.driver.chrome.Locator
+import ai.platon.browser4.driver.Locator
 import ai.platon.browser4.driver.chrome.dom.SnapshotService
 import ai.platon.browser4.driver.chrome.dom.model.BrowserUseState
 import ai.platon.browser4.driver.chrome.dom.model.ElementRefCriteria

@@ -1,8 +1,8 @@
 package ai.platon.browser4.driver.chrome.dom
 
-import ai.platon.browser4.driver.chrome.FBNLocator
-import ai.platon.browser4.driver.chrome.Locator
-import ai.platon.browser4.driver.chrome.LocatorMap
+import ai.platon.browser4.driver.FBNLocator
+import ai.platon.browser4.driver.Locator
+import ai.platon.browser4.driver.LocatorMap
 import ai.platon.browser4.driver.chrome.dom.model.*
 import ai.platon.browser4.driver.chrome.dom.util.ScrollUtils
 
