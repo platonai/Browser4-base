@@ -1,8 +1,6 @@
 package ai.platon.browser4.driver.chrome
 
 import ai.platon.browser4.driver.chrome.experimental.CDP
-import ai.platon.cdt.kt.protocol.commands.DOM
-import ai.platon.cdt.kt.protocol.commands.Page
 import ai.platon.cdt.kt.protocol.types.input.DispatchDragEventType
 import ai.platon.cdt.kt.protocol.types.input.DispatchKeyEventType
 import ai.platon.cdt.kt.protocol.types.input.DragData
@@ -214,8 +212,6 @@ class ClickableDOM(
  * @author Vincent Zhang, ivincent.zhang@gmail.com, platon.ai
  */
 class Mouse(private val cdp: CDP) {
-    private val input get() = cdp.input
-
     var currentX = 0.0
     var currentY = 0.0
 
@@ -395,7 +391,7 @@ class Mouse(private val cdp: CDP) {
         var dragData: DragData? = null
 
         cdp.setInterceptDrags(true)
-        input.onDragIntercepted {
+        cdp.onDragIntercepted {
             dragData = it.data
         }
 
@@ -740,8 +736,7 @@ class EmulationHandler(
     private val cdp: CDP? = null
 ) {
     private val logger = getLogger(this)
-    private val pageAPI: Page? = cdp?.page
-    private val domAPI: DOM? = cdp?.dom
+    private val isActive get() = cdp != null
 
     suspend fun click(
         node: NodeRef, count: Int, position: String = "center", modifier: String? = null, delayMillis: Long = 100
@@ -769,11 +764,7 @@ class EmulationHandler(
      */
     suspend fun hover(node: NodeRef, position: String = "center") {
         val m = mouse ?: return
-        val p = pageAPI
-        val d = domAPI
-        if (p == null || d == null) {
-            return
-        }
+        if (!isActive) return
 
         // Use fixed offset for hover to ensure consistent behavior
         val point = getInteractPoint(node, position, useRandomOffset = false) ?: return
@@ -818,11 +809,7 @@ class EmulationHandler(
         val minDeltaY = 1.0
         val normalizedPosition = position.trim().lowercase()
 
-        val p = pageAPI
-        val d = domAPI
-        if (p == null || d == null) {
-            return null
-        }
+        if (!isActive) return null
 
         val clickableDOM = ClickableDOM.create(cdp, node, offset) ?: return null
         val point = clickableDOM.clickablePoint().value ?: return null

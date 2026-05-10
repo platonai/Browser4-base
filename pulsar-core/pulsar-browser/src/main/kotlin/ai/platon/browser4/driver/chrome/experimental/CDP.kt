@@ -2,12 +2,19 @@ package ai.platon.browser4.driver.chrome.experimental
 
 import ai.platon.browser4.driver.chrome.RemoteDevTools
 import ai.platon.cdt.kt.protocol.ChromeDevTools
+import ai.platon.cdt.kt.protocol.events.input.DragIntercepted
+import ai.platon.cdt.kt.protocol.events.page.DocumentOpened
+import ai.platon.cdt.kt.protocol.events.page.FrameNavigated
+import ai.platon.cdt.kt.protocol.events.page.WindowOpen
 import ai.platon.cdt.kt.protocol.types.dom.Rect
 import ai.platon.cdt.kt.protocol.types.domsnapshot.CaptureSnapshot
+import ai.platon.cdt.kt.protocol.types.fetch.RequestPattern
 import ai.platon.cdt.kt.protocol.types.input.DispatchDragEventType
 import ai.platon.cdt.kt.protocol.types.input.DispatchKeyEventType
 import ai.platon.cdt.kt.protocol.types.input.DispatchMouseEventType
 import ai.platon.cdt.kt.protocol.types.input.DragData
+import ai.platon.cdt.kt.protocol.types.network.ErrorReason
+import ai.platon.cdt.kt.protocol.types.network.LoadNetworkResourceOptions
 import ai.platon.cdt.kt.protocol.types.page.*
 import ai.platon.cdt.kt.protocol.types.runtime.CallArgument
 import ai.platon.cdt.kt.protocol.types.runtime.CallFunctionOn
@@ -47,7 +54,23 @@ class CDP(
     suspend fun pageEnable() = page.enable()
     suspend fun domEnable() = dom.enable()
     suspend fun accessibilityEnable() = accessibility.enable()
+    suspend fun runtimeEnable() = runtime.enable()
+    suspend fun networkEnable() = network.enable()
+    suspend fun cssEnable() = css.enable()
+    suspend fun fetchEnable() = fetch.enable()
+    suspend fun fetchEnable(patterns: List<RequestPattern>, handleAuthRequests: Boolean) = fetch.enable(patterns, handleAuthRequests)
     suspend fun getFrameTree() = page.getFrameTree()
+
+    suspend fun reload() = page.reload()
+    suspend fun navigateToHistoryEntry(entryId: Int) = page.navigateToHistoryEntry(entryId)
+    suspend fun handleJavaScriptDialog(accept: Boolean, promptText: String? = null) = page.handleJavaScriptDialog(accept, promptText)
+    suspend fun bringToFront() = page.bringToFront()
+    suspend fun stopLoading() = page.stopLoading()
+    suspend fun addScriptToEvaluateOnNewDocument(script: String) = page.addScriptToEvaluateOnNewDocument(script)
+
+    fun onDocumentOpened(handler: suspend (DocumentOpened) -> Unit) = page.onDocumentOpened(handler)
+    fun onFrameNavigated(handler: suspend (FrameNavigated) -> Unit) = page.onFrameNavigated(handler)
+    fun onWindowOpen(handler: suspend (WindowOpen) -> Unit) = page.onWindowOpen(handler)
 
     suspend fun navigate(url: String): Navigate = page.navigate(url)
 
@@ -177,8 +200,8 @@ class CDP(
         pierce: Boolean? = null,
     ) = dom.describeNode(nodeId, backendNodeId, objectId, depth, pierce)
 
-    suspend fun scrollIntoViewIfNeeded(nodeId: Int, rect: Rect? = null) =
-        dom.scrollIntoViewIfNeeded(nodeId, rect = rect)
+    suspend fun scrollIntoViewIfNeeded(nodeId: Int, backendNodeId: Int? = null, objectId: String? = null, rect: Rect? = null) =
+        dom.scrollIntoViewIfNeeded(nodeId, backendNodeId, objectId, rect)
 
     suspend fun resolveNodeByNodeId(nodeId: Int) = dom.resolveNode(nodeId = nodeId)
 
@@ -189,6 +212,20 @@ class CDP(
     suspend fun getComputedStyleForNode(nodeId: Int) = css.getComputedStyleForNode(nodeId)
 
     suspend fun getFullAXTree(depth: Int? = null) = accessibility.getFullAXTree(depth)
+
+    suspend fun clearBrowserCookies() = network.clearBrowserCookies()
+    suspend fun setBlockedURLs(urls: List<String>) = network.setBlockedURLs(urls)
+    suspend fun getCookies() = network.getCookies()
+    suspend fun deleteCookies(name: String, url: String? = null, domain: String? = null, path: String? = null) = network.deleteCookies(name, url, domain, path)
+    suspend fun loadNetworkResource(frameId: String, url: String, options: LoadNetworkResourceOptions) = network.loadNetworkResource(frameId, url, options)
+
+    suspend fun failRequest(requestId: String, errorReason: ErrorReason) = fetch.failRequest(requestId, errorReason)
+    suspend fun getResponseBody(requestId: String) = fetch.getResponseBody(requestId)
+
+    suspend fun setFileInputFiles(files: List<String>, nodeId: Int) = dom.setFileInputFiles(files, nodeId)
+    suspend fun getOuterHTML(nodeId: Int, backendNodeId: Int, objectId: String? = null) = dom.getOuterHTML(nodeId, backendNodeId, objectId)
+
+    fun onDragIntercepted(handler: (DragIntercepted) -> Unit) = input.onDragIntercepted(handler)
 
     suspend fun dispatchMouseMoved(x: Double, y: Double, buttons: Int?) {
         input.dispatchMouseEvent(

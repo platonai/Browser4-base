@@ -17,8 +17,6 @@ class ScreenshotHandler(
     private val logger = getLogger(this)
     private val isActive get() = AppContext.isActive && cdp.isOpen
     private fun activeCdp() = cdp.takeIf { isActive }
-    private fun activePage() = if (isActive) cdp.page else null
-    private fun activeDom() = if (isActive) cdp.dom else null
     private val debugLevel = System.getProperty("browser.additionalDebugLevel")?.toIntOrNull() ?: 0
 
     /**
@@ -26,10 +24,10 @@ class ScreenshotHandler(
      * */
     suspend fun screenshot(fullPage: Boolean): String? {
         if (!fullPage) {
-            return activePage()?.captureScreenshot()
+            return activeCdp()?.captureScreenshot()
         }
 
-        val metrics = activePage()?.getLayoutMetrics() ?: return null
+        val metrics = activeCdp()?.getLayoutMetrics() ?: return null
         val rect = metrics.contentSize
         val width = rect.width.toInt()
         val height = rect.height.toInt()
@@ -107,7 +105,7 @@ class ScreenshotHandler(
         // The viewport has to be visible before screenshot
         if (node != null) {
             // Exactly one of nodeId, backendNodeId, objectId must be provided; use nodeId for stability
-            activeDom()?.scrollIntoViewIfNeeded(node.nodeId, null, null, null)
+            activeCdp()?.scrollIntoViewIfNeeded(node.nodeId)
         }
 
         val visible = ClickableDOM.create(activeCdp(), node)?.isVisible() ?: false
@@ -134,9 +132,9 @@ class ScreenshotHandler(
 
         val rect = calculateNodeClip0(node, selector)
 
-        val p = activePage() ?: return null
+        val cdpActive = activeCdp() ?: return null
 
-        val viewport = p.getLayoutMetrics().cssLayoutViewport
+        val viewport = cdpActive.getLayoutMetrics().cssLayoutViewport
         val pageX = viewport.pageX
         val pageY = viewport.pageY
 
@@ -187,9 +185,9 @@ class ScreenshotHandler(
         println(clickableDOM.boundingBox())
         println(clickableDOM.clickablePoint())
 
-        val p = activePage() ?: return
+        val cdpActive = activeCdp() ?: return
 
-        val viewport = p.getLayoutMetrics().cssLayoutViewport
+        val viewport = cdpActive.getLayoutMetrics().cssLayoutViewport
         val pageX = viewport.pageX
         val pageY = viewport.pageY
 
