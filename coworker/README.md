@@ -1,10 +1,10 @@
-# Builtin AI Coworker
+﻿# Builtin AI Coworker
 
 The Builtin AI Coworker is an agent that assists you with various tasks in your repository. It processes task files that you create, executes them, and can commit changes back to your repository.
 
 ## How to Use
 
-Start Assistant 鈫?Batch Draft Tasks 鈫?Copy to Execution Directory 鈫?Assistant Executes Tasks [鈫?View Results 鈫?Review] 鈫?Move to Approval Directory 鈫?Auto-Submit and Push
+Start Assistant 閳?Batch Draft Tasks 閳?Copy to Execution Directory 閳?Assistant Executes Tasks [閳?View Results 閳?Review] 閳?Move to Approval Directory 閳?Auto-Submit and Push
 
 1. run `coworker-scheduler.ps1` to start recurring automation
 2. draft tasks in `0draft` (or anywhere)
@@ -23,7 +23,7 @@ Task files flow through a pipeline of numbered folders inside `coworker/tasks/`:
 | Queue | `1created` | Move tasks here when ready for execution |
 | Plan | `200plan` | Agent planning phase (managed automatically) |
 | Work | `2working` | Agent is actively executing the task |
-| Complete | `3_1complete` | Execution finished 鈥?review the changes |
+| Complete | `3_1complete` | Execution finished 閳?review the changes |
 | Review | `4review` | Optional manual review stage |
 | Approved | `5approved` | Approved tasks awaiting commit/push |
 | Pushed | `6git-pushed` | Successfully committed and pushed |
@@ -31,15 +31,15 @@ Task files flow through a pipeline of numbered folders inside `coworker/tasks/`:
 
 ## Quick Start
 
-1. **Draft** 鈥?Create your task file in `coworker/tasks/0draft/`.
-2. **Queue** 鈥?Move it to `coworker/tasks/1created/` when ready.
-3. **Execute** 鈥?Run the coworker script to process the task:
+1. **Draft** 閳?Create your task file in `coworker/tasks/0draft/`.
+2. **Queue** 閳?Move it to `coworker/tasks/1created/` when ready.
+3. **Execute** 閳?Run the coworker script to process the task:
    - Windows: `.\coworker\scripts\coworker.ps1`
    - Python: `python .\coworker\scripts\coworker.py`
    - Linux/macOS: `./coworker/scripts/coworker.sh`
    - Linux/macOS (Python): `python3 ./coworker/scripts/coworker.py`
-4. **Review** 鈥?Task moves to `3_1complete` after execution. Review the changes.
-5. **Approve** 鈥?Move the task to `5approved` to have it automatically committed and pushed by the periodic runner.
+4. **Review** 閳?Task moves to `3_1complete` after execution. Review the changes.
+5. **Approve** 閳?Move the task to `5approved` to have it automatically committed and pushed by the periodic runner.
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ You can use tags in task files to provide additional context or control behavior
 
 Supported tags:
 
-- `#auto-approve` 鈥?Automatically move the task to `5approved` after completion instead of `3_1complete`. Useful for trusted, low-risk tasks that can be committed without manual review.
+- `#auto-approve` 閳?Automatically move the task to `5approved` after completion instead of `3_1complete`. Useful for trusted, low-risk tasks that can be committed without manual review.
 
 ## Mentions
 
@@ -93,9 +93,9 @@ Task definitions live in `coworker/scripts/coworker-scheduler.config.psd1`. Each
 
 Default scheduled tasks:
 
-- `coworker` 鈥?processes queued coworker tasks after task-source monitoring
-- `draft-refinement` 鈥?processes the draft refinement queue
-- `process-task-source` 鈥?polls configured task sources and dispatches new tasks when enabled
+- `coworker` 閳?processes queued coworker tasks after task-source monitoring
+- `draft-refinement` 閳?processes the draft refinement queue
+- `process-task-source` 閳?polls configured task sources and dispatches new tasks when enabled
 
 The scheduler invokes the legacy one-shot implementations from `coworker/scripts/deprecated/`. The clearer PowerShell entry points are `coworker/scripts/process-coworker-queue.ps1`, `coworker/scripts/process-draft-refinement-queue.ps1`, and `coworker/scripts/process-task-source.ps1`. The older `run_*_periodically.ps1` names remain as compatibility shims and print a deprecation warning before delegating.
 
@@ -131,9 +131,9 @@ For recurring automation, prefer `coworker-scheduler.ps1`.
 
 Draft refinement uses a dedicated pipeline under `coworker/tasks/0draft/refine/`:
 
-- `1ready` 鈥?drafts waiting to be refined
-- `2working` 鈥?drafts currently being refined
-- `3done` 鈥?refined drafts ready for review
+- `1ready` 閳?drafts waiting to be refined
+- `2working` 閳?drafts currently being refined
+- `3done` 閳?refined drafts ready for review
 
 Each refinement run also makes sure `1ready\1.md` through `1ready\5.md` exist as blank placeholders. Empty placeholders are ignored until you add draft content, so the scheduler does not keep reprocessing them.
 

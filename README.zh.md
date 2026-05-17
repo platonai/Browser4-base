@@ -1,97 +1,81 @@
-# 🤖 Browser4
+﻿# 馃 Browser4
 
 ---
 
-[English](README.md) | 简体中文
-
+[English](README.md) | 绠€浣撲腑鏂?
 <!-- TOC -->
-**目录**
-- [🤖 Browser4](#-browser4)
-    - [🌟 简介](#-简介)
-        - [✨ 核心能力](#-核心能力)
-    - [🎥 演示视频](#-演示视频)
-    - [💡 使用示例](#-使用示例)
-        - [工作流自动化](#工作流自动化)
+**鐩綍**
+- [馃 Browser4](#-browser4)
+    - [馃専 绠€浠媇(#-绠€浠?
+        - [鉁?鏍稿績鑳藉姏](#-鏍稿績鑳藉姏)
+    - [馃帴 婕旂ず瑙嗛](#-婕旂ず瑙嗛)
+    - [馃挕 浣跨敤绀轰緥](#-浣跨敤绀轰緥)
+        - [宸ヤ綔娴佽嚜鍔ㄥ寲](#宸ヤ綔娴佽嚜鍔ㄥ寲)
         - [LLM + X-SQL](#llm--x-sql)
-        - [高速并行处理](#高速并行处理)
-        - [自动提取](#自动提取)
-    - [📦 模块概览](#-模块概览)
-    - [📜 文档](#-文档)
-    - [🔧 代理 - 解除网站封锁](#-代理---解除网站封锁)
-    - [✨ 特性](#-特性)
-    - [🤝 支持与社区](#-支持与社区)
+        - [楂橀€熷苟琛屽鐞哴(#楂橀€熷苟琛屽鐞?
+        - [鑷姩鎻愬彇](#鑷姩鎻愬彇)
+    - [馃摝 妯″潡姒傝](#-妯″潡姒傝)
+    - [馃摐 鏂囨。](#-鏂囨。)
+    - [馃敡 浠ｇ悊 - 瑙ｉ櫎缃戠珯灏侀攣](#-浠ｇ悊---瑙ｉ櫎缃戠珯灏侀攣)
+    - [鉁?鐗规€(#-鐗规€?
+    - [馃 鏀寔涓庣ぞ鍖篯(#-鏀寔涓庣ぞ鍖?
 <!-- /TOC -->
 
-## 🌟 简介
+## 馃専 绠€浠?
+馃挅 **Browser4锛氫负浣犵殑 AI 鎵撻€犵殑闂數鑸揩閫熴€佸崗绋嬪畨鍏ㄧ殑娴忚鍣ㄥ紩鎿?* 馃挅
 
-💖 **Browser4：为你的 AI 打造的闪电般快速、协程安全的浏览器引擎** 💖
+### 鉁?鏍稿績鑳藉姏
 
-### ✨ 核心能力
+* 馃 **娴忚鍣ㄨ嚜鍔ㄥ寲** 鈥?楂樻€ц兘鐨勫伐浣滄祦銆佸鑸拰鏁版嵁鎻愬彇鑷姩鍖栥€?* 鈿? **鏋佽嚧鎬ц兘** 鈥?瀹屽叏鍗忕▼瀹夊叏锛涙敮鎸佸崟鏈烘瘡澶?10 涓?~ 20 涓囨澶嶆潅椤甸潰璁块棶銆?* 馃К **鏁版嵁鎻愬彇** 鈥?LLM銆丮L 鍜岄€夋嫨鍣ㄧ殑娣峰悎鏂规锛屼粠娣蜂贡鐨勯〉闈腑鎻愬彇骞插噣鐨勬暟鎹€?
+## 馃帴 婕旂ず瑙嗛
 
-* 🤖 **浏览器自动化** — 高性能的工作流、导航和数据提取自动化。
-* ⚡  **极致性能** — 完全协程安全；支持单机每天 10 万 ~ 20 万次复杂页面访问。
-* 🧬 **数据提取** — LLM、ML 和选择器的混合方案，从混乱的页面中提取干净的数据。
+馃幀 YouTube:
+[![瑙傜湅瑙嗛](https://img.youtube.com/vi/rJzXNXH3Gwk/0.jpg)](https://youtu.be/rJzXNXH3Gwk)
 
-## 🎥 演示视频
-
-🎬 YouTube:
-[![观看视频](https://img.youtube.com/vi/rJzXNXH3Gwk/0.jpg)](https://youtu.be/rJzXNXH3Gwk)
-
-📺 Bilibili:
+馃摵 Bilibili:
 [https://www.bilibili.com/video/BV1fXUzBFE4L](https://www.bilibili.com/video/BV1fXUzBFE4L)
 
 ---
 
-## 💡 使用示例
+## 馃挕 浣跨敤绀轰緥
 
-### 工作流自动化
+### 宸ヤ綔娴佽嚜鍔ㄥ寲
 
-底层浏览器自动化和数据提取，提供细粒度控制。
-
-**特性：**
-- 同时支持实时 DOM 访问和离线快照解析
-- 直接且完整的 Chrome DevTools Protocol (CDP) 控制，协程安全
-- 精确的元素交互（点击、滚动、输入）
-- 使用 CSS 选择器/XPath 快速提取数据
-
+搴曞眰娴忚鍣ㄨ嚜鍔ㄥ寲鍜屾暟鎹彁鍙栵紝鎻愪緵缁嗙矑搴︽帶鍒躲€?
+**鐗规€э細**
+- 鍚屾椂鏀寔瀹炴椂 DOM 璁块棶鍜岀绾垮揩鐓цВ鏋?- 鐩存帴涓斿畬鏁寸殑 Chrome DevTools Protocol (CDP) 鎺у埗锛屽崗绋嬪畨鍏?- 绮剧‘鐨勫厓绱犱氦浜掞紙鐐瑰嚮銆佹粴鍔ㄣ€佽緭鍏ワ級
+- 浣跨敤 CSS 閫夋嫨鍣?XPath 蹇€熸彁鍙栨暟鎹?
 ```kotlin
 val session = AgenticContexts.getOrCreateSession()
 val agent = session.companionAgent
 val driver = session.getOrCreateBoundDriver()
 
-// 加载输入 URL 所引用的初始页面
-var page = session.open(url)
+// 鍔犺浇杈撳叆 URL 鎵€寮曠敤鐨勫垵濮嬮〉闈?var page = session.open(url)
 
-// 使用自然语言指令驱动浏览器
-agent.act("滚动到评论区")
-// 直接从实时 DOM 中读取第一个匹配的评论节点
+// 浣跨敤鑷劧璇█鎸囦护椹卞姩娴忚鍣?agent.act("婊氬姩鍒拌瘎璁哄尯")
+// 鐩存帴浠庡疄鏃?DOM 涓鍙栫涓€涓尮閰嶇殑璇勮鑺傜偣
 val content = driver.selectFirstTextOrNull("#comments")
 
-// 将页面快照保存到内存文档中以供离线解析
-var document = session.parse(page)
-// 一次性将 CSS 选择器映射到结构化字段
-var fields = session.extract(document, mapOf("title" to "#title"))
+// 灏嗛〉闈㈠揩鐓т繚瀛樺埌鍐呭瓨鏂囨。涓互渚涚绾胯В鏋?var document = session.parse(page)
+// 涓€娆℃€у皢 CSS 閫夋嫨鍣ㄦ槧灏勫埌缁撴瀯鍖栧瓧娈?var fields = session.extract(document, mapOf("title" to "#title"))
 
-// 让伴随代理执行多步骤导航/搜索流程
+// 璁╀即闅忎唬鐞嗘墽琛屽姝ラ瀵艰埅/鎼滅储娴佺▼
 val history = agent.run(
-    "前往 amazon.com，搜索 'smart phone'，打开评分最高的商品页面"
+    "鍓嶅線 amazon.com锛屾悳绱?'smart phone'锛屾墦寮€璇勫垎鏈€楂樼殑鍟嗗搧椤甸潰"
 )
 
-// 将更新后的浏览器状态捕获回 PageSnapshot
+// 灏嗘洿鏂板悗鐨勬祻瑙堝櫒鐘舵€佹崟鑾峰洖 PageSnapshot
 page = session.capture(driver)
 document = session.parse(page)
-// 从捕获的快照中提取额外的属性
-fields = session.extract(document, mapOf("ratings" to "#ratings"))
+// 浠庢崟鑾风殑蹇収涓彁鍙栭澶栫殑灞炴€?fields = session.extract(document, mapOf("ratings" to "#ratings"))
 ```
 
 ### LLM + X-SQL
 
-非常适合高复杂度的数据提取流水线，涉及数十个实体、每个实体数百个字段。
-
-**优势：**
-- 相比传统方法，能够提取 10 倍以上的实体和 100 倍以上的字段
-- 将 LLM 智能与精确的 CSS 选择器/XPath 相结合
-- 类 SQL 语法，熟悉的查询方式
+闈炲父閫傚悎楂樺鏉傚害鐨勬暟鎹彁鍙栨祦姘寸嚎锛屾秹鍙婃暟鍗佷釜瀹炰綋銆佹瘡涓疄浣撴暟鐧句釜瀛楁銆?
+**浼樺娍锛?*
+- 鐩告瘮浼犵粺鏂规硶锛岃兘澶熸彁鍙?10 鍊嶄互涓婄殑瀹炰綋鍜?100 鍊嶄互涓婄殑瀛楁
+- 灏?LLM 鏅鸿兘涓庣簿纭殑 CSS 閫夋嫨鍣?XPath 鐩哥粨鍚?- 绫?SQL 璇硶锛岀啛鎮夌殑鏌ヨ鏂瑰紡
 
 ```kotlin
 val context = AgenticContexts.create()
@@ -109,20 +93,16 @@ val rs = context.executeQuery(sql)
 println(ResultSetFormatter(rs, withHeader = true))
 ```
 
-示例代码：
+绀轰緥浠ｇ爜锛?
+* [浣跨敤 X-SQL 浠庝簹椹€婂晢鍝侀〉闈㈡姄鍙?100+ 瀛楁](https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
+* [浣跨敤 X-SQL 鎶撳彇鎵€鏈夌被鍨嬬殑浜氶┈閫婄綉椤礭(https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
 
-* [使用 X-SQL 从亚马逊商品页面抓取 100+ 字段](https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
-* [使用 X-SQL 抓取所有类型的亚马逊网页](https://github.com/platonai/exotic-amazon/tree/main/src/main/resources/sites/amazon/crawl/parse/sql/crawl)
-
-### 高速并行处理
-
-通过并行浏览器控制和智能资源优化实现极致吞吐量。
-
-**性能：**
-- 单机每天 1 万 ~ 2 万次复杂页面访问
-- 并发会话管理
-- 资源拦截以加快页面加载
-
+### 楂橀€熷苟琛屽鐞?
+閫氳繃骞惰娴忚鍣ㄦ帶鍒跺拰鏅鸿兘璧勬簮浼樺寲瀹炵幇鏋佽嚧鍚炲悙閲忋€?
+**鎬ц兘锛?*
+- 鍗曟満姣忓ぉ 1 涓?~ 2 涓囨澶嶆潅椤甸潰璁块棶
+- 骞跺彂浼氳瘽绠＄悊
+- 璧勬簮鎷︽埅浠ュ姞蹇〉闈㈠姞杞?
 ```kotlin
 val args = "-refresh -dropContent -interactLevel fastest"
 val blockingUrls = listOf("*.png", "*.jpg")
@@ -137,124 +117,85 @@ val links = LinkExtractors.fromResource("urls.txt")
 session.submitAll(links)
 ```
 
-🎬 YouTube:
-[![观看视频](https://img.youtube.com/vi/_BcryqWzVMI/0.jpg)](https://www.youtube.com/watch?v=_BcryqWzVMI)
+馃幀 YouTube:
+[![瑙傜湅瑙嗛](https://img.youtube.com/vi/_BcryqWzVMI/0.jpg)](https://www.youtube.com/watch?v=_BcryqWzVMI)
 
-📺 Bilibili:
+馃摵 Bilibili:
 [https://www.bilibili.com/video/BV1kM2rYrEFC](https://www.bilibili.com/video/BV1kM2rYrEFC)
 
 
 ---
 
-### 自动提取
+### 鑷姩鎻愬彇
 
-基于自监督/无监督机器学习的自动、大规模、高精度字段发现与提取 — 无需 LLM API 调用，零 Token，确定性且快速。
-
-**它能做什么：**
-- 高精度学习商品/详情页上的每一个可提取字段（通常数十到数百个）。
-- 当 Browser4 在 GitHub 上达到 10K stars 时开源。
-
-**为什么不仅仅使用 LLM？**
-- LLM 提取会增加延迟、成本和 Token 限制。
-- 基于 ML 的自动提取是本地化、可复现的，并可扩展到每天 10 万 ~ 20 万页面。
-- 你也可以将两者结合：使用自动提取获取结构化基线数据 + LLM 进行语义增强。
-
-**快速命令（PulsarRPAPro）：**
+鍩轰簬鑷洃鐫?鏃犵洃鐫ｆ満鍣ㄥ涔犵殑鑷姩銆佸ぇ瑙勬ā銆侀珮绮惧害瀛楁鍙戠幇涓庢彁鍙?鈥?鏃犻渶 LLM API 璋冪敤锛岄浂 Token锛岀‘瀹氭€т笖蹇€熴€?
+**瀹冭兘鍋氫粈涔堬細**
+- 楂樼簿搴﹀涔犲晢鍝?璇︽儏椤典笂鐨勬瘡涓€涓彲鎻愬彇瀛楁锛堥€氬父鏁板崄鍒版暟鐧句釜锛夈€?- 褰?Browser4 鍦?GitHub 涓婅揪鍒?10K stars 鏃跺紑婧愩€?
+**涓轰粈涔堜笉浠呬粎浣跨敤 LLM锛?*
+- LLM 鎻愬彇浼氬鍔犲欢杩熴€佹垚鏈拰 Token 闄愬埗銆?- 鍩轰簬 ML 鐨勮嚜鍔ㄦ彁鍙栨槸鏈湴鍖栥€佸彲澶嶇幇鐨勶紝骞跺彲鎵╁睍鍒版瘡澶?10 涓?~ 20 涓囬〉闈€?- 浣犱篃鍙互灏嗕袱鑰呯粨鍚堬細浣跨敤鑷姩鎻愬彇鑾峰彇缁撴瀯鍖栧熀绾挎暟鎹?+ LLM 杩涜璇箟澧炲己銆?
+**蹇€熷懡浠わ紙PulsarRPAPro锛夛細**
 ```bash
-# 注意：需要 MongoDB
-curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/download/v4.6.0/PulsarRPAPro.jar
+# 娉ㄦ剰锛氶渶瑕?MongoDB
+curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/download/v4.7.7/PulsarRPAPro.jar
 ```
 
-**集成状态：**
-- 当前可通过配套项目 [PulsarRPAPro](https://github.com/platonai/PulsarRPAPro) 使用。
-- 原生的 Browser4 API 接入正在规划中；请关注发布动态。
+**闆嗘垚鐘舵€侊細**
+- 褰撳墠鍙€氳繃閰嶅椤圭洰 [PulsarRPAPro](https://github.com/platonai/PulsarRPAPro) 浣跨敤銆?- 鍘熺敓鐨?Browser4 API 鎺ュ叆姝ｅ湪瑙勫垝涓紱璇峰叧娉ㄥ彂甯冨姩鎬併€?
+**鏍稿績浼樺娍锛?*
+- 楂樼簿搴︼細>95% 鐨勫瓧娈佃鍙戠幇锛涘叾涓ぇ澶氭暟鍑嗙‘鐜?>99%锛堝湪娴嬭瘯鍩熷悕涓婄殑鍙傝€冨€硷級銆?- 瀵归€夋嫨鍣ㄥ彉鍖栧拰 HTML 鍣０鍏锋湁闊ф€с€?- 闆跺閮ㄤ緷璧栵紙鏃犻渶 API Key锛夆啋 澶ц妯′娇鐢ㄦ椂鎴愭湰鏁堢泭楂樸€?- 鍙В閲婏細鐢熸垚鐨勯€夋嫨鍣ㄥ拰 SQL 閫忔槑涓斿彲瀹¤銆?
+馃懡 浣跨敤鏈哄櫒瀛︿範浠ｇ悊鎻愬彇鏁版嵁锛?
+![鑷姩鎻愬彇缁撴灉蹇収](docs/assets/images/amazon.png)
 
-**核心优势：**
-- 高精度：>95% 的字段被发现；其中大多数准确率 >99%（在测试域名上的参考值）。
-- 对选择器变化和 HTML 噪声具有韧性。
-- 零外部依赖（无需 API Key）→ 大规模使用时成本效益高。
-- 可解释：生成的选择器和 SQL 透明且可审计。
-
-👽 使用机器学习代理提取数据：
-
-![自动提取结果快照](docs/assets/images/amazon.png)
-
-（即将推出：更丰富的仓库内示例和直接的 API 接口。）
+锛堝嵆灏嗘帹鍑猴細鏇翠赴瀵岀殑浠撳簱鍐呯ず渚嬪拰鐩存帴鐨?API 鎺ュ彛銆傦級
 
 ---
 
 ---
 
-## ✨ 特性
+## 鉁?鐗规€?
+鐘舵€侊細[鍙敤] 宸插寘鍚湪浠撳簱涓紝[瀹為獙鎬 姝ｅ湪绉瀬杩唬涓紝[璁″垝涓璢 灏氭湭鍔犲叆浠撳簱锛孾鍙傝€僝 鎬ц兘鐩爣銆?
+### 娴忚鍣ㄨ嚜鍔ㄥ寲涓?RPA
+- [鍙敤] 鍩轰簬宸ヤ綔娴佺殑娴忚鍣ㄦ搷浣?- [鍙敤] 绮剧‘鐨勫崗绋嬪畨鍏ㄦ帶鍒讹紙婊氬姩銆佺偣鍑汇€佹彁鍙栵級
+- [鍙敤] 鐏垫椿鐨勪簨浠跺鐞嗗櫒鍜岀敓鍛藉懆鏈熺鐞?
+### 鏁版嵁鎻愬彇涓庢煡璇?- [鍙敤] 涓€琛屽懡浠ゅ畬鎴愭暟鎹彁鍙?- [鍙敤] 闈㈠悜 DOM/鍐呭鐨?X-SQL 鎵╁睍鏌ヨ璇█
+- [瀹為獙鎬 缁撴瀯鍖栦笌闈炵粨鏋勫寲娣峰悎鎻愬彇锛圠LM & ML & 閫夋嫨鍣級
 
-状态：[可用] 已包含在仓库中，[实验性] 正在积极迭代中，[计划中] 尚未加入仓库，[参考] 性能目标。
+### 鎬ц兘涓庡彲鎵╁睍鎬?- [鍙敤] 楂樻晥鐨勫苟琛岄〉闈㈡覆鏌?- [鍙敤] 鍙嶅皝閿佽璁″拰鏅鸿兘閲嶈瘯
+- [鍙傝€僝 鍦ㄦ櫘閫氱‖浠朵笂姣忓ぉ澶勭悊 10 涓? 澶嶆潅椤甸潰
 
-### 浏览器自动化与 RPA
-- [可用] 基于工作流的浏览器操作
-- [可用] 精确的协程安全控制（滚动、点击、提取）
-- [可用] 灵活的事件处理器和生命周期管理
+### 闅愬尶涓庡彲闈犳€?- [瀹為獙鎬 楂樼骇鍙嶆満鍣ㄤ汉鎶€鏈?- [鍙敤] 閫氳繃 `PROXY_ROTATION_URL` 杩涜浠ｇ悊杞崲
+- [鍙敤] 寮规€ц皟搴︿笌璐ㄩ噺淇濊瘉
 
-### 数据提取与查询
-- [可用] 一行命令完成数据提取
-- [可用] 面向 DOM/内容的 X-SQL 扩展查询语言
-- [实验性] 结构化与非结构化混合提取（LLM & ML & 选择器）
-
-### 性能与可扩展性
-- [可用] 高效的并行页面渲染
-- [可用] 反封锁设计和智能重试
-- [参考] 在普通硬件上每天处理 10 万+ 复杂页面
-
-### 隐匿与可靠性
-- [实验性] 高级反机器人技术
-- [可用] 通过 `PROXY_ROTATION_URL` 进行代理轮换
-- [可用] 弹性调度与质量保证
-
-### 开发者体验
-- [可用] 简洁的 API 集成（REST、原生、文本命令）
-- [可用] 丰富的配置分层
-- [可用] 清晰的结构化日志和指标
-
-### 存储与监控
-- [可用] 支持本地文件系统和 MongoDB（可扩展）
-- [可用] 全面的日志与透明度
-
+### 寮€鍙戣€呬綋楠?- [鍙敤] 绠€娲佺殑 API 闆嗘垚锛圧EST銆佸師鐢熴€佹枃鏈懡浠わ級
+- [鍙敤] 涓板瘜鐨勯厤缃垎灞?- [鍙敤] 娓呮櫚鐨勭粨鏋勫寲鏃ュ織鍜屾寚鏍?
+### 瀛樺偍涓庣洃鎺?- [鍙敤] 鏀寔鏈湴鏂囦欢绯荤粺鍜?MongoDB锛堝彲鎵╁睍锛?- [鍙敤] 鍏ㄩ潰鐨勬棩蹇椾笌閫忔槑搴?
 ---
 
-## 🤝 支持与社区
-
-加入我们的社区，获取支持、反馈和合作！
-
-- **GitHub Discussions**：与开发者和其他用户交流。
-- **Issue Tracker**：报告 Bug 或请求新功能。
-- **社交媒体**：关注我们获取最新动态。
-
-欢迎贡献！详情请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
+## 馃 鏀寔涓庣ぞ鍖?
+鍔犲叆鎴戜滑鐨勭ぞ鍖猴紝鑾峰彇鏀寔銆佸弽棣堝拰鍚堜綔锛?
+- **GitHub Discussions**锛氫笌寮€鍙戣€呭拰鍏朵粬鐢ㄦ埛浜ゆ祦銆?- **Issue Tracker**锛氭姤鍛?Bug 鎴栬姹傛柊鍔熻兘銆?- **绀句氦濯掍綋**锛氬叧娉ㄦ垜浠幏鍙栨渶鏂板姩鎬併€?
+娆㈣繋璐＄尞锛佽鎯呰鍙傞槄 [CONTRIBUTING.md](CONTRIBUTING.md)銆?
 ---
 
-## 📜 文档
+## 馃摐 鏂囨。
 
-完整文档可在 `docs/` 目录和我们的 [GitHub Pages 站点](https://platonai.github.io/browser4/) 中查阅。
-
+瀹屾暣鏂囨。鍙湪 `docs/` 鐩綍鍜屾垜浠殑 [GitHub Pages 绔欑偣](https://platonai.github.io/browser4/) 涓煡闃呫€?
 ---
 
-## 🔧 代理配置 - 解除网站封锁
+## 馃敡 浠ｇ悊閰嶇疆 - 瑙ｉ櫎缃戠珯灏侀攣
 
 <details>
 
-设置环境变量 `PROXY_ROTATION_URL` 为你的代理服务商提供的轮换 URL：
-
+璁剧疆鐜鍙橀噺 `PROXY_ROTATION_URL` 涓轰綘鐨勪唬鐞嗘湇鍔″晢鎻愪緵鐨勮疆鎹?URL锛?
 ```shell
 export PROXY_ROTATION_URL=https://your-proxy-provider.com/rotation-endpoint
 ```
 
-每次访问此轮换 URL 时，应返回一个或多个新的代理 IP。
-如果你需要此类 URL，请联系你的代理服务商。
-
+姣忔璁块棶姝よ疆鎹?URL 鏃讹紝搴旇繑鍥炰竴涓垨澶氫釜鏂扮殑浠ｇ悊 IP銆?濡傛灉浣犻渶瑕佹绫?URL锛岃鑱旂郴浣犵殑浠ｇ悊鏈嶅姟鍟嗐€?
 </details>
 
 ---
 
-## 许可证
+## 璁稿彲璇?
+Apache 2.0 License銆傝鎯呰鍙傞槄 [LICENSE](LICENSE)銆?
 
-Apache 2.0 License。详情请参阅 [LICENSE](LICENSE)。

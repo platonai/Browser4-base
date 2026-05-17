@@ -69,7 +69,7 @@ jobs:
         id: build
         uses: ./.github/actions/maven-build
         with:
-          skip_tests: ${{ inputs.skip_tests || 'false' }}
+          skip_tests: true # Since we run tests in a separate step, we can skip them here to save time
           timeout_minutes: '30'
 
       - name: Run Tests
@@ -109,12 +109,64 @@ jobs:
     if: needs.ci-build.result == 'success'
     permissions:
       contents: read
+    env:
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+      CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Validate release secrets
+        shell: bash
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          echo "=== Release secret preflight ==="
+          missing=0
+
+          if [ -z "${CENTRAL_USERNAME:-}" ]; then
+            echo "::error::Missing required secret: CENTRAL_USERNAME"
+            missing=1
+          else
+            echo "CENTRAL_USERNAME: configured"
+          fi
+
+          if [ -z "${CENTRAL_PASSWORD:-}" ]; then
+            echo "::error::Missing required secret: CENTRAL_PASSWORD"
+            missing=1
+          else
+            echo "CENTRAL_PASSWORD: configured"
+          fi
+
+          if [ -z "${GPG_PASSPHRASE:-}" ]; then
+            echo "::error::Missing required secret: GPG_PASSPHRASE"
+            missing=1
+          else
+            echo "GPG_PASSPHRASE: configured"
+          fi
+
+          if [ -z "${GPG_PRIVATE_KEY:-}" ]; then
+            echo "::error::Missing required secret: GPG_PRIVATE_KEY"
+            missing=1
+          else
+            echo "GPG_PRIVATE_KEY: configured"
+            if ! printf '%s' "$GPG_PRIVATE_KEY" | grep -q "BEGIN PGP PRIVATE KEY BLOCK"; then
+              echo "::error::GPG_PRIVATE_KEY does not look like an ASCII-armored private key block"
+              missing=1
+            fi
+          fi
+
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::Release preflight failed. Configure the missing or invalid secrets and retry."
+            exit 1
+          fi
 
       - name: Set up JDK ${{ env.JAVA_VERSION }} for Deployment
         uses: actions/setup-java@v4
@@ -126,7 +178,28 @@ jobs:
           server-username: CENTRAL_USERNAME
           server-password: CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          gpg-passphrase: GPG_PASSPHRASE
+
+      - name: Diagnose imported GPG keyring
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== GPG keyring diagnostics ==="
+          secret_key_count="$(gpg --batch --list-secret-keys --with-colons | awk -F: '$1 == "sec" { count++ } END { print count + 0 }')"
+          echo "Secret keys available: ${secret_key_count}"
+
+          if [ "${secret_key_count}" -eq 0 ]; then
+            echo "::error::No GPG secret keys found after actions/setup-java import. Check GPG_PRIVATE_KEY and GPG_PASSPHRASE secrets."
+            exit 1
+          fi
+
+          gpg --batch --list-secret-keys --with-colons |
+            awk -F: '$1 == "fpr" { print $10 }' |
+            while IFS= read -r fingerprint; do
+              [ -n "$fingerprint" ] || continue
+              echo "Imported secret key fingerprint: ${fingerprint:0:8}...${fingerprint: -8}"
+            done
 
       - name: Prepare Maven Wrapper
         shell: bash
@@ -134,16 +207,11 @@ jobs:
 
       - name: Deploy to Sonatype Central
         shell: bash
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
         run: |
           set -euo pipefail
 
           echo "=== Deploying to Maven Central ==="
           ./mvnw --batch-mode --no-transfer-progress deploy -P deploy -DskipTests \
-            -Dgpg.passphrase="$GPG_PASSPHRASE" \
             -Dgpg.batch=true \
             -Dgpg.pinentry-mode=loopback \
             --show-version --errors

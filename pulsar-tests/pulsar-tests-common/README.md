@@ -1,4 +1,4 @@
-# pulsar-tests-common Mock Site Utilities
+﻿# pulsar-tests-common Mock Site Utilities
 
 This module provides reusable test/demo infrastructure for Browser4 / Pulsar examples.
 

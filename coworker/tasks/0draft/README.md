@@ -1,4 +1,4 @@
-# Coworker Task Drafting Area
+﻿# Coworker Task Drafting Area
 
 Draft your tasks here. This area is for tasks under preparation and not yet ready for execution.
 
