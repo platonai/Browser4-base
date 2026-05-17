@@ -109,6 +109,9 @@ jobs:
     if: needs.ci-build.result == 'success'
     permissions:
       contents: read
+    env:
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
     steps:
       - name: Checkout repository
@@ -126,7 +129,7 @@ jobs:
           server-username: CENTRAL_USERNAME
           server-password: CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          gpg-passphrase: GPG_PASSPHRASE
 
       - name: Prepare Maven Wrapper
         shell: bash
@@ -135,7 +138,6 @@ jobs:
       - name: Deploy to Sonatype Central
         shell: bash
         env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
         run: |
@@ -143,7 +145,6 @@ jobs:
 
           echo "=== Deploying to Maven Central ==="
           ./mvnw --batch-mode --no-transfer-progress deploy -P deploy -DskipTests \
-            -Dgpg.passphrase="$GPG_PASSPHRASE" \
             -Dgpg.batch=true \
             -Dgpg.pinentry-mode=loopback \
             --show-version --errors
