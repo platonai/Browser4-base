@@ -1,4 +1,4 @@
-# Browser4 Dependency Management Tools
+﻿# Browser4 Dependency Management Tools
 
 This directory contains tools and scripts for managing project dependencies.
 
