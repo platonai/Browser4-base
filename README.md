@@ -1,48 +1,48 @@
-﻿# 馃 Browser4
+﻿# 🤖 Browser4
 
 ---
 
-English | [绠€浣撲腑鏂嘳(README.zh.md)
+English | [简体中文](README.zh.md)
 
 <!-- TOC -->
 **Table of Contents**
-- [馃 Browser4](#-browser4)
-    - [馃専 Introduction](#-introduction)
-        - [鉁?Key Capabilities](#-key-capabilities)
-    - [馃帴 Demo Videos](#-demo-videos)
-    - [馃挕 Usage Examples](#-usage-examples)
+- [🤖 Browser4](#-browser4)
+    - [🌟 Introduction](#-introduction)
+        - [✨ Key Capabilities](#-key-capabilities)
+    - [🎥 Demo Videos](#-demo-videos)
+    - [💡 Usage Examples](#-usage-examples)
         - [Workflow Automation](#workflow-automation)
         - [LLM + X-SQL](#llm--x-sql)
         - [High-Speed Parallel Processing](#high-speed-parallel-processing)
         - [Auto Extraction](#auto-extraction)
-    - [馃摝 Modules Overview](#-modules-overview)
-    - [馃摐 Documentation](#-documentation)
-    - [馃敡 Proxies - Unblock Websites](#-proxies---unblock-websites)
-    - [鉁?Features](#-features)
-    - [馃 Support & Community](#-support--community)
+    - [📦 Modules Overview](#-modules-overview)
+    - [📜 Documentation](#-documentation)
+    - [🔧 Proxies - Unblock Websites](#-proxies---unblock-websites)
+    - [✨ Features](#-features)
+    - [🤝 Support & Community](#-support--community)
 <!-- /TOC -->
 
-## 馃専 Introduction
+## 🌟 Introduction
 
-馃挅 **Browser4: a lightning-fast, coroutine-safe browser engine for your AI** 馃挅
+💖 **Browser4: a lightning-fast, coroutine-safe browser engine for your AI** 💖
 
-### 鉁?Key Capabilities
+### ✨ Key Capabilities
 
-* 馃 **Browser Automation** 鈥?High-performance automation for workflows, navigation, and data extraction.
-* 鈿? **Extreme Performance** 鈥?Fully coroutine-safe; supports 100k ~ 200k complex page visits per machine per day.
-* 馃К **Data Extraction** 鈥?Hybrid of LLM, ML, and selectors for clean data across chaotic pages.
+* 🤖 **Browser Automation** — High-performance automation for workflows, navigation, and data extraction.
+* ⚡  **Extreme Performance** — Fully coroutine-safe; supports 100k ~ 200k complex page visits per machine per day.
+* 🧬 **Data Extraction** — Hybrid of LLM, ML, and selectors for clean data across chaotic pages.
 
-## 馃帴 Demo Videos
+## 🎥 Demo Videos
 
-馃幀 YouTube:
+🎬 YouTube:
 [![Watch the video](https://img.youtube.com/vi/rJzXNXH3Gwk/0.jpg)](https://youtu.be/rJzXNXH3Gwk)
 
-馃摵 Bilibili:
+📺 Bilibili:
 [https://www.bilibili.com/video/BV1fXUzBFE4L](https://www.bilibili.com/video/BV1fXUzBFE4L)
 
 ---
 
-## 馃挕 Usage Examples
+## 💡 Usage Examples
 
 ### Workflow Automation
 
@@ -137,10 +137,10 @@ val links = LinkExtractors.fromResource("urls.txt")
 session.submitAll(links)
 ```
 
-馃幀 YouTube:
+🎬 YouTube:
 [![Watch the video](https://img.youtube.com/vi/_BcryqWzVMI/0.jpg)](https://www.youtube.com/watch?v=_BcryqWzVMI)
 
-馃摵 Bilibili:
+📺 Bilibili:
 [https://www.bilibili.com/video/BV1kM2rYrEFC](https://www.bilibili.com/video/BV1kM2rYrEFC)
 
 
@@ -148,7 +148,7 @@ session.submitAll(links)
 
 ### Auto Extraction
 
-Automatic, large-scale, high-precision field discovery and extraction powered by self-/unsupervised machine learning 鈥?no LLM API calls, no tokens, deterministic and fast.
+Automatic, large-scale, high-precision field discovery and extraction powered by self-/unsupervised machine learning — no LLM API calls, no tokens, deterministic and fast.
 
 **What it does:**
 - Learns every extractable field on item/detail pages (often dozens to hundreds) with high precision.
@@ -162,7 +162,7 @@ Automatic, large-scale, high-precision field discovery and extraction powered by
 **Quick Commands (PulsarRPAPro):**
 ```bash
 # NOTE: MongoDB required
-curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/download/v4.7.7/PulsarRPAPro.jar
+curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/download/v4.7.8/PulsarRPAPro.jar
 ```
 
 **Integration Status:**
@@ -172,10 +172,10 @@ curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/do
 **Key Advantages:**
 - High precision: >95% fields discovered; majority with >99% accuracy (indicative on tested domains).
 - Resilient to selector churn & HTML noise.
-- Zero external dependency (no API key) 鈫?cost-efficient at scale.
+- Zero external dependency (no API key) → cost-efficient at scale.
 - Explainable: generated selectors & SQL are transparent and auditable.
 
-馃懡 Extract data with machine learning agents:
+👽 Extract data with machine learning agents:
 
 ![Auto Extraction Result Snapshot](docs/assets/images/amazon.png)
 
@@ -185,7 +185,7 @@ curl -L -o PulsarRPAPro.jar https://github.com/platonai/PulsarRPAPro/releases/do
 
 ---
 
-## 鉁?Features
+## ✨ Features
 
 Status: [Available] in repo, [Experimental] in active iteration, [Planned] not in repo, [Indicative] performance target.
 
@@ -220,7 +220,7 @@ Status: [Available] in repo, [Experimental] in active iteration, [Planned] not i
 
 ---
 
-## 馃 Support & Community
+## 🤝 Support & Community
 
 Join our community for support, feedback, and collaboration!
 
@@ -232,13 +232,13 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
-## 馃摐 Documentation
+## 📜 Documentation
 
 Comprehensive documentation is available in the `docs/` directory and on our [GitHub Pages site](https://platonai.github.io/browser4/).
 
 ---
 
-## 馃敡 Proxy Configuration - Unblock Website Access
+## 🔧 Proxy Configuration - Unblock Website Access
 
 <details>
 
