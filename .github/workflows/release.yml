@@ -180,27 +180,6 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: GPG_PASSPHRASE
 
-      - name: Diagnose imported GPG keyring
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          echo "=== GPG keyring diagnostics ==="
-          secret_key_count="$(gpg --batch --list-secret-keys --with-colons | awk -F: '$1 == "sec" { count++ } END { print count + 0 }')"
-          echo "Secret keys available: ${secret_key_count}"
-
-          if [ "${secret_key_count}" -eq 0 ]; then
-            echo "::error::No GPG secret keys found after actions/setup-java import. Check GPG_PRIVATE_KEY and GPG_PASSPHRASE secrets."
-            exit 1
-          fi
-
-          gpg --batch --list-secret-keys --with-colons |
-            awk -F: '$1 == "fpr" { print $10 }' |
-            while IFS= read -r fingerprint; do
-              [ -n "$fingerprint" ] || continue
-              echo "Imported secret key fingerprint: ${fingerprint:0:8}...${fingerprint: -8}"
-            done
-
       - name: Prepare Maven Wrapper
         shell: bash
         run: chmod +x ./mvnw
@@ -211,7 +190,7 @@ jobs:
           set -euo pipefail
 
           echo "=== Deploying to Maven Central ==="
-          ./mvnw --batch-mode --no-transfer-progress deploy -P deploy -DskipTests \
+          ./mvnw --batch-mode --no-transfer-progress deploy -P deploy,release -DskipTests \
             -Dgpg.batch=true \
             -Dgpg.pinentry-mode=loopback \
             --show-version --errors
